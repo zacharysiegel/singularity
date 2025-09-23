@@ -1,7 +1,10 @@
 
 ## Title
 
-None
+Ideas
+    Singularity
+    Neural Foundry
+    Silicogenesis
 
 ## Main idea
 
@@ -138,5 +141,6 @@ Stage 3
 
 Map
 Inventory
+Assembler specializer
 Time machine
 
