@@ -1,0 +1,11 @@
+# Generated
+exe
+**/*.dSYM/
+compile_commands.json
+
+# Clangd
+.cache/
+
+# IDE
+.idea/
+
