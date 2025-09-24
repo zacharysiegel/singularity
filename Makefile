@@ -13,7 +13,7 @@ framework_names = \
     -framework Foundation
 exe_path = ./e
 other_flags = -Wall -std=c++23
-src_paths = src/*.cpp
+src_paths = $(wildcard **/*.cpp)
 compile_command = $(compiler) $(include_paths) $(library_paths) $(library_names) $(framework_names) -o $(exe_path) $(other_flags) $(src_paths)
 
 .PHONY: default
