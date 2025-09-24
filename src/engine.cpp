@@ -1,15 +1,12 @@
-#include <cstdint>
 #include <cstdio>
 #include <raylib.h>
 
+#include "engine.h"
 #include "app.h"
 #include "result.h"
+#include "map.h"
 
 namespace app {
-
-static uint8_t const TARGET_FPS = 60;
-static uint16_t const DISPLAY_WIDTH = 1600;
-static uint16_t const DISPLAY_HEIGHT = 900;
 
 static char fps_str[5];
 static Font default_font;
@@ -70,8 +67,7 @@ static void draw() {
 
     // todo: draw background
 
-    // todo: draw map
-    DrawPolyLinesEx(Vector2{.x = DISPLAY_WIDTH / 2.0, .y = DISPLAY_HEIGHT / 2.0}, 6, 10.0f, 0.0f, 2.0f, RAYWHITE);
+    drawMap();
 }
 
 } // namespace app
