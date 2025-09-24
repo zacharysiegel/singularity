@@ -4,6 +4,6 @@
 
 namespace app {
 
-std::string const application_name = "silicogenesis";
+std::string const APPLICATION_NAME = "silicogenesis";
 
 } // namespace app

@@ -1,8 +1,9 @@
 #pragma once
 
+#include "raylib.h"
 namespace app {
 
-void drawMap();
+void drawMap(Vector2 render_origin);
 
 }
 

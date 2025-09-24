@@ -1,6 +1,11 @@
 #include <cassert>
+#include <cmath>
+#include "raylib.h"
 
 namespace app {
+
+double const SIN_PI_DIV_3{std::sin(PI / 3)};
+double const SIN_PI_DIV_6{std::sin(PI / 6)};
 
 template <typename T>
 T mod(T modulus, T a) {
