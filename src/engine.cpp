@@ -14,8 +14,11 @@ static Font custom_font;
 static void draw();
 
 result_t init() {
-    InitWindow(800, 600, application_name.c_str());
+	SetTraceLogLevel(LOG_DEBUG);
     SetTargetFPS(app::TARGET_FPS);
+
+    InitWindow(800, 600, application_name.c_str());
+	// todo: SetWindowIcon
 
     default_font = GetFontDefault();
     custom_font = LoadFont("/Users/zacharysiegel/Downloads/Google_Sans_Code/static/GoogleSansCode-Regular.ttf");
