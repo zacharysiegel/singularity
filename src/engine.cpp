@@ -4,6 +4,8 @@
 #include "app.h"
 #include "result.h"
 
+namespace app {
+
 static uint8_t const TARGET_FPS = 60;
 
 static Font default_font;
@@ -46,3 +48,5 @@ static void draw() {
     DrawTextEx(default_font, "test text 2", Vector2{.x = 10, .y = 10}, 20.0f, 10.0f, Color{0xff, 0xff, 0x80, 0xff});
     DrawTextEx(custom_font, "test text 3", Vector2{.x = 10, .y = 10}, 20.0f, 10.0f, Color{0xff, 0xff, 0x80, 0xff});
 }
+
+} // namespace app

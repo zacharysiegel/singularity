@@ -6,16 +6,16 @@
 #include "result.h"
 
 int main(int argc, char **argv) {
-    result_t result;
+	app::result_t result;
 
-    result = init();
-    if (result != OK) return result;
+    result = app::init();
+    if (result != app::OK) return result;
 
-    result = run();
-    if (result != OK) return result;
+    result = app::run();
+    if (result != app::OK) return result;
 
-    result = destroy();
-    if (result != OK) return result;
+    result = app::destroy();
+    if (result != app::OK) return result;
 
     return 0;
 }
