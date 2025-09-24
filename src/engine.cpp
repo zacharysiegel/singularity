@@ -13,8 +13,6 @@ static uint16_t const DISPLAY_HEIGHT = 900;
 static Font default_font;
 static Font custom_font;
 
-static void draw();
-
 result_t init() {
     SetTraceLogLevel(LOG_DEBUG);
     SetTargetFPS(app::TARGET_FPS);
@@ -39,17 +37,24 @@ result_t destroy() {
     return OK;
 }
 
+static void draw();
+static void update();
+
 result_t run() {
     while (!WindowShouldClose()) {
-        if (IsKeyPressed(KEY_A)) {
-            TraceLog(LOG_DEBUG, "a pressed");
-        }
+        update();
 
         BeginDrawing();
         draw();
         EndDrawing();
     }
     return OK;
+}
+
+static void update() {
+    if (IsKeyPressed(KEY_A)) {
+        TraceLog(LOG_DEBUG, "a pressed");
+    }
 }
 
 static void draw() {
