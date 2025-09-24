@@ -144,3 +144,6 @@ Inventory
 Assembler specializer
 Time machine
 
+Map always renders the same resolution at all screen sizes
+    User with larger screen can see more of the map, but this is not an issue since any user can simply scroll to see the rest of the map
+
