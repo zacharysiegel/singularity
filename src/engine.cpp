@@ -37,6 +37,10 @@ result_t destroy() {
 
 result_t run() {
     while (!WindowShouldClose()) {
+		if (IsKeyPressed(KEY_A)) {
+			TraceLog(LOG_DEBUG, "a pressed");
+		}
+
         BeginDrawing();
         draw();
         EndDrawing();
