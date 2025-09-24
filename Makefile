@@ -12,8 +12,10 @@ framework_names = \
     -framework CoreGraphics \
     -framework Foundation
 exe_path = ./e
+exe_test_path = ./t
 other_flags = -Wall -std=c++23
 src_paths = $(wildcard **/*.cpp)
+src_test_paths = $(wildcard test/*.cpp)
 compile_command = $(compiler) $(include_paths) $(library_paths) $(library_names) $(framework_names) -o $(exe_path) $(other_flags) $(src_paths)
 
 .PHONY: default
@@ -45,4 +47,12 @@ compile_commands.json:
 .PHONY: clean
 clean:
 	rm -rf $(exe_path) $(exe_path).dSYM compile_commands.json .cache/
+
+.PHONY: build-test
+build-test:
+	$(compiler) $(include_paths) $(library_paths) $(library_names) $(framework_names) -o $(exe_test_path) $(other_flags) $(src_test_paths) -g -O0
+
+.PHONY: test
+test: build-test
+	$(exe_test_path)
 
