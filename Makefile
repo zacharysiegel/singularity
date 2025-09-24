@@ -11,7 +11,7 @@ framework_names = \
     -framework CoreFoundation \
     -framework CoreGraphics \
     -framework Foundation
-exe_path = ./exe
+exe_path = ./e
 other_flags = -Wall -std=c++23
 src_paths = src/*.cpp
 compile_command = $(compiler) $(include_paths) $(library_paths) $(library_names) $(framework_names) -o $(exe_path) $(other_flags) $(src_paths)
@@ -38,7 +38,6 @@ build:
 build-release:
 	$(compile_command) -O3
 
-.PHONY: compile_commands.json
 compile_commands.json:
 	echo '[{"directory": "$(PWD)", "command": "$(compile_command)", "file": "$(src_paths)"}]' > compile_commands.json
 
