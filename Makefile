@@ -46,7 +46,7 @@ compile_commands.json:
 # Target "clean" is expected by CLion
 .PHONY: clean
 clean:
-	rm -rf $(exe_path) $(exe_path).dSYM compile_commands.json .cache/
+	rm -rf $(exe_path) $(exe_path).dSYM $(exe_test_path) $(exe_test_path).dSYM compile_commands.json .cache/
 
 .PHONY: build-test
 build-test:
