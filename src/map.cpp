@@ -35,7 +35,7 @@ void drawMapHex(Vector2 center) {
 }
 
 void drawMap(Vector2 render_origin) {
-    int32_t screen_width{GetScreenWidth()};
+    int32_t screen_width{GetScreenWidth()}; // is it any faster to call this function only once per frame? or does raylib already include this caching optimization?
     int32_t screen_height{GetScreenHeight()};
     int32_t map_render_max_x{modularAddition<int32_t>(MAP_WIDTH, render_origin.x, screen_width)};
     int32_t map_render_max_y{modularAddition<int32_t>(MAP_HEIGHT, render_origin.y, screen_height)};
