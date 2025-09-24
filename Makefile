@@ -14,7 +14,7 @@ framework_names = \
 exe_path = ./e
 exe_test_path = ./t
 other_flags = -Wall -std=c++23
-src_paths = $(wildcard **/*.cpp)
+src_paths = $(wildcard src/*.cpp)
 src_test_paths = $(wildcard test/*.cpp)
 compile_command = $(compiler) $(include_paths) $(library_paths) $(library_names) $(framework_names) -o $(exe_path) $(other_flags) $(src_paths)
 
