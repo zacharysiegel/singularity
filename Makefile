@@ -11,12 +11,14 @@ framework_names = \
     -framework CoreFoundation \
     -framework CoreGraphics \
     -framework Foundation
-exe_path = ./e
-exe_test_path = ./t
 other_flags = -Wall -std=c++23
-src_paths = $(wildcard src/*.cpp)
-src_test_paths = $(wildcard test/*.cpp)
-compile_command = $(compiler) $(include_paths) $(library_paths) $(library_names) $(framework_names) -o $(exe_path) $(other_flags) $(src_paths)
+exe_path_client_app = ./ce
+exe_path_client_test = ./ct
+src_paths_client_app = $(wildcard client/src/*.cpp)
+src_paths_client_test = $(wildcard client/test/*.cpp)
+compile_command_base = $(compiler) $(include_paths) $(library_paths) $(library_names) $(framework_names)
+compile_command_client_app = $(compile_command_base) -o $(exe_path_client_app) $(other_flags) $(src_paths_client_app)
+compile_command_client_test = $(compile_command_base) -o $(exe_path_client_test) $(other_flags) $(src_paths_client_test) -g -O0
 
 .PHONY: default
 default: all
@@ -30,15 +32,32 @@ setup: compile_commands.json
 
 .PHONY: run
 run: build
-	$(exe_path)
+	$(exe_path_client_app)
 
 .PHONY: build
-build:
-	$(compile_command) -g -O0
+build: build-dev-client
+
+.PHONY: build-dev-client
+build-dev-client:
+	$(compile_command_client_app) -g -O0
 
 .PHONY: build-release
-build-release:
-	$(compile_command) -O3
+build-release: build-release-client
+
+.PHONY: build-release-client
+build-release-client:
+	$(compile_command_client_app) -O3
+
+.PHONY: build-test
+build-test: build-test-client
+
+.PHONY: build-test-client
+build-test-client:
+	$(compile_command_client_test)
+
+.PHONY: test
+test: build-test
+	$(exe_path_client_test)
 
 compile_commands.json:
 	echo '[{"directory": "$(PWD)", "command": "$(compile_command)", "file": "$(src_paths)"}]' > compile_commands.json
@@ -46,13 +65,8 @@ compile_commands.json:
 # Target "clean" is expected by CLion
 .PHONY: clean
 clean:
-	rm -rf $(exe_path) $(exe_path).dSYM $(exe_test_path) $(exe_test_path).dSYM compile_commands.json .cache/
-
-.PHONY: build-test
-build-test:
-	$(compiler) $(include_paths) $(library_paths) $(library_names) $(framework_names) -o $(exe_test_path) $(other_flags) $(src_test_paths) -g -O0
-
-.PHONY: test
-test: build-test
-	$(exe_test_path)
+	rm -rf \
+		$(exe_path_client_app) $(exe_path_client_app).dSYM \
+		$(exe_path_client_test) $(exe_path_client_test).dSYM \
+		compile_commands.json .cache/
 
