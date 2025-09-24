@@ -1,11 +1,11 @@
-#include "map.h"
-#include "raylib.h"
-
 #include <cassert>
 #include <cstdint>
 #include <sys/cdefs.h>
 
+#include "raylib.h"
 #include "raymath.h"
+
+#include "map.h"
 #include "util.h"
 
 namespace app {
