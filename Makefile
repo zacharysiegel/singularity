@@ -27,7 +27,7 @@ all: setup build
 setup: compile_commands.json
 
 .PHONY: run
-run: $(exe_path)
+run: build
 	$(exe_path)
 
 .PHONY: build
