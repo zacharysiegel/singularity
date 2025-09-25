@@ -14,7 +14,7 @@ static void update() {
 }
 
 static void draw() {
-    ClearBackground(Color{.r = 30, .g = 30, .b = 30, .a = 0xFF});
+    ClearBackground(BACKGROUND_COLOR);
     // todo: draw background
 
     drawMap(Vector2{1000, 500});
@@ -35,6 +35,11 @@ result_t init() {
     if (!IsWindowReady()) {
         return ERROR;
     }
+
+    BeginDrawing();
+    ClearBackground(BACKGROUND_COLOR);
+    DrawText("Loading...", 16, GetScreenHeight() - 30, 20, RAYWHITE);
+    EndDrawing();
 
     return OK;
 }
