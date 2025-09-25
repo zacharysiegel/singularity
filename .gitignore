@@ -7,7 +7,7 @@ st
 compile_commands.json
 
 # Clangd
-.cache/
+**/.cache/
 
 # IDE
 .idea/

@@ -28,7 +28,7 @@ default: all
 all: setup build
 
 .PHONY: setup
-setup: compile_commands.json
+setup: client/compile_commands.json
 
 .PHONY: run
 run: build
@@ -59,8 +59,8 @@ build-test-client:
 test: build-test
 	$(exe_path_client_test)
 
-compile_commands.json:
-	echo '[{"directory": "$(PWD)", "command": "$(compile_command)", "file": "$(src_paths)"}]' > compile_commands.json
+client/compile_commands.json:
+	echo '[{"directory": "$(PWD)", "command": "$(compile_command_client_app)", "file": "$(src_paths_client_app)"}]' > client/compile_commands.json
 
 # Target "clean" is expected by CLion
 .PHONY: clean
