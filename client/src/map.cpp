@@ -2,11 +2,13 @@
 #include <cstdint>
 #include <sys/cdefs.h>
 
+#include "app.h"
 #include "raylib.h"
 #include "raymath.h"
 
 #include "map.h"
 #include "util.h"
+#include "state.h"
 
 namespace app {
 
@@ -16,6 +18,11 @@ uint8_t const HEX_SIDES{6};
 uint8_t const HEX_RADIUS{32};
 double const HEX_SIDE_LENGTH{2 * SIN_PI_DIV_6 * HEX_RADIUS};
 double const HEX_HEIGHT{SIN_PI_DIV_3 * HEX_RADIUS * 2};
+
+Hex& getHexFromIndex(std::vector<Hex>& hexes, uint16_t i, uint16_t j) {
+    uint16_t index = i + j * HEX_COUNT_SQRT;
+    return hexes.at(index);
+}
 
 Vector2 renderCoordFromMapCoord(Vector2 render_origin, Vector2 map_coord) {
     return Vector2{
