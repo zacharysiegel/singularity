@@ -41,6 +41,8 @@ result_t init() {
     DrawText("Loading...", 16, GetScreenHeight() - 30, 20, RAYWHITE);
     EndDrawing();
 
+    initMap();
+
     return OK;
 }
 

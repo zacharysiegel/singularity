@@ -7,8 +7,8 @@
 #include "raymath.h"
 
 #include "map.h"
-#include "util.h"
 #include "state.h"
+#include "util.h"
 
 namespace app {
 
@@ -19,9 +19,21 @@ uint8_t const HEX_RADIUS{32};
 double const HEX_SIDE_LENGTH{2 * SIN_PI_DIV_6 * HEX_RADIUS};
 double const HEX_HEIGHT{SIN_PI_DIV_3 * HEX_RADIUS * 2};
 
-Hex& getHexFromIndex(std::vector<Hex>& hexes, uint16_t i, uint16_t j) {
-    uint16_t index = i + j * HEX_COUNT_SQRT;
-    return hexes.at(index);
+uint16_t getIndexFromHexCoord(HexCoord hex_coord) {
+    return hex_coord.i + hex_coord.j * HEX_COUNT_SQRT;
+}
+
+void initMap() {
+    for (uint16_t i = 0; i < HEX_COUNT_SQRT; i++) {
+        for (uint16_t j = 0; j < HEX_COUNT_SQRT; j++) {
+            HexCoord hex_coord{.i = i, .j = j};
+            hexes.at(getIndexFromHexCoord(hex_coord)) = Hex{.hex_coord = hex_coord};
+        }
+    }
+}
+
+Hex &getHexFromHexCoord(std::vector<Hex> &hexes, HexCoord hex_coord) {
+    return hexes.at(getIndexFromHexCoord(hex_coord));
 }
 
 Vector2 renderCoordFromMapCoord(Vector2 render_origin, Vector2 map_coord) {
