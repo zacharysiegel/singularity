@@ -2,18 +2,15 @@
 #include <cstdint>
 #include <sys/cdefs.h>
 
-#include "app.h"
 #include "raylib.h"
-#include "raymath.h"
 
+#include "app.h"
 #include "map.h"
 #include "state.h"
 #include "util.h"
 
 namespace app {
 
-int32_t const MAP_WIDTH{4000};
-int32_t const MAP_HEIGHT{MAP_WIDTH};
 uint8_t const HEX_SIDES{6};
 uint8_t const HEX_RADIUS{32};
 double const HEX_SIDE_LENGTH{2 * SIN_PI_DIV_6 * HEX_RADIUS};
@@ -36,6 +33,26 @@ Hex &getHexFromHexCoord(std::vector<Hex> &hexes, HexCoord hex_coord) {
     return hexes.at(getIndexFromHexCoord(hex_coord));
 }
 
+Vector2 mapCoordFromHexCoord(HexCoord hex_coord) {
+    bool even_row = hex_coord.j % 2 == 0;
+    float x = (hex_coord.i * HEX_HEIGHT) + (even_row ? 0 : HEX_HEIGHT / 2);
+    float y = hex_coord.j * (HEX_RADIUS + HEX_SIDE_LENGTH / 2);
+    return Vector2{
+        .x = x,
+        .y = y
+    };
+}
+
+HexCoord hexCoordFromMapCoord(Vector2 map_coord) {
+    uint16_t j = static_cast<uint16_t>(map_coord.y / (HEX_RADIUS + HEX_SIDE_LENGTH / 2));
+    bool even_row = j % 2 == 0;
+    uint16_t i = static_cast<uint16_t>(map_coord.x / (HEX_HEIGHT) + (even_row ? 0 : HEX_HEIGHT / 2));
+    return HexCoord{
+        .i = i,
+        .j = j
+    };
+}
+
 Vector2 renderCoordFromMapCoord(Vector2 render_origin, Vector2 map_coord) {
     return Vector2{
         .x = map_coord.x - render_origin.x,
@@ -43,38 +60,43 @@ Vector2 renderCoordFromMapCoord(Vector2 render_origin, Vector2 map_coord) {
     };
 }
 
-void drawMapHex(Vector2 center) {
+void drawMapHex(Vector2 center_render_coord) {
     // { // Colored hex fill for debugging
     //     static bool color_switch{true};
     //     color_switch = !color_switch;
-    //     DrawPoly(center, HEX_SIDES, HEX_RADIUS, 30.0f, color_switch ? RED : BLUE);
+    //     DrawPoly(center_render_coord, HEX_SIDES, HEX_RADIUS, 30.0f, color_switch ? RED : BLUE);
     // }
 
-    DrawPolyLinesEx(center, HEX_SIDES, HEX_RADIUS, 30.0f, 1.0f, RAYWHITE);
+    DrawPolyLinesEx(center_render_coord, HEX_SIDES, HEX_RADIUS, 30.0f, 1.0f, RAYWHITE);
 }
 
 void drawMap(Vector2 render_origin) {
     int32_t screen_width{GetScreenWidth()}; // is it any faster to call this function only once per frame? or does raylib already include this caching optimization?
     int32_t screen_height{GetScreenHeight()};
-    int32_t map_render_max_x{modularAddition<int32_t>(MAP_WIDTH, render_origin.x, screen_width)};
-    int32_t map_render_max_y{modularAddition<int32_t>(MAP_HEIGHT, render_origin.y, screen_height)};
-    Vector2 map_coord{Vector2Add(
-        render_origin,
-        Vector2{
-            .x = -static_cast<float>(HEX_HEIGHT / 2.0),
-            .y = -HEX_RADIUS / 2.0
-        }
-    )};
-    bool even_row{false};
+    HexCoord min_hex_coord{hexCoordFromMapCoord(render_origin)};
+    HexCoord hex_coord{min_hex_coord};
+    Vector2 map_coord{mapCoordFromHexCoord(hex_coord)};
+    Vector2 render_coord{renderCoordFromMapCoord(render_origin, map_coord)};
 
-    while (map_coord.y < map_render_max_y + HEX_RADIUS / 2.0) {
-        while (map_coord.x < map_render_max_x + HEX_RADIUS / 2.0) {
-            drawMapHex(renderCoordFromMapCoord(render_origin, map_coord));
-            map_coord.x += HEX_HEIGHT;
+    while (render_coord.y < screen_height + HEX_RADIUS) {
+        while (render_coord.x < screen_width + HEX_HEIGHT) {
+            drawMapHex(render_coord);
+
+            hex_coord.i += 1;
+            if (hex_coord.i >= HEX_COUNT_SQRT) {
+                hex_coord.i = min_hex_coord.i;
+            }
+            map_coord = mapCoordFromHexCoord(hex_coord);
+            render_coord = renderCoordFromMapCoord(render_origin, map_coord);
         }
-        even_row = !even_row;
-        map_coord.y += HEX_RADIUS + HEX_SIDE_LENGTH / 2;
-        map_coord.x = render_origin.x - (even_row ? 0 : HEX_HEIGHT / 2);
+
+        hex_coord.i = min_hex_coord.i;
+        hex_coord.j += 1;
+        if (hex_coord.j >= HEX_COUNT_SQRT) {
+            hex_coord.j = min_hex_coord.j;
+        }
+        map_coord = mapCoordFromHexCoord(hex_coord);
+        render_coord = renderCoordFromMapCoord(render_origin, map_coord);
     }
 }
 

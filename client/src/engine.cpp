@@ -17,7 +17,7 @@ static void draw() {
     ClearBackground(BACKGROUND_COLOR);
     // todo: draw background
 
-    drawMap(Vector2{1000, 500});
+    drawMap(Vector2{1010, 500});
 
     // Debug
     DrawFPS(10, 10);
