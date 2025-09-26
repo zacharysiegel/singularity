@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cstdint>
 #include <vector>
 
@@ -17,6 +18,19 @@ enum class ResourceType : uint8_t {
     Metal,
     Oil,
 };
+
+inline constexpr Color colorFromResourceType(ResourceType resource_type) {
+    switch (resource_type) {
+        case ResourceType::None:
+            return Color{.r = 0x00, .g = 0x00, .b = 0x00, .a = 0x00};
+        case ResourceType::Metal:
+            return METAL_BACKGROUND_COLOR;
+        case ResourceType::Oil:
+            return OIL_BACKGROUND_COLOR;
+        default:
+            assert(false && "invalid case");
+    }
+}
 
 typedef struct Hex {
     HexCoord hex_coord;

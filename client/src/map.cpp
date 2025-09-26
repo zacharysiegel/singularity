@@ -15,15 +15,16 @@ uint8_t const HEX_SIDES{6};
 uint8_t const HEX_RADIUS{32};
 double const HEX_SIDE_LENGTH{2 * SIN_PI_DIV_6 * HEX_RADIUS};
 double const HEX_HEIGHT{SIN_PI_DIV_3 * HEX_RADIUS * 2};
+float const HEX_ROTATION{30.0f};
 
 uint16_t getIndexFromHexCoord(HexCoord hex_coord) {
     return hex_coord.i + hex_coord.j * HEX_COUNT_SQRT;
 }
 
 ResourceType initResourceTypeFromHexCoord(uint16_t i, uint16_t j) {
-    if (i % HEX_COUNT_SQRT / 8 == 10 && j % HEX_COUNT_SQRT / 8 == 20) {
+    if (i % (HEX_COUNT_SQRT / 4) == 10 && j % (HEX_COUNT_SQRT / 4) == 4) {
         return ResourceType::Metal;
-    } else if (i % HEX_COUNT_SQRT / 8 == 30 && j % HEX_COUNT_SQRT / 8 == 10) {
+    } else if (i % (HEX_COUNT_SQRT / 4) == 2 && j % (HEX_COUNT_SQRT / 4) == 12) {
         return ResourceType::Oil;
     }
     return ResourceType::None;
@@ -72,14 +73,22 @@ Vector2 renderCoordFromMapCoord(Vector2 render_origin, Vector2 map_coord) {
     };
 }
 
-void drawMapHex(Vector2 center_render_coord) {
+void drawMapHex(Vector2 render_origin, HexCoord hex_coord) {
     // { // Colored hex fill for debugging
     //     static bool color_switch{true};
     //     color_switch = !color_switch;
     //     DrawPoly(center_render_coord, HEX_SIDES, HEX_RADIUS, 30.0f, color_switch ? RED : BLUE);
     // }
 
-    DrawPolyLinesEx(center_render_coord, HEX_SIDES, HEX_RADIUS, 30.0f, 1.0f, RAYWHITE);
+    Vector2 map_coord = mapCoordFromHexCoord(hex_coord);
+    Vector2 render_coord = renderCoordFromMapCoord(render_origin, map_coord);
+    Hex hex = getHexFromHexCoord(hexes, hex_coord);
+    Color color = colorFromResourceType(hex.resource_type);
+
+    if (hex.resource_type != ResourceType::None) {
+        DrawPoly(render_coord, HEX_SIDES, HEX_RADIUS, HEX_ROTATION, color);
+    }
+    DrawPolyLinesEx(render_coord, HEX_SIDES, HEX_RADIUS, HEX_ROTATION, 1.0f, HEX_OUTLINE_COLOR);
 }
 
 void drawMap(Vector2 render_origin) {
@@ -92,7 +101,7 @@ void drawMap(Vector2 render_origin) {
 
     while (render_coord.y < screen_height + HEX_RADIUS) {
         while (render_coord.x < screen_width + HEX_HEIGHT) {
-            drawMapHex(render_coord);
+            drawMapHex(render_origin, hex_coord);
 
             hex_coord.i += 1;
             if (hex_coord.i >= HEX_COUNT_SQRT) {
