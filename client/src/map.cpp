@@ -1,20 +1,14 @@
 #include <cassert>
 #include <cstdint>
+#include <format>
 
 #include "raylib.h"
 
 #include "config.h"
 #include "map.h"
 #include "state.h"
-#include "util.h"
 
 namespace app {
-
-uint8_t const HEX_SIDES{6};
-uint8_t const HEX_RADIUS{32};
-double const HEX_SIDE_LENGTH{2 * SIN_PI_DIV_6 * HEX_RADIUS};
-double const HEX_HEIGHT{SIN_PI_DIV_3 * HEX_RADIUS * 2};
-float const HEX_ROTATION{30.0f};
 
 uint16_t getIndexFromHexCoord(HexCoord hex_coord) {
     return hex_coord.i + hex_coord.j * HEX_COUNT_SQRT;
@@ -66,14 +60,18 @@ HexCoord hexCoordFromMapCoord(Vector2 map_coord) {
     };
 }
 
-Vector2 renderCoordFromMapCoord(Vector2 render_origin, Vector2 map_coord) {
+Vector2 renderCoordFromMapCoord(Vector2 map_origin, Vector2 map_coord) {
+    float x{map_coord.x - map_origin.x};
+    float y{map_coord.y - map_origin.y};
+    x = (x < -HEX_HEIGHT / 2) ? x + getMapWidthPixels() : x;
+    y = (y < -HEX_RADIUS) ? y + getMapHeightPixels() : y;
     return Vector2{
-        .x = map_coord.x - render_origin.x,
-        .y = map_coord.y - render_origin.y,
+        .x = x,
+        .y = y,
     };
 }
 
-void drawMapHex(Vector2 render_origin, HexCoord hex_coord) {
+void drawMapHex(Vector2 map_origin, HexCoord hex_coord) {
     // { // Colored hex fill for debugging
     //     static bool color_switch{true};
     //     color_switch = !color_switch;
@@ -81,7 +79,7 @@ void drawMapHex(Vector2 render_origin, HexCoord hex_coord) {
     // }
 
     Vector2 map_coord = mapCoordFromHexCoord(hex_coord);
-    Vector2 render_coord = renderCoordFromMapCoord(render_origin, map_coord);
+    Vector2 render_coord = renderCoordFromMapCoord(map_origin, map_coord);
     Hex hex = getHexFromHexCoord(hexes, hex_coord);
     Color color = colorFromResourceType(hex.resource_type);
 
@@ -89,35 +87,41 @@ void drawMapHex(Vector2 render_origin, HexCoord hex_coord) {
         DrawPoly(render_coord, HEX_SIDES, HEX_RADIUS, HEX_ROTATION, color);
     }
     DrawPolyLinesEx(render_coord, HEX_SIDES, HEX_RADIUS, HEX_ROTATION, 1.0f, HEX_OUTLINE_COLOR);
+    DrawText(std::format("({}, {})", hex_coord.i, hex_coord.j).c_str(), render_coord.x, render_coord.y, 10, RAYWHITE);
 }
 
-void drawMap(Vector2 render_origin) {
+/**
+ * {map_origin} Map coordinate pinned to the top left corner of the screen
+ */
+void drawMap(Vector2 map_origin) {
     int32_t screen_width{GetScreenWidth()}; // is it any faster to call this function only once per frame? or does raylib already include this caching optimization?
     int32_t screen_height{GetScreenHeight()};
-    HexCoord min_hex_coord{hexCoordFromMapCoord(render_origin)};
+    HexCoord min_hex_coord{hexCoordFromMapCoord(map_origin)};
     HexCoord hex_coord{min_hex_coord};
-    Vector2 map_coord{mapCoordFromHexCoord(hex_coord)};
-    Vector2 render_coord{renderCoordFromMapCoord(render_origin, map_coord)};
+    // Vector2 map_coord{mapCoordFromHexCoord(hex_coord)};
+    // Vector2 render_coord{renderCoordFromMapCoord(map_origin, map_coord)};
 
-    while (render_coord.y < screen_height + HEX_RADIUS) {
-        while (render_coord.x < screen_width + HEX_HEIGHT) {
-            drawMapHex(render_origin, hex_coord);
+    // while (render_coord.y < screen_height + HEX_RADIUS) {
+    //     while (render_coord.x < screen_width + HEX_HEIGHT) {
+    for (uint16_t hexes_drawn_j = 0; hexes_drawn_j <= getHexCountHeight(screen_height) + 1; hexes_drawn_j += 1) {
+        for (uint16_t hexes_drawn_i = 0; hexes_drawn_i <= getHexCountWidth(screen_width) + 1; hexes_drawn_i += 1) {
+            drawMapHex(map_origin, hex_coord);
 
             hex_coord.i += 1;
             if (hex_coord.i >= HEX_COUNT_SQRT) {
-                hex_coord.i = min_hex_coord.i;
+                hex_coord.i = 0;
             }
-            map_coord = mapCoordFromHexCoord(hex_coord);
-            render_coord = renderCoordFromMapCoord(render_origin, map_coord);
+            // map_coord = mapCoordFromHexCoord(hex_coord);
+            // render_coord = renderCoordFromMapCoord(map_origin, map_coord);
         }
 
         hex_coord.i = min_hex_coord.i;
         hex_coord.j += 1;
         if (hex_coord.j >= HEX_COUNT_SQRT) {
-            hex_coord.j = min_hex_coord.j;
+            hex_coord.j = 0;
         }
-        map_coord = mapCoordFromHexCoord(hex_coord);
-        render_coord = renderCoordFromMapCoord(render_origin, map_coord);
+        // map_coord = mapCoordFromHexCoord(hex_coord);
+        // render_coord = renderCoordFromMapCoord(map_origin, map_coord);
     }
 }
 

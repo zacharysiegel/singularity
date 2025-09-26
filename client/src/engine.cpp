@@ -1,23 +1,52 @@
-#include <raylib.h>
+#include "raylib.h"
+#include "raymath.h"
 
 #include "config.h"
 #include "engine.h"
 #include "map.h"
 #include "result.h"
+#include <cstdio>
+#include <string>
 
 namespace app {
+
+static Vector2 map_origin{.x = 1920, .y = 500};
+
+static Vector2 overflowAdjustedMapCoord(Vector2 map_coord) {
+    float mapWidthPixels = getMapWidthPixels();
+    float mapHeightPixels = getMapHeightPixels();
+    while (map_coord.x >= mapWidthPixels) {
+        map_coord.x -= mapWidthPixels;
+    }
+    while (map_coord.y >= mapHeightPixels) {
+        map_coord.y -= mapHeightPixels;
+    }
+    return map_coord;
+}
+
+static Vector2 computeScrolledMapOrigin(Vector2 map_origin) {
+    Vector2 scroll = GetMouseWheelMoveV();
+    scroll = Vector2{.x = 1, .y = 0}; // todo: delete
+    Vector2 raw_updated_origin = Vector2Add(map_origin, scroll);
+    return overflowAdjustedMapCoord(raw_updated_origin);
+}
 
 static void update() {
     if (IsKeyPressed(KEY_A)) {
         TraceLog(LOG_DEBUG, "a pressed");
     }
+
+    map_origin = computeScrolledMapOrigin(map_origin);
+    static int frame_counter = 0;
+    frame_counter += 1;
+    std::printf("map_origin %d [(%f, %f)]\n", frame_counter, map_origin.x, map_origin.y);
 }
 
 static void draw() {
     ClearBackground(BACKGROUND_COLOR);
     // todo: draw background
 
-    drawMap(Vector2{1010, 500});
+    drawMap(map_origin);
 
     // Debug
     DrawFPS(10, 10);
