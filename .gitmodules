@@ -1,0 +1,4 @@
+[submodule "lib/raylib"]
+	path = lib/raylib
+	url = git@github.com:raysan5/raylib.git
+	branch = master

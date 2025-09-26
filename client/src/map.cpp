@@ -20,11 +20,23 @@ uint16_t getIndexFromHexCoord(HexCoord hex_coord) {
     return hex_coord.i + hex_coord.j * HEX_COUNT_SQRT;
 }
 
+ResourceType initResourceTypeFromHexCoord(uint16_t i, uint16_t j) {
+    if (i % HEX_COUNT_SQRT / 8 == 10 && j % HEX_COUNT_SQRT / 8 == 20) {
+        return ResourceType::Metal;
+    } else if (i % HEX_COUNT_SQRT / 8 == 30 && j % HEX_COUNT_SQRT / 8 == 10) {
+        return ResourceType::Oil;
+    }
+    return ResourceType::None;
+}
+
 void initMap() {
     for (uint16_t i = 0; i < HEX_COUNT_SQRT; i++) {
         for (uint16_t j = 0; j < HEX_COUNT_SQRT; j++) {
-            HexCoord hex_coord{.i = i, .j = j};
-            hexes.at(getIndexFromHexCoord(hex_coord)) = Hex{.hex_coord = hex_coord};
+            Hex hex{
+                .hex_coord = HexCoord{.i = i, .j = j},
+                .resource_type = initResourceTypeFromHexCoord(i, j)
+            };
+            hexes.at(getIndexFromHexCoord(hex.hex_coord)) = hex;
         }
     }
 }
