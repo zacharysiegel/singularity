@@ -4,7 +4,6 @@
 
 #include "raylib.h"
 
-// todo: rename to config.h
 namespace app {
 
 std::string const APPLICATION_NAME{"silicogenesis"};

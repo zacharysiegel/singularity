@@ -1,6 +1,6 @@
 #include <raylib.h>
 
-#include "app.h"
+#include "config.h"
 #include "engine.h"
 #include "map.h"
 #include "result.h"

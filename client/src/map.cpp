@@ -4,7 +4,7 @@
 
 #include "raylib.h"
 
-#include "app.h"
+#include "config.h"
 #include "map.h"
 #include "state.h"
 #include "util.h"
@@ -21,6 +21,7 @@ uint16_t getIndexFromHexCoord(HexCoord hex_coord) {
     return hex_coord.i + hex_coord.j * HEX_COUNT_SQRT;
 }
 
+// todo: implement planned strategy (plan.md)
 ResourceType initResourceTypeFromHexCoord(uint16_t i, uint16_t j) {
     if (i % (HEX_COUNT_SQRT / 4) == 10 && j % (HEX_COUNT_SQRT / 4) == 4) {
         return ResourceType::Metal;
