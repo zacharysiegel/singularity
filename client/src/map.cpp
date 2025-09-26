@@ -1,6 +1,5 @@
 #include <cassert>
 #include <cstdint>
-#include <sys/cdefs.h>
 
 #include "raylib.h"
 
