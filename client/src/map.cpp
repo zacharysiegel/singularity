@@ -40,17 +40,17 @@ Hex &getHexFromHexCoord(std::vector<Hex> &hexes, HexCoord hex_coord) {
     return hexes.at(getIndexFromHexCoord(hex_coord));
 }
 
-Vector2 mapCoordFromHexCoord(HexCoord hex_coord) {
+MapCoord mapCoordFromHexCoord(HexCoord hex_coord) {
     bool even_row = hex_coord.j % 2 == 0;
     float x = (hex_coord.i * HEX_HEIGHT) + (even_row ? 0 : HEX_HEIGHT / 2);
     float y = hex_coord.j * (HEX_RADIUS + HEX_SIDE_LENGTH / 2);
-    return Vector2{
+    return MapCoord{
         .x = x,
         .y = y
     };
 }
 
-HexCoord hexCoordFromMapCoord(Vector2 map_coord) {
+HexCoord hexCoordFromMapCoord(MapCoord map_coord) {
     uint16_t j = static_cast<uint16_t>((map_coord.y - HEX_SIDE_LENGTH / 2) / (HEX_RADIUS + HEX_SIDE_LENGTH / 2));
     bool even_row = j % 2 == 0;
     uint16_t i = static_cast<uint16_t>((map_coord.x - (even_row ? 0 : HEX_HEIGHT / 2)) / HEX_HEIGHT);
@@ -60,7 +60,7 @@ HexCoord hexCoordFromMapCoord(Vector2 map_coord) {
     };
 }
 
-Vector2 renderCoordFromMapCoord(Vector2 map_origin, Vector2 map_coord) {
+RenderCoord renderCoordFromMapCoord(MapCoord map_origin, MapCoord map_coord) {
     float x{map_coord.x - map_origin.x};
     float y{map_coord.y - map_origin.y};
     x = (x < -HEX_HEIGHT / 2)
@@ -69,21 +69,21 @@ Vector2 renderCoordFromMapCoord(Vector2 map_origin, Vector2 map_coord) {
     y = (y < -HEX_RADIUS)
             ? y + getMapHeightPixels() - (HEX_SIDE_LENGTH / 2)
             : y;
-    return Vector2{
+    return RenderCoord{
         .x = x,
         .y = y,
     };
 }
 
-void drawMapHex(Vector2 map_origin, HexCoord hex_coord) {
+void drawMapHex(MapCoord map_origin, HexCoord hex_coord) {
     // { // Colored hex fill for debugging
     //     static bool color_switch{true};
     //     color_switch = !color_switch;
     //     DrawPoly(center_render_coord, HEX_SIDES, HEX_RADIUS, 30.0f, color_switch ? RED : BLUE);
     // }
 
-    Vector2 map_coord = mapCoordFromHexCoord(hex_coord);
-    Vector2 render_coord = renderCoordFromMapCoord(map_origin, map_coord);
+    MapCoord map_coord = mapCoordFromHexCoord(hex_coord);
+    RenderCoord render_coord = renderCoordFromMapCoord(map_origin, map_coord);
     Hex hex = getHexFromHexCoord(hexes, hex_coord);
     Color color = colorFromResourceType(hex.resource_type);
 
@@ -97,7 +97,7 @@ void drawMapHex(Vector2 map_origin, HexCoord hex_coord) {
 /**
  * {map_origin} Map coordinate pinned to the top left corner of the screen
  */
-void drawMap(Vector2 map_origin) {
+void drawMap(MapCoord map_origin) {
     int32_t screen_width{GetScreenWidth()}; // is it any faster to call this function only once per frame? or does raylib already include this caching optimization?
     int32_t screen_height{GetScreenHeight()};
     HexCoord min_hex_coord{hexCoordFromMapCoord(map_origin)};

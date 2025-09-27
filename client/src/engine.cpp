@@ -11,9 +11,9 @@
 
 namespace app {
 
-static Vector2 map_origin{3343, 3076};
+static MapCoord map_origin{-50, -50};
 
-static Vector2 overflowAdjustedMapCoord(Vector2 map_coord) {
+static MapCoord overflowAdjustedMapCoord(MapCoord map_coord) {
     float mapWidthPixels = getMapWidthPixels();
     float mapHeightPixels = getMapHeightPixels();
     while (map_coord.x >= mapWidthPixels) {
@@ -25,9 +25,9 @@ static Vector2 overflowAdjustedMapCoord(Vector2 map_coord) {
     return map_coord;
 }
 
-static Vector2 computeScrolledMapOrigin(Vector2 map_origin) {
-    Vector2 scroll = GetMouseWheelMoveV();
-    Vector2 raw_updated_origin = Vector2Add(map_origin, scroll);
+static MapCoord computeScrolledMapOrigin(MapCoord map_origin) {
+    MapCoord scroll = GetMouseWheelMoveV();
+    MapCoord raw_updated_origin = Vector2Add(map_origin, scroll);
     return overflowAdjustedMapCoord(raw_updated_origin);
 }
 
@@ -36,7 +36,7 @@ static void update() {
         TraceLog(LOG_DEBUG, "a pressed"); // todo: delete
     }
 
-    Vector2 old{map_origin};
+    MapCoord old{map_origin};
     map_origin = computeScrolledMapOrigin(map_origin);
     if (old.x != map_origin.x || old.y != map_origin.y) {
         TraceLog(LOG_DEBUG, std::format("({}, {})", map_origin.x, map_origin.y).c_str());
