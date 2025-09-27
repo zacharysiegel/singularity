@@ -1,3 +1,6 @@
+#include <format>
+#include <string>
+
 #include "raylib.h"
 #include "raymath.h"
 
@@ -5,12 +8,10 @@
 #include "engine.h"
 #include "map.h"
 #include "result.h"
-#include <cstdio>
-#include <string>
 
 namespace app {
 
-static Vector2 map_origin{.x = 1920, .y = 500};
+static Vector2 map_origin{.x = 95, .y = 95};
 
 static Vector2 overflowAdjustedMapCoord(Vector2 map_coord) {
     float mapWidthPixels = getMapWidthPixels();
@@ -32,10 +33,14 @@ static Vector2 computeScrolledMapOrigin(Vector2 map_origin) {
 
 static void update() {
     if (IsKeyPressed(KEY_A)) {
-        TraceLog(LOG_DEBUG, "a pressed");
+        TraceLog(LOG_DEBUG, "a pressed"); // todo: delete
     }
 
+    Vector2 old{map_origin};
     map_origin = computeScrolledMapOrigin(map_origin);
+    if (old.x != map_origin.x || old.y != map_origin.y) {
+        TraceLog(LOG_DEBUG, std::format("({}, {})", map_origin.x, map_origin.y).c_str());
+    }
 }
 
 static void draw() {
@@ -44,8 +49,9 @@ static void draw() {
 
     drawMap(map_origin);
 
-    // Debug
-    DrawFPS(10, 10);
+    { // Debug
+        DrawFPS(10, 10);
+    }
 }
 
 result_t init() {

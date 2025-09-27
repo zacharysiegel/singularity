@@ -53,7 +53,7 @@ Vector2 mapCoordFromHexCoord(HexCoord hex_coord) {
 HexCoord hexCoordFromMapCoord(Vector2 map_coord) {
     uint16_t j = static_cast<uint16_t>(map_coord.y / (HEX_RADIUS + HEX_SIDE_LENGTH / 2));
     bool even_row = j % 2 == 0;
-    uint16_t i = static_cast<uint16_t>(map_coord.x / (HEX_HEIGHT) + (even_row ? 0 : HEX_HEIGHT / 2));
+    uint16_t i = static_cast<uint16_t>(map_coord.x / (HEX_HEIGHT + (even_row ? 0 : HEX_HEIGHT / 2)));
     return HexCoord{
         .i = i,
         .j = j
