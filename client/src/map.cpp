@@ -98,21 +98,17 @@ void drawMap(Vector2 map_origin) {
     int32_t screen_height{GetScreenHeight()};
     HexCoord min_hex_coord{hexCoordFromMapCoord(map_origin)};
     HexCoord hex_coord{min_hex_coord};
-    // Vector2 map_coord{mapCoordFromHexCoord(hex_coord)};
-    // Vector2 render_coord{renderCoordFromMapCoord(map_origin, map_coord)};
 
-    // while (render_coord.y < screen_height + HEX_RADIUS) {
-    //     while (render_coord.x < screen_width + HEX_HEIGHT) {
-    for (uint16_t hexes_drawn_j = 0; hexes_drawn_j <= getHexCountHeight(screen_height) + 1; hexes_drawn_j += 1) {
-        for (uint16_t hexes_drawn_i = 0; hexes_drawn_i <= getHexCountWidth(screen_width) + 1; hexes_drawn_i += 1) {
+    uint16_t max_hexes_i = getHexCountWidth(screen_width);
+    uint16_t max_hexes_j = getHexCountHeight(screen_height);
+    for (uint16_t hexes_drawn_j = 0; hexes_drawn_j <= max_hexes_j + 1; hexes_drawn_j += 1) {
+        for (uint16_t hexes_drawn_i = 0; hexes_drawn_i <= max_hexes_i + 1; hexes_drawn_i += 1) {
             drawMapHex(map_origin, hex_coord);
 
             hex_coord.i += 1;
             if (hex_coord.i >= HEX_COUNT_SQRT) {
                 hex_coord.i = 0;
             }
-            // map_coord = mapCoordFromHexCoord(hex_coord);
-            // render_coord = renderCoordFromMapCoord(map_origin, map_coord);
         }
 
         hex_coord.i = min_hex_coord.i;
@@ -120,8 +116,6 @@ void drawMap(Vector2 map_origin) {
         if (hex_coord.j >= HEX_COUNT_SQRT) {
             hex_coord.j = 0;
         }
-        // map_coord = mapCoordFromHexCoord(hex_coord);
-        // render_coord = renderCoordFromMapCoord(map_origin, map_coord);
     }
 }
 

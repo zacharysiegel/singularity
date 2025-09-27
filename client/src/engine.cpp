@@ -26,7 +26,6 @@ static Vector2 overflowAdjustedMapCoord(Vector2 map_coord) {
 
 static Vector2 computeScrolledMapOrigin(Vector2 map_origin) {
     Vector2 scroll = GetMouseWheelMoveV();
-    scroll = Vector2{.x = 1, .y = 0}; // todo: delete
     Vector2 raw_updated_origin = Vector2Add(map_origin, scroll);
     return overflowAdjustedMapCoord(raw_updated_origin);
 }
@@ -37,9 +36,6 @@ static void update() {
     }
 
     map_origin = computeScrolledMapOrigin(map_origin);
-    static int frame_counter = 0;
-    frame_counter += 1;
-    std::printf("map_origin %d [(%f, %f)]\n", frame_counter, map_origin.x, map_origin.y);
 }
 
 static void draw() {

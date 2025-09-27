@@ -27,7 +27,7 @@ inline uint16_t constexpr getHexCountWidth(float pixels) {
 }
 
 inline uint16_t constexpr getHexCountHeight(float pixels) {
-    return static_cast<uint16_t>(std::ceilf(pixels / (HEX_RADIUS * 2)));
+    return static_cast<uint16_t>(std::ceilf(pixels / (HEX_RADIUS + HEX_SIDE_LENGTH / 2)));
 }
 
 inline float constexpr getHexWidthPixels(uint16_t hex_count) {
