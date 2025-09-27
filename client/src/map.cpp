@@ -63,8 +63,12 @@ HexCoord hexCoordFromMapCoord(Vector2 map_coord) {
 Vector2 renderCoordFromMapCoord(Vector2 map_origin, Vector2 map_coord) {
     float x{map_coord.x - map_origin.x};
     float y{map_coord.y - map_origin.y};
-    x = (x < -HEX_HEIGHT / 2) ? x + getMapWidthPixels() : x;
-    y = (y < -HEX_RADIUS) ? y + getMapHeightPixels() : y;
+    x = (x < -HEX_HEIGHT / 2)
+            ? x + getMapWidthPixels()
+            : x;
+    y = (y < -HEX_RADIUS)
+            ? y + getMapHeightPixels() - (HEX_SIDE_LENGTH / 2)
+            : y;
     return Vector2{
         .x = x,
         .y = y,

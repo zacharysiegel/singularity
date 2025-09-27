@@ -31,11 +31,15 @@ inline uint16_t constexpr getHexCountHeight(float pixels) {
 }
 
 inline float constexpr getHexWidthPixels(uint16_t hex_count) {
-    return hex_count * (HEX_HEIGHT);
+    double result{hex_count * HEX_HEIGHT};
+    if (hex_count % 2 == 1) {
+        result -= HEX_HEIGHT / 2;
+    }
+    return static_cast<double>(result);
 }
 
 inline float constexpr getHexHeightPixels(uint16_t hex_count) {
-    return hex_count * (HEX_RADIUS * 2);
+    return HEX_RADIUS * 2 + (hex_count - 1) * (HEX_RADIUS + HEX_SIDE_LENGTH / 2);
 }
 
 inline float constexpr getMapWidthPixels() {

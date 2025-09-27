@@ -11,7 +11,7 @@
 
 namespace app {
 
-static Vector2 map_origin{.x = 3317, .y = 174};
+static Vector2 map_origin{3333, 2209};
 
 static Vector2 overflowAdjustedMapCoord(Vector2 map_coord) {
     float mapWidthPixels = getMapWidthPixels();
