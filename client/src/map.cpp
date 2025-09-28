@@ -76,7 +76,7 @@ RenderCoord renderCoordFromMapCoord(MapCoord map_origin, MapCoord map_coord) {
         x += getMapWidthPixels();
     }
     if (y < -HEX_RADIUS) {
-        y += getMapHeightPixels() - HEX_SIDE_LENGTH / 2;
+        y += getMapHeightPixels();
     }
 
     return RenderCoord{

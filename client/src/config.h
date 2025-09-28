@@ -18,7 +18,7 @@ uint16_t const HEX_COUNT_SQRT{64};
 uint16_t const HEX_COUNT{HEX_COUNT_SQRT * HEX_COUNT_SQRT};
 uint8_t const HEX_SIDES{6};
 uint8_t const HEX_RADIUS{32};
-double const HEX_SIDE_LENGTH{2 * SIN_PI_DIV_6 * HEX_RADIUS};
+double const HEX_SIDE_LENGTH{2 * SIN_PI_DIV_6 * HEX_RADIUS}; // == radius
 double const HEX_HEIGHT{SIN_PI_DIV_3 * HEX_RADIUS * 2};
 float const HEX_ROTATION{30.0f};
 
@@ -39,7 +39,7 @@ inline float constexpr getHexWidthPixels(uint16_t hex_count) {
 }
 
 inline float constexpr getHexHeightPixels(uint16_t hex_count) {
-    return HEX_RADIUS * 2 + (hex_count - 1) * (HEX_RADIUS + HEX_SIDE_LENGTH / 2);
+    return (hex_count) * (HEX_RADIUS + HEX_SIDE_LENGTH / 2);
 }
 
 inline float constexpr getMapWidthPixels() {
