@@ -51,24 +51,34 @@ MapCoord mapCoordFromHexCoord(HexCoord hex_coord) {
 }
 
 HexCoord hexCoordFromMapCoord(MapCoord map_coord) {
-    uint16_t j = static_cast<uint16_t>((map_coord.y - HEX_SIDE_LENGTH / 2) / (HEX_RADIUS + HEX_SIDE_LENGTH / 2));
-    bool even_row = j % 2 == 0;
-    uint16_t i = static_cast<uint16_t>((map_coord.x - (even_row ? 0 : HEX_HEIGHT / 2)) / HEX_HEIGHT);
+    int16_t j = static_cast<int16_t>((map_coord.y - HEX_SIDE_LENGTH / 2) / (HEX_RADIUS + HEX_SIDE_LENGTH / 2));
+    bool const even_row = j % 2 == 0;
+    int16_t i = static_cast<int16_t>((map_coord.x - (even_row ? 0 : HEX_HEIGHT / 2)) / HEX_HEIGHT);
+
+    while (i < 0) {
+        i += HEX_COUNT_SQRT;
+    }
+    while (j < 0) {
+        j += HEX_COUNT_SQRT;
+    }
+
     return HexCoord{
-        .i = i,
-        .j = j
+        .i = static_cast<uint16_t>(i),
+        .j = static_cast<uint16_t>(j)
     };
 }
 
 RenderCoord renderCoordFromMapCoord(MapCoord map_origin, MapCoord map_coord) {
     float x{map_coord.x - map_origin.x};
     float y{map_coord.y - map_origin.y};
-    x = (x < -HEX_HEIGHT / 2)
-            ? x + getMapWidthPixels()
-            : x;
-    y = (y < -HEX_RADIUS)
-            ? y + getMapHeightPixels() - (HEX_SIDE_LENGTH / 2)
-            : y;
+
+    if (x < -HEX_HEIGHT / 2) {
+        x += getMapWidthPixels();
+    }
+    if (y < -HEX_RADIUS) {
+        y += getMapHeightPixels() - HEX_SIDE_LENGTH / 2;
+    }
+
     return RenderCoord{
         .x = x,
         .y = y,
@@ -100,13 +110,17 @@ void drawMapHex(MapCoord map_origin, HexCoord hex_coord) {
 void drawMap(MapCoord map_origin) {
     int32_t screen_width{GetScreenWidth()}; // is it any faster to call this function only once per frame? or does raylib already include this caching optimization?
     int32_t screen_height{GetScreenHeight()};
-    HexCoord min_hex_coord{hexCoordFromMapCoord(map_origin)};
+    HexCoord origin_hex_coord{hexCoordFromMapCoord(map_origin)};
+    HexCoord min_hex_coord{
+        .i = static_cast<uint16_t>(origin_hex_coord.i - 1 < 0 ? HEX_COUNT_SQRT - 1 : origin_hex_coord.i - 1),
+        .j = static_cast<uint16_t>(origin_hex_coord.j - 1 < 0 ? HEX_COUNT_SQRT - 1 : origin_hex_coord.j - 1)
+    };
     HexCoord hex_coord{min_hex_coord};
 
     uint16_t max_hexes_i = getHexCountWidth(screen_width);
     uint16_t max_hexes_j = getHexCountHeight(screen_height);
-    for (uint16_t hexes_drawn_j = 0; hexes_drawn_j <= max_hexes_j + 1; hexes_drawn_j += 1) {
-        for (uint16_t hexes_drawn_i = 0; hexes_drawn_i <= max_hexes_i + 1; hexes_drawn_i += 1) {
+    for (uint16_t hexes_drawn_j = 0; hexes_drawn_j <= max_hexes_j + 2; hexes_drawn_j += 1) {
+        for (uint16_t hexes_drawn_i = 0; hexes_drawn_i <= max_hexes_i + 2; hexes_drawn_i += 1) {
             drawMapHex(map_origin, hex_coord);
 
             hex_coord.i += 1;

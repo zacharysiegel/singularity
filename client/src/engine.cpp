@@ -11,17 +11,26 @@
 
 namespace app {
 
-static MapCoord map_origin{-50, -50};
+static MapCoord map_origin{0, 0};
 
 static MapCoord overflowAdjustedMapCoord(MapCoord map_coord) {
     float mapWidthPixels = getMapWidthPixels();
     float mapHeightPixels = getMapHeightPixels();
+
+    while (map_coord.x < 0) {
+        map_coord.x += mapWidthPixels;
+    }
+    while (map_coord.y < 0) {
+        map_coord.y += mapHeightPixels;
+    }
+
     while (map_coord.x >= mapWidthPixels) {
         map_coord.x -= mapWidthPixels;
     }
     while (map_coord.y >= mapHeightPixels) {
         map_coord.y -= mapHeightPixels;
     }
+
     return map_coord;
 }
 
