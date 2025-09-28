@@ -22,15 +22,27 @@ Map
         Transportation paths must pass through empty nodes
     Generation
         Resource clusters
-            Each hex is seeded with a starting weight (e.g. 10)
-            That weight's proportion of the total is the probability of centering a cluster on that hex
-            Once a cluster is centered on a hex, the rest of that cluster can be placed around it with minimal restriction
-            Once a cluster is placed, the weights in its neighborhood should be modified to reflect the new state
-                Immediate neighbors should be set to zero until a minimum distance is reached
-                After the minimum distance is set, there should be an intermediate zone where the weights are incrementally diminished
-                There should be a maximum distance after which there is no effect on new weights
-                There must be different weights for each resource type
-                Effects on weights across different resource types should be less significant than within the same type
+            Strategy 1
+                Each hex is seeded with a starting weight (e.g. 10)
+                That weight's proportion of the total is the probability of centering a cluster on that hex
+                Once a cluster is centered on a hex, the rest of that cluster can be placed around it with minimal restriction
+                Once a cluster is placed, the weights in its neighborhood should be modified to reflect the new state
+                    Immediate neighbors should be set to zero until a minimum distance is reached
+                    After the minimum distance is set, there should be an intermediate zone where the weights are incrementally diminished
+                    There should be a maximum distance after which there is no effect on new weights
+                    There must be different weights for each resource type
+                    Effects on weights across different resource types should be less significant than within the same type
+            Strategy 2
+                For n resource clusters and a R2 plane projected atop the hex plane
+                Initialize random coordinates for each resource cluster
+                Simulate each resource as a charged particle (or similar)
+                    Each charge, weighted by distance, induces a force on each other particle
+                    Particles are accelerated + moved in time step simulation
+                    Terminate after k steps or minimum total movement threshold or minimum total force threshold reached
+                    Problems at the edges of map can be solved by actually running the particle simulation on a larger map (x/y + average distance between particles), then truncating to actual size
+                Map back to discrete hex locations
+                Half particles are oil, half are metal
+                    Two-coloring problem?
 
 ## Economy
 
