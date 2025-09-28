@@ -43,6 +43,10 @@ Map
                 Map back to discrete hex locations
                 Half particles are oil, half are metal
                     Two-coloring problem?
+        Players
+            Find Voronoi polygons with vertices at all resource cluster centers
+            Players should only be placed on the edges
+            Run a similar particle simulation to spread out the player locations across the connected Voronoi edges
 
 ## Economy
 
