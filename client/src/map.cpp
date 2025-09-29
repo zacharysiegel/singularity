@@ -31,12 +31,12 @@ void initMap() {
                 .hex_coord = HexCoord{.i = i, .j = j},
                 .resource_type = initResourceTypeFromHexCoord(i, j)
             };
-            hexes.at(getIndexFromHexCoord(hex.hex_coord)) = hex;
+            state.hexes.at(getIndexFromHexCoord(hex.hex_coord)) = hex;
         }
     }
 }
 
-Hex &getHexFromHexCoord(std::vector<Hex> &hexes, HexCoord hex_coord) {
+Hex &getHexFromHexCoord(std::array<Hex, HEX_COUNT> &hexes, HexCoord hex_coord) {
     return hexes.at(getIndexFromHexCoord(hex_coord));
 }
 
@@ -94,14 +94,13 @@ void drawMapHex(MapCoord map_origin, HexCoord hex_coord) {
 
     MapCoord map_coord = mapCoordFromHexCoord(hex_coord);
     RenderCoord render_coord = renderCoordFromMapCoord(map_origin, map_coord);
-    Hex hex = getHexFromHexCoord(hexes, hex_coord);
+    Hex hex = getHexFromHexCoord(state.hexes, hex_coord);
     Color color = colorFromResourceType(hex.resource_type);
 
     if (hex.resource_type != ResourceType::None) {
         DrawPoly(render_coord, HEX_SIDES, HEX_RADIUS, HEX_ROTATION, color);
     }
     DrawPolyLinesEx(render_coord, HEX_SIDES, HEX_RADIUS, HEX_ROTATION, 1.0f, HEX_OUTLINE_COLOR);
-    DrawText(std::format("({}, {})", hex_coord.i, hex_coord.j).c_str(), render_coord.x, render_coord.y, 10, RAYWHITE);
 }
 
 /**
@@ -133,6 +132,43 @@ void drawMap(MapCoord map_origin) {
         hex_coord.j += 1;
         if (hex_coord.j >= HEX_COUNT_SQRT) {
             hex_coord.j = 0;
+        }
+    }
+}
+
+void drawFacility(MapCoord const map_origin, Facility const facility) {
+    MapCoord map_coord = mapCoordFromHexCoord(facility.location);
+    RenderCoord render_coord = renderCoordFromMapCoord(map_origin, map_coord);
+    Color color = Color{.r = 0xb4, .g = 0xb4, .b = 0xb4, .a = 0xff};
+
+    switch (facility.facility_state) {
+        case FacilityState::Operating:
+            break;
+        case FacilityState::Placing:
+            color.a = 0x80;
+            break;
+        case FacilityState::Destroyed:
+            color.a = 0xf0;
+            break;
+    }
+
+    switch (facility.facility_type) {
+        case FacilityType::ControlCenter:
+            DrawText("CC", render_coord.x - 10, render_coord.y - 10, 10, color);
+            break;
+        case FacilityType::MetalExtractor:
+            DrawText("ME", render_coord.x - 10, render_coord.y - 10, 10, color);
+            break;
+        case FacilityType::OilExtractor:
+            DrawText("OE", render_coord.x - 10, render_coord.y - 10, 10, color);
+            break;
+    }
+}
+
+void drawPlayers(MapCoord const map_origin) {
+    for (Player const &player : state.players) {
+        for (Facility const &facility : player.facilities) {
+            drawFacility(map_origin, facility);
         }
     }
 }

@@ -8,10 +8,10 @@
 #include "engine.h"
 #include "map.h"
 #include "result.h"
+#include "player.h"
+#include "state.h"
 
 namespace app {
-
-static MapCoord map_origin{0, 0};
 
 static MapCoord overflowAdjustedMapCoord(MapCoord map_coord) {
     float mapWidthPixels = getMapWidthPixels();
@@ -34,7 +34,7 @@ static MapCoord overflowAdjustedMapCoord(MapCoord map_coord) {
     return map_coord;
 }
 
-static MapCoord computeScrolledMapOrigin(MapCoord map_origin) {
+static MapCoord computeScrolledMapOrigin(MapCoord const map_origin) {
     MapCoord scroll = Vector2Multiply(GetMouseWheelMoveV(), {.x = -1, .y = -1});
     MapCoord raw_updated_origin = Vector2Add(map_origin, scroll);
     return overflowAdjustedMapCoord(raw_updated_origin);
@@ -45,10 +45,10 @@ static void update() {
         TraceLog(LOG_DEBUG, "a pressed"); // todo: delete
     }
 
-    MapCoord old{map_origin};
-    map_origin = computeScrolledMapOrigin(map_origin);
-    if (old.x != map_origin.x || old.y != map_origin.y) {
-        TraceLog(LOG_DEBUG, std::format("({}, {})", map_origin.x, map_origin.y).c_str());
+    MapCoord old{state.map_origin};
+    state.map_origin = computeScrolledMapOrigin(state.map_origin);
+    if (old.x != state.map_origin.x || old.y != state.map_origin.y) {
+        TraceLog(LOG_DEBUG, std::format("({}, {})", state.map_origin.x, state.map_origin.y).c_str());
     }
 }
 
@@ -56,7 +56,8 @@ static void draw() {
     ClearBackground(BACKGROUND_COLOR);
     // todo: draw background
 
-    drawMap(map_origin);
+    drawMap(state.map_origin);
+    drawPlayers(state.map_origin);
 
     { // Debug
         DrawFPS(10, 10);
@@ -82,6 +83,7 @@ result_t init() {
     EndDrawing();
 
     initMap();
+    initPlayers(4);
 
     return OK;
 }
