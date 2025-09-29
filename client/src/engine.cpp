@@ -35,7 +35,7 @@ static MapCoord overflowAdjustedMapCoord(MapCoord map_coord) {
 }
 
 static MapCoord computeScrolledMapOrigin(MapCoord map_origin) {
-    MapCoord scroll = GetMouseWheelMoveV();
+    MapCoord scroll = Vector2Multiply(GetMouseWheelMoveV(), {.x = -1, .y = -1});
     MapCoord raw_updated_origin = Vector2Add(map_origin, scroll);
     return overflowAdjustedMapCoord(raw_updated_origin);
 }
