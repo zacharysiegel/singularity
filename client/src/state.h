@@ -1,6 +1,7 @@
+#pragma once
+
 #include <cassert>
 #include <cstdint>
-#include <vector>
 
 #include "config.h"
 
@@ -36,7 +37,5 @@ typedef struct Hex {
     HexCoord hex_coord;
     ResourceType resource_type;
 } Hex;
-
-static std::vector<Hex> hexes(HEX_COUNT);
 
 } // namespace app

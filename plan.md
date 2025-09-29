@@ -52,8 +52,8 @@ Map
 
 Resource extraction
     Energy
-        Collected in large quantities at specific geothermal points
-        Collected in small quantities solar panels anywhere
+        Collected in large quantities at specific resource points
+        Collected in small quantities solar panels anywhere?
     Material
         Collected by mines at specific locations
     Veins
