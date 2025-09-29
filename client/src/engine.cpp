@@ -1,5 +1,6 @@
 #include <format>
 #include <string>
+#include <chrono>
 
 #include "raylib.h"
 #include "raymath.h"
@@ -95,11 +96,25 @@ result_t destroy() {
 
 result_t run() {
     while (!WindowShouldClose()) {
+        std::chrono::high_resolution_clock clock = std::chrono::high_resolution_clock{};
+        std::chrono::time_point frame_start = clock.now();
+
         update();
+        std::chrono::time_point update_end = clock.now();
 
         BeginDrawing();
         draw();
+        std::chrono::time_point draw_end = clock.now();
         EndDrawing();
+
+        state.frame_counter += 1;
+        if (state.frame_counter % 1000 == 0) {
+            TraceLog(LOG_DEBUG, std::format("Frame: {}; Update: {}; Draw: {}; Total: {};", 
+                     state.frame_counter,
+                     update_end - frame_start,
+                     draw_end - update_end,
+                     draw_end - frame_start).c_str());
+        }
     }
     return OK;
 }

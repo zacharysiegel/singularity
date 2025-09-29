@@ -69,12 +69,14 @@ typedef struct Player {
 } Player;
 
 typedef struct ClientState {
+    uint64_t frame_counter;
     MapCoord map_origin;
     std::array<Hex, HEX_COUNT> hexes;
     std::vector<Player> players;
 } ClientState;
 
 inline ClientState state{
+    .frame_counter = 0,
     .map_origin = MapCoord{.x = 0, .y = 0},
     .hexes{},
     .players{},
