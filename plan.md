@@ -173,3 +173,35 @@ Time machine
 Map always renders the same resolution at all screen sizes
     User with larger screen can see more of the map, but this is not an issue since any user can simply scroll to see the rest of the map
 
+## Server
+
+Instances
+    A single game should always be managed by a single server instance
+
+Green threads (Tokio tasks)
+    Task per player TCP connection
+    Task per game
+        MPSC channel per game for each player to send messages to the game task
+    Global task for game management
+        Global MPSC channel for each game to send messages back to the game manager task
+    Global task for accepting new TCP connections
+
+Database
+    Performance
+        Need to be able to operate on data quickly in memory before syncing periodically with the database
+    User table
+        Associated games
+        When user connects to server, look up all current games and subscribe user to each game's MPSC channel
+        Metrics
+            Last online
+            Login frequency
+            Geolocation (IP-based or client query via OS)
+        Awards (gold/silver medals)
+    Game table
+        General characteristics and state to be shown in a "server" browser
+        Associated users
+        State
+            Map
+            Player facilities
+            Player resources
+
