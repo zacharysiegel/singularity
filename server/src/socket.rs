@@ -5,12 +5,10 @@ use std::time::Duration;
 use socket2::{Domain, Protocol, SockAddr, Socket, TcpKeepalive, Type};
 use tokio::net::TcpListener;
 
-use crate::environment::RuntimeEnvironment;
 use crate::error::AppError;
 
-pub async fn create_listener() -> Result<TcpListener, AppError> {
-    let runtime_environment: RuntimeEnvironment = RuntimeEnvironment::from_env()?;
-    let socket: Socket = create_socket(runtime_environment.get_address())?;
+pub async fn create_listener(address: &str) -> Result<TcpListener, AppError> {
+    let socket: Socket = create_socket(address)?;
     let listener_std: std::net::TcpListener = std::net::TcpListener::from(socket);
     listener_std.set_nonblocking(true)?;
 
