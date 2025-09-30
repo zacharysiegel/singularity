@@ -31,11 +31,11 @@ impl RuntimeEnvironment {
         )
     }
 
-    pub fn get_origin(&self) -> &'static str {
+    pub fn get_address(&self) -> &'static str {
         match self {
-            RuntimeEnvironment::Local => "https://127.0.0.1:1443",
-            RuntimeEnvironment::Stage => "https://127.0.0.1:443", // todo
-            RuntimeEnvironment::Production => "https://127.0.0.1:443", // todo
+            RuntimeEnvironment::Local => "0.0.0.0:1443",
+            RuntimeEnvironment::Stage => "0.0.0.0:1443", // todo
+            RuntimeEnvironment::Production => "0.0.0.0:1443", // todo
         }
     }
 }

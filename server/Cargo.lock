@@ -408,6 +408,7 @@ dependencies = [
  "dotenvy",
  "env_logger",
  "log",
+ "socket2",
  "tokio",
 ]
 
