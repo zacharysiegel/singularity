@@ -59,3 +59,9 @@ impl Default for AppError {
     }
 }
 
+impl From<std::io::Error> for AppError {
+    fn from(err: std::io::Error) -> Self {
+        AppError::from_error(&err.to_string(), Box::new(err))
+    }
+}
+
