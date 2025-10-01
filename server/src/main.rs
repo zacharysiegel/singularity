@@ -1,6 +1,7 @@
 use server::environment::{self, RuntimeEnvironment};
 use server::{monitor, socket};
 use tokio::net::TcpListener;
+use tokio::sync;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -15,20 +16,35 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let listener: TcpListener = socket::create_listener(address).await?;
     log::info!("Listening at {}", address);
 
-    tokio::spawn(monitor::monitor_listener(listener));
-    tokio::spawn(monitor::monitor_manager());
+    let (cancellation_sender, cancellation_receiver) = sync::broadcast::channel::<()>(1);
+
+    tokio::spawn(monitor::monitor_listener(
+        cancellation_receiver.resubscribe(),
+        listener,
+    ));
+    tokio::spawn(monitor::monitor_manager(
+        cancellation_receiver.resubscribe(),
+    ));
+    drop(cancellation_receiver);
 
     match tokio::signal::ctrl_c().await {
-        Ok(_) => graceful_shutdown(),
+        Ok(_) => graceful_shutdown(cancellation_sender),
         Err(err) => {
             log::error!("Failed to await <C-C> signal. Shutting down. [{:#}]", err);
-            graceful_shutdown();
+            graceful_shutdown(cancellation_sender);
         }
     };
 
     Ok(())
 }
 
-fn graceful_shutdown() {
-    
+fn graceful_shutdown(cancellation_sender: sync::broadcast::Sender<()>) {
+    match cancellation_sender.send(()) {
+        Ok(val) => {
+            log::debug!("Shutdown message sent to {} receivers", val);
+        }
+        Err(err) => {
+            log::error!("Failed to send shutdown message [{:#}]", err);
+        }
+    }
 }
