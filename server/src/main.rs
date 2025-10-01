@@ -1,8 +1,6 @@
-use std::net::SocketAddr;
-
 use server::environment::{self, RuntimeEnvironment};
-use server::socket::{self};
-use tokio::net::{TcpListener, TcpStream};
+use server::{monitor, socket};
+use tokio::net::{TcpListener};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -17,22 +15,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let listener: TcpListener = socket::create_listener(address).await?;
     log::info!("Listening at {}", address);
 
-    loop {
-        let accept_r = listener.accept().await;
-
-        match accept_r {
-            Ok(val) => {
-                register_client(val.0, val.1).await;
-            }
-            Err(err) => {
-                log::error!("Failed to accept TCP connection; {:#}", err);
-                break;
-            }
-        }
-    }
-
+    tokio::spawn(monitor::monitor_listener(listener));
     Ok(())
 }
 
-#[allow(unused)]
-async fn register_client(tcp_stream: TcpStream, socket_addr: SocketAddr) {}
