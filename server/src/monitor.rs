@@ -6,22 +6,50 @@ use tokio::net::TcpStream;
 use tokio::sync::mpsc;
 use uuid::Uuid;
 
+use crate::random::random_uuid;
+
 pub const GAMES: LazyLock<HashMap<Uuid, Game>> = LazyLock::new(|| HashMap::new());
 
 pub struct MpscChannel {
     pub sender: mpsc::Sender<Vec<u8>>,
     pub receiver: mpsc::Receiver<Vec<u8>>,
 }
+
+impl MpscChannel {
+    pub fn new(buffer_size: usize) -> Self {
+        let (sender, receiver) = mpsc::channel(buffer_size);
+        MpscChannel { sender, receiver }
+    }
+}
+
 pub struct ManagerChannel(pub MpscChannel);
+
 pub struct GameChannel(pub MpscChannel);
 
 pub struct Manager {
     pub channel: ManagerChannel,
 }
 
+impl Manager {
+    pub fn new() -> Self {
+        Manager {
+            channel: ManagerChannel(MpscChannel::new(128)),
+        }
+    }
+}
+
 pub struct Game {
     pub id: Uuid,
     pub channel: GameChannel,
+}
+
+impl Game {
+    pub fn new() -> Self {
+        Game {
+            id: random_uuid(),
+            channel: GameChannel(MpscChannel::new(128)),
+        }
+    }
 }
 
 pub struct User {
@@ -51,9 +79,15 @@ pub async fn monitor_listener(listener: TcpListener) {
     }
 }
 
+pub async fn monitor_manager() {
+    let _manager = Manager::new();
+    // todo: loop await on manager channel receiver
+}
+
 async fn monitor_client(tcp_stream: TcpStream, socket_addr: SocketAddr) {
     Connection {
         tcp_stream,
         socket_addr,
     };
+    // todo: loop await on tcp input data
 }
