@@ -40,7 +40,7 @@ build: build-dev-client
 .PHONY: build-dev-client
 build-dev-client:
 	$(compile_command_client_app) -g -O0
-	ln -s ce c
+	ln -sF ce c
 
 .PHONY: build-release
 build-release: build-release-client
@@ -48,7 +48,7 @@ build-release: build-release-client
 .PHONY: build-release-client
 build-release-client:
 	$(compile_command_client_app) -O3
-	ln -s ce c
+	ln -sF ce c
 
 .PHONY: build-test
 build-test: build-test-client
