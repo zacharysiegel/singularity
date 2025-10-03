@@ -1,9 +1,10 @@
 #![allow(unused)] // Data structure need not be completely used
 
 use crate::error::AppError;
-use std::mem;
+use std::io::IoSliceMut;
 use std::mem::MaybeUninit;
 use std::ops::Index;
+use std::{mem, slice};
 
 pub struct RingBuffer<T, const N: usize>
 where
@@ -113,6 +114,43 @@ where
             self.empty = true;
         }
         Ok(view)
+    }
+
+    pub fn current_empty_slices_mut<'a>(&'a mut self) -> [&'a mut [MaybeUninit<T>]; 2] {
+        if self.empty {
+            [&mut [], &mut []]
+        } else if self.read_pos < self.write_pos {
+            [&mut self.buffer[self.read_pos..self.write_pos], &mut []]
+        } else if self.read_pos > self.write_pos || self.read_pos == self.write_pos {
+            let split: (&mut [MaybeUninit<T>], &mut [MaybeUninit<T>]) =
+                self.buffer.split_at_mut(self.read_pos);
+            [split.1, &mut split.0[0..self.write_pos]]
+        } else {
+            unreachable!() // I just want the previous branch condition to be explicit
+        }
+    }
+
+    /// For use with [std::io::Read::read_vectored]
+    /// # Safety
+    /// In order to convert to [IoSliceMut], [T] must be cast to [u8].
+    /// Any data input via this returned mutable slice will be entered as raw bytes.
+    /// Thus, usage of this function's return value is unsafe.
+    pub unsafe fn current_empty_slices_as_io_slice_mut<'a>(&'a mut self) -> [IoSliceMut<'a>; 2] {
+        let mut slices = self.current_empty_slices_mut();
+        [
+            IoSliceMut::new(unsafe {
+                slice::from_raw_parts_mut(
+                    slices[0].as_mut_ptr() as *mut u8,
+                    slices[0].len() * size_of::<T>(),
+                )
+            }),
+            IoSliceMut::new(unsafe {
+                slice::from_raw_parts_mut(
+                    slices[1].as_mut_ptr() as *mut u8,
+                    slices[1].len() * size_of::<T>(),
+                )
+            }),
+        ]
     }
 }
 
