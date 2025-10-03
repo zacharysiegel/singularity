@@ -1,17 +1,27 @@
+#![allow(unused)] // Data structure need not be completely used
+
 use crate::error::AppError;
+use std::mem;
+use std::mem::MaybeUninit;
 use std::ops::Index;
 
-struct RingBuffer<const N: usize> {
-    buffer: [u8; N],
+struct RingBuffer<T, const N: usize>
+where
+    T: Copy,
+{
+    buffer: [MaybeUninit<T>; N],
     read_pos: usize,
     write_pos: usize,
     empty: bool,
 }
 
-impl<const N: usize> RingBuffer<N> {
+impl<T, const N: usize> RingBuffer<T, N>
+where
+    T: Copy,
+{
     const fn new() -> Self {
         Self {
-            buffer: [0; N],
+            buffer: [MaybeUninit::<T>::uninit(); N],
             read_pos: 0,
             write_pos: 0,
             empty: true,
@@ -46,31 +56,27 @@ impl<const N: usize> RingBuffer<N> {
         self.used_space() == N
     }
 
-    fn push(&mut self, slice: &[u8]) -> Result<(), AppError> {
+    fn push(&mut self, slice: &[T]) -> Result<(), AppError> {
         if slice.len() > self.available_space() {
             return Err(AppError::new("Not enough space in the buffer"));
         }
 
+        let slice_maybe: &[MaybeUninit<T>] = unsafe { mem::transmute(slice) };
+
         if (self.write_pos + slice.len()) < N {
-            let target: &mut [u8] =
+            let target: &mut [MaybeUninit<T>] =
                 &mut self.buffer[self.write_pos..(self.write_pos + slice.len())];
-            target.copy_from_slice(slice);
-            assert_eq!(
-                &self.buffer[self.write_pos..(self.write_pos + slice.len())],
-                slice
-            );
+            target.copy_from_slice(slice_maybe);
         } else {
             let a = &mut self.buffer[self.write_pos..N];
             let a_len = a.len();
-            a.copy_from_slice(&slice[0..a_len]);
+            a.copy_from_slice(&slice_maybe[0..a_len]);
 
             let b = &mut self.buffer[0..(slice.len() - a_len)];
             let b_len = b.len();
-            b.copy_from_slice(&slice[a_len..]);
+            b.copy_from_slice(&slice_maybe[0..b_len]);
 
             assert_eq!(slice.len(), a_len + b_len);
-            assert_eq!(slice[0..a_len], self.buffer[self.write_pos..N]);
-            assert_eq!(slice[a_len..], self.buffer[0..b_len]);
         }
 
         self.write_pos = (self.write_pos + slice.len()) % N;
@@ -78,12 +84,12 @@ impl<const N: usize> RingBuffer<N> {
         Ok(())
     }
 
-    fn pop<'a>(&'a mut self, count: usize) -> Result<RingBufferView<'a>, AppError> {
+    fn pop<'a>(&'a mut self, count: usize) -> Result<RingBufferView<'a, T>, AppError> {
         if count > self.used_space() {
             return Err(AppError::new("Not enough content in the buffer"));
         }
 
-        let mut view: RingBufferView = RingBufferView {
+        let mut view: RingBufferView<'a, T> = RingBufferView {
             first: &[],
             second: &[],
         };
@@ -93,10 +99,11 @@ impl<const N: usize> RingBuffer<N> {
         }
 
         if self.read_pos + count < N {
-            view.first = &self.buffer[self.read_pos..(self.read_pos + count)];
+            view.first =
+                unsafe { mem::transmute(&self.buffer[self.read_pos..(self.read_pos + count)]) };
         } else {
-            view.first = &self.buffer[self.read_pos..N];
-            view.second = &self.buffer[0..(count- view.first.len())];
+            view.first = unsafe { mem::transmute(&self.buffer[self.read_pos..N]) };
+            view.second = unsafe { mem::transmute(&self.buffer[0..(count - view.first.len())]) };
 
             assert_eq!(count, view.first.len() + view.second.len());
         }
@@ -109,13 +116,19 @@ impl<const N: usize> RingBuffer<N> {
     }
 }
 
-struct RingBufferView<'a> {
-    pub first: &'a [u8],
-    pub second: &'a [u8],
+struct RingBufferView<'a, T>
+where
+    T: Copy,
+{
+    pub first: &'a [T],
+    pub second: &'a [T],
 }
 
-impl<'a> RingBufferView<'a> {
-    fn iter(&self) -> impl Iterator<Item = &u8> {
+impl<'a, T> RingBufferView<'a, T>
+where
+    T: Copy,
+{
+    fn iter(&self) -> impl Iterator<Item = &T> {
         self.first.iter().chain(self.second.iter())
     }
 
@@ -123,18 +136,21 @@ impl<'a> RingBufferView<'a> {
         self.first.len() + self.second.len()
     }
 
-    fn copy_to(&self, dest: &mut [u8]) {
+    fn copy_to(&self, dest: &mut [T]) {
         dest[..self.first.len()].copy_from_slice(self.first);
         dest[self.first.len()..].copy_from_slice(self.second);
     }
 
-    fn as_slices(&self) -> (&[u8], &[u8]) {
+    fn as_slices(&self) -> (&[T], &[T]) {
         (self.first, self.second)
     }
 }
 
-impl<'a> Index<usize> for RingBufferView<'a> {
-    type Output = u8;
+impl<'a, T> Index<usize> for RingBufferView<'a, T>
+where
+    T: Copy,
+{
+    type Output = T;
 
     fn index(&self, index: usize) -> &Self::Output {
         if index < self.first.len() {
@@ -156,7 +172,7 @@ mod tests {
 
         #[test]
         fn push() {
-            let mut ring_buffer: RingBuffer<32> = RingBuffer::<32>::new();
+            let mut ring_buffer: RingBuffer<u8, 32> = RingBuffer::<u8, 32>::new();
             assert!(ring_buffer.is_empty());
 
             let hello_world = b"hello world";
@@ -172,16 +188,23 @@ mod tests {
 
             assert!(!ring_buffer.is_empty());
             assert_eq!(hello_world.len() + numbers.len(), ring_buffer.used_space());
-            assert_eq!(&ring_buffer.buffer[0..hello_world.len()], hello_world);
-            assert_eq!(
-                &ring_buffer.buffer[hello_world.len()..(hello_world.len() + numbers.len())],
-                numbers
-            );
+
+            ring_buffer
+                .push(&vec![1; ring_buffer.capacity() - ring_buffer.used_space()])
+                .unwrap();
+            assert!(ring_buffer.is_full());
+            assert_eq!(b'e', unsafe { ring_buffer.buffer[1].assume_init() });
+            assert_eq!(2, unsafe {
+                ring_buffer.buffer[hello_world.len() + 2].assume_init()
+            });
+            assert_eq!(1, unsafe {
+                ring_buffer.buffer[hello_world.len() + numbers.len()].assume_init()
+            });
         }
 
         #[test]
         fn pop() {
-            let mut ring_buffer: RingBuffer<32> = RingBuffer::<32>::new();
+            let mut ring_buffer: RingBuffer<u8, 32> = RingBuffer::<u8, 32>::new();
             let hello_world = b"hello world";
             ring_buffer.push(hello_world).unwrap();
 
@@ -193,7 +216,7 @@ mod tests {
 
         #[test]
         fn wrap() {
-            let mut ring_buffer: RingBuffer<4> = RingBuffer::<4>::new();
+            let mut ring_buffer: RingBuffer<u8, 4> = RingBuffer::<u8, 4>::new();
             ring_buffer.push(&[1, 2, 3, 4]).unwrap();
 
             assert_eq!(4, ring_buffer.capacity());
@@ -219,7 +242,7 @@ mod tests {
 
         #[test]
         fn index() {
-            let mut ring_buffer: RingBuffer<32> = RingBuffer::<32>::new();
+            let mut ring_buffer: RingBuffer<u8, 32> = RingBuffer::<u8, 32>::new();
             ring_buffer.push(&[1, 2]).unwrap();
 
             let view = ring_buffer.pop(2).unwrap();
@@ -230,7 +253,7 @@ mod tests {
         #[test]
         #[should_panic]
         fn index_out_of_bounds() {
-            let mut ring_buffer: RingBuffer<32> = RingBuffer::<32>::new();
+            let mut ring_buffer: RingBuffer<u8, 32> = RingBuffer::<u8, 32>::new();
             ring_buffer.push(&[1, 2, 3]).unwrap();
             let view = ring_buffer.pop(2).unwrap();
 
