@@ -1,17 +1,68 @@
 //! Big endian
 //! 2 bytes: Frame total length in bytes
 
-use std::io::IoSliceMut;
-use std::net::SocketAddr;
-use std::io;
-use tokio::net::TcpStream;
-
 use crate::error::AppError;
 use crate::ring_buffer::RingBuffer;
+use frame::Frame;
+use std::io;
+use std::io::IoSliceMut;
+use std::net::SocketAddr;
+use tokio::net::TcpStream;
 
 const BUFFER_SIZE: usize = 4096;
 
-pub enum Frame {}
+mod frame {
+    use uuid::Uuid;
+
+    pub const MAXIMUM_FRAME_SIZE: usize = size_of::<Register>();
+
+    pub enum Frame {
+        Heartbeat(Heartbeat),
+        Register(Register),
+    }
+
+    pub(crate) type OpCode = u8;
+
+    #[repr(C, packed(1))]
+    pub struct Heartbeat {
+        op_code: OpCode,
+    }
+
+    #[repr(C, packed(1))]
+    pub struct Register {
+        user_id: Uuid,
+        op_code: OpCode,
+    }
+
+    #[repr(C, packed(1))]
+    pub struct Acknowledgement {
+        op_code: OpCode,
+        op_code_acknowledged: OpCode,
+    }
+
+    impl Frame {
+        pub const fn is_fixed_size(&self) -> bool {
+            match self {
+                Frame::Heartbeat(_) => true,
+                Frame::Register(_) => true,
+            }
+        }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        /// We want to be extra careful about accidentally changing the sizes of these structs
+        #[test]
+        fn size_snapshots() {
+            assert_eq!(1, size_of::<OpCode>());
+            assert_eq!(1, size_of::<Heartbeat>());
+            assert_eq!(17, size_of::<Register>());
+            assert_eq!(2, size_of::<Acknowledgement>());
+        }
+    }
+}
 
 enum BytesRead {
     Some(usize),
