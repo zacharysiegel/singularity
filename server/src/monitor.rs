@@ -9,6 +9,7 @@ use tokio::sync;
 use tokio::sync::mpsc;
 use uuid::Uuid;
 
+use crate::protocol::Connection;
 use crate::random::random_uuid;
 
 pub const GAMES: LazyLock<HashMap<Uuid, Game>> = LazyLock::new(|| HashMap::new());
@@ -61,11 +62,6 @@ pub struct User {
     pub connection: Connection,
 }
 
-pub struct Connection {
-    pub tcp_stream: TcpStream,
-    pub socket_addr: SocketAddr,
-}
-
 pub async fn monitor_listener(
     mut cancellation_receiver: sync::broadcast::Receiver<()>,
     listener: TcpListener,
@@ -106,7 +102,7 @@ pub async fn monitor_manager(mut cancellation_receiver: sync::broadcast::Receive
         let _manager = Manager::new();
         // todo: loop await on manager channel receiver
     };
-    futures::pin_mut!(task_f);
+    let task_f = pin::pin!(task_f);
 
     let cancellation_f = cancellation_receiver.recv();
     let cancellation_f = pin::pin!(cancellation_f);
@@ -123,10 +119,7 @@ async fn monitor_client(
     socket_addr: SocketAddr,
 ) {
     let task_f = async {
-        Connection {
-            tcp_stream,
-            socket_addr,
-        };
+        Connection::new(tcp_stream, socket_addr);
         // todo: loop await on tcp input data
     };
     let task_f = pin::pin!(task_f);
