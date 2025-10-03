@@ -5,7 +5,7 @@ use std::mem;
 use std::mem::MaybeUninit;
 use std::ops::Index;
 
-struct RingBuffer<T, const N: usize>
+pub struct RingBuffer<T, const N: usize>
 where
     T: Copy,
 {
@@ -19,7 +19,7 @@ impl<T, const N: usize> RingBuffer<T, N>
 where
     T: Copy,
 {
-    const fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             buffer: [MaybeUninit::<T>::uninit(); N],
             read_pos: 0,
@@ -28,11 +28,11 @@ where
         }
     }
 
-    const fn capacity(&self) -> usize {
+    pub const fn capacity(&self) -> usize {
         N
     }
 
-    const fn used_space(&self) -> usize {
+    pub const fn used_space(&self) -> usize {
         if self.empty {
             0
         } else if self.write_pos > self.read_pos {
@@ -44,19 +44,19 @@ where
         }
     }
 
-    const fn available_space(&self) -> usize {
+    pub const fn available_space(&self) -> usize {
         N - self.used_space()
     }
 
-    const fn is_empty(&self) -> bool {
+    pub const fn is_empty(&self) -> bool {
         self.empty
     }
 
-    const fn is_full(&self) -> bool {
+    pub const fn is_full(&self) -> bool {
         self.used_space() == N
     }
 
-    fn push(&mut self, slice: &[T]) -> Result<(), AppError> {
+    pub fn push(&mut self, slice: &[T]) -> Result<(), AppError> {
         if slice.len() > self.available_space() {
             return Err(AppError::new("Not enough space in the buffer"));
         }
@@ -84,7 +84,7 @@ where
         Ok(())
     }
 
-    fn pop<'a>(&'a mut self, count: usize) -> Result<RingBufferView<'a, T>, AppError> {
+    pub fn pop<'a>(&'a mut self, count: usize) -> Result<RingBufferView<'a, T>, AppError> {
         if count > self.used_space() {
             return Err(AppError::new("Not enough content in the buffer"));
         }
@@ -116,7 +116,7 @@ where
     }
 }
 
-struct RingBufferView<'a, T>
+pub struct RingBufferView<'a, T>
 where
     T: Copy,
 {
@@ -128,20 +128,20 @@ impl<'a, T> RingBufferView<'a, T>
 where
     T: Copy,
 {
-    fn iter(&self) -> impl Iterator<Item = &T> {
+    pub fn iter(&self) -> impl Iterator<Item = &T> {
         self.first.iter().chain(self.second.iter())
     }
 
-    fn len(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.first.len() + self.second.len()
     }
 
-    fn copy_to(&self, dest: &mut [T]) {
+    pub fn copy_to(&self, dest: &mut [T]) {
         dest[..self.first.len()].copy_from_slice(self.first);
         dest[self.first.len()..].copy_from_slice(self.second);
     }
 
-    fn as_slices(&self) -> (&[T], &[T]) {
+    pub fn as_slices(&self) -> (&[T], &[T]) {
         (self.first, self.second)
     }
 }
