@@ -117,17 +117,21 @@ where
     }
 
     pub fn current_empty_slices_mut<'a>(&'a mut self) -> [&'a mut [MaybeUninit<T>]; 2] {
-        if self.empty {
-            [&mut [], &mut []]
-        } else if self.read_pos < self.write_pos {
-            [&mut self.buffer[self.read_pos..self.write_pos], &mut []]
-        } else if self.read_pos > self.write_pos || self.read_pos == self.write_pos {
-            let split: (&mut [MaybeUninit<T>], &mut [MaybeUninit<T>]) =
-                self.buffer.split_at_mut(self.read_pos);
-            [split.1, &mut split.0[0..self.write_pos]]
-        } else {
-            unreachable!() // I just want the previous branch condition to be explicit
-        }
+        let available_space: usize = self.available_space();
+        let slices: [&'a mut [MaybeUninit<T>]; 2] = {
+            if self.write_pos < self.read_pos {
+                [&mut self.buffer[self.write_pos..self.read_pos], &mut []]
+            } else if self.write_pos > self.read_pos || self.empty {
+                let split: (&mut [MaybeUninit<T>], &mut [MaybeUninit<T>]) =
+                    self.buffer.split_at_mut(self.write_pos);
+                [split.1, &mut split.0[0..self.read_pos]]
+            } else {
+                [&mut [], &mut []]
+            }
+        };
+
+        assert_eq!(available_space, slices[0].len() + slices[1].len());
+        slices
     }
 
     /// For use with [std::io::Read::read_vectored]
@@ -272,6 +276,26 @@ mod tests {
             assert_eq!(2, popped.len());
             assert_eq!(4, popped[0]);
             assert_eq!(5, popped[1]);
+        }
+
+        #[test]
+        fn current_empty_slices_mut() {
+            let mut ring_buffer: RingBuffer<u8, 4> = RingBuffer::<u8, 4>::new();
+
+            let slices: [&mut [MaybeUninit<u8>]; 2] = ring_buffer.current_empty_slices_mut();
+            assert!(slices[0].len() == 4 && slices[1].len() == 0);
+
+            ring_buffer.push(&[1, 2, 3]).unwrap();
+            let slices: [&mut [MaybeUninit<u8>]; 2] = ring_buffer.current_empty_slices_mut();
+            assert!(slices[0].len() == 1 && slices[1].len() == 0);
+
+            ring_buffer.pop(2).unwrap();
+            let slices: [&mut [MaybeUninit<u8>]; 2] = ring_buffer.current_empty_slices_mut();
+            assert!(slices[0].len() == 1 && slices[1].len() == 2);
+
+            ring_buffer.push(&[4, 5, 6]).unwrap();
+            let slices: [&mut [MaybeUninit<u8>]; 2] = ring_buffer.current_empty_slices_mut();
+            assert!(slices[0].len() == 0 && slices[1].len() == 0);
         }
     }
 
