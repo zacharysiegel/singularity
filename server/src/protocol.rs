@@ -3,7 +3,7 @@
 
 use crate::error::AppError;
 use crate::ring_buffer::RingBuffer;
-use frame::FrameContent;
+use frame::Frame;
 use std::io;
 use std::io::IoSliceMut;
 use std::net::SocketAddr;
@@ -18,47 +18,60 @@ mod frame {
 
     pub const MAXIMUM_FRAME_SIZE: usize = size_of::<Register>();
 
-    pub struct Frame {
-        op_code: OpCode,
-        content: FrameContent,
-    }
-
     pub type OpCode = u8;
 
-    pub enum FrameContent {
+    pub enum Frame {
         Heartbeat(MaybeUninit<Heartbeat>),
         Register(MaybeUninit<Register>),
         Acknowledgement(MaybeUninit<Acknowledgement>),
     }
 
     #[repr(C, packed(1))]
-    pub struct Heartbeat {}
+    pub struct Heartbeat {
+        op_code: OpCode,
+    }
+
+    impl Operation for Heartbeat {
+        const OP_CODE: OpCode = 1;
+        const IS_FIXED_SIZE: bool = true;
+    }
 
     #[repr(C, packed(1))]
     pub struct Register {
+        op_code: OpCode,
         user_id: Uuid,
+    }
+
+    impl Operation for Register {
+        const OP_CODE: OpCode = 2;
+        const IS_FIXED_SIZE: bool = true;
     }
 
     #[repr(C, packed(1))]
     pub struct Acknowledgement {
+        op_code: OpCode,
         op_code_acknowledged: OpCode,
     }
 
-    impl FrameContent {
-        pub const fn is_fixed_size(&self) -> bool {
-            match self {
-                _ => true,
-            }
-        }
+    impl Operation for Acknowledgement {
+        const OP_CODE: OpCode = 3;
+        const IS_FIXED_SIZE: bool = true;
+    }
 
+    impl Frame {
         pub fn from_op_code(op_code: OpCode) -> Result<Self, AppError> {
             match op_code {
-                1 => Ok(FrameContent::Heartbeat(MaybeUninit::uninit())),
-                2 => Ok(FrameContent::Register(MaybeUninit::uninit())),
-                3 => Ok(FrameContent::Acknowledgement(MaybeUninit::uninit())),
+                Heartbeat::OP_CODE => Ok(Frame::Heartbeat(MaybeUninit::uninit())),
+                Register::OP_CODE => Ok(Frame::Register(MaybeUninit::uninit())),
+                Acknowledgement::OP_CODE => Ok(Frame::Acknowledgement(MaybeUninit::uninit())),
                 _ => Err(AppError::new(&format!("Invalid op code; [{}]", op_code))),
             }
         }
+    }
+
+    pub trait Operation {
+        const OP_CODE: OpCode;
+        const IS_FIXED_SIZE: bool;
     }
 
     #[cfg(test)]
@@ -69,9 +82,9 @@ mod frame {
         #[test]
         fn size_snapshots() {
             assert_eq!(1, size_of::<OpCode>());
-            assert_eq!(0, size_of::<Heartbeat>());
-            assert_eq!(16, size_of::<Register>());
-            assert_eq!(1, size_of::<Acknowledgement>());
+            assert_eq!(1, size_of::<Heartbeat>());
+            assert_eq!(17, size_of::<Register>());
+            assert_eq!(2, size_of::<Acknowledgement>());
         }
     }
 }
@@ -96,7 +109,7 @@ impl Connection {
         }
     }
 
-    pub async fn read_frame(&mut self) -> Result<Option<FrameContent>, AppError> {
+    pub async fn read_frame(&mut self) -> Result<Option<Frame>, AppError> {
         self.read_chunk().await?;
 
         // todo: consume all complete frames before reading another chunk
@@ -105,7 +118,7 @@ impl Connection {
         todo!()
     }
 
-    pub async fn write_frame(&mut self, frame: &FrameContent) -> Result<(), AppError> {
+    pub async fn write_frame(&mut self, frame: &Frame) -> Result<(), AppError> {
         todo!()
     }
 
