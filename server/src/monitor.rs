@@ -9,7 +9,7 @@ use tokio::sync;
 use tokio::sync::mpsc;
 use uuid::Uuid;
 
-use crate::protocol::Connection;
+use crate::network::connection::Connection;
 use crate::random::random_uuid;
 
 pub const GAMES: LazyLock<HashMap<Uuid, Game>> = LazyLock::new(|| HashMap::new());

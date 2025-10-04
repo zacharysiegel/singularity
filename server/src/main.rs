@@ -1,7 +1,8 @@
 use server::environment::{self, RuntimeEnvironment};
-use server::{monitor, socket};
+use server::monitor;
 use tokio::net::TcpListener;
 use tokio::sync;
+use server::network::socket;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
