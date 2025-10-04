@@ -28,18 +28,18 @@ impl AppError {
 
     fn _new(message: &str, error: Option<Box<dyn Error>>) -> AppError {
         let backtrace: Backtrace = Backtrace::force_capture();
-        let shop_error = AppError {
+        let app_error = AppError {
             message: format!("Error: {}", message),
             sub_error: error,
             backtrace,
         };
-        shop_error
+        app_error
     }
 }
 
 impl Display for AppError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "ShopError [{}]", self.message)?;
+        write!(f, "AppError [{}]", self.message)?;
         if let Some(sub_error) = &self.sub_error {
             write!(f, "\n[{}]", sub_error)?;
         }
@@ -65,3 +65,42 @@ impl From<std::io::Error> for AppError {
     }
 }
 
+/// Like [AppError], but cannot include a sub error (in order to be dyn-compatible)
+/// Should be initialized lazily (e.g. [Option::ok_or_else]) for captured backtraces to make sense.
+#[derive(Debug)]
+pub struct AppErrorStatic {
+    pub message: String,
+    pub backtrace: Backtrace,
+}
+
+impl AppErrorStatic {
+    const DEFAULT_MESSAGE: &'static str = "unspecified";
+
+    fn new(message: &str) -> AppErrorStatic {
+        let backtrace: Backtrace = Backtrace::force_capture();
+        let app_error = AppErrorStatic {
+            message: format!("Error: {}", message),
+            backtrace,
+        };
+        app_error
+    }
+}
+
+impl Display for AppErrorStatic {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "AppError [{}]", self.message)?;
+        match self.backtrace.status() {
+            BacktraceStatus::Unsupported | BacktraceStatus::Disabled => Ok(()),
+            BacktraceStatus::Captured => write!(f, "\n{}", self.backtrace),
+            _ => Ok(()),
+        }
+    }
+}
+
+impl Error for AppErrorStatic {}
+
+impl Default for AppErrorStatic {
+    fn default() -> Self {
+        Self::new(Self::DEFAULT_MESSAGE)
+    }
+}
