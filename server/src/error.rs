@@ -104,3 +104,18 @@ impl Default for AppErrorStatic {
         Self::new(Self::DEFAULT_MESSAGE)
     }
 }
+
+impl From<AppError> for AppErrorStatic {
+    fn from(value: AppError) -> Self {
+        AppErrorStatic {
+            message: value.message,
+            backtrace: value.backtrace,
+        }
+    }
+}
+
+impl From<std::io::Error> for AppErrorStatic {
+    fn from(err: std::io::Error) -> Self {
+        AppErrorStatic::new(&err.to_string())
+    }
+}
