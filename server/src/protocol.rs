@@ -19,6 +19,7 @@ mod frame {
     pub enum Frame {
         Heartbeat(Heartbeat),
         Register(Register),
+        Acknowledgement(Acknowledgement),
     }
 
     pub(crate) type OpCode = u8;
@@ -43,8 +44,7 @@ mod frame {
     impl Frame {
         pub const fn is_fixed_size(&self) -> bool {
             match self {
-                Frame::Heartbeat(_) => true,
-                Frame::Register(_) => true,
+                _ => true,
             }
         }
     }
