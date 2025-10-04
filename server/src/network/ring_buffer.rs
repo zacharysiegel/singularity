@@ -288,15 +288,38 @@ mod tests {
         }
 
         #[test]
+        fn peek() {
+            let mut ring_buffer: RingBuffer<u8, 32> = RingBuffer::<u8, 32>::new();
+            let hello_world = b"hello world";
+            ring_buffer.push(hello_world).unwrap();
+
+            let view = ring_buffer.peek(2).unwrap();
+            assert_eq!(2, view.len());
+            assert_eq!(b'h', view[0]);
+            assert_eq!(b'e', view[1]);
+
+            let view = ring_buffer.peek(2).unwrap();
+            assert_eq!(2, view.len());
+            assert_eq!(b'h', view[0]);
+            assert_eq!(b'e', view[1]);
+        }
+
+        #[test]
         fn pop() {
             let mut ring_buffer: RingBuffer<u8, 32> = RingBuffer::<u8, 32>::new();
             let hello_world = b"hello world";
             ring_buffer.push(hello_world).unwrap();
 
-            let popped = ring_buffer.pop(2).unwrap();
-            assert_eq!(2, popped.len());
-            assert_eq!(b"h"[0], popped[0]);
-            assert_eq!(b"e"[0], popped[1]);
+            let view = ring_buffer.pop(2).unwrap();
+            assert_eq!(2, view.len());
+            assert_eq!(b"h"[0], view[0]);
+            assert_eq!(b"e"[0], view[1]);
+
+            let view = ring_buffer.pop(3).unwrap();
+            assert_eq!(3, view.len());
+            assert_eq!(b'l', view[0]);
+            assert_eq!(b'l', view[1]);
+            assert_eq!(b'o', view[2]);
         }
 
         #[test]
