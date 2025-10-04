@@ -94,7 +94,7 @@ pub async fn monitor_listener(
     future::select(cancellation_f, task_f).await;
 
     log::debug!("monitor_listener terminated");
-    // todo: cleanup here
+    // clean up here if necessary
 }
 
 pub async fn monitor_manager(mut cancellation_receiver: sync::broadcast::Receiver<()>) {
@@ -110,7 +110,7 @@ pub async fn monitor_manager(mut cancellation_receiver: sync::broadcast::Receive
     future::select(cancellation_f, task_f).await;
 
     log::debug!("monitor_manager terminated");
-    // todo: cleanup here
+    // clean up here if necessary
 }
 
 async fn monitor_client(
@@ -130,5 +130,5 @@ async fn monitor_client(
     future::select(cancellation_f, task_f).await;
 
     log::debug!("monitor_client terminated");
-    // todo: cleanup here
+    // clean up here if necessary
 }
