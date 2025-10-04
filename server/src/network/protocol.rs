@@ -6,10 +6,11 @@
 //! The operation code and optional length field constitute the frame's "head".
 //! The rest of the frame is considered the frame's "body".
 
-use std::fmt::{self, Display};
-
 use crate::error::AppError;
 use crate::network::connection::Connection;
+use std::fmt::{self, Display};
+use std::hint::black_box;
+use std::mem;
 use uuid::Uuid;
 
 pub struct Frame {
@@ -59,6 +60,7 @@ impl Display for OperationType {
     }
 }
 
+#[derive(Debug)]
 #[repr(C, packed(1))]
 pub struct Heartbeat {
     pub op_code: OpCode,
@@ -69,6 +71,7 @@ impl Operation for Heartbeat {
     const FIXED_SIZE: Option<usize> = Some(size_of::<Self>());
 }
 
+#[derive(Debug)]
 #[repr(C, packed(1))]
 pub struct Register {
     pub op_code: OpCode,
@@ -80,6 +83,7 @@ impl Operation for Register {
     const FIXED_SIZE: Option<usize> = Some(size_of::<Self>());
 }
 
+#[derive(Debug)]
 #[repr(C, packed(1))]
 pub struct Acknowledgement {
     pub op_code: OpCode,
@@ -91,6 +95,7 @@ impl Operation for Acknowledgement {
     const FIXED_SIZE: Option<usize> = Some(size_of::<Self>());
 }
 
+#[derive(Debug)]
 #[repr(C, packed(1))]
 pub struct _PlaceholderDynamic<'a> {
     pub op_code: OpCode,
@@ -134,17 +139,46 @@ pub fn route_frame(connection: &Connection, frame: Frame) {
     match frame.head.op_type {
         OperationType::Heartbeat => {
             log::trace!("Heartbeat received; [{}] [{}]", connection, frame);
+
+            let heartbeat: Heartbeat = unsafe {
+                mem::transmute::<[u8; Heartbeat::FIXED_SIZE.unwrap()], Heartbeat>(
+                    frame.data.try_into().unwrap(),
+                )
+            };
+            log::debug!("Heartbeat [{:?}]", heartbeat);
         }
         OperationType::Register => {
             log::trace!("Register received; [{}] [{}]", connection, frame);
+
+            let register: Register = unsafe {
+                mem::transmute::<[u8; Register::FIXED_SIZE.unwrap()], Register>(
+                    frame.data.try_into().unwrap(),
+                )
+            };
+            log::debug!("Register; [{:?}]", register);
             todo!();
         }
         OperationType::Acknowledgement => {
             log::trace!("Acknowledgement received; [{}] [{}]", connection, frame);
+            let acknowledgement: Acknowledgement = unsafe {
+                mem::transmute::<[u8; Acknowledgement::FIXED_SIZE.unwrap()], Acknowledgement>(
+                    frame.data.try_into().unwrap(),
+                )
+            };
+            log::debug!("Acknowledgement; [{:?}]", acknowledgement);
             todo!();
         }
         OperationType::_PlaceholderDynamic => {
             log::trace!("_PlaceholderDynamic received; [{}] [{}]", connection, frame);
+            let _placeholder_dynamic: _PlaceholderDynamic = {
+                let length: u16 = u16::from_be_bytes(frame.data[1..3].try_into().unwrap());
+                _PlaceholderDynamic {
+                    op_code: frame.data[0],
+                    length,
+                    string: str::from_utf8(&frame.data[3..(length as usize)]).unwrap(),
+                }
+            };
+            log::debug!("_PlaceholderDynamic; [{:?}]", _placeholder_dynamic);
             todo!();
         }
     }
