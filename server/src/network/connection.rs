@@ -78,7 +78,7 @@ impl Connection {
     }
 
     fn peek_frame_head(&self) -> Result<Option<Head>, AppError> {
-        if (self.buffer.used_space() < 1) {
+        if self.buffer.used_space() < 1 {
             return Ok(None);
         }
         let op_code_view: RingBufferView<u8> = self.buffer.peek(1)?; // Must be modified if OpCode changes size
@@ -86,7 +86,7 @@ impl Connection {
 
         let frame_size: usize = match op_type.fixed_size() {
             None => {
-                if (self.buffer.used_space() < 3) {
+                if self.buffer.used_space() < 3 {
                     return Ok(None);
                 }
                 let length_view: RingBufferView<u8> = self.buffer.peek(3)?;
