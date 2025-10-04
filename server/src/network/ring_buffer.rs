@@ -34,12 +34,16 @@ where
     }
 
     pub const fn used_space(&self) -> usize {
-        if self.empty {
+        Self::used_space_internal(self.empty, self.read_pos, self.write_pos)
+    }
+
+    const fn used_space_internal(empty: bool, read_pos: usize, write_pos: usize) -> usize {
+        if empty {
             0
-        } else if self.write_pos > self.read_pos {
-            self.write_pos - self.read_pos
-        } else if self.write_pos < self.read_pos {
-            N - (self.read_pos - self.write_pos)
+        } else if write_pos > read_pos {
+            write_pos - read_pos
+        } else if write_pos < read_pos {
+            N - (read_pos - write_pos)
         } else {
             N
         }
@@ -85,8 +89,24 @@ where
         Ok(())
     }
 
-    pub fn pop<'a>(&'a mut self, count: usize) -> Result<RingBufferView<'a, T>, AppError> {
-        if count > self.used_space() {
+    pub fn peek<'a>(&'a self, count: usize) -> Result<RingBufferView<'a, T>, AppError> {
+        Self::peek_internal(
+            &self.buffer,
+            self.empty,
+            self.read_pos,
+            self.write_pos,
+            count,
+        )
+    }
+
+    fn peek_internal<'a>(
+        buffer: &'a [MaybeUninit<T>],
+        empty: bool,
+        read_pos: usize,
+        write_pos: usize,
+        count: usize,
+    ) -> Result<RingBufferView<'a, T>, AppError> {
+        if count > Self::used_space_internal(empty, read_pos, write_pos) {
             return Err(AppError::new("Not enough content in the buffer"));
         }
 
@@ -99,15 +119,26 @@ where
             return Ok(view);
         }
 
-        if self.read_pos + count < N {
-            view.first =
-                unsafe { mem::transmute(&self.buffer[self.read_pos..(self.read_pos + count)]) };
+        if read_pos + count < N {
+            view.first = unsafe { mem::transmute(&buffer[read_pos..(read_pos + count)]) };
         } else {
-            view.first = unsafe { mem::transmute(&self.buffer[self.read_pos..N]) };
-            view.second = unsafe { mem::transmute(&self.buffer[0..(count - view.first.len())]) };
+            view.first = unsafe { mem::transmute(&buffer[read_pos..N]) };
+            view.second = unsafe { mem::transmute(&buffer[0..(count - view.first.len())]) };
 
             assert_eq!(count, view.first.len() + view.second.len());
         }
+
+        Ok(view)
+    }
+
+    pub fn pop<'a>(&'a mut self, count: usize) -> Result<RingBufferView<'a, T>, AppError> {
+        let view: RingBufferView<T> = Self::peek_internal(
+            &self.buffer,
+            self.empty,
+            self.read_pos,
+            self.write_pos,
+            count,
+        )?;
 
         self.read_pos = (self.read_pos + count) % N;
         if self.read_pos == self.write_pos {
