@@ -47,7 +47,7 @@ impl Connection {
             BytesRead::Some(size) => {
                 assert!(size > 0); // Precondition of entering this branch
 
-                let bytes_remaining: usize = self.buffer.available_space();
+                let bytes_remaining: usize = self.buffer.used_space();
                 loop {
                     let Some(head) = self.peek_frame_head()? else {
                         break;
