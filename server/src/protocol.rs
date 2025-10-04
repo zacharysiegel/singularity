@@ -1,6 +1,12 @@
+//! All multi-byte fields should be interpreted in Big-Endian order
+//! Each frame begins with a 1-byte operation code
+//! A frame can be fixed-length or variable-length
+//!     If fixed, the frame's data immediately follows the operation code
+//!     If variable, the frame's total length is written as a 2-byte Big-Endian unsigned integer
+
 use crate::error::AppError;
-use crate::ring_buffer::RingBuffer;
-use frame::Frame;
+use crate::ring_buffer::{RingBuffer, RingBufferView};
+use frame::OperationType;
 use std::io;
 use std::io::IoSliceMut;
 use std::net::SocketAddr;
@@ -8,67 +14,89 @@ use tokio::net::TcpStream;
 
 const BUFFER_SIZE: usize = 4096;
 
+// todo: move to another file
 mod frame {
     use crate::error::AppError;
-    use std::mem::MaybeUninit;
     use uuid::Uuid;
-
-    pub const MAXIMUM_FRAME_SIZE: usize = size_of::<Register>();
 
     pub type OpCode = u8;
 
-    pub enum Frame {
-        Heartbeat(MaybeUninit<Heartbeat>),
-        Register(MaybeUninit<Register>),
-        Acknowledgement(MaybeUninit<Acknowledgement>),
+    pub enum OperationType {
+        Heartbeat,
+        Register,
+        Acknowledgement,
+        _PlaceholderDynamic,
     }
 
     #[repr(C, packed(1))]
     pub struct Heartbeat {
-        op_code: OpCode,
+        pub op_code: OpCode,
     }
 
     impl Operation for Heartbeat {
         const OP_CODE: OpCode = 1;
-        const IS_FIXED_SIZE: bool = true;
+        const FIXED_SIZE: Option<usize> = Some(size_of::<Self>());
     }
 
     #[repr(C, packed(1))]
     pub struct Register {
-        op_code: OpCode,
-        user_id: Uuid,
+        pub op_code: OpCode,
+        pub user_id: Uuid,
     }
 
     impl Operation for Register {
         const OP_CODE: OpCode = 2;
-        const IS_FIXED_SIZE: bool = true;
+        const FIXED_SIZE: Option<usize> = Some(size_of::<Self>());
     }
 
     #[repr(C, packed(1))]
     pub struct Acknowledgement {
-        op_code: OpCode,
-        op_code_acknowledged: OpCode,
+        pub op_code: OpCode,
+        pub op_code_acknowledged: OpCode,
     }
 
     impl Operation for Acknowledgement {
         const OP_CODE: OpCode = 3;
-        const IS_FIXED_SIZE: bool = true;
+        const FIXED_SIZE: Option<usize> = Some(size_of::<Self>());
     }
 
-    impl Frame {
-        pub fn from_op_code(op_code: OpCode) -> Result<Self, AppError> {
+    #[repr(C, packed(1))]
+    pub struct _PlaceholderDynamic<'a> {
+        pub op_code: OpCode,
+        pub length: u16,
+        pub string: &'a str,
+    }
+
+    impl<'a> Operation for _PlaceholderDynamic<'a> {
+        const OP_CODE: OpCode = 4;
+        const FIXED_SIZE: Option<usize> = None;
+    }
+
+    impl OperationType {
+        pub fn from_op_code(op_code: &OpCode) -> Result<Self, AppError> {
             match op_code {
-                Heartbeat::OP_CODE => Ok(Frame::Heartbeat(MaybeUninit::uninit())),
-                Register::OP_CODE => Ok(Frame::Register(MaybeUninit::uninit())),
-                Acknowledgement::OP_CODE => Ok(Frame::Acknowledgement(MaybeUninit::uninit())),
+                &Heartbeat::OP_CODE => Ok(OperationType::Heartbeat),
+                &Register::OP_CODE => Ok(OperationType::Register),
+                &Acknowledgement::OP_CODE => Ok(OperationType::Acknowledgement),
+                &_PlaceholderDynamic::OP_CODE => Ok(OperationType::_PlaceholderDynamic),
                 _ => Err(AppError::new(&format!("Invalid op code; [{}]", op_code))),
+            }
+        }
+
+        pub const fn fixed_size(&self) -> Option<usize> {
+            match self {
+                OperationType::Heartbeat => Heartbeat::FIXED_SIZE,
+                OperationType::Register => Register::FIXED_SIZE,
+                OperationType::Acknowledgement => Acknowledgement::FIXED_SIZE,
+                OperationType::_PlaceholderDynamic => _PlaceholderDynamic::FIXED_SIZE,
             }
         }
     }
 
     pub trait Operation {
         const OP_CODE: OpCode;
-        const IS_FIXED_SIZE: bool;
+        /// None iff not fixed size
+        const FIXED_SIZE: Option<usize>;
     }
 
     #[cfg(test)]
@@ -106,16 +134,36 @@ impl Connection {
         }
     }
 
-    pub async fn read_frame(&mut self) -> Result<Option<Frame>, AppError> {
-        self.read_chunk().await?;
+    pub async fn read_frame(&mut self) -> Result<Option<(OperationType, Vec<u8>)>, AppError> {
+        let bytes_read: BytesRead = self.read_chunk().await?;
 
-        // todo: consume all complete frames before reading another chunk
-        //  in order to prevent overflowing the buffer
+        match bytes_read {
+            BytesRead::Some(size) => {
+                assert!(size > 0); // Precondition of entering this branch
 
-        todo!()
+                let op_code_view: RingBufferView<u8> = self.buffer.pop(1)?; // Must be modified if OpCode changes size
+                let op_type: OperationType = OperationType::from_op_code(&op_code_view[0])?;
+
+                let mut frame_vec: Vec<u8> = op_code_view.into();
+                let frame_size: usize = op_type.fixed_size().unwrap_or_else(|| {
+                    let length_view: RingBufferView<u8> = self.buffer.pop(2).unwrap();
+                    u16::from_be_bytes([length_view[0], length_view[1]]) as usize
+                });
+                let rest_view: RingBufferView<u8> = self.buffer.pop(frame_size - 1)?;
+
+                assert_eq!(1, frame_vec.len());
+                assert_eq!(frame_size, 1 + rest_view.len());
+                frame_vec.reserve_exact(frame_size - 1);
+                rest_view.copy_to(&mut frame_vec.as_mut_slice()[1..]);
+
+                assert_eq!(frame_size, frame_vec.len());
+                Ok(Some((op_type, frame_vec)))
+            }
+            BytesRead::ReadClosed => Ok(None),
+        }
     }
 
-    pub async fn write_frame(&mut self, frame: &Frame) -> Result<(), AppError> {
+    pub async fn write_frame(&mut self, frame: &OperationType) -> Result<(), AppError> {
         todo!()
     }
 
