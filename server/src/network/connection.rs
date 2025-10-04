@@ -7,7 +7,7 @@
 //! The rest of the frame is considered the frame's "body".
 
 use crate::error::AppError;
-use crate::network::frame::OperationType;
+use crate::network::frame::{Frame, OperationType};
 use crate::network::ring_buffer::{RingBuffer, RingBufferView};
 use std::io;
 use std::io::IoSliceMut;
@@ -38,8 +38,8 @@ impl Connection {
         }
     }
 
-    pub async fn read_frames(&mut self) -> Result<Vec<Vec<u8>>, AppError> {
-        let mut frames: Vec<Vec<u8>> = Vec::new();
+    pub async fn read_frames(&mut self) -> Result<Option<Vec<Frame>>, AppError> {
+        let mut frames: Vec<Frame> = Vec::new();
         let bytes_read: BytesRead = self.read_chunk().await?;
 
         match bytes_read {
@@ -53,14 +53,20 @@ impl Connection {
                         break;
                     }
 
-                    let frame: Vec<u8> = self.pop_frame(&head)?;
+                    let frame_data: Vec<u8> = self.pop_frame(&head)?;
+                    let frame: Frame = Frame {
+                        head,
+                        data: frame_data,
+                    };
                     frames.push(frame);
                 }
             }
-            BytesRead::ReadClosed => (),
+            BytesRead::ReadClosed => {
+                return Ok(None);
+            },
         }
 
-        Ok(frames)
+        Ok(Some(frames))
     }
 
     pub async fn write_frame(&mut self, frame: &OperationType) -> Result<(), AppError> {

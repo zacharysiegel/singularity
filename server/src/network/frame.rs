@@ -1,6 +1,11 @@
 use crate::error::AppError;
 use uuid::Uuid;
 
+pub struct Frame {
+    pub head: Head,
+    pub data: Vec<u8>,
+}
+
 pub struct Head {
     pub op_type: OperationType,
     pub length: usize,
