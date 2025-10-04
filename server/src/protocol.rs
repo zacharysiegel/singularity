@@ -1,6 +1,3 @@
-//! Big endian
-//! 2 bytes: Frame total length in bytes
-
 use crate::error::AppError;
 use crate::ring_buffer::RingBuffer;
 use frame::Frame;
