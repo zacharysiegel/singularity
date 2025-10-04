@@ -73,10 +73,12 @@ pub async fn monitor_listener(
 
             match accept_r {
                 Ok(val) => {
+                    let tcp_stream: TcpStream = val.0;
+                    let socket_addr: SocketAddr = val.1;
                     tokio::spawn(monitor_client(
                         cancellation_receiver_forward.resubscribe(),
-                        val.0,
-                        val.1,
+                        tcp_stream,
+                        socket_addr,
                     ));
                 }
                 Err(err) => {
@@ -120,6 +122,8 @@ async fn monitor_client(
 ) {
     let task_f = async {
         Connection::new(tcp_stream, socket_addr);
+
+        
         // todo: loop await on tcp input data
     };
     let task_f = pin::pin!(task_f);

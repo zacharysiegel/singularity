@@ -1,8 +1,10 @@
-//! All multi-byte fields should be interpreted in Big-Endian order
-//! Each frame begins with a 1-byte operation code
-//! A frame can be fixed-length or variable-length
-//!     If fixed, the frame's data immediately follows the operation code
-//!     If variable, the frame's total length is written as a 2-byte Big-Endian unsigned integer
+//! All multi-byte fields should be interpreted in Big-Endian order.
+//! Each frame begins with a 1-byte operation code.
+//! A frame can be fixed-length or variable-length.
+//! If fixed, the frame's data immediately follows the operation code.
+//! If variable, the frame's total length is written as a 2-byte Big-Endian unsigned integer.
+//! The operation code and optional length field constitute the frame's "head".
+//! The rest of the frame is considered the frame's "body".
 
 use crate::error::AppError;
 use crate::network::frame::OperationType;
@@ -11,6 +13,8 @@ use std::io;
 use std::io::IoSliceMut;
 use std::net::SocketAddr;
 use tokio::net::TcpStream;
+use frame::Head;
+use crate::network::frame;
 
 const BUFFER_SIZE: usize = 4096;
 
@@ -34,37 +38,55 @@ impl Connection {
         }
     }
 
-    pub async fn read_frame(&mut self) -> Result<Option<(OperationType, Vec<u8>)>, AppError> {
+    pub async fn read_frames(&mut self) -> Result<(), AppError> {
         let bytes_read: BytesRead = self.read_chunk().await?;
 
         match bytes_read {
             BytesRead::Some(size) => {
                 assert!(size > 0); // Precondition of entering this branch
 
-                let op_code_view: RingBufferView<u8> = self.buffer.pop(1)?; // Must be modified if OpCode changes size
-                let op_type: OperationType = OperationType::from_op_code(&op_code_view[0])?;
+                let bytes_remaining: usize = size + self.buffer.available_space();
+                loop {
+                    let head: Head = self.peek_frame_head()?;
+                    if (head.length < bytes_remaining) {
+                        break;
+                    }
 
-                let mut frame_vec: Vec<u8> = op_code_view.into();
-                let frame_size: usize = op_type.fixed_size().unwrap_or_else(|| {
-                    let length_view: RingBufferView<u8> = self.buffer.pop(2).unwrap();
-                    u16::from_be_bytes([length_view[0], length_view[1]]) as usize
-                });
-                let rest_view: RingBufferView<u8> = self.buffer.pop(frame_size - 1)?;
+                    let frame: Vec<u8> = self.pop_frame(&head)?;
+                    todo!("do something with it")
+                }
 
-                assert_eq!(1, frame_vec.len());
-                assert_eq!(frame_size, 1 + rest_view.len());
-                frame_vec.reserve_exact(frame_size - 1);
-                rest_view.copy_to(&mut frame_vec.as_mut_slice()[1..]);
 
-                assert_eq!(frame_size, frame_vec.len());
-                Ok(Some((op_type, frame_vec)))
+                todo!()
             }
-            BytesRead::ReadClosed => Ok(None),
+            BytesRead::ReadClosed => todo!(),
         }
+
+        todo!()
     }
 
     pub async fn write_frame(&mut self, frame: &OperationType) -> Result<(), AppError> {
         todo!()
+    }
+
+    fn peek_frame_head(&self) -> Result<Head, AppError> {
+        let op_code_view: RingBufferView<u8> = self.buffer.peek(1)?; // Must be modified if OpCode changes size
+        let op_type: OperationType = OperationType::from_op_code(&op_code_view[0])?;
+
+        let frame_size: usize = op_type.fixed_size().unwrap_or_else(|| {
+            let length_view: RingBufferView<u8> = self.buffer.peek(3).unwrap();
+            u16::from_be_bytes([length_view[1], length_view[2]]) as usize
+        });
+        Ok(Head {
+            op_type,
+            length: frame_size,
+        })
+    }
+
+    fn pop_frame(&mut self, head: &Head) -> Result<Vec<u8>, AppError> {
+        let view: RingBufferView<u8> = self.buffer.pop(head.length)?;
+        let frame_vec: Vec<u8> = view.into();
+        Ok(frame_vec)
     }
 
     async fn read_chunk(&mut self) -> Result<BytesRead, AppError> {

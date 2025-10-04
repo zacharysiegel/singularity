@@ -1,6 +1,11 @@
 use crate::error::AppError;
 use uuid::Uuid;
 
+pub struct Head {
+    pub op_type: OperationType,
+    pub length: usize,
+}
+
 pub type OpCode = u8;
 
 pub enum OperationType {
