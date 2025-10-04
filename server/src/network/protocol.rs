@@ -145,7 +145,7 @@ pub fn route_frame(connection: &Connection, frame: Frame) {
                     frame.data.try_into().unwrap(),
                 )
             };
-            log::debug!("Heartbeat [{:?}]", heartbeat);
+            log::debug!("parsed frame; [{:?}]", heartbeat);
         }
         OperationType::Register => {
             log::trace!("Register received; [{}] [{}]", connection, frame);
@@ -155,7 +155,7 @@ pub fn route_frame(connection: &Connection, frame: Frame) {
                     frame.data.try_into().unwrap(),
                 )
             };
-            log::debug!("Register; [{:?}]", register);
+            log::debug!("parsed frame; [{:?}]", register);
             todo!();
         }
         OperationType::Acknowledgement => {
@@ -165,7 +165,7 @@ pub fn route_frame(connection: &Connection, frame: Frame) {
                     frame.data.try_into().unwrap(),
                 )
             };
-            log::debug!("Acknowledgement; [{:?}]", acknowledgement);
+            log::debug!("parsed frame; [{:?}]", acknowledgement);
             todo!();
         }
         OperationType::_PlaceholderDynamic => {
@@ -178,7 +178,7 @@ pub fn route_frame(connection: &Connection, frame: Frame) {
                     string: str::from_utf8(&frame.data[3..(length as usize)]).unwrap(),
                 }
             };
-            log::debug!("_PlaceholderDynamic; [{:?}]", _placeholder_dynamic);
+            log::debug!("parsed frame; [{:?}]", _placeholder_dynamic);
             todo!();
         }
     }
