@@ -36,6 +36,6 @@ fn create_socket(address: &str) -> Result<Socket, AppError> {
     socket.set_linger(Some(Duration::from_secs(4)))?;
     socket.set_write_timeout(Some(Duration::from_secs(10)))?;
     socket.bind(&sock_addr)?;
-    socket.listen(2048)?;
+    socket.listen(128)?;
     Ok(socket)
 }
