@@ -188,6 +188,18 @@ where
     }
 }
 
+impl<'a, T> From<RingBufferView<'a, T>> for Vec<T>
+where
+    T: Copy,
+{
+    fn from(view: RingBufferView<'a, T>) -> Self {
+        let mut target: Vec<T> = Vec::with_capacity(view.len());
+        target[..view.first.len()].copy_from_slice(view.first);
+        target[view.first.len()..].copy_from_slice(view.second);
+        target
+    }
+}
+
 impl<'a, T> Index<usize> for RingBufferView<'a, T>
 where
     T: Copy,
