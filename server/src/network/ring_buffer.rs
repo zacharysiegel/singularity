@@ -85,7 +85,16 @@ where
             assert_eq!(slice.len(), a_len + b_len);
         }
 
-        self.write_pos = (self.write_pos + slice.len()) % N;
+        self.advance(slice.len());
+        Ok(())
+    }
+
+    pub fn advance(&mut self, count: usize) -> Result<(), AppError> {
+        if count > self.available_space() {
+            return Err(AppError::new("Not enough space in the buffer"));
+        }
+
+        self.write_pos = (self.write_pos + count) % N;
         self.empty = false;
         Ok(())
     }
@@ -237,8 +246,8 @@ where
 {
     fn from(view: RingBufferView<'a, T>) -> Self {
         let mut target: Vec<T> = Vec::with_capacity(view.len());
-        target[..view.first.len()].copy_from_slice(view.first);
-        target[view.first.len()..].copy_from_slice(view.second);
+        target.extend_from_slice(&view.first);
+        target.extend_from_slice(&view.second);
         target
     }
 }

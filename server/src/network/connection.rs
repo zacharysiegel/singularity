@@ -47,12 +47,12 @@ impl Connection {
             BytesRead::Some(size) => {
                 assert!(size > 0); // Precondition of entering this branch
 
-                let bytes_remaining: usize = self.buffer.used_space();
                 loop {
+                    let bytes_remaining: usize = self.buffer.used_space();
                     let Some(head) = self.peek_frame_head()? else {
                         break;
                     };
-                    if head.length < bytes_remaining {
+                    if head.length > bytes_remaining {
                         break;
                     }
 
@@ -114,11 +114,15 @@ impl Connection {
                 unsafe { self.buffer.current_empty_slices_as_io_slice_mut() };
             let read_r: io::Result<usize> = self.tcp_stream.try_read_vectored(&mut io_slices);
 
+
             match read_r {
                 Ok(0) => {
                     return Ok(BytesRead::ReadClosed);
                 }
-                Ok(n) => return Ok(BytesRead::Some(n)),
+                Ok(n) => {
+                    self.buffer.advance(n)?;
+                    return Ok(BytesRead::Some(n))
+                },
                 Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
                     // TcpStream may not be ready for read. TcpStream#readable may return false positives.
                     continue;
