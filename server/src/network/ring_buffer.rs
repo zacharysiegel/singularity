@@ -203,9 +203,9 @@ impl<T: Copy, const N: usize> Display for RingBuffer<T, N> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "RingBuffer; [capacity: {}] [available_space: {}]",
+            "RingBuffer; [capacity: {}] [used: {}]",
             self.capacity(),
-            self.available_space()
+            self.used_space()
         )
     }
 }
