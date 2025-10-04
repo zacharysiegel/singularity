@@ -1,3 +1,4 @@
+use std::net;
 use std::net::SocketAddr;
 use std::str::FromStr;
 use std::time::Duration;
@@ -9,10 +10,10 @@ use crate::error::AppError;
 
 pub async fn create_listener(address: &str) -> Result<TcpListener, AppError> {
     let socket: Socket = create_socket(address)?;
-    let listener_std: std::net::TcpListener = std::net::TcpListener::from(socket);
+    let listener_std: net::TcpListener = net::TcpListener::from(socket);
     listener_std.set_nonblocking(true)?;
 
-    let listener_tokio: tokio::net::TcpListener = tokio::net::TcpListener::from_std(listener_std)?;
+    let listener_tokio: TcpListener = TcpListener::from_std(listener_std)?;
     Ok(listener_tokio)
 }
 

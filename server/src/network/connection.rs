@@ -12,9 +12,9 @@ use crate::network::frame::{Frame, OperationType};
 use crate::network::ring_buffer::{RingBuffer, RingBufferView};
 use frame::Head;
 use std::fmt::{Display, Formatter};
+use std::io;
 use std::io::IoSliceMut;
 use std::net::SocketAddr;
-use std::io;
 use tokio::net::TcpStream;
 
 const BUFFER_SIZE: usize = 4096;
@@ -49,7 +49,9 @@ impl Connection {
 
                 let bytes_remaining: usize = self.buffer.available_space();
                 loop {
-                    let head: Head = self.peek_frame_head()?;
+                    let Some(head) = self.peek_frame_head()? else {
+                        break;
+                    };
                     if head.length < bytes_remaining {
                         break;
                     }
@@ -64,7 +66,7 @@ impl Connection {
             }
             BytesRead::ReadClosed => {
                 return Ok(None);
-            },
+            }
         }
 
         Ok(Some(frames))
@@ -75,18 +77,28 @@ impl Connection {
         todo!()
     }
 
-    fn peek_frame_head(&self) -> Result<Head, AppError> {
+    fn peek_frame_head(&self) -> Result<Option<Head>, AppError> {
+        if (self.buffer.used_space() < 1) {
+            return Ok(None);
+        }
         let op_code_view: RingBufferView<u8> = self.buffer.peek(1)?; // Must be modified if OpCode changes size
         let op_type: OperationType = OperationType::from_op_code(&op_code_view[0])?;
 
-        let frame_size: usize = op_type.fixed_size().unwrap_or_else(|| {
-            let length_view: RingBufferView<u8> = self.buffer.peek(3).unwrap();
-            u16::from_be_bytes([length_view[1], length_view[2]]) as usize
-        });
-        Ok(Head {
+        let frame_size: usize = match op_type.fixed_size() {
+            None => {
+                if (self.buffer.used_space() < 3) {
+                    return Ok(None);
+                }
+                let length_view: RingBufferView<u8> = self.buffer.peek(3)?;
+                u16::from_be_bytes([length_view[1], length_view[2]]) as usize
+            }
+            Some(size) => size,
+        };
+
+        Ok(Some(Head {
             op_type,
             length: frame_size,
-        })
+        }))
     }
 
     fn pop_frame(&mut self, head: &Head) -> Result<Vec<u8>, AppError> {
