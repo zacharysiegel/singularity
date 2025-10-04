@@ -91,6 +91,15 @@ pub trait Operation {
     const FIXED_SIZE: Option<usize>;
 }
 
+pub fn route_frame(frame: Frame) {
+    match frame.head.op_type {
+        OperationType::Heartbeat => todo!(),
+        OperationType::Register => todo!(),
+        OperationType::Acknowledgement => todo!(),
+        OperationType::_PlaceholderDynamic => todo!(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

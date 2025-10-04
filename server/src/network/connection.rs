@@ -7,14 +7,15 @@
 //! The rest of the frame is considered the frame's "body".
 
 use crate::error::AppError;
+use crate::network::frame;
 use crate::network::frame::{Frame, OperationType};
 use crate::network::ring_buffer::{RingBuffer, RingBufferView};
-use std::io;
+use frame::Head;
+use std::fmt::{Display, Formatter};
 use std::io::IoSliceMut;
 use std::net::SocketAddr;
+use std::io;
 use tokio::net::TcpStream;
-use frame::Head;
-use crate::network::frame;
 
 const BUFFER_SIZE: usize = 4096;
 
@@ -112,5 +113,11 @@ impl Connection {
                 Err(e) => return Err(AppError::from(e)),
             }
         }
+    }
+}
+
+impl Display for Connection {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Connection; [{}] [{}]", self.socket_addr, self.buffer)
     }
 }

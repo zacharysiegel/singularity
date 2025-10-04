@@ -1,16 +1,17 @@
+use crate::network::connection::Connection;
+use crate::network::frame;
+use crate::random::random_uuid;
 use futures::future;
+use futures::future::Either;
 use std::collections::HashMap;
 use std::net::SocketAddr;
-use std::pin;
 use std::sync::LazyLock;
+use std::{io, pin};
 use tokio::net::TcpListener;
 use tokio::net::TcpStream;
 use tokio::sync;
 use tokio::sync::mpsc;
 use uuid::Uuid;
-
-use crate::network::connection::Connection;
-use crate::random::random_uuid;
 
 pub const GAMES: LazyLock<HashMap<Uuid, Game>> = LazyLock::new(|| HashMap::new());
 
@@ -120,12 +121,7 @@ async fn monitor_client(
     tcp_stream: TcpStream,
     socket_addr: SocketAddr,
 ) {
-    let task_f = async {
-        Connection::new(tcp_stream, socket_addr);
-
-        
-        // todo: loop await on tcp input data
-    };
+    let task_f = monitor_client_task(tcp_stream, socket_addr);
     let task_f = pin::pin!(task_f);
 
     let cancellation_f = cancellation_receiver.recv();
@@ -135,4 +131,27 @@ async fn monitor_client(
 
     log::debug!("monitor_client terminated");
     // clean up here if necessary
+}
+
+async fn monitor_client_task(tcp_stream: TcpStream, socket_addr: SocketAddr) {
+    let mut connection: Connection = Connection::new(tcp_stream, socket_addr);
+    loop {
+        match connection.read_frames().await {
+            Ok(frames_o) => match frames_o {
+                Some(frames) => {
+                    for frame in frames {
+                        frame::route_frame(frame);
+                    }
+                }
+                None => {
+                    log::info!("Connection terminated; {}", connection);
+                    break;
+                }
+            },
+            Err(e) => {
+                log::error!("Failed to read from TCP stream; {:#}", e);
+                break;
+            }
+        }
+    }
 }

@@ -1,6 +1,7 @@
 #![allow(unused)] // Data structure need not be completely used
 
 use crate::error::AppError;
+use std::fmt::{Display, Formatter};
 use std::io::IoSliceMut;
 use std::mem::MaybeUninit;
 use std::ops::Index;
@@ -186,6 +187,17 @@ where
                 )
             }),
         ]
+    }
+}
+
+impl<T: Copy, const N: usize> Display for RingBuffer<T, N> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "RingBuffer; [capacity: {}] [available_space: {}]",
+            self.capacity(),
+            self.available_space()
+        )
     }
 }
 
