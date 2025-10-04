@@ -38,14 +38,15 @@ impl Connection {
         }
     }
 
-    pub async fn read_frames(&mut self) -> Result<(), AppError> {
+    pub async fn read_frames(&mut self) -> Result<Vec<Vec<u8>>, AppError> {
+        let mut frames: Vec<Vec<u8>> = Vec::new();
         let bytes_read: BytesRead = self.read_chunk().await?;
 
         match bytes_read {
             BytesRead::Some(size) => {
                 assert!(size > 0); // Precondition of entering this branch
 
-                let bytes_remaining: usize = size + self.buffer.available_space();
+                let bytes_remaining: usize = self.buffer.available_space();
                 loop {
                     let head: Head = self.peek_frame_head()?;
                     if (head.length < bytes_remaining) {
@@ -53,16 +54,13 @@ impl Connection {
                     }
 
                     let frame: Vec<u8> = self.pop_frame(&head)?;
-                    todo!("do something with it")
+                    frames.push(frame);
                 }
-
-
-                todo!()
             }
-            BytesRead::ReadClosed => todo!(),
+            BytesRead::ReadClosed => (),
         }
 
-        todo!()
+        Ok(frames)
     }
 
     pub async fn write_frame(&mut self, frame: &OperationType) -> Result<(), AppError> {
