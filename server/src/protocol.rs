@@ -3,7 +3,7 @@
 
 use crate::error::AppError;
 use crate::ring_buffer::RingBuffer;
-use frame::Frame;
+use frame::FrameContent;
 use std::io;
 use std::io::IoSliceMut;
 use std::net::SocketAddr;
@@ -12,39 +12,51 @@ use tokio::net::TcpStream;
 const BUFFER_SIZE: usize = 4096;
 
 mod frame {
+    use crate::error::AppError;
+    use std::mem::MaybeUninit;
     use uuid::Uuid;
 
     pub const MAXIMUM_FRAME_SIZE: usize = size_of::<Register>();
 
-    pub enum Frame {
-        Heartbeat(Heartbeat),
-        Register(Register),
-        Acknowledgement(Acknowledgement),
+    pub struct Frame {
+        op_code: OpCode,
+        content: FrameContent,
     }
 
-    pub(crate) type OpCode = u8;
+    pub type OpCode = u8;
+
+    pub enum FrameContent {
+        Heartbeat(MaybeUninit<Heartbeat>),
+        Register(MaybeUninit<Register>),
+        Acknowledgement(MaybeUninit<Acknowledgement>),
+    }
 
     #[repr(C, packed(1))]
-    pub struct Heartbeat {
-        op_code: OpCode,
-    }
+    pub struct Heartbeat {}
 
     #[repr(C, packed(1))]
     pub struct Register {
         user_id: Uuid,
-        op_code: OpCode,
     }
 
     #[repr(C, packed(1))]
     pub struct Acknowledgement {
-        op_code: OpCode,
         op_code_acknowledged: OpCode,
     }
 
-    impl Frame {
+    impl FrameContent {
         pub const fn is_fixed_size(&self) -> bool {
             match self {
                 _ => true,
+            }
+        }
+
+        pub fn from_op_code(op_code: OpCode) -> Result<Self, AppError> {
+            match op_code {
+                1 => Ok(FrameContent::Heartbeat(MaybeUninit::uninit())),
+                2 => Ok(FrameContent::Register(MaybeUninit::uninit())),
+                3 => Ok(FrameContent::Acknowledgement(MaybeUninit::uninit())),
+                _ => Err(AppError::new(&format!("Invalid op code; [{}]", op_code))),
             }
         }
     }
@@ -57,9 +69,9 @@ mod frame {
         #[test]
         fn size_snapshots() {
             assert_eq!(1, size_of::<OpCode>());
-            assert_eq!(1, size_of::<Heartbeat>());
-            assert_eq!(17, size_of::<Register>());
-            assert_eq!(2, size_of::<Acknowledgement>());
+            assert_eq!(0, size_of::<Heartbeat>());
+            assert_eq!(16, size_of::<Register>());
+            assert_eq!(1, size_of::<Acknowledgement>());
         }
     }
 }
@@ -84,7 +96,7 @@ impl Connection {
         }
     }
 
-    pub async fn read_frame(&mut self) -> Result<Option<Frame>, AppError> {
+    pub async fn read_frame(&mut self) -> Result<Option<FrameContent>, AppError> {
         self.read_chunk().await?;
 
         // todo: consume all complete frames before reading another chunk
@@ -93,7 +105,7 @@ impl Connection {
         todo!()
     }
 
-    pub async fn write_frame(&mut self, frame: &Frame) -> Result<(), AppError> {
+    pub async fn write_frame(&mut self, frame: &FrameContent) -> Result<(), AppError> {
         todo!()
     }
 
