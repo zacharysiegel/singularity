@@ -22,8 +22,12 @@ fn create_socket(address: &str) -> Result<Socket, AppError> {
         .with_time(Duration::from_secs(60))
         .with_interval(Duration::from_secs(10))
         .with_retries(3);
-    let socket_addr =
-        SocketAddr::from_str(address).map_err(|err| AppError::from_error_default(Box::new(err)))?;
+    let socket_addr = SocketAddr::from_str(address).map_err(|err| {
+        AppError::from_error(
+            &format!("Error translating address string; [{}]", address),
+            Box::new(err),
+        )
+    })?;
     let sock_addr = SockAddr::from(socket_addr);
 
     let socket: Socket = Socket::new(Domain::IPV4, Type::STREAM, Some(Protocol::TCP))?;
