@@ -1,16 +1,8 @@
-//! All multi-byte fields should be interpreted in Big-Endian order.
-//! Each frame begins with a 1-byte operation code.
-//! A frame can be fixed-length or variable-length.
-//! If fixed, the frame's data immediately follows the operation code.
-//! If variable, the frame's total length is written as a 2-byte Big-Endian unsigned integer.
-//! The operation code and optional length field constitute the frame's "head".
-//! The rest of the frame is considered the frame's "body".
-
 use crate::error::AppError;
-use crate::network::frame;
-use crate::network::frame::{Frame, OperationType};
+use crate::network::protocol;
+use crate::network::protocol::{Frame, OperationType};
 use crate::network::ring_buffer::{RingBuffer, RingBufferView};
-use frame::Head;
+use protocol::Head;
 use std::fmt::{Display, Formatter};
 use std::io;
 use std::io::IoSliceMut;

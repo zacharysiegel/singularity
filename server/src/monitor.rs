@@ -1,5 +1,5 @@
 use crate::network::connection::Connection;
-use crate::network::frame;
+use crate::network::protocol;
 use crate::random::random_uuid;
 use futures::future;
 use std::collections::HashMap;
@@ -139,7 +139,7 @@ async fn monitor_client_task(tcp_stream: TcpStream, socket_addr: SocketAddr) {
             Ok(frames_o) => match frames_o {
                 Some(frames) => {
                     for frame in frames {
-                        frame::route_frame(&connection, frame);
+                        protocol::route_frame(&connection, frame);
                     }
                 }
                 None => {

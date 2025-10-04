@@ -1,4 +1,4 @@
 pub mod connection;
 pub mod socket;
-pub mod frame;
+pub mod protocol;
 pub mod ring_buffer;

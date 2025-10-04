@@ -1,3 +1,11 @@
+//! All multi-byte fields should be interpreted in Big-Endian order.
+//! Each frame begins with a 1-byte operation code.
+//! A frame can be fixed-length or variable-length.
+//! If fixed, the frame's data immediately follows the operation code.
+//! If variable, the frame's total length is written as a 2-byte Big-Endian unsigned integer.
+//! The operation code and optional length field constitute the frame's "head".
+//! The rest of the frame is considered the frame's "body".
+
 use std::fmt::{self, Display};
 
 use crate::error::AppError;
