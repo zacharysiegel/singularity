@@ -1,4 +1,7 @@
+use std::fmt::{self, Display};
+
 use crate::error::AppError;
+use crate::network::connection::Connection;
 use uuid::Uuid;
 
 pub struct Frame {
@@ -6,9 +9,25 @@ pub struct Frame {
     pub data: Vec<u8>,
 }
 
+impl Display for Frame {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Frame; [{}]", self.head)
+    }
+}
+
 pub struct Head {
     pub op_type: OperationType,
     pub length: usize,
+}
+
+impl Display for Head {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Head; [op_type: {}] [length: {}]",
+            self.op_type, self.length
+        )
+    }
 }
 
 pub type OpCode = u8;
@@ -18,6 +37,18 @@ pub enum OperationType {
     Register,
     Acknowledgement,
     _PlaceholderDynamic,
+}
+
+impl Display for OperationType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let string: &'static str = match self {
+            OperationType::Heartbeat => "Heartbeat",
+            OperationType::Register => "Register",
+            OperationType::Acknowledgement => "Acknowledgement",
+            OperationType::_PlaceholderDynamic => "_PlaceholderDynamic",
+        };
+        write!(f, "OperationType({})", string)
+    }
 }
 
 #[repr(C, packed(1))]
@@ -91,12 +122,23 @@ pub trait Operation {
     const FIXED_SIZE: Option<usize>;
 }
 
-pub fn route_frame(frame: Frame) {
+pub fn route_frame(connection: &Connection, frame: Frame) {
     match frame.head.op_type {
-        OperationType::Heartbeat => todo!(),
-        OperationType::Register => todo!(),
-        OperationType::Acknowledgement => todo!(),
-        OperationType::_PlaceholderDynamic => todo!(),
+        OperationType::Heartbeat => {
+            log::trace!("Heartbeat received; [{}] [{}]", connection, frame);
+        }
+        OperationType::Register => {
+            log::trace!("Register received; [{}] [{}]", connection, frame);
+            todo!();
+        }
+        OperationType::Acknowledgement => {
+            log::trace!("Acknowledgement received; [{}] [{}]", connection, frame);
+            todo!();
+        }
+        OperationType::_PlaceholderDynamic => {
+            log::trace!("_PlaceholderDynamic received; [{}] [{}]", connection, frame);
+            todo!();
+        }
     }
 }
 

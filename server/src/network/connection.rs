@@ -50,7 +50,7 @@ impl Connection {
                 let bytes_remaining: usize = self.buffer.available_space();
                 loop {
                     let head: Head = self.peek_frame_head()?;
-                    if (head.length < bytes_remaining) {
+                    if head.length < bytes_remaining {
                         break;
                     }
 
@@ -70,6 +70,7 @@ impl Connection {
         Ok(Some(frames))
     }
 
+    #[allow(unused)]
     pub async fn write_frame(&mut self, frame: &OperationType) -> Result<(), AppError> {
         todo!()
     }

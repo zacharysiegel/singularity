@@ -2,11 +2,10 @@ use crate::network::connection::Connection;
 use crate::network::frame;
 use crate::random::random_uuid;
 use futures::future;
-use futures::future::Either;
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::LazyLock;
-use std::{io, pin};
+use std::pin;
 use tokio::net::TcpListener;
 use tokio::net::TcpStream;
 use tokio::sync;
@@ -140,7 +139,7 @@ async fn monitor_client_task(tcp_stream: TcpStream, socket_addr: SocketAddr) {
             Ok(frames_o) => match frames_o {
                 Some(frames) => {
                     for frame in frames {
-                        frame::route_frame(frame);
+                        frame::route_frame(&connection, frame);
                     }
                 }
                 None => {
