@@ -166,9 +166,35 @@ Stage 3
 ## User interface
 
 Map
+    Tesselated hexagons
+    Toroid
 Inventory
+    Inert items
+    Functional items (e.g. work bot (CC), kill bot (storage))
+        Interaction minimizes/fades/closes the inventory window to show highlighted interaction zones on the map
+        Interaction with the highlighted spaces initiates the "Command" window
+Command
+    Title (e.g. "Attack")
+    Constituents (e.g. "1 work bot", "32 kill bots")
+    Loads with an intended action (e.g. construct a facility, attack a facility)
+    Preview the action
+        Time to completion
+    Time machine macro button (see: Subterfuge)
 Assembler specializer
+Facitlity inspector
+    Title (e.g. "Assembler", "Control Center")
+    Description (fluff)
+    Contents and capacity
+    Function (e.g. ore+energy=metal)
+    Connection status (e.g. "Missing ore input", "All systems operational")
+    Repair status (e.g. "Damaged", "Broken", "Healthy")
 Time machine
+    Greyscale map (see: Subterfuge) + light blur?
+    Dial (see: Subterfuge)? Horizontal scroll?
+Chat
+    Default global chat
+    Default "me" chat (notes)
+    Player-formed arbitrary group chats
 
 Map always renders the same resolution at all screen sizes
     User with larger screen can see more of the map, but this is not an issue since any user can simply scroll to see the rest of the map
