@@ -1,4 +1,4 @@
-use crate::error::AppError;
+use crate::error::{AppError, AppErrorStatic};
 use crate::network::protocol;
 use crate::network::protocol::{Frame, OperationType};
 use crate::network::ring_buffer::{RingBuffer, RingBufferView};
@@ -31,7 +31,7 @@ impl Connection {
         }
     }
 
-    pub async fn read_frames(&mut self) -> Result<Option<Vec<Frame>>, AppError> {
+    pub async fn read_frames(&mut self) -> Result<Option<Vec<Frame>>, AppErrorStatic> {
         let mut frames: Vec<Frame> = Vec::new();
         let bytes_read: BytesRead = self.read_chunk().await?;
 

@@ -7,10 +7,7 @@
 //! The rest of the frame is considered the frame's "body".
 
 use crate::error::AppError;
-use crate::network::connection::Connection;
 use std::fmt::{self, Display};
-use std::hint::black_box;
-use std::mem;
 use uuid::Uuid;
 
 pub struct Frame {
@@ -60,47 +57,76 @@ impl Display for OperationType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 #[repr(C, packed(1))]
 pub struct Heartbeat {
     pub op_code: OpCode,
 }
 
-impl Operation for Heartbeat {
+impl<'a> From<&'a Frame> for Heartbeat {
+    fn from(frame: &'a Frame) -> Self {
+        unsafe { *(frame.data.as_ptr() as *const Heartbeat) }
+    }
+}
+
+impl<'a> Operation for Heartbeat {
     const OP_CODE: OpCode = 1;
     const FIXED_SIZE: Option<usize> = Some(size_of::<Self>());
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 #[repr(C, packed(1))]
 pub struct Register {
     pub op_code: OpCode,
     pub user_id: Uuid,
 }
 
-impl Operation for Register {
+impl<'a> From<&'a Frame> for Register {
+    fn from(frame: &'a Frame) -> Self {
+        unsafe { *(frame.data.as_ptr() as *const Register) }
+    }
+}
+
+impl<'a> Operation for Register {
     const OP_CODE: OpCode = 2;
     const FIXED_SIZE: Option<usize> = Some(size_of::<Self>());
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 #[repr(C, packed(1))]
 pub struct Acknowledgement {
     pub op_code: OpCode,
     pub op_code_acknowledged: OpCode,
 }
 
-impl Operation for Acknowledgement {
+impl<'a> From<&'a Frame> for Acknowledgement {
+    fn from(frame: &'a Frame) -> Self {
+        unsafe { *(frame.data.as_ptr() as *const Acknowledgement) }
+    }
+}
+
+impl<'a> Operation for Acknowledgement {
     const OP_CODE: OpCode = 3;
     const FIXED_SIZE: Option<usize> = Some(size_of::<Self>());
 }
 
+// Dynamically-sized frames cannot be directly interpreted from bits, since their size is not statically known
 #[derive(Debug)]
 #[repr(C, packed(1))]
 pub struct _PlaceholderDynamic<'a> {
     pub op_code: OpCode,
     pub length: u16,
     pub string: &'a str,
+}
+
+impl<'a> From<&'a Frame> for _PlaceholderDynamic<'a> {
+    fn from(frame: &'a Frame) -> Self {
+        _PlaceholderDynamic {
+            op_code: frame.data[0],
+            length: u16::from_be_bytes(frame.data[1..3].try_into().unwrap()),
+            string: str::from_utf8(&frame.data[3..]).unwrap(),
+        }
+    }
 }
 
 impl<'a> Operation for _PlaceholderDynamic<'a> {
@@ -133,55 +159,6 @@ pub trait Operation {
     const OP_CODE: OpCode;
     /// None iff not fixed size
     const FIXED_SIZE: Option<usize>;
-}
-
-pub fn route_frame(connection: &Connection, frame: Frame) {
-    match frame.head.op_type {
-        OperationType::Heartbeat => {
-            log::trace!("Heartbeat received; [{}] [{}]", connection, frame);
-
-            let heartbeat: Heartbeat = unsafe {
-                mem::transmute::<[u8; Heartbeat::FIXED_SIZE.unwrap()], Heartbeat>(
-                    frame.data.try_into().unwrap(),
-                )
-            };
-            log::debug!("parsed frame; [{:?}]", heartbeat);
-        }
-        OperationType::Register => {
-            log::trace!("Register received; [{}] [{}]", connection, frame);
-
-            let register: Register = unsafe {
-                mem::transmute::<[u8; Register::FIXED_SIZE.unwrap()], Register>(
-                    frame.data.try_into().unwrap(),
-                )
-            };
-            log::debug!("parsed frame; [{:?}]", register);
-            todo!();
-        }
-        OperationType::Acknowledgement => {
-            log::trace!("Acknowledgement received; [{}] [{}]", connection, frame);
-            let acknowledgement: Acknowledgement = unsafe {
-                mem::transmute::<[u8; Acknowledgement::FIXED_SIZE.unwrap()], Acknowledgement>(
-                    frame.data.try_into().unwrap(),
-                )
-            };
-            log::debug!("parsed frame; [{:?}]", acknowledgement);
-            todo!();
-        }
-        OperationType::_PlaceholderDynamic => {
-            log::trace!("_PlaceholderDynamic received; [{}] [{}]", connection, frame);
-            let _placeholder_dynamic: _PlaceholderDynamic = {
-                let length: u16 = u16::from_be_bytes(frame.data[1..3].try_into().unwrap());
-                _PlaceholderDynamic {
-                    op_code: frame.data[0],
-                    length,
-                    string: str::from_utf8(&frame.data[3..(length as usize)]).unwrap(),
-                }
-            };
-            log::debug!("parsed frame; [{:?}]", _placeholder_dynamic);
-            todo!();
-        }
-    }
 }
 
 #[cfg(test)]
