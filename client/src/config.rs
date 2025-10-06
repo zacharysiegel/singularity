@@ -31,6 +31,7 @@ pub const OIL_BACKGROUND_COLOR: Color = Color {
     a: 0xff,
 };
 
+// todo: refactor to signed integers
 pub const HEX_COUNT_SQRT: u16 = 64;
 pub const HEX_COUNT: u16 = HEX_COUNT_SQRT * HEX_COUNT_SQRT;
 pub const HEX_SIDES: u8 = 6;
@@ -41,7 +42,7 @@ pub const HEX_HEIGHT: LazyLock<f32> =
 pub const HEX_ROTATION: f32 = 30_f32;
 
 pub fn get_hex_count_width(pixels: f32) -> u16 {
-    (pixels / HEX_HEIGHT.deref()).ceil() as u16
+    (pixels / *HEX_HEIGHT).ceil() as u16
 }
 
 pub fn get_hex_count_height(pixels: f32) -> u16 {
@@ -49,7 +50,7 @@ pub fn get_hex_count_height(pixels: f32) -> u16 {
 }
 
 pub fn get_hex_width_pixels(hex_count: u16) -> f32 {
-    let mut result: f32 = f32::from(hex_count) + *HEX_HEIGHT;
+    let mut result: f32 = f32::from(hex_count) * *HEX_HEIGHT;
     if hex_count % 2 == 1 {
         result -= *HEX_HEIGHT / 2_f32;
     }

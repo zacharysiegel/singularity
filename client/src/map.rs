@@ -39,7 +39,7 @@ impl MapCoord {
     pub const DEFAULT: MapCoord = MapCoord(Vector2 { x: 0.0, y: 0.0 });
 
     pub fn hex_coord(&self) -> HexCoord {
-        let mut j: i16 = ((self.y - f32::from(HEX_SIDE_LENGTH) / 2_f32)
+        let mut j: i16 = ((self.y - f32::from(HEX_SIDE_LENGTH / 2))
             / f32::from(HEX_RADIUS + HEX_SIDE_LENGTH / 2)) as i16;
         let even_row: bool = j % 2 == 0;
         let mut i: i16 =
@@ -53,8 +53,8 @@ impl MapCoord {
         }
 
         HexCoord {
-            i: i.unsigned_abs(),
-            j: j.unsigned_abs(),
+            i: i as u16,
+            j: j as u16,
         }
     }
 
