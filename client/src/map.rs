@@ -172,8 +172,8 @@ pub fn draw_map(map_origin: &MapCoord) {
 
     let max_hexes_i: u16 = get_hex_count_width(screen_width as f32);
     let max_hexes_j: u16 = get_hex_count_height(screen_height as f32);
-    for _hexes_drawn_j in 0..(max_hexes_j + 2) {
-        for _hexes_drawn_i in 0..(max_hexes_i + 2) {
+    for _hexes_drawn_j in 0..=(max_hexes_j + 2) {
+        for _hexes_drawn_i in 0..=(max_hexes_i + 2) {
             draw_map_hex(map_origin, &hex_coord);
 
             hex_coord.i += 1;
