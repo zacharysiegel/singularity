@@ -1,4 +1,4 @@
-#include "../src/util.h"
+#include "../util.h"
 
 int main() {
     app::test_util();
