@@ -69,6 +69,7 @@ client/compile_commands.json:
 clean:
 	rm -rf \
 		$(exe_path_client_app) $(exe_path_client_app).dSYM \
+		c \
 		$(exe_path_client_test) $(exe_path_client_test).dSYM \
 		compile_commands.json .cache/
 
