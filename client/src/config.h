@@ -37,7 +37,7 @@ inline float constexpr getHexWidthPixels(uint16_t hex_count) {
     if (hex_count % 2 == 1) {
         result -= HEX_HEIGHT / 2;
     }
-    return static_cast<double>(result);
+    return result;
 }
 
 inline float constexpr getHexHeightPixels(uint16_t hex_count) {
