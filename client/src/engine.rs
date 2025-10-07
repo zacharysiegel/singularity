@@ -1,6 +1,6 @@
 use std::ffi::CString;
 use crate::config::{APPLICATION_NAME, BACKGROUND_COLOR};
-use crate::error::AppError;
+use shared::error::AppError;
 use crate::map::{MapCoord, draw_map, draw_players, init_map};
 use crate::player::init_players;
 use crate::state::{STATE, State};

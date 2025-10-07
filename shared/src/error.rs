@@ -1,5 +1,3 @@
-// todo: extract to shared module
-
 use std::backtrace::{Backtrace, BacktraceStatus};
 use std::error::Error;
 use std::fmt;
