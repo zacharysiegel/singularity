@@ -30,8 +30,8 @@ impl MapCoord {
     pub const DEFAULT: MapCoord = MapCoord(Vector2 { x: 0.0, y: 0.0 });
 
     pub fn hex_coord(&self) -> HexCoord {
-        let mut j: i16 = ((self.y - f32::from(HEX_SIDE_LENGTH / 2))
-            / f32::from(HEX_RADIUS + HEX_SIDE_LENGTH / 2)) as i16;
+        let mut j: i16 = ((self.y - (HEX_SIDE_LENGTH / 2.))
+            / (HEX_RADIUS + HEX_SIDE_LENGTH / 2.)) as i16;
         let even_row: bool = j % 2 == 0;
         let mut i: i16 =
             ((self.x - if even_row { 0. } else { *HEX_HEIGHT / 2. }) / *HEX_HEIGHT) as i16;
@@ -53,7 +53,7 @@ impl MapCoord {
         if x < -*HEX_HEIGHT / 2. {
             x += get_map_width_pixels();
         }
-        if y < -f32::from(HEX_RADIUS) {
+        if y < -HEX_RADIUS {
             y += get_map_height_pixels();
         }
 
@@ -138,8 +138,8 @@ impl HexCoord {
     pub fn map_coord(&self) -> MapCoord {
         let even_row: bool = self.j % 2 == 0;
         let x: f32 = (f32::from(self.i) * *HEX_HEIGHT)
-            + (if even_row { 0_f32 } else { *HEX_HEIGHT / 2_f32 });
-        let y: f32 = f32::from(self.j) * f32::from(HEX_RADIUS + HEX_SIDE_LENGTH / 2);
+            + (if even_row { 0_f32 } else { *HEX_HEIGHT / 2. });
+        let y: f32 = f32::from(self.j) * (HEX_RADIUS + HEX_SIDE_LENGTH / 2.);
         MapCoord(Vector2 { x, y })
     }
 }
@@ -149,7 +149,7 @@ pub fn get_hex_count_width(pixels: f32) -> u16 {
 }
 
 pub fn get_hex_count_height(pixels: f32) -> u16 {
-    (pixels / f32::from(HEX_RADIUS + HEX_SIDE_LENGTH / 2)).ceil() as u16
+    (pixels / (HEX_RADIUS + HEX_SIDE_LENGTH / 2.)).ceil() as u16
 }
 
 pub fn get_hex_width_pixels(hex_count: i16) -> f32 {
@@ -161,7 +161,7 @@ pub fn get_hex_width_pixels(hex_count: i16) -> f32 {
 }
 
 pub fn get_hex_height_pixels(hex_count: i16) -> f32 {
-    f32::from(hex_count) * f32::from(HEX_RADIUS + HEX_SIDE_LENGTH / 2)
+    f32::from(hex_count) * (HEX_RADIUS + HEX_SIDE_LENGTH / 2.)
 }
 
 pub fn get_map_width_pixels() -> f32 {

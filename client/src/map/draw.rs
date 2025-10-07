@@ -58,7 +58,7 @@ fn draw_map_hex(map_origin: &MapCoord, hex_coord: &HexCoord) {
             DrawPoly(
                 render_coord.into(),
                 HEX_SIDES as c_int,
-                f32::from(HEX_RADIUS),
+                HEX_RADIUS,
                 HEX_ROTATION,
                 color.into(),
             );
@@ -68,7 +68,7 @@ fn draw_map_hex(map_origin: &MapCoord, hex_coord: &HexCoord) {
         DrawPolyLinesEx(
             render_coord.into(),
             HEX_SIDES as c_int,
-            f32::from(HEX_RADIUS),
+            HEX_RADIUS,
             HEX_ROTATION,
             1.,
             HEX_OUTLINE_COLOR.into(),
