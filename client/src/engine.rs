@@ -35,20 +35,21 @@ fn update() {
         log::debug!("a pressed");
     }
 
-    let mut state: RwLockWriteGuard<State> = STATE.write().expect("global state poisoned");
-    let old: MapCoord = state.map_origin.clone();
-    state.map_origin = scrolled_map_origin(&old);
-    if old.x != state.map_origin.x || old.y != state.map_origin.y {
-        log::debug!("({}, {})", state.map_origin.x, state.map_origin.y);
+    let mut map_origin: RwLockWriteGuard<MapCoord> = STATE.map_origin.write().expect("global state poisoned");
+    let old: MapCoord = map_origin.clone();
+    *map_origin = scrolled_map_origin(&old);
+    if old.x != map_origin.x || old.y != map_origin.y {
+        log::debug!("({}, {})", map_origin.x, map_origin.y);
     }
 }
 
 fn draw() {
     unsafe { ClearBackground(BACKGROUND_COLOR.into()) };
 
-    let state: RwLockReadGuard<State> = STATE.read().expect("global state poisoned");
-    draw_map(&state.map_origin);
-    draw_players(&state.map_origin);
+    let map_origin: RwLockReadGuard<MapCoord> = STATE.map_origin.read().expect("global state poisoned");
+    draw_map(&map_origin);
+    draw_players(&map_origin);
+    drop(map_origin);
 
     unsafe {
         // debug
@@ -121,14 +122,14 @@ pub fn run() -> Result<(), AppError> {
             EndDrawing();
         }
 
-        let mut state: RwLockWriteGuard<State> = STATE.write().expect("global state poisoned");
-        state.frame_counter += 1;
-        drop(state);
-        let state: RwLockReadGuard<State> = STATE.read().expect("global state poisoned");
-        if state.frame_counter % 1000 == 0 {
+        let mut frame_counter: RwLockWriteGuard<u64> = STATE.frame_counter.write().expect("global state poisoned");
+        *frame_counter += 1;
+        drop(frame_counter);
+        let frame_counter: RwLockReadGuard<u64> = STATE.frame_counter.read().expect("global state poisoned");
+        if *frame_counter % 1000 == 0 {
             log::debug!(
                 "Frame: {}; Update: {:?}; Draw: {:?}; Total: {:?};",
-                state.frame_counter,
+                frame_counter,
                 update_end - frame_start,
                 draw_end - update_end,
                 draw_end - frame_start

@@ -127,8 +127,8 @@ impl HexCoord {
     pub const DEFAULT: HexCoord = HexCoord { i: 0, j: 0 };
 
     pub fn clone_map_hex(&self) -> Option<Hex> {
-        let state = STATE.read().expect("global state poisoned");
-        state.hexes.get(self.map_index()).map(|hex| hex.clone())
+        let hexes = STATE.hexes.read().expect("global state poisoned");
+        hexes.get(self.map_index()).map(|hex| hex.clone())
     }
 
     pub const fn map_index(&self) -> usize {

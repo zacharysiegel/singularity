@@ -1,10 +1,11 @@
 use crate::map::config::{HEX_COUNT_SQRT, HEX_OUTLINE_COLOR, HEX_RADIUS, HEX_ROTATION, HEX_SIDES};
 use crate::map::coordinate::{get_hex_count_height, get_hex_count_width, HexCoord};
 use crate::map::coordinate::{MapCoord, RenderCoord};
-use crate::state::{Facility, FacilityState, FacilityType, Hex, ResourceType, STATE};
+use crate::state::{Facility, FacilityState, FacilityType, Hex, Player, ResourceType, STATE};
 use raylib::color::Color;
 use raylib::ffi::{DrawPoly, DrawPolyLinesEx, DrawText, GetScreenHeight, GetScreenWidth};
 use std::ffi::{c_int, CString};
+use std::sync::RwLockReadGuard;
 
 pub fn draw_map(map_origin: &MapCoord) {
     let screen_width: i32 = unsafe { GetScreenWidth() };
@@ -77,8 +78,8 @@ fn draw_map_hex(map_origin: &MapCoord, hex_coord: &HexCoord) {
 }
 
 pub fn draw_players(map_origin: &MapCoord) {
-    let state = STATE.read().expect("global state poisoned");
-    for player in &state.players {
+    let players: RwLockReadGuard<Vec<Player>> = STATE.players.read().expect("global state poisoned");
+    for player in &*players {
         for facility in &player.facilities {
             draw_facility(map_origin, facility);
         }

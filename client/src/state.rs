@@ -1,15 +1,14 @@
+use crate::map;
 use crate::map::coordinate::{HexCoord, MapCoord};
 use raylib::color::Color;
 use std::sync::RwLock;
-use crate::map;
 
-// todo: separate locks per field, or just separate bindings
-pub static STATE: RwLock<State> = RwLock::new(State {
-    frame_counter: 0,
-    map_origin: MapCoord::DEFAULT,
-    hexes: [Hex::DEFAULT; map::config::HEX_COUNT as usize],
-    players: Vec::new(),
-});
+pub static STATE: State = State {
+    frame_counter: RwLock::new(0),
+    map_origin: RwLock::new(MapCoord::DEFAULT),
+    hexes: RwLock::new([Hex::DEFAULT; map::config::HEX_COUNT as usize]),
+    players: RwLock::new(Vec::new()),
+};
 
 #[repr(u8)]
 #[derive(Debug, Copy, Clone)]
@@ -103,8 +102,8 @@ impl Player {
 
 #[derive(Debug)]
 pub struct State {
-    pub frame_counter: u64,
-    pub map_origin: MapCoord,
-    pub hexes: [Hex; map::config::HEX_COUNT as usize],
-    pub players: Vec<Player>,
+    pub frame_counter: RwLock<u64>,
+    pub map_origin: RwLock<MapCoord>,
+    pub hexes: RwLock<[Hex; map::config::HEX_COUNT as usize]>,
+    pub players: RwLock<Vec<Player>>,
 }
