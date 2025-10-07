@@ -1,6 +1,5 @@
 # High-level to-do items
 
-1. Rewrite client in Rust
 1. Server-side networking
     1. Send
     1. TLS (low)
