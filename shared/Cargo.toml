@@ -7,3 +7,5 @@ edition = "2024"
 rand = { workspace = true }
 uuid = { workspace = true }
 dotenvy = { workspace = true }
+tokio = { workspace = true }
+socket2 = { workspace = true }

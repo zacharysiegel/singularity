@@ -169,16 +169,12 @@ dependencies = [
 name = "client"
 version = "0.1.0"
 dependencies = [
- "dotenvy",
  "env_logger",
- "futures",
  "log",
- "rand",
  "raylib",
  "shared",
  "socket2",
  "tokio",
- "uuid",
 ]
 
 [[package]]
@@ -772,6 +768,8 @@ version = "0.1.0"
 dependencies = [
  "dotenvy",
  "rand",
+ "socket2",
+ "tokio",
  "uuid",
 ]
 

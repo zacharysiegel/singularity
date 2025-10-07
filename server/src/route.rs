@@ -1,5 +1,5 @@
-use crate::network::connection::Connection;
-use crate::network::protocol::{Acknowledgement, Frame, Heartbeat, OperationType, Register, _PlaceholderDynamic};
+use shared::network::connection::Connection;
+use shared::network::protocol::{Acknowledgement, Frame, Heartbeat, OperationType, Register, _PlaceholderDynamic};
 
 pub async fn route_frame(connection: &mut Connection, frame: Frame) {
     match frame.head.op_type {

@@ -1,8 +1,6 @@
-use crate::network::protocol;
-use crate::network::protocol::{Frame, OperationType};
+use crate::error::{AppError, AppErrorStatic};
+use crate::network::protocol::{Frame, Head, OperationType};
 use crate::network::ring_buffer::{RingBuffer, RingBufferView};
-use protocol::Head;
-use shared::error::{AppError, AppErrorStatic};
 use std::fmt::{Display, Formatter};
 use std::io;
 use std::io::IoSliceMut;

@@ -1,5 +1,5 @@
 use server::monitor;
-use server::network::socket;
+use server::socket;
 use shared::environment::{self, RuntimeEnvironment};
 use tokio::net::TcpListener;
 use tokio::sync;

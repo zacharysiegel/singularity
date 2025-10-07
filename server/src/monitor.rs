@@ -1,4 +1,4 @@
-use crate::network::connection::Connection;
+use shared::network::connection::Connection;
 use crate::route;
 use futures::future;
 use shared::random::random_uuid;
