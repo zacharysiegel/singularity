@@ -6,7 +6,7 @@
 //! The operation code and optional length field constitute the frame's "head".
 //! The rest of the frame is considered the frame's "body".
 
-use crate::error::AppError;
+use shared::error::AppError;
 use std::fmt::{self, Display};
 use uuid::Uuid;
 

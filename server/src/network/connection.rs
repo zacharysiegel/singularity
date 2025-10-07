@@ -1,4 +1,4 @@
-use crate::error::{AppError, AppErrorStatic};
+use shared::error::{AppError, AppErrorStatic};
 use crate::network::protocol;
 use crate::network::protocol::{Frame, OperationType};
 use crate::network::ring_buffer::{RingBuffer, RingBufferView};

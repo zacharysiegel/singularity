@@ -763,6 +763,7 @@ dependencies = [
  "futures",
  "log",
  "rand",
+ "shared",
  "socket2",
  "tokio",
  "tokio-util",
@@ -772,6 +773,10 @@ dependencies = [
 [[package]]
 name = "shared"
 version = "0.1.0"
+dependencies = [
+ "rand",
+ "uuid",
+]
 
 [[package]]
 name = "shlex"

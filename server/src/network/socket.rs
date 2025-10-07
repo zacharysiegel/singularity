@@ -6,7 +6,7 @@ use std::time::Duration;
 use socket2::{Domain, Protocol, SockAddr, Socket, TcpKeepalive, Type};
 use tokio::net::TcpListener;
 
-use crate::error::AppError;
+use shared::error::AppError;
 
 pub async fn create_listener(address: &str) -> Result<TcpListener, AppError> {
     let socket: Socket = create_socket(address)?;

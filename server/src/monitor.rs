@@ -1,7 +1,7 @@
 use crate::network::connection::Connection;
-use crate::random::random_uuid;
 use crate::route;
 use futures::future;
+use shared::random::random_uuid;
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::pin;

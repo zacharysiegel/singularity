@@ -1,6 +1,6 @@
 #![allow(unused)] // Data structure need not be completely used
 
-use crate::error::AppError;
+use shared::error::AppError;
 use std::fmt::{Display, Formatter};
 use std::io::IoSliceMut;
 use std::mem::MaybeUninit;

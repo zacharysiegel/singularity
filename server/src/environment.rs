@@ -1,18 +1,16 @@
+use std::env;
 use std::fmt::Display;
 use std::ops::Deref;
 use std::string::ToString;
 use std::sync::LazyLock;
-use std::{env};
 
-use crate::error::AppError;
+use shared::error::AppError;
 
-static RUNTIME_ENVIRONMENT_DEFAULT: LazyLock<RuntimeEnvironment> = LazyLock::new(||
-    RuntimeEnvironment::from_env().unwrap_or(RuntimeEnvironment::Local)
-);
+static RUNTIME_ENVIRONMENT_DEFAULT: LazyLock<RuntimeEnvironment> =
+    LazyLock::new(|| RuntimeEnvironment::from_env().unwrap_or(RuntimeEnvironment::Local));
 #[allow(unused)]
-static CARGO_MANIFEST_DIR: LazyLock<String> = LazyLock::new(||
-    env::var("CARGO_MANIFEST_DIR").unwrap_or("/dev/null".to_string())
-);
+static CARGO_MANIFEST_DIR: LazyLock<String> =
+    LazyLock::new(|| env::var("CARGO_MANIFEST_DIR").unwrap_or("/dev/null".to_string()));
 
 pub const VOLATILE_DIRECTORY_NAME: &str = "volatile";
 pub const IMAGES_DIRECTORY_NAME: &str = "images";
@@ -27,7 +25,7 @@ pub enum RuntimeEnvironment {
 impl RuntimeEnvironment {
     pub fn from_env() -> Result<RuntimeEnvironment, AppError> {
         RuntimeEnvironment::try_from(
-            env::var("RUNTIME_ENVIRONMENT").unwrap_or(String::from("local"))
+            env::var("RUNTIME_ENVIRONMENT").unwrap_or(String::from("local")),
         )
     }
 
@@ -54,7 +52,10 @@ impl TryFrom<String> for RuntimeEnvironment {
             "local" => Ok(Self::Local),
             "stage" => Ok(Self::Stage),
             "production" => Ok(Self::Production),
-            _ => Err(AppError::new(&format!("Error parsing runtime environment [{}]", value)))
+            _ => Err(AppError::new(&format!(
+                "Error parsing runtime environment [{}]",
+                value
+            ))),
         }
     }
 }
@@ -74,4 +75,3 @@ pub fn load_env() -> Result<(), Box<dyn std::error::Error>> {
     dotenvy::dotenv()?;
     Ok(())
 }
-
