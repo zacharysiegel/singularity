@@ -17,4 +17,3 @@
         1. Repair
     1. Attack facility (opposed facility spaces)
     1. Chat
-
