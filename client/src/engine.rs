@@ -75,6 +75,8 @@ pub fn init() -> Result<(), AppError> {
             return Err(AppError::new("Failed to initialize window"));
         }
 
+        // todo: SetWindowIcon
+
         BeginDrawing();
         ClearBackground(BACKGROUND_COLOR.into());
         let loading_cstr: CString = CString::new("Loading").unwrap();

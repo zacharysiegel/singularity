@@ -43,7 +43,7 @@ static MapCoord computeScrolledMapOrigin(MapCoord const map_origin) {
 
 static void update() {
     if (IsKeyPressed(KEY_A)) {
-        TraceLog(LOG_DEBUG, "a pressed"); // todo: delete
+        TraceLog(LOG_DEBUG, "a pressed");
     }
 
     MapCoord old{state.map_origin};
@@ -55,7 +55,6 @@ static void update() {
 
 static void draw() {
     ClearBackground(BACKGROUND_COLOR);
-    // todo: draw background
 
     drawMap(state.map_origin);
     drawPlayers(state.map_origin);
@@ -71,8 +70,6 @@ result_t init() {
 
     SetConfigFlags(FLAG_WINDOW_HIGHDPI | FLAG_WINDOW_RESIZABLE); // FLAG_WINDOW_HIGHDPI needed for MacOS resolution adjustment
     InitWindow(DISPLAY_WIDTH, DISPLAY_HEIGHT, APPLICATION_NAME.c_str());
-
-    // todo: SetWindowIcon
 
     if (!IsWindowReady()) {
         return ERROR;
