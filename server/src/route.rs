@@ -1,7 +1,7 @@
 use crate::network::connection::Connection;
 use crate::network::protocol::{Acknowledgement, Frame, Heartbeat, OperationType, Register, _PlaceholderDynamic};
 
-pub async fn route_frame(connection: &Connection, frame: Frame) {
+pub async fn route_frame(connection: &mut Connection, frame: Frame) {
     match frame.head.op_type {
         OperationType::Heartbeat => {
             log::trace!("Heartbeat received; [{}] [{}]", connection, frame);

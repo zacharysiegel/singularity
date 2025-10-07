@@ -136,7 +136,7 @@ async fn monitor_client_task(tcp_stream: TcpStream, socket_addr: SocketAddr) {
             Ok(frames_o) => match frames_o {
                 Some(frames) => {
                     for frame in frames {
-                        route::route_frame(&connection, frame).await;
+                        route::route_frame(&mut connection, frame).await;
                     }
                 }
                 None => {
