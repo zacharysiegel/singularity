@@ -1,15 +1,18 @@
-use std::ffi::CString;
-use crate::config::{APPLICATION_NAME, BACKGROUND_COLOR};
-use shared::error::AppError;
-use crate::map::{MapCoord, draw_map, draw_players, init_map};
+use crate::config::APPLICATION_NAME;
+use crate::map::config::BACKGROUND_COLOR;
+use crate::map::coordinate::MapCoord;
+use crate::map::draw::{draw_map, draw_players};
+use crate::map::init::init_map;
 use crate::player::init_players;
-use crate::state::{STATE, State};
+use crate::state::{State, STATE};
 use raylib::ffi::{
     BeginDrawing, ClearBackground, CloseWindow, Color, DrawFPS, DrawText, EndDrawing,
     GetMouseWheelMoveV, GetScreenHeight, InitWindow, IsKeyPressed, IsWindowReady, SetConfigFlags,
     SetTargetFPS, SetTraceLogLevel, WindowShouldClose,
 };
 use raylib::{ffi, math};
+use shared::error::AppError;
+use std::ffi::CString;
 use std::ops::{Add, Mul};
 use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 use std::time;

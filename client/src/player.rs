@@ -1,6 +1,7 @@
-use crate::config::HEX_COUNT_SQRT;
-use crate::state::{Facility, FacilityState, FacilityType, HexCoord, Player, STATE, State};
+use crate::map::config::HEX_COUNT_SQRT;
+use crate::state::{Facility, FacilityState, FacilityType, Player, State, STATE};
 use std::sync::RwLockWriteGuard;
+use crate::map::coordinate::HexCoord;
 
 pub fn init_players(player_count: u8) {
     let mut state: RwLockWriteGuard<State> = STATE.write().expect("poisoned game state");
