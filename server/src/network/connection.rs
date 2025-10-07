@@ -7,6 +7,7 @@ use std::fmt::{Display, Formatter};
 use std::io;
 use std::io::IoSliceMut;
 use std::net::SocketAddr;
+use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 
 const BUFFER_SIZE: usize = 4096;
@@ -61,9 +62,9 @@ impl Connection {
         Ok(Some(frames))
     }
 
-    #[allow(unused)]
-    pub async fn write_frame(&mut self, frame: &OperationType) -> Result<(), AppError> {
-        todo!()
+    pub async fn write_frame(&mut self, frame: &Frame) -> Result<(), AppError> {
+        self.tcp_stream.write_all(frame.data.as_slice()).await?;
+        Ok(())
     }
 
     fn peek_frame_head(&self) -> Result<Option<Head>, AppError> {
