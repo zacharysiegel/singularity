@@ -13,8 +13,8 @@ pub fn init_players(player_count: u8) {
             facilities: Vec::new(),
         };
         let facility_location: HexCoord = HexCoord {
-            i: HEX_COUNT_SQRT / u16::from(player_count) * u16::from(p),
-            j: HEX_COUNT_SQRT / u16::from(player_count) * u16::from(p),
+            i: HEX_COUNT_SQRT / i16::from(player_count) * i16::from(p),
+            j: HEX_COUNT_SQRT / i16::from(player_count) * i16::from(p),
         };
         let facility: Facility = Facility {
             location: facility_location,

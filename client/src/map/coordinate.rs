@@ -37,16 +37,13 @@ impl MapCoord {
             ((self.x - if even_row { 0. } else { *HEX_HEIGHT / 2. }) / *HEX_HEIGHT) as i16;
 
         while i < 0 {
-            i += HEX_COUNT_SQRT as i16;
+            i += HEX_COUNT_SQRT;
         }
         while j < 0 {
-            j += HEX_COUNT_SQRT as i16;
+            j += HEX_COUNT_SQRT;
         }
 
-        HexCoord {
-            i: i as u16,
-            j: j as u16,
-        }
+        HexCoord { i, j, }
     }
 
     pub fn render_coord(&self, map_origin: &MapCoord) -> RenderCoord {
@@ -116,8 +113,8 @@ impl From<RenderCoord> for Vector2 {
 
 #[derive(Debug, Copy, Clone)]
 pub struct HexCoord {
-    pub i: u16,
-    pub j: u16,
+    pub i: i16,
+    pub j: i16,
 }
 
 impl Default for HexCoord {
@@ -155,7 +152,7 @@ pub fn get_hex_count_height(pixels: f32) -> u16 {
     (pixels / f32::from(HEX_RADIUS + HEX_SIDE_LENGTH / 2)).ceil() as u16
 }
 
-pub fn get_hex_width_pixels(hex_count: u16) -> f32 {
+pub fn get_hex_width_pixels(hex_count: i16) -> f32 {
     let mut result: f32 = f32::from(hex_count) * *HEX_HEIGHT;
     if hex_count % 2 == 1 {
         result -= *HEX_HEIGHT / 2_f32;
@@ -163,7 +160,7 @@ pub fn get_hex_width_pixels(hex_count: u16) -> f32 {
     result
 }
 
-pub fn get_hex_height_pixels(hex_count: u16) -> f32 {
+pub fn get_hex_height_pixels(hex_count: i16) -> f32 {
     f32::from(hex_count) * f32::from(HEX_RADIUS + HEX_SIDE_LENGTH / 2)
 }
 

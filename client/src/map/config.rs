@@ -26,9 +26,9 @@ pub const OIL_BACKGROUND_COLOR: Color = Color {
     b: 0x58,
     a: 0xff,
 };
-// todo: refactor to signed integers
-pub const HEX_COUNT_SQRT: u16 = 64;
-pub const HEX_COUNT: u16 = HEX_COUNT_SQRT * HEX_COUNT_SQRT;
+
+pub const HEX_COUNT_SQRT: i16 = 64;
+pub const HEX_COUNT: i16 = HEX_COUNT_SQRT * HEX_COUNT_SQRT;
 pub const HEX_SIDES: u8 = 6;
 pub const HEX_RADIUS: u8 = 32;
 // todo: refactor to f32
