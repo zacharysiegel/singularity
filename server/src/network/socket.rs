@@ -11,7 +11,7 @@ use shared::error::AppError;
 pub async fn create_listener(address: &str) -> Result<TcpListener, AppError> {
     let socket: Socket = create_socket(address)?;
     let listener_std: net::TcpListener = net::TcpListener::from(socket);
-    listener_std.set_nonblocking(true)?;
+    listener_std.set_nonblocking(true)?; // Required for Tokio
 
     let listener_tokio: TcpListener = TcpListener::from_std(listener_std)?;
     Ok(listener_tokio)

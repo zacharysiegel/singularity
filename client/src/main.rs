@@ -1,7 +1,8 @@
 use client::engine;
 use std::error::Error;
 
-pub fn main() -> Result<(), Box<dyn Error>> {
+#[tokio::main]
+pub async fn main() -> Result<(), Box<dyn Error>> {
     env_logger::builder()
         .filter_level(log::LevelFilter::Debug)
         .format_source_path(true)
