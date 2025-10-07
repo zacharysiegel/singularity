@@ -4,7 +4,7 @@ use std::ops::Deref;
 use std::string::ToString;
 use std::sync::LazyLock;
 
-use shared::error::AppError;
+use crate::error::AppError;
 
 static RUNTIME_ENVIRONMENT_DEFAULT: LazyLock<RuntimeEnvironment> =
     LazyLock::new(|| RuntimeEnvironment::from_env().unwrap_or(RuntimeEnvironment::Local));
