@@ -1,6 +1,6 @@
+use server::listen;
 use server::monitor;
-use server::socket;
-use shared::environment::{self, RuntimeEnvironment};
+use shared::environment::{self};
 use tokio::net::TcpListener;
 use tokio::sync;
 
@@ -12,11 +12,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .format_source_path(true)
         .try_init()?;
 
-    let runtime_environment: RuntimeEnvironment = RuntimeEnvironment::from_env()?;
-    let address: &str = runtime_environment.get_address();
-    let listener: TcpListener = socket::create_listener(address).await?;
-    log::info!("Listening at {}", address);
-
+    let listener: TcpListener = listen::listen().await?;
     let (cancellation_sender, cancellation_receiver) = sync::broadcast::channel::<()>(1);
 
     tokio::spawn(monitor::monitor_listener(cancellation_receiver.resubscribe(), listener));

@@ -21,7 +21,7 @@ use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 use shared::environment;
 use shared::environment::RuntimeEnvironment;
-use crate::socket;
+use crate::connect;
 
 pub const TARGET_FPS: u8 = 60;
 pub const DISPLAY_WIDTH: u16 = 1600;
@@ -62,7 +62,7 @@ fn draw() {
 }
 
 pub fn init() -> Result<(), AppError> {
-    let tcp_stream: TcpStream = socket::connect()?;
+    let tcp_stream: TcpStream = connect::connect()?;
 
     unsafe {
         SetTraceLogLevel(ffi::TraceLogLevel::LOG_DEBUG as i32);
