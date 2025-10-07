@@ -30,11 +30,9 @@ impl MapCoord {
     pub const DEFAULT: MapCoord = MapCoord(Vector2 { x: 0.0, y: 0.0 });
 
     pub fn hex_coord(&self) -> HexCoord {
-        let mut j: i16 = ((self.y - (HEX_SIDE_LENGTH / 2.))
-            / (HEX_RADIUS + HEX_SIDE_LENGTH / 2.)) as i16;
+        let mut j: i16 = ((self.y - (HEX_SIDE_LENGTH / 2.)) / (HEX_RADIUS + HEX_SIDE_LENGTH / 2.)) as i16;
         let even_row: bool = j % 2 == 0;
-        let mut i: i16 =
-            ((self.x - if even_row { 0. } else { *HEX_HEIGHT / 2. }) / *HEX_HEIGHT) as i16;
+        let mut i: i16 = ((self.x - if even_row { 0. } else { *HEX_HEIGHT / 2. }) / *HEX_HEIGHT) as i16;
 
         while i < 0 {
             i += HEX_COUNT_SQRT;
@@ -43,7 +41,7 @@ impl MapCoord {
             j += HEX_COUNT_SQRT;
         }
 
-        HexCoord { i, j, }
+        HexCoord { i, j }
     }
 
     pub fn render_coord(&self, map_origin: &MapCoord) -> RenderCoord {
@@ -137,8 +135,7 @@ impl HexCoord {
 
     pub fn map_coord(&self) -> MapCoord {
         let even_row: bool = self.j % 2 == 0;
-        let x: f32 = (f32::from(self.i) * *HEX_HEIGHT)
-            + (if even_row { 0_f32 } else { *HEX_HEIGHT / 2. });
+        let x: f32 = (f32::from(self.i) * *HEX_HEIGHT) + (if even_row { 0_f32 } else { *HEX_HEIGHT / 2. });
         let y: f32 = f32::from(self.j) * (HEX_RADIUS + HEX_SIDE_LENGTH / 2.);
         MapCoord(Vector2 { x, y })
     }

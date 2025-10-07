@@ -70,8 +70,7 @@ where
         let slice_maybe: &[MaybeUninit<T>] = unsafe { mem::transmute(slice) };
 
         if (self.write_pos + slice.len()) < N {
-            let target: &mut [MaybeUninit<T>] =
-                &mut self.buffer[self.write_pos..(self.write_pos + slice.len())];
+            let target: &mut [MaybeUninit<T>] = &mut self.buffer[self.write_pos..(self.write_pos + slice.len())];
             target.copy_from_slice(slice_maybe);
         } else {
             let a = &mut self.buffer[self.write_pos..N];
@@ -100,13 +99,7 @@ where
     }
 
     pub fn peek<'a>(&'a self, count: usize) -> Result<RingBufferView<'a, T>, AppError> {
-        Self::peek_internal(
-            &self.buffer,
-            self.empty,
-            self.read_pos,
-            self.write_pos,
-            count,
-        )
+        Self::peek_internal(&self.buffer, self.empty, self.read_pos, self.write_pos, count)
     }
 
     fn peek_internal<'a>(
@@ -142,13 +135,8 @@ where
     }
 
     pub fn pop<'a>(&'a mut self, count: usize) -> Result<RingBufferView<'a, T>, AppError> {
-        let view: RingBufferView<T> = Self::peek_internal(
-            &self.buffer,
-            self.empty,
-            self.read_pos,
-            self.write_pos,
-            count,
-        )?;
+        let view: RingBufferView<T> =
+            Self::peek_internal(&self.buffer, self.empty, self.read_pos, self.write_pos, count)?;
 
         self.read_pos = (self.read_pos + count) % N;
         if self.read_pos == self.write_pos {
@@ -163,8 +151,7 @@ where
             if self.write_pos < self.read_pos {
                 [&mut self.buffer[self.write_pos..self.read_pos], &mut []]
             } else if self.write_pos > self.read_pos || self.empty {
-                let split: (&mut [MaybeUninit<T>], &mut [MaybeUninit<T>]) =
-                    self.buffer.split_at_mut(self.write_pos);
+                let split: (&mut [MaybeUninit<T>], &mut [MaybeUninit<T>]) = self.buffer.split_at_mut(self.write_pos);
                 [split.1, &mut split.0[0..self.read_pos]]
             } else {
                 [&mut [], &mut []]
@@ -184,16 +171,10 @@ where
         let mut slices = self.current_empty_slices_mut();
         [
             IoSliceMut::new(unsafe {
-                slice::from_raw_parts_mut(
-                    slices[0].as_mut_ptr() as *mut u8,
-                    slices[0].len() * size_of::<T>(),
-                )
+                slice::from_raw_parts_mut(slices[0].as_mut_ptr() as *mut u8, slices[0].len() * size_of::<T>())
             }),
             IoSliceMut::new(unsafe {
-                slice::from_raw_parts_mut(
-                    slices[1].as_mut_ptr() as *mut u8,
-                    slices[1].len() * size_of::<T>(),
-                )
+                slice::from_raw_parts_mut(slices[1].as_mut_ptr() as *mut u8, slices[1].len() * size_of::<T>())
             }),
         ]
     }
@@ -300,9 +281,7 @@ mod tests {
                 .unwrap();
             assert!(ring_buffer.is_full());
             assert_eq!(b'e', unsafe { ring_buffer.buffer[1].assume_init() });
-            assert_eq!(2, unsafe {
-                ring_buffer.buffer[hello_world.len() + 2].assume_init()
-            });
+            assert_eq!(2, unsafe { ring_buffer.buffer[hello_world.len() + 2].assume_init() });
             assert_eq!(1, unsafe {
                 ring_buffer.buffer[hello_world.len() + numbers.len()].assume_init()
             });

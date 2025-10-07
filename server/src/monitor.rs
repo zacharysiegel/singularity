@@ -62,10 +62,7 @@ pub struct User {
     pub connection: Connection,
 }
 
-pub async fn monitor_listener(
-    mut cancellation_receiver: sync::broadcast::Receiver<()>,
-    listener: TcpListener,
-) {
+pub async fn monitor_listener(mut cancellation_receiver: sync::broadcast::Receiver<()>, listener: TcpListener) {
     let cancellation_receiver_forward = cancellation_receiver.resubscribe();
     let task_f = async move {
         loop {

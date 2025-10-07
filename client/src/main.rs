@@ -1,5 +1,5 @@
-use std::error::Error;
 use client::engine;
+use std::error::Error;
 
 pub fn main() -> Result<(), Box<dyn Error>> {
     env_logger::builder()

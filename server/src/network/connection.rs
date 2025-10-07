@@ -1,8 +1,8 @@
-use shared::error::{AppError, AppErrorStatic};
 use crate::network::protocol;
 use crate::network::protocol::{Frame, OperationType};
 use crate::network::ring_buffer::{RingBuffer, RingBufferView};
 use protocol::Head;
+use shared::error::{AppError, AppErrorStatic};
 use std::fmt::{Display, Formatter};
 use std::io;
 use std::io::IoSliceMut;
@@ -49,10 +49,7 @@ impl Connection {
                     }
 
                     let frame_data: Vec<u8> = self.pop_frame(&head)?;
-                    let frame: Frame = Frame {
-                        head,
-                        data: frame_data,
-                    };
+                    let frame: Frame = Frame { head, data: frame_data };
                     frames.push(frame);
                 }
             }
@@ -102,10 +99,8 @@ impl Connection {
     async fn read_chunk(&mut self) -> Result<BytesRead, AppError> {
         loop {
             self.tcp_stream.readable().await?;
-            let mut io_slices: [IoSliceMut; 2] =
-                unsafe { self.buffer.current_empty_slices_as_io_slice_mut() };
+            let mut io_slices: [IoSliceMut; 2] = unsafe { self.buffer.current_empty_slices_as_io_slice_mut() };
             let read_r: io::Result<usize> = self.tcp_stream.try_read_vectored(&mut io_slices);
-
 
             match read_r {
                 Ok(0) => {
@@ -113,8 +108,8 @@ impl Connection {
                 }
                 Ok(n) => {
                     self.buffer.advance(n)?;
-                    return Ok(BytesRead::Some(n))
-                },
+                    return Ok(BytesRead::Some(n));
+                }
                 Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
                     // TcpStream may not be ready for read. TcpStream#readable may return false positives.
                     continue;

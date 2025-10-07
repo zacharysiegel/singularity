@@ -4,11 +4,11 @@ use crate::map::coordinate::MapCoord;
 use crate::map::draw::{draw_map, draw_players};
 use crate::map::init::init_map;
 use crate::player::init_players;
-use crate::state::{State, STATE};
+use crate::state::STATE;
 use raylib::ffi::{
-    BeginDrawing, ClearBackground, CloseWindow, Color, DrawFPS, DrawText, EndDrawing,
-    GetMouseWheelMoveV, GetScreenHeight, InitWindow, IsKeyPressed, IsWindowReady, SetConfigFlags,
-    SetTargetFPS, SetTraceLogLevel, WindowShouldClose,
+    BeginDrawing, ClearBackground, CloseWindow, Color, DrawFPS, DrawText, EndDrawing, GetMouseWheelMoveV,
+    GetScreenHeight, InitWindow, IsKeyPressed, IsWindowReady, SetConfigFlags, SetTargetFPS, SetTraceLogLevel,
+    WindowShouldClose,
 };
 use raylib::{ffi, math};
 use shared::error::AppError;
@@ -24,8 +24,7 @@ pub const DISPLAY_HEIGHT: u16 = 900;
 
 fn scrolled_map_origin(map_origin: &MapCoord) -> MapCoord {
     let scroll: ffi::Vector2 = unsafe { GetMouseWheelMoveV() };
-    let scroll_inverted: math::Vector2 =
-        math::Vector2::mul(scroll.into(), math::Vector2 { x: -1., y: -1. }).into();
+    let scroll_inverted: math::Vector2 = math::Vector2::mul(scroll.into(), math::Vector2 { x: -1., y: -1. }).into();
     let unchecked_origin: math::Vector2 = math::Vector2::add(map_origin.0.into(), scroll_inverted);
     MapCoord(unchecked_origin.into()).overflow_adjusted()
 }
@@ -62,16 +61,9 @@ pub fn init() -> Result<(), AppError> {
         SetTraceLogLevel(ffi::TraceLogLevel::LOG_DEBUG as i32);
         SetTargetFPS(TARGET_FPS as i32);
 
-        SetConfigFlags(
-            ffi::ConfigFlags::FLAG_WINDOW_HIGHDPI as u32
-                | ffi::ConfigFlags::FLAG_WINDOW_RESIZABLE as u32,
-        );
+        SetConfigFlags(ffi::ConfigFlags::FLAG_WINDOW_HIGHDPI as u32 | ffi::ConfigFlags::FLAG_WINDOW_RESIZABLE as u32);
         let name_cstr: CString = CString::new(APPLICATION_NAME).unwrap();
-        InitWindow(
-            DISPLAY_WIDTH.into(),
-            DISPLAY_HEIGHT.into(),
-            name_cstr.as_ptr(),
-        );
+        InitWindow(DISPLAY_WIDTH.into(), DISPLAY_HEIGHT.into(), name_cstr.as_ptr());
         if !IsWindowReady() {
             return Err(AppError::new("Failed to initialize window"));
         }

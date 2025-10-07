@@ -28,11 +28,7 @@ pub struct Head {
 
 impl Display for Head {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "Head; [op_type: {}] [length: {}]",
-            self.op_type, self.length
-        )
+        write!(f, "Head; [op_type: {}] [length: {}]", self.op_type, self.length)
     }
 }
 

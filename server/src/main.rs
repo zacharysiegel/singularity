@@ -19,13 +19,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let (cancellation_sender, cancellation_receiver) = sync::broadcast::channel::<()>(1);
 
-    tokio::spawn(monitor::monitor_listener(
-        cancellation_receiver.resubscribe(),
-        listener,
-    ));
-    tokio::spawn(monitor::monitor_manager(
-        cancellation_receiver.resubscribe(),
-    ));
+    tokio::spawn(monitor::monitor_listener(cancellation_receiver.resubscribe(), listener));
+    tokio::spawn(monitor::monitor_manager(cancellation_receiver.resubscribe()));
     drop(cancellation_receiver);
 
     match tokio::signal::ctrl_c().await {

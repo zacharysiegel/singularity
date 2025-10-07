@@ -1,7 +1,5 @@
 use crate::network::connection::Connection;
-use crate::network::protocol::{
-    _PlaceholderDynamic, Acknowledgement, Frame, Heartbeat, OperationType, Register,
-};
+use crate::network::protocol::{Acknowledgement, Frame, Heartbeat, OperationType, Register, _PlaceholderDynamic};
 
 pub async fn route_frame(connection: &Connection, frame: Frame) {
     match frame.head.op_type {
@@ -33,7 +31,6 @@ fn register(frame: Frame) {
     let register: Register = Register::from(&frame);
     log::debug!("parsed frame; [{:?}]", register);
 
-
     todo!();
 }
 
@@ -41,14 +38,12 @@ fn acknowledgement(frame: Frame) {
     let acknowledgement: Acknowledgement = Acknowledgement::from(&frame);
     log::debug!("parsed frame; [{:?}]", acknowledgement);
 
-
     todo!();
 }
 
 fn _placeholder_dynamic(frame: Frame) {
     let _placeholder_dynamic: _PlaceholderDynamic = _PlaceholderDynamic::from(&frame);
     log::debug!("parsed frame; [{:?}]", _placeholder_dynamic);
-
 
     todo!();
 }
