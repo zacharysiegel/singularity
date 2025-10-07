@@ -1,7 +1,6 @@
 # High-level to-do items
 
 1. Server-side networking
-    1. Send
     1. TLS (low)
 1. Client-side networking
     1. TCP connection
