@@ -61,7 +61,7 @@ Resource extraction
         Enforces single player control over vein
 
 Resource transportation
-    No transportation infractructure (Subterfuge-like)
+    No transportation infrastructure (Subterfuge-like)
     Transportation is committed after send
     If target is destroyed, items accumulate at the ruins
     Resources can be intercepted by opponents
@@ -92,8 +92,8 @@ Object placement
         Objects can only be placed within a fixed distance from the nearest control center
         Ghost of item appears on the map following mouse hover
         Ghost remains after placement
-        Worker bots travel from contol center to placement location and construct the object
-        Travel takes time. Constrution takes single tick.
+        Worker bots travel from control center to placement location and construct the object
+        Travel takes time. Construction takes single tick.
 
 Trading
     Players are expected to trade by sending resources to each other
@@ -101,7 +101,7 @@ Trading
     Specialization creates comparative advantages between players
     Strong player relationships can involve direct factory integrations
     Comparative advantages change through the course of the game
-    Military protection/pressure is an implicily traded service
+    Military protection/pressure is an implicitly traded service
 
 Terminal objects
     Worker bots
@@ -139,7 +139,7 @@ Stage 0
     Each player starts with a standard set of objects
         Control center
             Home of worker bots
-            Unlimited workers
+            Unlimited workers?
         Battery
             Provides temporary power
             Can be recharged
@@ -166,7 +166,7 @@ Stage 3
 ## User interface
 
 Map
-    Tesselated hexagons
+    Tessellated hexagons
     Toroid
 Inventory
     Inert items
@@ -181,7 +181,7 @@ Command
         Time to completion
     Time machine macro button (see: Subterfuge)
 Assembler specializer
-Facitlity inspector
+Facility inspector
     Title (e.g. "Assembler", "Control Center")
     Description (fluff)
     Contents and capacity
