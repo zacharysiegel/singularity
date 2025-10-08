@@ -11,7 +11,7 @@ use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
 use tokio::sync::RwLock;
 
-const BUFFER_SIZE: usize = 4096;
+pub const BUFFER_SIZE: usize = 4096;
 
 pub enum BytesRead {
     Some(usize),
@@ -21,8 +21,8 @@ pub enum BytesRead {
 #[derive(Debug)]
 pub struct Connection {
     pub socket_addr: Arc<SocketAddr>,
-    pub reader: RwLock<ConnectionReader>,
-    pub writer: RwLock<ConnectionWriter>,
+    pub reader: ConnectionReader,
+    pub writer: ConnectionWriter,
 }
 
 impl Connection {
@@ -31,29 +31,25 @@ impl Connection {
         let (reader, writer): (OwnedReadHalf, OwnedWriteHalf) = tcp_stream.into_split();
         Connection {
             socket_addr: socket_addr.clone(),
-            reader: RwLock::new(ConnectionReader {
+            reader: ConnectionReader {
                 socket_addr: socket_addr.clone(),
                 tcp_stream_read: reader,
                 buffer: RingBuffer::new(),
-            }),
-            writer: RwLock::new(ConnectionWriter {
+            },
+            writer: ConnectionWriter {
                 socket_addr: socket_addr.clone(),
                 tcp_stream_write: writer,
-                buffer: RingBuffer::new(),
-            }),
+                buffer: Arc::new(RwLock::new(RingBuffer::new())),
+            },
         }
     }
 }
 
-// todo: Move the RwLock onto a write buffer.
-//  Invoke write_frame in a dedicated (green) which reads from the buffer.
-//  This thread should have dedicated ownership of ConnectionWriter.
-//  Currently, messages cannot be queued while another is being transmit.
 #[derive(Debug)]
 pub struct ConnectionWriter {
     pub socket_addr: Arc<SocketAddr>,
     pub tcp_stream_write: OwnedWriteHalf,
-    pub buffer: RingBuffer<u8, 4096>,
+    pub buffer: Arc<RwLock<RingBuffer<u8, BUFFER_SIZE>>>,
 }
 
 impl ConnectionWriter {

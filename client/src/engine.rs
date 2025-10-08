@@ -13,11 +13,13 @@ use raylib::ffi::{
 };
 use raylib::{ffi, math};
 use shared::error::AppError;
+use shared::network::ring_buffer::RingBuffer;
 use std::ffi::CString;
 use std::ops::{Add, Mul};
-use std::sync::{RwLockReadGuard, RwLockWriteGuard};
+use std::sync::{Arc, RwLockReadGuard, RwLockWriteGuard};
 use std::time;
 use time::Instant;
+use tokio::sync::RwLock;
 
 pub const TARGET_FPS: u8 = 60;
 pub const DISPLAY_WIDTH: u16 = 1600;
@@ -58,7 +60,7 @@ fn draw() {
 }
 
 pub fn init() -> Result<(), AppError> {
-    connect::connect()?;
+    let _: Arc<RwLock<RingBuffer<u8, 4096>>> = connect::connect()?;
 
     unsafe {
         SetTraceLogLevel(ffi::TraceLogLevel::LOG_DEBUG as i32);

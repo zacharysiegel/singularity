@@ -1,23 +1,21 @@
-use shared::network::connection::Connection;
 use shared::network::protocol::{Acknowledgement, Frame, Heartbeat, OperationType, Register, _PlaceholderDynamic};
-use std::sync::Arc;
 
-pub async fn route_frame(connection: Arc<Connection>, frame: Frame) {
+pub async fn route_frame(frame: Frame) {
     match frame.head.op_type {
         OperationType::Heartbeat => {
-            log::trace!("Heartbeat received; [{:?}] [{}]", connection, frame);
+            log::trace!("Heartbeat received; [{}]", frame);
             heartbeat(frame);
         }
         OperationType::Register => {
-            log::trace!("Register received; [{:?}] [{}]", connection, frame);
+            log::trace!("Register received; [{}]", frame);
             register(frame);
         }
         OperationType::Acknowledgement => {
-            log::trace!("Acknowledgement received; [{:?}] [{}]", connection, frame);
+            log::trace!("Acknowledgement received; [{}]", frame);
             acknowledgement(frame);
         }
         OperationType::_PlaceholderDynamic => {
-            log::trace!("_PlaceholderDynamic received; [{:?}] [{}]", connection, frame);
+            log::trace!("_PlaceholderDynamic received; [{}]", frame);
             _placeholder_dynamic(frame);
         }
     }
