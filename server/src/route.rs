@@ -1,7 +1,5 @@
 use shared::network::connection::Connection;
-use shared::network::protocol::{
-    Acknowledgement, Frame, Head, Heartbeat, Operation, OperationType, Register, _PlaceholderDynamic,
-};
+use shared::network::protocol::{Acknowledgement, Frame, Heartbeat, OperationType, Register, _PlaceholderDynamic};
 use std::sync::Arc;
 
 pub async fn route_frame(connection: Arc<Connection>, frame: Frame) {
@@ -9,17 +7,6 @@ pub async fn route_frame(connection: Arc<Connection>, frame: Frame) {
         OperationType::Heartbeat => {
             log::trace!("Heartbeat received; [{:?}] [{}]", connection, frame);
             heartbeat(frame);
-            let mut writer = connection.writer.write().await;
-            writer
-                .write_frame(&Frame {
-                    head: Head {
-                        op_type: OperationType::Heartbeat,
-                        length: 1,
-                    },
-                    data: vec![Heartbeat::OP_CODE],
-                })
-                .await
-                .unwrap();
         }
         OperationType::Register => {
             log::trace!("Register received; [{:?}] [{}]", connection, frame);

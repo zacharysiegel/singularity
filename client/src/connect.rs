@@ -5,12 +5,10 @@ use std::time::Duration;
 
 use shared::error::AppError;
 use shared::network;
-use shared::network::connection::{Connection, ConnectionWriter};
-use shared::network::protocol::{Frame, Head, Heartbeat, Operation, OperationType};
+use shared::network::connection::Connection;
 use shared::network::socket;
 use socket2::{SockAddr, Socket};
 use tokio::net::TcpStream;
-use tokio::sync::RwLockWriteGuard;
 
 pub fn connect() -> Result<Arc<Connection>, AppError> {
     let sock_addr: SockAddr = socket::get_sock_addr()?;
@@ -41,28 +39,6 @@ fn spawn_reader(connection: Arc<Connection>) {
 }
 
 fn spawn_writer(connection: Arc<Connection>) {
-    // todo: remove
-    tokio::spawn(async move {
-        let mut writer: RwLockWriteGuard<ConnectionWriter> = connection.writer.write().await;
-        let write_r = writer
-            .write_frame(&Frame {
-                head: Head {
-                    op_type: OperationType::Heartbeat,
-                    length: 1,
-                },
-                data: vec![Heartbeat::OP_CODE],
-            })
-            .await;
-        match write_r {
-            Ok(_) => {
-                log::debug!("write_r");
-            }
-            Err(e) => {
-                log::error!("write error; {:#}", e);
-            }
-        }
-    });
-
     // tokio::spawn(async {
     //     todo!("writer")
     // });
