@@ -25,19 +25,6 @@ pub struct Connection {
     pub writer: RwLock<ConnectionWriter>,
 }
 
-#[derive(Debug)]
-pub struct ConnectionWriter {
-    pub socket_addr: Arc<SocketAddr>,
-    pub tcp_stream_write: OwnedWriteHalf,
-}
-
-#[derive(Debug)]
-pub struct ConnectionReader {
-    pub socket_addr: Arc<SocketAddr>,
-    pub tcp_stream_read: OwnedReadHalf,
-    pub buffer: RingBuffer<u8, BUFFER_SIZE>,
-}
-
 impl Connection {
     pub fn new(tcp_stream: TcpStream, socket_addr: SocketAddr) -> Self {
         let socket_addr: Arc<SocketAddr> = Arc::new(socket_addr);
@@ -55,6 +42,30 @@ impl Connection {
             }),
         }
     }
+}
+
+// todo: Move the RwLock onto a write buffer.
+//  Invoke write_frame in a dedicated (green) which reads from the buffer.
+//  This thread should have dedicated ownership of ConnectionWriter.
+//  Currently, messages cannot be queued while another is being transmit.
+#[derive(Debug)]
+pub struct ConnectionWriter {
+    pub socket_addr: Arc<SocketAddr>,
+    pub tcp_stream_write: OwnedWriteHalf,
+}
+
+impl ConnectionWriter {
+    pub async fn write_frame(&mut self, frame: &Frame) -> Result<(), AppError> {
+        self.tcp_stream_write.write_all(frame.data.as_slice()).await?;
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
+pub struct ConnectionReader {
+    pub socket_addr: Arc<SocketAddr>,
+    pub tcp_stream_read: OwnedReadHalf,
+    pub buffer: RingBuffer<u8, BUFFER_SIZE>,
 }
 
 impl ConnectionReader {
@@ -139,12 +150,5 @@ impl ConnectionReader {
                 Err(e) => return Err(AppError::from(e)),
             }
         }
-    }
-}
-
-impl ConnectionWriter {
-    pub async fn write_frame(&mut self, frame: &Frame) -> Result<(), AppError> {
-        self.tcp_stream_write.write_all(frame.data.as_slice()).await?;
-        Ok(())
     }
 }
