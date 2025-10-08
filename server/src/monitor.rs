@@ -13,7 +13,6 @@ use tokio::net::TcpStream;
 use tokio::sync;
 use tokio::sync::mpsc;
 use uuid::Uuid;
-use shared::error::AppErrorStatic;
 
 pub const GAMES: LazyLock<HashMap<Uuid, Game>> = LazyLock::new(|| HashMap::new());
 
