@@ -165,6 +165,18 @@ Stage 3
 
 ## User interface
 
+Menus
+	Title screen
+	Account setup
+	Game browser
+		Active games
+		Open games
+	Account
+		Game history
+		Friends
+		Change email/username/password
+		Delete account
+
 Map
     Tessellated hexagons
     Toroid
