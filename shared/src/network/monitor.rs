@@ -1,8 +1,12 @@
-use crate::network::connection::{Connection, ConnectionReader, ConnectionWriter, FrameBuffer};
+use crate::error::AppErrorStatic;
+use crate::network::connection::{Connection, ConnectionReader, ConnectionWriter};
+use crate::network::frame_buffer::FrameBuffer;
 use crate::network::protocol::Frame;
 use std::future::Future;
 use std::sync::Arc;
-use tokio::sync::RwLockWriteGuard;
+use std::time::Duration;
+use tokio::sync::{RwLockReadGuard, RwLockWriteGuard};
+use tokio::time;
 
 // todo: if this function is the only user of ConnectionReader, it can be given full ownership and obviate the lock acquisition
 //  It's worth trying to find a way to have single ownership of the ConnectionWriter as well
@@ -18,7 +22,7 @@ where
             break;
         };
 
-        match reader.buffer.read_frames().await {
+        match reader.buffer.pop_frames() {
             Ok(frames) => {
                 for frame in frames {
                     callback(connection.clone(), frame).await;
@@ -32,7 +36,19 @@ where
     }
 }
 
-pub async fn monitor_outgoing_frames(connection: Arc<Connection>) {
-    let mut writer: RwLockWriteGuard<ConnectionWriter> = connection.writer.write().await;
-    loop {}
+pub async fn monitor_outgoing_frames(connection: Arc<Connection>) -> Result<(), AppErrorStatic> {
+    loop {
+        let writer: RwLockReadGuard<ConnectionWriter> = connection.writer.read().await;
+        if writer.buffer.used_space() == 0 {
+            time::sleep(Duration::from_millis(50)).await;
+            continue;
+        }
+        drop(writer);
+
+        let mut writer: RwLockWriteGuard<ConnectionWriter> = connection.writer.write().await;
+        let frames: Vec<Frame> = writer.buffer.pop_frames()?;
+        for frame in frames {
+            writer.write_frame(&frame).await?;
+        }
+    }
 }

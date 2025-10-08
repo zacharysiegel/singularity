@@ -3,7 +3,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
-use shared::error::AppError;
+use shared::error::{AppError};
 use shared::network;
 use shared::network::connection::Connection;
 use shared::network::socket;
@@ -25,6 +25,11 @@ pub fn connect() -> Result<Arc<Connection>, AppError> {
     spawn_reader(connection.clone());
     spawn_writer(connection.clone());
 
+    let x= connection.clone();
+    tokio::spawn(async move {
+        x.writer.write().await.buffer.push(vec![0x01].as_slice()).unwrap();
+    });
+
     Ok(connection)
 }
 
@@ -39,7 +44,12 @@ fn spawn_reader(connection: Arc<Connection>) {
 }
 
 fn spawn_writer(connection: Arc<Connection>) {
-    // tokio::spawn(async {
-    //     todo!("writer")
-    // });
+    tokio::spawn(async move {
+        match network::monitor::monitor_outgoing_frames(connection.clone()).await {
+            Ok(_) => {}
+            Err(e) => {
+                log::error!("Error writing frame to the network; {:#}", e);
+            }
+        }
+    });
 }
