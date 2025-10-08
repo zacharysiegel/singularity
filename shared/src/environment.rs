@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use std::env;
 use std::fmt::Display;
 use std::ops::Deref;
@@ -8,12 +10,8 @@ use crate::error::AppError;
 
 static RUNTIME_ENVIRONMENT_DEFAULT: LazyLock<RuntimeEnvironment> =
     LazyLock::new(|| RuntimeEnvironment::from_env().unwrap_or(RuntimeEnvironment::Local));
-#[allow(unused)]
 static CARGO_MANIFEST_DIR: LazyLock<String> =
     LazyLock::new(|| env::var("CARGO_MANIFEST_DIR").unwrap_or("/dev/null".to_string()));
-
-pub const VOLATILE_DIRECTORY_NAME: &str = "volatile";
-pub const IMAGES_DIRECTORY_NAME: &str = "images";
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum RuntimeEnvironment {
