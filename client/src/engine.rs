@@ -1,11 +1,11 @@
 use crate::config::APPLICATION_NAME;
-use crate::connect;
 use crate::map::config::BACKGROUND_COLOR;
 use crate::map::coordinate::MapCoord;
 use crate::map::draw::{draw_map, draw_players};
 use crate::map::init::init_map;
 use crate::player::init_players;
 use crate::state::STATE;
+use crate::{connect, input};
 use raylib::ffi::{
     BeginDrawing, ClearBackground, CloseWindow, Color, DrawFPS, DrawText, EndDrawing, GetMouseWheelMoveV,
     GetScreenHeight, InitWindow, IsKeyPressed, IsWindowReady, SetConfigFlags, SetTargetFPS, SetTraceLogLevel,
@@ -33,9 +33,7 @@ fn scrolled_map_origin(map_origin: &MapCoord) -> MapCoord {
 }
 
 fn update() {
-    if unsafe { IsKeyPressed(ffi::KeyboardKey::KEY_A as i32) } {
-        log::debug!("a pressed");
-    }
+    input::handle_user_input();
 
     let mut map_origin: RwLockWriteGuard<MapCoord> = STATE.map_origin.write().expect("global state poisoned");
     let old: MapCoord = map_origin.clone();
