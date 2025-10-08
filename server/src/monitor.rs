@@ -13,6 +13,7 @@ use tokio::net::TcpStream;
 use tokio::sync;
 use tokio::sync::mpsc;
 use uuid::Uuid;
+use shared::error::AppErrorStatic;
 
 pub const GAMES: LazyLock<HashMap<Uuid, Game>> = LazyLock::new(|| HashMap::new());
 
@@ -133,5 +134,21 @@ async fn monitor_client(
 
 async fn monitor_client_task(tcp_stream: TcpStream, socket_addr: SocketAddr) {
     let connection: Arc<Connection> = Arc::new(Connection::new(tcp_stream, socket_addr));
-    monitor::monitor_incoming_frames(connection, route_frame).await;
+
+    let incoming_f = monitor::monitor_incoming_frames(connection.clone(), route_frame);
+    let incoming_f = pin::pin!(incoming_f);
+
+    let outgoing_f = monitor::monitor_outgoing_frames(connection.clone());
+    let outgoing_f = pin::pin!(outgoing_f);
+
+    match future::join(incoming_f, outgoing_f).await {
+        (_, outgoing) => {
+            match outgoing {
+                Ok(_) => {}
+                Err(e) => {
+                    log::error!("Error monitoring outgoing frames; {:#}", e);
+                }
+            }
+        }
+    };
 }
