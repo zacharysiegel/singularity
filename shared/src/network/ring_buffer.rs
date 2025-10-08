@@ -1,14 +1,12 @@
 #![allow(unused)] // Data structure need not be completely used
 
 use crate::error::AppError;
-use std::fmt::{Display, Formatter};
+use std::fmt::{Debug, Display, Formatter};
 use std::io::IoSliceMut;
 use std::mem::MaybeUninit;
 use std::ops::Index;
 use std::{mem, slice};
 
-// todo: custom Debug implementation
-#[derive(Debug)]
 pub struct RingBuffer<T, const N: usize>
 where
     T: Copy,
@@ -17,6 +15,24 @@ where
     read_pos: usize,
     write_pos: usize,
     empty: bool,
+}
+
+impl<T: Copy, const N: usize> Display for RingBuffer<T, N> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "(RingBuffer{{capacity: {}, read_pos: {}, used_space: {}}})",
+            N,
+            self.read_pos,
+            self.used_space()
+        )
+    }
+}
+
+impl<T: Copy, const N: usize> Debug for RingBuffer<T, N> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        Display::fmt(self, f)
+    }
 }
 
 impl<T, const N: usize> RingBuffer<T, N>
@@ -182,45 +198,12 @@ where
     }
 }
 
-impl<T: Copy, const N: usize> Display for RingBuffer<T, N> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "RingBuffer; [capacity: {}] [used: {}]",
-            self.capacity(),
-            self.used_space()
-        )
-    }
-}
-
 pub struct RingBufferView<'a, T>
 where
     T: Copy,
 {
     pub first: &'a [T],
     pub second: &'a [T],
-}
-
-impl<'a, T> RingBufferView<'a, T>
-where
-    T: Copy,
-{
-    pub fn iter(&self) -> impl Iterator<Item = &T> {
-        self.first.iter().chain(self.second.iter())
-    }
-
-    pub fn len(&self) -> usize {
-        self.first.len() + self.second.len()
-    }
-
-    pub fn copy_to(&self, dest: &mut [T]) {
-        dest[..self.first.len()].copy_from_slice(self.first);
-        dest[self.first.len()..].copy_from_slice(self.second);
-    }
-
-    pub fn as_slices(&self) -> (&[T], &[T]) {
-        (self.first, self.second)
-    }
 }
 
 impl<'a, T> From<RingBufferView<'a, T>> for Vec<T>
@@ -249,6 +232,28 @@ where
         } else {
             panic!("Index out of bounds");
         }
+    }
+}
+
+impl<'a, T> RingBufferView<'a, T>
+where
+    T: Copy,
+{
+    pub fn iter(&self) -> impl Iterator<Item = &T> {
+        self.first.iter().chain(self.second.iter())
+    }
+
+    pub fn len(&self) -> usize {
+        self.first.len() + self.second.len()
+    }
+
+    pub fn copy_to(&self, dest: &mut [T]) {
+        dest[..self.first.len()].copy_from_slice(self.first);
+        dest[self.first.len()..].copy_from_slice(self.second);
+    }
+
+    pub fn as_slices(&self) -> (&[T], &[T]) {
+        (self.first, self.second)
     }
 }
 

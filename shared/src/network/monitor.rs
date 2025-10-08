@@ -19,7 +19,7 @@ where
                     }
                 }
                 None => {
-                    log::info!("Connection terminated; {:?}", reader);
+                    log::info!("Connection terminated; {:?}", connection);
                     break;
                 }
             },
