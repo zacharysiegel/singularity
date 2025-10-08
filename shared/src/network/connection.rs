@@ -1,12 +1,15 @@
 use crate::error::{AppError, AppErrorStatic};
 use crate::network::protocol::{Frame, Head, OperationType};
 use crate::network::ring_buffer::{RingBuffer, RingBufferView};
-use std::fmt::{Display, Formatter};
+use std::fmt::Debug;
 use std::io;
 use std::io::IoSliceMut;
 use std::net::SocketAddr;
+use std::sync::Arc;
 use tokio::io::AsyncWriteExt;
+use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
+use tokio::sync::RwLock;
 
 const BUFFER_SIZE: usize = 4096;
 
@@ -15,21 +18,46 @@ enum BytesRead {
     ReadClosed,
 }
 
+#[derive(Debug)]
 pub struct Connection {
-    pub tcp_stream: TcpStream,
-    pub socket_addr: SocketAddr,
+    pub socket_addr: Arc<SocketAddr>,
+    pub reader: RwLock<ConnectionReader>,
+    pub writer: RwLock<ConnectionWriter>,
+}
+
+#[derive(Debug)]
+pub struct ConnectionWriter {
+    pub socket_addr: Arc<SocketAddr>,
+    pub tcp_stream_write: OwnedWriteHalf,
+}
+
+#[derive(Debug)]
+pub struct ConnectionReader {
+    pub socket_addr: Arc<SocketAddr>,
+    pub tcp_stream_read: OwnedReadHalf,
     pub buffer: RingBuffer<u8, BUFFER_SIZE>,
 }
 
 impl Connection {
     pub fn new(tcp_stream: TcpStream, socket_addr: SocketAddr) -> Self {
+        let socket_addr: Arc<SocketAddr> = Arc::new(socket_addr);
+        let (reader, writer): (OwnedReadHalf, OwnedWriteHalf) = tcp_stream.into_split();
         Connection {
-            tcp_stream,
-            socket_addr,
-            buffer: RingBuffer::new(),
+            socket_addr: socket_addr.clone(),
+            reader: RwLock::new(ConnectionReader {
+                socket_addr: socket_addr.clone(),
+                tcp_stream_read: reader,
+                buffer: RingBuffer::new(),
+            }),
+            writer: RwLock::new(ConnectionWriter {
+                socket_addr: socket_addr.clone(),
+                tcp_stream_write: writer,
+            }),
         }
     }
+}
 
+impl ConnectionReader {
     pub async fn read_frames(&mut self) -> Result<Option<Vec<Frame>>, AppErrorStatic> {
         let mut frames: Vec<Frame> = Vec::new();
         let bytes_read: BytesRead = self.read_chunk().await?;
@@ -58,11 +86,6 @@ impl Connection {
         }
 
         Ok(Some(frames))
-    }
-
-    pub async fn write_frame(&mut self, frame: &Frame) -> Result<(), AppError> {
-        self.tcp_stream.write_all(frame.data.as_slice()).await?;
-        Ok(())
     }
 
     fn peek_frame_head(&self) -> Result<Option<Head>, AppError> {
@@ -97,9 +120,9 @@ impl Connection {
 
     async fn read_chunk(&mut self) -> Result<BytesRead, AppError> {
         loop {
-            self.tcp_stream.readable().await?;
+            self.tcp_stream_read.readable().await?;
             let mut io_slices: [IoSliceMut; 2] = unsafe { self.buffer.current_empty_slices_as_io_slice_mut() };
-            let read_r: io::Result<usize> = self.tcp_stream.try_read_vectored(&mut io_slices);
+            let read_r: io::Result<usize> = self.tcp_stream_read.try_read_vectored(&mut io_slices);
 
             match read_r {
                 Ok(0) => {
@@ -119,8 +142,9 @@ impl Connection {
     }
 }
 
-impl Display for Connection {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Connection; [{}] [{}]", self.socket_addr, self.buffer)
+impl ConnectionWriter {
+    pub async fn write_frame(&mut self, frame: &Frame) -> Result<(), AppError> {
+        self.tcp_stream_write.write_all(frame.data.as_slice()).await?;
+        Ok(())
     }
 }

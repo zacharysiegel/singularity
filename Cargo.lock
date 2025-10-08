@@ -767,6 +767,7 @@ name = "shared"
 version = "0.1.0"
 dependencies = [
  "dotenvy",
+ "log",
  "rand",
  "socket2",
  "tokio",

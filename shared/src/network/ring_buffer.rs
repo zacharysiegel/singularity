@@ -7,6 +7,8 @@ use std::mem::MaybeUninit;
 use std::ops::Index;
 use std::{mem, slice};
 
+// todo: custom Debug implementation
+#[derive(Debug)]
 pub struct RingBuffer<T, const N: usize>
 where
     T: Copy,

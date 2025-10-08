@@ -1,11 +1,13 @@
-use shared::network::connection::Connection;
-use crate::route;
+use crate::route::route_frame;
 use futures::future;
+use network::monitor;
+use shared::network;
+use shared::network::connection::Connection;
 use shared::random::random_uuid;
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::pin;
-use std::sync::LazyLock;
+use std::sync::{Arc, LazyLock};
 use tokio::net::TcpListener;
 use tokio::net::TcpStream;
 use tokio::sync;
@@ -130,24 +132,6 @@ async fn monitor_client(
 }
 
 async fn monitor_client_task(tcp_stream: TcpStream, socket_addr: SocketAddr) {
-    let mut connection: Connection = Connection::new(tcp_stream, socket_addr);
-    loop {
-        match connection.read_frames().await {
-            Ok(frames_o) => match frames_o {
-                Some(frames) => {
-                    for frame in frames {
-                        route::route_frame(&mut connection, frame).await;
-                    }
-                }
-                None => {
-                    log::info!("Connection terminated; {}", connection);
-                    break;
-                }
-            },
-            Err(e) => {
-                log::error!("Failed to read from TCP stream; {:#}", e);
-                break;
-            }
-        }
-    }
+    let connection: Arc<Connection> = Arc::new(Connection::new(tcp_stream, socket_addr));
+    monitor::monitor_incoming_frames(connection, route_frame).await;
 }

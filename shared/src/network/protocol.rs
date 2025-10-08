@@ -10,6 +10,7 @@ use crate::error::AppError;
 use std::fmt::{self, Display};
 use uuid::Uuid;
 
+#[derive(Debug)]
 pub struct Frame {
     pub head: Head,
     pub data: Vec<u8>,
@@ -21,6 +22,7 @@ impl Display for Frame {
     }
 }
 
+#[derive(Debug)]
 pub struct Head {
     pub op_type: OperationType,
     pub length: usize,
@@ -34,6 +36,7 @@ impl Display for Head {
 
 pub type OpCode = u8;
 
+#[derive(Debug)]
 pub enum OperationType {
     Heartbeat,
     Register,

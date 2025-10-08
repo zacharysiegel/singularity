@@ -3,9 +3,6 @@
 1. Server-side networking
     1. TLS (low)
 1. Client-side networking
-    1. TCP connection
-    1. Send
-    1. Receive
     1. TLS (low)
 1. Proper map generation (see plan.md)
 1. Player interactions
