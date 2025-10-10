@@ -11,7 +11,7 @@ pub enum MouseButton {
 }
 
 pub fn handle_user_input() {
-    if unsafe { IsKeyPressed(ffi::KeyboardKey::KEY_A as i32) } {
+    if unsafe { IsKeyPressed(ffi::KeyboardKey::KEY_A as c_int) } {
         log::debug!("a pressed");
     }
 
