@@ -2,7 +2,7 @@ use crate::map::coordinate::RenderCoord;
 use crate::window::{Window, WindowLayer};
 use raylib::math::Vector2;
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct HexWindow {
     is_open: bool,
     origin: RenderCoord,
