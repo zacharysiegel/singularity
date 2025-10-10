@@ -8,7 +8,7 @@ use crate::state::STATE;
 use crate::{connect, input};
 use raylib::ffi::{
     BeginDrawing, ClearBackground, CloseWindow, Color, DrawFPS, DrawText, EndDrawing, GetMouseWheelMoveV,
-    GetScreenHeight, InitWindow, IsKeyPressed, IsWindowReady, SetConfigFlags, SetTargetFPS, SetTraceLogLevel,
+    GetScreenHeight, InitWindow, IsWindowReady, SetConfigFlags, SetTargetFPS, SetTraceLogLevel,
     WindowShouldClose,
 };
 use raylib::{ffi, math};
