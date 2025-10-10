@@ -1,7 +1,7 @@
 use crate::map::config::{HEX_COUNT_SQRT, HEX_HEIGHT, HEX_RADIUS, HEX_SIDE_LENGTH};
 use crate::state::{Hex, STATE};
-use raylib::ffi::Vector2;
 use std::ops::{Deref, DerefMut};
+use raylib::prelude::Vector2;
 
 #[derive(Debug, Copy, Clone)]
 pub struct MapCoord(pub Vector2);
@@ -106,6 +106,12 @@ impl Default for RenderCoord {
 impl From<RenderCoord> for Vector2 {
     fn from(value: RenderCoord) -> Self {
         value.0
+    }
+}
+
+impl From<RenderCoord> for raylib::ffi::Vector2 {
+    fn from(value: RenderCoord) -> Self {
+        raylib::ffi::Vector2::from(value.0)
     }
 }
 
