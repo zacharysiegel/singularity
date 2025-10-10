@@ -24,7 +24,9 @@ pub trait Window {
     fn origin(&self) -> RenderCoord;
     fn dimensions(&self) -> Vector2;
     fn layer(&self) -> WindowLayer;
-    // todo: fn toggle(&mut self);
+    fn toggle<F>(&mut self, visitor: F)
+    where
+        F: FnOnce(&mut Self) -> ();
     // todo: fn draw(&self);
 }
 

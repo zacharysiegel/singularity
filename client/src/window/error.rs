@@ -25,6 +25,14 @@ impl Window for ErrorWindow {
     fn layer(&self) -> WindowLayer {
         WindowLayer::ErrorWindowLayer
     }
+
+    fn toggle<F>(&mut self, visitor: F)
+    where
+        F: FnOnce(&mut Self) -> ()
+    {
+        self.is_open = !self.is_open;
+        visitor(self);
+    }
 }
 
 impl ErrorWindow {

@@ -25,6 +25,14 @@ impl Window for PauseWindow {
     fn layer(&self) -> WindowLayer {
         WindowLayer::PauseWindowLayer
     }
+
+    fn toggle<F>(&mut self, visitor: F)
+    where
+        F: FnOnce(&mut Self) -> ()
+    {
+        self.is_open = !self.is_open;
+        visitor(self)
+    }
 }
 
 impl PauseWindow {

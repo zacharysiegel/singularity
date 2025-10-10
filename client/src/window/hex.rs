@@ -1,4 +1,5 @@
 use crate::map::coordinate::RenderCoord;
+use crate::state::Hex;
 use crate::window::{Window, WindowLayer};
 use raylib::math::Vector2;
 
@@ -7,6 +8,7 @@ pub struct HexWindow {
     is_open: bool,
     origin: RenderCoord,
     dimensions: Vector2,
+    hex: Option<&'static Hex>,
 }
 
 impl Window for HexWindow {
@@ -25,6 +27,14 @@ impl Window for HexWindow {
     fn layer(&self) -> WindowLayer {
         WindowLayer::HexWindowLayer
     }
+
+    fn toggle<F>(&mut self, visitor: F)
+    where
+        F: FnOnce(&mut Self) -> (),
+    {
+        self.is_open = !self.is_open;
+        visitor(self)
+    }
 }
 
 impl HexWindow {
@@ -34,5 +44,6 @@ impl HexWindow {
             0: Vector2 { x: 0., y: 0. },
         },
         dimensions: Vector2 { x: 0., y: 0. },
+        hex: None,
     };
 }
