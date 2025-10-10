@@ -24,6 +24,8 @@ pub trait Window {
     fn origin(&self) -> RenderCoord;
     fn dimensions(&self) -> Vector2;
     fn layer(&self) -> WindowLayer;
+    // todo: fn toggle(&mut self);
+    // todo: fn draw(&self);
 }
 
 /// Lower numbers indicate higher priority in the z-buffer
