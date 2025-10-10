@@ -1,14 +1,26 @@
 use crate::map::coordinate::RenderCoord;
-use raylib::prelude::Vector2;
+use crate::window::error::ErrorWindow;
 use crate::window::hex::HexWindow;
 use crate::window::pause::PauseWindow;
+use raylib::prelude::Vector2;
 
-pub struct Windows {
-    hex_detail: HexWindow,
+#[derive(Debug)]
+pub struct WindowState {
+    error: ErrorWindow,
     pause: PauseWindow,
+    hex: HexWindow,
+}
+
+impl WindowState {
+    pub const DEFAULT: WindowState = WindowState {
+        error: ErrorWindow::DEFAULT,
+        pause: PauseWindow::DEFAULT,
+        hex: HexWindow::DEFAULT,
+    };
 }
 
 pub trait Window {
+    fn is_open(&self) -> bool;
     fn origin(&self) -> RenderCoord;
     fn dimensions(&self) -> Vector2;
     fn layer(&self) -> WindowLayer;

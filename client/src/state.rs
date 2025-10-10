@@ -2,12 +2,14 @@ use crate::map;
 use crate::map::coordinate::{HexCoord, MapCoord};
 use raylib::color::Color;
 use std::sync::RwLock;
+use crate::window::WindowState;
 
 pub static STATE: State = State {
     frame_counter: RwLock::new(0),
     map_origin: RwLock::new(MapCoord::DEFAULT),
     hexes: RwLock::new([Hex::DEFAULT; map::config::HEX_COUNT as usize]),
     players: RwLock::new(Vec::new()),
+    windows: WindowState::DEFAULT,
 };
 
 #[repr(u8)]
@@ -106,4 +108,5 @@ pub struct State {
     pub map_origin: RwLock<MapCoord>,
     pub hexes: RwLock<[Hex; map::config::HEX_COUNT as usize]>,
     pub players: RwLock<Vec<Player>>,
+    pub windows: WindowState,
 }
