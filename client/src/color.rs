@@ -18,6 +18,12 @@ pub const WHITE: Color = Color {
     b: 0xff,
     a: 0xff,
 };
+pub const RED: Color = Color {
+    r: 0xe7,
+    g: 0x82,
+    b: 0x84,
+    a: 0xff,
+};
 
 pub const MAP_BACKGROUND_COLOR: Color = Color {
     r: 0x1d,

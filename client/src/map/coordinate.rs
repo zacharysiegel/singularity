@@ -2,7 +2,7 @@ use crate::map::config::{HEX_COUNT_SQRT, HEX_HEIGHT, HEX_RADIUS, HEX_SIDE_LENGTH
 use crate::state::{Hex, STATE};
 use raylib::prelude::Vector2;
 use shared::error::AppError;
-use shared::util::{SIN_PI_DIV_6, TAN_PI_DIV_6};
+use shared::util::{SIN_FRAC_PI_6, TAN_FRAC_PI_6};
 use std::ops::{Deref, DerefMut, Rem, Sub};
 
 #[derive(Debug, Copy, Clone)]
@@ -79,19 +79,19 @@ impl MapCoord {
 
             if (0. <= offset.x) && (offset.x < *HEX_HEIGHT) {
                 let start: f32 = 0.;
-                let partition_one: f32 = HEX_RADIUS * (*SIN_PI_DIV_6 as f32);
+                let partition_one: f32 = HEX_RADIUS * (*SIN_FRAC_PI_6 as f32);
                 let partition_two: f32 = partition_one + HEX_RADIUS;
                 let end: f32 = HEX_RADIUS * 2.;
 
                 let matched: bool = {
                     if (start <= offset.y) && (offset.y < partition_one) {
-                        let abs_evaluation: f32 = (*TAN_PI_DIV_6 as f32) * (offset.x - *HEX_HEIGHT / 2.).abs() + 0.;
+                        let abs_evaluation: f32 = (*TAN_FRAC_PI_6 as f32) * (offset.x - *HEX_HEIGHT / 2.).abs() + 0.;
                         offset.y >= abs_evaluation
                     } else if (partition_one <= offset.y) && (offset.y < partition_two) {
                         true
                     } else if (partition_two <= offset.y) && (offset.y < end) {
                         let abs_evaluation: f32 =
-                            -1. * (*TAN_PI_DIV_6 as f32) * (offset.x - *HEX_HEIGHT / 2.).abs() + (2. * HEX_RADIUS);
+                            -1. * (*TAN_FRAC_PI_6 as f32) * (offset.x - *HEX_HEIGHT / 2.).abs() + (2. * HEX_RADIUS);
                         offset.y < abs_evaluation
                     } else {
                         false

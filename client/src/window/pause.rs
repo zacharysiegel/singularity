@@ -1,3 +1,4 @@
+use raylib::drawing::RaylibDrawHandle;
 use crate::map::coordinate::{MapCoord, RenderCoord};
 use crate::window::{Window, WindowLayer};
 use raylib::math::Vector2;
@@ -26,7 +27,7 @@ impl Window for PauseWindow {
         WindowLayer::PauseWindowLayer
     }
 
-    fn draw(&self, _map_origin: &MapCoord) {
+    fn draw(&self, _rl_draw: &mut RaylibDrawHandle, _map_origin: &MapCoord) {
         todo!()
     }
 }

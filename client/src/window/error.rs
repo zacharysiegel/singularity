@@ -1,5 +1,6 @@
 use crate::map::coordinate::{MapCoord, RenderCoord};
 use crate::window::{Window, WindowLayer};
+use raylib::drawing::RaylibDrawHandle;
 use raylib::math::Vector2;
 
 #[derive(Debug)]
@@ -26,7 +27,7 @@ impl Window for ErrorWindow {
         WindowLayer::ErrorWindowLayer
     }
 
-    fn draw(&self, _map_origin: &MapCoord) {
+    fn draw(&self, _rl_draw: &mut RaylibDrawHandle, _map_origin: &MapCoord) {
         todo!()
     }
 }

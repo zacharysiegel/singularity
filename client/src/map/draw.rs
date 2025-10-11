@@ -11,6 +11,7 @@ use raylib::color::Color;
 use raylib::ffi::{DrawPoly, DrawPolyLinesEx, DrawText, GetScreenHeight, GetScreenWidth};
 use std::ffi::{c_int, CString};
 use std::sync::RwLockReadGuard;
+use raylib::drawing::RaylibDrawHandle;
 
 pub fn draw_map(map_origin: &MapCoord) {
     let screen_width: i32 = unsafe { GetScreenWidth() };
@@ -134,12 +135,12 @@ fn draw_facility(map_origin: &MapCoord, facility: &Facility) {
     }
 }
 
-pub fn draw_windows(map_origin: &MapCoord) {
+pub fn draw_windows(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord) {
     let hex: RwLockReadGuard<HexWindow> = STATE.windows.hex.read().unwrap();
     let pause: RwLockReadGuard<PauseWindow> = STATE.windows.pause.read().unwrap();
     let error: RwLockReadGuard<ErrorWindow> = STATE.windows.error.read().unwrap();
 
-    hex.draw(map_origin);
+    hex.draw(rl_draw, map_origin);
     assert!(hex.layer() as u8 > pause.layer() as u8);
     // pause.draw(map_origin);
     assert!(pause.layer() as u8 > error.layer() as u8);
