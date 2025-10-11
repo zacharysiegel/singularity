@@ -1,31 +1,5 @@
-use raylib::color::Color;
 use shared::util;
 use std::sync::LazyLock;
-
-pub const BACKGROUND_COLOR: Color = Color {
-    r: 30,
-    g: 30,
-    b: 30,
-    a: 0xff,
-};
-pub const HEX_OUTLINE_COLOR: Color = Color {
-    r: 0xff,
-    g: 0xff,
-    b: 0xff,
-    a: 0x80,
-};
-pub const METAL_BACKGROUND_COLOR: Color = Color {
-    r: 0x60,
-    g: 0x50,
-    b: 0x70,
-    a: 0xff,
-};
-pub const OIL_BACKGROUND_COLOR: Color = Color {
-    r: 0x58,
-    g: 0x58,
-    b: 0x58,
-    a: 0xff,
-};
 
 pub const HEX_COUNT_SQRT: i16 = 64;
 pub const HEX_COUNT: i16 = HEX_COUNT_SQRT * HEX_COUNT_SQRT;

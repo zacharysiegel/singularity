@@ -1,5 +1,5 @@
+use crate::color::{MAP_BACKGROUND_COLOR, TEXT_COLOR};
 use crate::config::APPLICATION_NAME;
-use crate::map::config::BACKGROUND_COLOR;
 use crate::map::coordinate::MapCoord;
 use crate::map::draw::{draw_map, draw_players, draw_windows};
 use crate::map::init::init_map;
@@ -8,8 +8,7 @@ use crate::state::STATE;
 use crate::{connect, input};
 use raylib::ffi::{
     BeginDrawing, ClearBackground, CloseWindow, Color, DrawFPS, DrawText, EndDrawing, GetMouseWheelMoveV,
-    GetScreenHeight, InitWindow, IsWindowReady, SetConfigFlags, SetTargetFPS, SetTraceLogLevel,
-    WindowShouldClose,
+    GetScreenHeight, InitWindow, IsWindowReady, SetConfigFlags, SetTargetFPS, SetTraceLogLevel, WindowShouldClose,
 };
 use raylib::{ffi, math};
 use shared::error::AppError;
@@ -41,7 +40,7 @@ fn update() {
 }
 
 fn draw() {
-    unsafe { ClearBackground(BACKGROUND_COLOR.into()) };
+    unsafe { ClearBackground(MAP_BACKGROUND_COLOR.into()) };
 
     let map_origin: RwLockReadGuard<MapCoord> = STATE.map_origin.read().expect("global state poisoned");
     draw_map(&map_origin);
@@ -72,19 +71,14 @@ pub fn init() -> Result<(), AppError> {
         // todo: SetWindowIcon
 
         BeginDrawing();
-        ClearBackground(BACKGROUND_COLOR.into());
+        ClearBackground(MAP_BACKGROUND_COLOR.into());
         let loading_cstr: CString = CString::new("Loading").unwrap();
         DrawText(
             loading_cstr.as_ptr(),
             16,
             GetScreenHeight() - 30,
             20,
-            Color {
-                r: 0xf0,
-                g: 0xf0,
-                b: 0xf0,
-                a: 0xff,
-            },
+            TEXT_COLOR.into(),
         );
         EndDrawing();
     }

@@ -1,8 +1,9 @@
+use crate::color::{METAL_BACKGROUND_COLOR, OIL_BACKGROUND_COLOR, TRANSPARENT};
 use crate::map;
 use crate::map::coordinate::{HexCoord, MapCoord};
+use crate::window::WindowState;
 use raylib::color::Color;
 use std::sync::RwLock;
-use crate::window::WindowState;
 
 pub static STATE: State = State {
     frame_counter: RwLock::new(0),
@@ -31,14 +32,9 @@ impl ResourceType {
 
     pub const fn color(&self) -> Color {
         match self {
-            ResourceType::None => Color {
-                r: 0x00,
-                g: 0x00,
-                b: 0x00,
-                a: 0x00,
-            },
-            ResourceType::Metal => map::config::METAL_BACKGROUND_COLOR,
-            ResourceType::Oil => map::config::OIL_BACKGROUND_COLOR,
+            ResourceType::None => TRANSPARENT,
+            ResourceType::Metal => METAL_BACKGROUND_COLOR,
+            ResourceType::Oil => OIL_BACKGROUND_COLOR,
         }
     }
 }

@@ -1,8 +1,9 @@
+use crate::color::{WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_INTERIOR_BORDER_COLOR};
 use crate::map::coordinate::{MapCoord, RenderCoord};
 use crate::window::error::ErrorWindow;
 use crate::window::hex::HexWindow;
 use crate::window::pause::PauseWindow;
-use raylib::ffi::{Color, DrawLineEx, DrawRectangleLinesEx, DrawRectangleRec};
+use raylib::ffi::{DrawLineEx, DrawRectangleLinesEx, DrawRectangleRec};
 use raylib::math::Rectangle;
 use raylib::prelude::Vector2;
 use std::sync::RwLock;
@@ -40,18 +41,6 @@ pub enum WindowLayer {
 
 pub fn draw_background(window: &HexWindow) {
     const INNER_BORDER_GAP: f32 = 10.;
-    const BORDER_COLOR: Color = Color {
-        r: 0x80,
-        g: 0x80,
-        b: 0x80,
-        a: 0xff,
-    };
-    const BACKGROUND_COLOR: Color = Color {
-        r: 0x28,
-        g: 0x2a,
-        b: 0x2f,
-        a: 0xff,
-    };
 
     let origin: RenderCoord = window.origin.unwrap();
     let full: Rectangle = Rectangle {
@@ -62,7 +51,7 @@ pub fn draw_background(window: &HexWindow) {
     };
 
     unsafe {
-        DrawRectangleRec(full.into(), BACKGROUND_COLOR);
+        DrawRectangleRec(full.into(), WINDOW_BACKGROUND_COLOR.into());
         DrawLineEx(
             Vector2 {
                 x: origin.x,
@@ -75,7 +64,7 @@ pub fn draw_background(window: &HexWindow) {
             }
             .into(),
             1.,
-            BORDER_COLOR,
+            WINDOW_INTERIOR_BORDER_COLOR.into(),
         );
         DrawLineEx(
             Vector2 {
@@ -89,7 +78,7 @@ pub fn draw_background(window: &HexWindow) {
             }
             .into(),
             1.,
-            BORDER_COLOR,
+            WINDOW_INTERIOR_BORDER_COLOR.into(),
         );
         DrawLineEx(
             Vector2 {
@@ -103,7 +92,7 @@ pub fn draw_background(window: &HexWindow) {
             }
             .into(),
             1.,
-            BORDER_COLOR,
+            WINDOW_INTERIOR_BORDER_COLOR.into(),
         );
         DrawLineEx(
             Vector2 {
@@ -117,17 +106,8 @@ pub fn draw_background(window: &HexWindow) {
             }
             .into(),
             1.,
-            BORDER_COLOR,
+            WINDOW_INTERIOR_BORDER_COLOR.into(),
         );
-        DrawRectangleLinesEx(
-            full.into(),
-            1.,
-            Color {
-                r: 0xb0,
-                g: 0xb0,
-                b: 0xb0,
-                a: 0xff,
-            },
-        );
+        DrawRectangleLinesEx(full.into(), 1., WINDOW_BORDER_COLOR.into());
     }
 }

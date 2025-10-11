@@ -6,3 +6,4 @@ pub mod connect;
 pub mod state;
 pub mod input;
 pub mod window;
+pub mod color;

@@ -7,6 +7,7 @@ use raylib::math::Vector2;
 use std::ffi::CString;
 use std::ops::Add;
 use std::str::FromStr;
+use crate::color::WHITE;
 
 #[derive(Debug)]
 pub struct HexWindow {
@@ -74,12 +75,7 @@ fn draw_title(window: &HexWindow) {
             origin.add(Vector2 { x: 20., y: 20. }).into(),
             20.,
             2.,
-            Color {
-                r: 0xff,
-                g: 0xff,
-                b: 0xff,
-                a: 0xff,
-            },
+            WHITE.into(),
         );
     }
 }

@@ -1,4 +1,5 @@
-use crate::map::config::{HEX_COUNT_SQRT, HEX_OUTLINE_COLOR, HEX_RADIUS, HEX_ROTATION, HEX_SIDES};
+use crate::color::{FACILITY_DESTROYED_COLOR, FACILITY_OPERATING_COLOR, FACILITY_PLACING_COLOR, HEX_OUTLINE_COLOR};
+use crate::map::config::{HEX_COUNT_SQRT, HEX_RADIUS, HEX_ROTATION, HEX_SIDES};
 use crate::map::coordinate::{get_hex_count_height, get_hex_count_width, HexCoord};
 use crate::map::coordinate::{MapCoord, RenderCoord};
 use crate::state::{Facility, FacilityState, FacilityType, Hex, Player, ResourceType, STATE};
@@ -93,19 +94,10 @@ pub fn draw_players(map_origin: &MapCoord) {
 fn draw_facility(map_origin: &MapCoord, facility: &Facility) {
     let map_coord: MapCoord = facility.location.map_coord();
     let render_coord: RenderCoord = map_coord.render_coord(map_origin);
-    let color: Color = {
-        let mut color = Color {
-            r: 0xb4,
-            g: 0xb4,
-            b: 0xb4,
-            a: 0xff,
-        };
-        match facility.facility_state {
-            FacilityState::Operating => {}
-            FacilityState::Placing => color.a = 0x80,
-            FacilityState::Destroyed => color.a = 0xf0,
-        }
-        color
+    let color: Color = match facility.facility_state {
+        FacilityState::Operating => FACILITY_OPERATING_COLOR,
+        FacilityState::Placing => FACILITY_PLACING_COLOR,
+        FacilityState::Destroyed => FACILITY_DESTROYED_COLOR,
     };
 
     match facility.facility_type {
