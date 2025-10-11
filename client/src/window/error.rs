@@ -1,12 +1,12 @@
-use crate::map::coordinate::RenderCoord;
+use crate::map::coordinate::{MapCoord, RenderCoord};
 use crate::window::{Window, WindowLayer};
 use raylib::math::Vector2;
 
 #[derive(Debug)]
 pub struct ErrorWindow {
-    is_open: bool,
-    origin: RenderCoord,
-    dimensions: Vector2,
+    pub is_open: bool,
+    pub origin: Option<RenderCoord>,
+    pub dimensions: Vector2,
 }
 
 impl Window for ErrorWindow {
@@ -14,7 +14,7 @@ impl Window for ErrorWindow {
         self.is_open
     }
 
-    fn origin(&self) -> RenderCoord {
+    fn origin(&self) -> Option<RenderCoord> {
         self.origin
     }
 
@@ -26,21 +26,15 @@ impl Window for ErrorWindow {
         WindowLayer::ErrorWindowLayer
     }
 
-    fn toggle<F>(&mut self, visitor: F)
-    where
-        F: FnOnce(&mut Self) -> ()
-    {
-        self.is_open = !self.is_open;
-        visitor(self);
+    fn draw(&self, _map_origin: &MapCoord) {
+        todo!()
     }
 }
 
 impl ErrorWindow {
     pub const DEFAULT: ErrorWindow = ErrorWindow {
         is_open: false,
-        origin: RenderCoord {
-            0: Vector2 { x: 0., y: 0. },
-        },
+        origin: None,
         dimensions: Vector2 { x: 0., y: 0. },
     };
 }

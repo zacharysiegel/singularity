@@ -2,6 +2,10 @@ use crate::map::config::{HEX_COUNT_SQRT, HEX_OUTLINE_COLOR, HEX_RADIUS, HEX_ROTA
 use crate::map::coordinate::{get_hex_count_height, get_hex_count_width, HexCoord};
 use crate::map::coordinate::{MapCoord, RenderCoord};
 use crate::state::{Facility, FacilityState, FacilityType, Hex, Player, ResourceType, STATE};
+use crate::window::error::ErrorWindow;
+use crate::window::hex::HexWindow;
+use crate::window::pause::PauseWindow;
+use crate::window::Window;
 use raylib::color::Color;
 use raylib::ffi::{DrawPoly, DrawPolyLinesEx, DrawText, GetScreenHeight, GetScreenWidth};
 use std::ffi::{c_int, CString};
@@ -136,4 +140,16 @@ fn draw_facility(map_origin: &MapCoord, facility: &Facility) {
             );
         },
     }
+}
+
+pub fn draw_windows(map_origin: &MapCoord) {
+    let hex: RwLockReadGuard<HexWindow> = STATE.windows.hex.read().unwrap();
+    let pause: RwLockReadGuard<PauseWindow> = STATE.windows.pause.read().unwrap();
+    let error: RwLockReadGuard<ErrorWindow> = STATE.windows.error.read().unwrap();
+
+    hex.draw(map_origin);
+    assert!(hex.layer() as u8 > pause.layer() as u8);
+    // pause.draw(map_origin);
+    assert!(pause.layer() as u8 > error.layer() as u8);
+    // error.draw(map_origin);
 }

@@ -198,10 +198,11 @@ impl RenderCoord {
             x: self.x + map_origin.x,
             y: self.y + map_origin.y,
         })
+        .overflow_adjusted()
     }
 
     pub fn containing_hex(&self, map_origin: &MapCoord) -> Hex {
-        self.map_coord(map_origin).overflow_adjusted().containing_hex()
+        self.map_coord(map_origin).containing_hex()
     }
 }
 

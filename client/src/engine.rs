@@ -1,7 +1,7 @@
 use crate::config::APPLICATION_NAME;
 use crate::map::config::BACKGROUND_COLOR;
 use crate::map::coordinate::MapCoord;
-use crate::map::draw::{draw_map, draw_players};
+use crate::map::draw::{draw_map, draw_players, draw_windows};
 use crate::map::init::init_map;
 use crate::player::init_players;
 use crate::state::STATE;
@@ -46,6 +46,7 @@ fn draw() {
     let map_origin: RwLockReadGuard<MapCoord> = STATE.map_origin.read().expect("global state poisoned");
     draw_map(&map_origin);
     draw_players(&map_origin);
+    draw_windows(&map_origin);
     drop(map_origin);
 
     unsafe {

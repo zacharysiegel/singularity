@@ -1,10 +1,11 @@
 use crate::map::coordinate::{MapCoord, RenderCoord};
-use crate::state::STATE;
+use crate::state::{Hex, STATE};
+use crate::window::hex::HexWindow;
 use raylib::ffi;
-use raylib::ffi::{Color, DrawCircleV, GetMousePosition, IsKeyPressed, IsMouseButtonPressed, IsMouseButtonReleased};
+use raylib::ffi::{GetMousePosition, IsKeyPressed, IsMouseButtonPressed};
 use raylib::math::Vector2;
 use std::ffi::c_int;
-use std::sync::RwLockReadGuard;
+use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 
 #[repr(u8)]
 #[derive(Copy, Clone)]
@@ -19,40 +20,17 @@ pub fn handle_user_input() {
         log::debug!("a pressed");
     }
 
-    if unsafe { IsMouseButtonReleased(MouseButton::Left as c_int) } {
-        log::debug!("mouse left released");
-    }
-    if unsafe { IsMouseButtonReleased(MouseButton::Right as c_int) } {
-        log::debug!("mouse right released");
-    }
-    if unsafe { IsMouseButtonReleased(MouseButton::Middle as c_int) } {
-        log::debug!("mouse middle released");
-    }
     if unsafe { IsMouseButtonPressed(MouseButton::Left as c_int) } {
-        log::debug!("mouse left pressed");
+        select_hex();
     }
-    if unsafe { IsMouseButtonPressed(MouseButton::Right as c_int) } {
-        log::debug!("mouse right pressed");
-    }
-    if unsafe { IsMouseButtonPressed(MouseButton::Middle as c_int) } {
-        log::debug!("mouse middle pressed");
-    }
+}
 
+fn select_hex() {
     let map_origin: RwLockReadGuard<MapCoord> = STATE.map_origin.read().unwrap();
     let mouse_position: RenderCoord = RenderCoord(Vector2::from(unsafe { GetMousePosition() }));
-    let hex_position: RenderCoord =
-        mouse_position.containing_hex(&*map_origin).hex_coord.map_coord().render_coord(&*map_origin);
+    let containing_hex: Hex = mouse_position.containing_hex(&*map_origin);
 
-    unsafe {
-        DrawCircleV(
-            hex_position.into(),
-            9.,
-            Color {
-                r: 0x10,
-                g: 0xf0,
-                b: 0x80,
-                a: 0xff,
-            },
-        );
-    }
+    let mut hex_window: RwLockWriteGuard<HexWindow> = STATE.windows.hex.write().unwrap();
+    hex_window.open(RenderCoord(Vector2::from(mouse_position)), containing_hex);
+    drop(hex_window);
 }
