@@ -10,7 +10,7 @@ use std::sync::RwLockReadGuard;
 pub fn draw_map(map_origin: &MapCoord) {
     let screen_width: i32 = unsafe { GetScreenWidth() };
     let screen_height: i32 = unsafe { GetScreenHeight() };
-    let origin_hex_coord: HexCoord = map_origin.hex_coord();
+    let origin_hex_coord: HexCoord = map_origin.hex_coord_rect();
     let min_hex_coord: HexCoord = HexCoord {
         i: if origin_hex_coord.i - 1 < 0 {
             HEX_COUNT_SQRT - 1

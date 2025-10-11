@@ -38,9 +38,6 @@ fn update() {
     let mut map_origin: RwLockWriteGuard<MapCoord> = STATE.map_origin.write().expect("global state poisoned");
     let old: MapCoord = map_origin.clone();
     *map_origin = scrolled_map_origin(&old);
-    if old.x != map_origin.x || old.y != map_origin.y {
-        log::debug!("({}, {})", map_origin.x, map_origin.y);
-    }
 }
 
 fn draw() {
@@ -121,7 +118,7 @@ pub fn run() -> Result<(), AppError> {
         *frame_counter += 1;
         drop(frame_counter);
         let frame_counter: RwLockReadGuard<u64> = STATE.frame_counter.read().expect("global state poisoned");
-        if *frame_counter % 1000 == 0 {
+        if *frame_counter % 500 == 0 {
             log::debug!(
                 "Frame: {}; Update: {:?}; Draw: {:?}; Total: {:?};",
                 frame_counter,

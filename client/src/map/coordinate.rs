@@ -1,7 +1,9 @@
 use crate::map::config::{HEX_COUNT_SQRT, HEX_HEIGHT, HEX_RADIUS, HEX_SIDE_LENGTH};
 use crate::state::{Hex, STATE};
-use std::ops::{Deref, DerefMut};
 use raylib::prelude::Vector2;
+use shared::error::AppError;
+use shared::util::{SIN_PI_DIV_6, TAN_PI_DIV_6};
+use std::ops::{Deref, DerefMut, Rem, Sub};
 
 #[derive(Debug, Copy, Clone)]
 pub struct MapCoord(pub Vector2);
@@ -29,7 +31,9 @@ impl Default for MapCoord {
 impl MapCoord {
     pub const DEFAULT: MapCoord = MapCoord(Vector2 { x: 0.0, y: 0.0 });
 
-    pub fn hex_coord(&self) -> HexCoord {
+    /// This conversion finds a hex coordinate based on the rectangular layout of hexes during map initialization.
+    /// This conversion is unrelated to hex bounding boxes and also does not find the nearest hex center to the map coordinate. See [MapCoord::containing_hex].
+    pub fn hex_coord_rect(&self) -> HexCoord {
         let mut j: i16 = ((self.y - (HEX_SIDE_LENGTH / 2.)) / (HEX_RADIUS + HEX_SIDE_LENGTH / 2.)) as i16;
         let even_row: bool = j % 2 == 0;
         let mut i: i16 = ((self.x - if even_row { 0. } else { *HEX_HEIGHT / 2. }) / *HEX_HEIGHT) as i16;
@@ -42,6 +46,79 @@ impl MapCoord {
         }
 
         HexCoord { i, j }
+    }
+
+    pub fn containing_hex(&self) -> Hex {
+        // Rather than check the entire map, limit search to a subset of possible candidates based on the truncated hex coord conversion
+        let hex_coord_rect: HexCoord = self.hex_coord_rect();
+        const N_CANDIDATES: usize = 4;
+        let candidate_hex_coords: [HexCoord; N_CANDIDATES] = [
+            hex_coord_rect,
+            HexCoord {
+                i: (hex_coord_rect.i + 1).rem(HEX_COUNT_SQRT),
+                j: hex_coord_rect.j,
+            },
+            HexCoord {
+                i: hex_coord_rect.i,
+                j: (hex_coord_rect.j + 1).rem(HEX_COUNT_SQRT),
+            },
+            HexCoord {
+                i: (hex_coord_rect.i + 1).rem(HEX_COUNT_SQRT),
+                j: (hex_coord_rect.j + 1).rem(HEX_COUNT_SQRT),
+            },
+        ];
+
+        let mut matched_i: Option<usize> = None;
+        for i in 0..N_CANDIDATES {
+            let center: MapCoord = candidate_hex_coords[i].map_coord();
+            let top_left: MapCoord = MapCoord(Vector2 {
+                x: center.x - *HEX_HEIGHT / 2.,
+                y: center.y - HEX_RADIUS,
+            });
+            let offset: MapCoord = MapCoord(self.sub(top_left.0)).overflow_adjusted();
+
+            if (0. <= offset.x) && (offset.x < *HEX_HEIGHT) {
+                let start: f32 = 0.;
+                let partition_one: f32 = HEX_RADIUS * (*SIN_PI_DIV_6 as f32);
+                let partition_two: f32 = partition_one + HEX_RADIUS;
+                let end: f32 = HEX_RADIUS * 2.;
+
+                let matched: bool = {
+                    if (start <= offset.y) && (offset.y < partition_one) {
+                        let abs_evaluation: f32 = (*TAN_PI_DIV_6 as f32) * (offset.x - *HEX_HEIGHT / 2.).abs() + 0.;
+                        offset.y >= abs_evaluation
+                    } else if (partition_one <= offset.y) && (offset.y < partition_two) {
+                        true
+                    } else if (partition_two <= offset.y) && (offset.y < end) {
+                        let abs_evaluation: f32 =
+                            -1. * (*TAN_PI_DIV_6 as f32) * (offset.x - *HEX_HEIGHT / 2.).abs() + (2. * HEX_RADIUS);
+                        offset.y < abs_evaluation
+                    } else {
+                        false
+                    }
+                };
+                if matched {
+                    matched_i = Some(i);
+                    break;
+                }
+            }
+        }
+
+        if matched_i.is_none() {
+            let error = AppError::new(&format!(
+                "Failed to match containing hex among candidates; [self: {:?}] [naive: {:?}]",
+                self, hex_coord_rect
+            ));
+            panic!("{:#}", error);
+        }
+
+        let matched_i: usize = matched_i.unwrap();
+
+        let hexes = STATE.hexes.read().expect("poisoned global state");
+        let matched_hex: Hex = hexes[candidate_hex_coords[matched_i].map_index()];
+        drop(hexes);
+
+        matched_hex
     }
 
     pub fn render_coord(&self, map_origin: &MapCoord) -> RenderCoord {
@@ -112,6 +189,19 @@ impl From<RenderCoord> for Vector2 {
 impl From<RenderCoord> for raylib::ffi::Vector2 {
     fn from(value: RenderCoord) -> Self {
         raylib::ffi::Vector2::from(value.0)
+    }
+}
+
+impl RenderCoord {
+    pub fn map_coord(&self, map_origin: &MapCoord) -> MapCoord {
+        MapCoord(Vector2 {
+            x: self.x + map_origin.x,
+            y: self.y + map_origin.y,
+        })
+    }
+
+    pub fn containing_hex(&self, map_origin: &MapCoord) -> Hex {
+        self.map_coord(map_origin).overflow_adjusted().containing_hex()
     }
 }
 
