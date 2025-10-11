@@ -1,8 +1,9 @@
 use crate::map::coordinate::{HexCoord, MapCoord, RenderCoord};
 use crate::state::Hex;
+use crate::window;
 use crate::window::{Window, WindowLayer};
-use raylib::ffi::{Color, DrawLineEx, DrawRectangleLinesEx, DrawRectangleRec, DrawTextEx, GetFontDefault};
-use raylib::math::{Rectangle, Vector2};
+use raylib::ffi::{Color, DrawTextEx, GetFontDefault};
+use raylib::math::Vector2;
 use std::ffi::CString;
 use std::ops::Add;
 use std::str::FromStr;
@@ -36,7 +37,7 @@ impl Window for HexWindow {
             return;
         }
 
-        draw_background(self);
+        window::draw_background(self);
         draw_title(self);
     }
 }
@@ -58,106 +59,6 @@ impl HexWindow {
         self.is_open = Self::DEFAULT.is_open;
         self.origin = Self::DEFAULT.origin;
         self.hex = Self::DEFAULT.hex;
-    }
-}
-
-fn draw_background(window: &HexWindow) {
-    const INNER_BORDER_GAP: f32 = 10.;
-    const BORDER_COLOR: Color = Color {
-        r: 0x80,
-        g: 0x80,
-        b: 0x80,
-        a: 0xff,
-    };
-    const BACKGROUND_COLOR: Color = Color {
-        r: 0x28,
-        g: 0x2a,
-        b: 0x2f,
-        a: 0xff,
-    };
-
-    let origin: RenderCoord = window.origin.unwrap();
-    let full: Rectangle = Rectangle {
-        x: origin.x,
-        y: origin.y,
-        width: window.dimensions().x,
-        height: window.dimensions().y,
-    };
-    let inner_border: Rectangle = Rectangle {
-        x: origin.x + INNER_BORDER_GAP,
-        y: origin.y + INNER_BORDER_GAP,
-        width: window.dimensions().x - INNER_BORDER_GAP * 2.,
-        height: window.dimensions().y - INNER_BORDER_GAP * 2.,
-    };
-
-    unsafe {
-        DrawRectangleRec(full.into(), BACKGROUND_COLOR);
-        DrawLineEx(
-            Vector2 {
-                x: origin.x,
-                y: origin.y + INNER_BORDER_GAP,
-            }
-            .into(),
-            Vector2 {
-                x: origin.x + window.dimensions().x,
-                y: origin.y + INNER_BORDER_GAP,
-            }
-            .into(),
-            1.,
-            BORDER_COLOR,
-        );
-        DrawLineEx(
-            Vector2 {
-                x: origin.x,
-                y: origin.y + window.dimensions().y - INNER_BORDER_GAP,
-            }
-            .into(),
-            Vector2 {
-                x: origin.x + window.dimensions().x,
-                y: origin.y + window.dimensions().y - INNER_BORDER_GAP,
-            }
-            .into(),
-            1.,
-            BORDER_COLOR,
-        );
-        DrawLineEx(
-            Vector2 {
-                x: origin.x + INNER_BORDER_GAP,
-                y: origin.y,
-            }
-            .into(),
-            Vector2 {
-                x: origin.x + INNER_BORDER_GAP,
-                y: origin.y + window.dimensions().y,
-            }
-            .into(),
-            1.,
-            BORDER_COLOR,
-        );
-        DrawLineEx(
-            Vector2 {
-                x: origin.x + window.dimensions().x - INNER_BORDER_GAP,
-                y: origin.y,
-            }
-            .into(),
-            Vector2 {
-                x: origin.x + window.dimensions().x - INNER_BORDER_GAP,
-                y: origin.y + window.dimensions().y,
-            }
-            .into(),
-            1.,
-            BORDER_COLOR,
-        );
-        DrawRectangleLinesEx(
-            full.into(),
-            1.,
-            Color {
-                r: 0xb0,
-                g: 0xb0,
-                b: 0xb0,
-                a: 0xff,
-            },
-        );
     }
 }
 
