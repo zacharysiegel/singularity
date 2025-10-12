@@ -5,9 +5,6 @@ use crate::window::pause::PauseWindow;
 use raylib::prelude::{RaylibDrawHandle, Vector2};
 use std::sync::RwLock;
 
-const BORDER_GAP: f32 = 10.;
-const BORDER_THICKNESS: f32 = 1.;
-
 #[derive(Debug)]
 pub struct WindowState {
     pub error: RwLock<ErrorWindow>,
@@ -41,14 +38,17 @@ pub enum WindowLayer {
 
 pub use draw::*;
 pub mod draw {
-    use crate::color::{RED, WHITE, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_INTERIOR_BORDER_COLOR};
+    use crate::color::{RED, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_INTERIOR_BORDER_COLOR};
     use crate::map::coordinate::RenderCoord;
-    use crate::window::window::{BORDER_GAP, BORDER_THICKNESS};
     use crate::window::Window;
     use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
-    use raylib::ffi::{Color, DrawLineEx, DrawRectangleLinesEx};
+    use raylib::ffi::{DrawLineEx, DrawRectangleLinesEx};
     use raylib::math::{Rectangle, Vector2};
     use shared::util::SIN_FRAC_PI_4;
+
+    const BORDER_GAP: f32 = 10.;
+    const BORDER_THICKNESS: f32 = 1.;
+    const POINT_N: usize = 8;
 
     pub fn draw_window_base<W: Window>(rl_draw: &mut RaylibDrawHandle, window: &W) {
         draw_background(rl_draw, window);
@@ -169,7 +169,6 @@ pub mod draw {
         )
     }
 
-    const POINT_N: usize = 8;
     fn draw_x(rl_draw: &mut RaylibDrawHandle, center: Vector2, radius: f32, width: f32) {
         let a: [Vector2; POINT_N] = create_x_segment(center, radius, width, false);
         let b: [Vector2; POINT_N] = create_x_segment(center, radius, width, true);

@@ -1,4 +1,7 @@
-use crate::color::{FACILITY_DESTROYED_COLOR, FACILITY_OPERATING_COLOR, FACILITY_PLACING_COLOR, HEX_OUTLINE_COLOR};
+use crate::color::{
+    FACILITY_DESTROYED_COLOR, FACILITY_OPERATING_COLOR, FACILITY_PLACING_COLOR, HEX_OUTLINE_COLOR,
+    MAP_BACKGROUND_COLOR, TEXT_COLOR,
+};
 use crate::map::config::{HEX_COUNT_SQRT, HEX_RADIUS, HEX_ROTATION, HEX_SIDES};
 use crate::map::coordinate::{get_hex_count_height, get_hex_count_width, HexCoord};
 use crate::map::coordinate::{MapCoord, RenderCoord};
@@ -8,14 +11,20 @@ use crate::window::hex::HexWindow;
 use crate::window::pause::PauseWindow;
 use crate::window::Window;
 use raylib::color::Color;
-use raylib::ffi::{DrawPoly, DrawPolyLinesEx, DrawText, GetScreenHeight, GetScreenWidth};
-use std::ffi::{c_int, CString};
+use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
+use raylib::{RaylibHandle, RaylibThread};
 use std::sync::RwLockReadGuard;
-use raylib::drawing::RaylibDrawHandle;
 
-pub fn draw_map(map_origin: &MapCoord) {
-    let screen_width: i32 = unsafe { GetScreenWidth() };
-    let screen_height: i32 = unsafe { GetScreenHeight() };
+pub fn draw_loading_init(rl: &mut RaylibHandle, rl_thread: &RaylibThread) {
+    let mut rl_draw: RaylibDrawHandle = rl.begin_drawing(&rl_thread);
+    rl_draw.clear_background(MAP_BACKGROUND_COLOR);
+    rl_draw.draw_text("Loading", 16, rl_draw.get_screen_height() - 30, 20, TEXT_COLOR);
+    drop(rl_draw);
+}
+
+pub fn draw_map(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord) {
+    let screen_width: i32 = rl_draw.get_screen_width();
+    let screen_height: i32 = rl_draw.get_screen_height();
     let origin_hex_coord: HexCoord = map_origin.hex_coord_rect();
     let min_hex_coord: HexCoord = HexCoord {
         i: if origin_hex_coord.i - 1 < 0 {
@@ -35,7 +44,7 @@ pub fn draw_map(map_origin: &MapCoord) {
     let max_hexes_j: u16 = get_hex_count_height(screen_height as f32);
     for _hexes_drawn_j in 0..=(max_hexes_j + 2) {
         for _hexes_drawn_i in 0..=(max_hexes_i + 2) {
-            draw_map_hex(map_origin, &hex_coord);
+            draw_map_hex(rl_draw, map_origin, &hex_coord);
 
             hex_coord.i += 1;
             if hex_coord.i >= HEX_COUNT_SQRT {
@@ -51,7 +60,7 @@ pub fn draw_map(map_origin: &MapCoord) {
     }
 }
 
-fn draw_map_hex(map_origin: &MapCoord, hex_coord: &HexCoord) {
+fn draw_map_hex(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord, hex_coord: &HexCoord) {
     let map_coord: MapCoord = hex_coord.map_coord();
     let render_coord: RenderCoord = map_coord.render_coord(map_origin);
     let Some(hex): Option<Hex> = hex_coord.clone_map_hex() else {
@@ -61,38 +70,30 @@ fn draw_map_hex(map_origin: &MapCoord, hex_coord: &HexCoord) {
 
     match hex.resource_type {
         ResourceType::None => {}
-        _ => unsafe {
-            DrawPoly(
-                render_coord.into(),
-                HEX_SIDES as c_int,
-                HEX_RADIUS,
-                HEX_ROTATION,
-                color.into(),
-            );
-        },
+        _ => {
+            rl_draw.draw_poly(render_coord, i32::from(HEX_SIDES), HEX_RADIUS, HEX_ROTATION, color);
+        }
     }
-    unsafe {
-        DrawPolyLinesEx(
-            render_coord.into(),
-            HEX_SIDES as c_int,
-            HEX_RADIUS,
-            HEX_ROTATION,
-            1.,
-            HEX_OUTLINE_COLOR.into(),
-        );
-    }
+    rl_draw.draw_poly_lines_ex(
+        render_coord.into(),
+        i32::from(HEX_SIDES),
+        HEX_RADIUS,
+        HEX_ROTATION,
+        1.,
+        HEX_OUTLINE_COLOR,
+    );
 }
 
-pub fn draw_players(map_origin: &MapCoord) {
+pub fn draw_players(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord) {
     let players: RwLockReadGuard<Vec<Player>> = STATE.players.read().expect("global state poisoned");
     for player in &*players {
         for facility in &player.facilities {
-            draw_facility(map_origin, facility);
+            draw_facility(rl_draw, map_origin, facility);
         }
     }
 }
 
-fn draw_facility(map_origin: &MapCoord, facility: &Facility) {
+fn draw_facility(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord, facility: &Facility) {
     let map_coord: MapCoord = facility.location.map_coord();
     let render_coord: RenderCoord = map_coord.render_coord(map_origin);
     let color: Color = match facility.facility_state {
@@ -102,36 +103,15 @@ fn draw_facility(map_origin: &MapCoord, facility: &Facility) {
     };
 
     match facility.facility_type {
-        FacilityType::ControlCenter => unsafe {
-            let cstr = CString::new("CC").unwrap();
-            DrawText(
-                cstr.as_ptr(),
-                render_coord.x as i32 - 10,
-                render_coord.y as i32 - 10,
-                10,
-                color.into(),
-            );
-        },
-        FacilityType::MetalExtractor => unsafe {
-            let cstr = CString::new("ME").unwrap();
-            DrawText(
-                cstr.as_ptr(),
-                render_coord.x as i32 - 10,
-                render_coord.y as i32 - 10,
-                10,
-                color.into(),
-            );
-        },
-        FacilityType::OilExtractor => unsafe {
-            let cstr = CString::new("OE").unwrap();
-            DrawText(
-                cstr.as_ptr(),
-                render_coord.x as i32 - 10,
-                render_coord.y as i32 - 10,
-                10,
-                color.into(),
-            );
-        },
+        FacilityType::ControlCenter => {
+            rl_draw.draw_text("CC", render_coord.x as i32 - 10, render_coord.y as i32 - 10, 10, color);
+        }
+        FacilityType::MetalExtractor => {
+            rl_draw.draw_text("ME", render_coord.x as i32 - 10, render_coord.y as i32 - 10, 10, color);
+        }
+        FacilityType::OilExtractor => {
+            rl_draw.draw_text("OE", render_coord.x as i32 - 10, render_coord.y as i32 - 10, 10, color);
+        }
     }
 }
 

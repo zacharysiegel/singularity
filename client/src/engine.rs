@@ -1,24 +1,21 @@
-use crate::color::{MAP_BACKGROUND_COLOR, TEXT_COLOR};
+use crate::color::MAP_BACKGROUND_COLOR;
 use crate::config::APPLICATION_NAME;
 use crate::map::coordinate::MapCoord;
+use crate::map::draw;
 use crate::map::draw::{draw_map, draw_players, draw_windows};
 use crate::map::init::init_map;
 use crate::player::init_players;
 use crate::state::STATE;
 use crate::{connect, input};
 use raylib::callbacks::TraceLogLevel;
-use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
-use raylib::ffi::{
-    BeginDrawing, ClearBackground, CloseWindow, Color, DrawFPS, DrawText, EndDrawing, GetMouseWheelMoveV,
-    GetScreenHeight, InitWindow, IsWindowReady, SetConfigFlags, SetTargetFPS, SetTraceLogLevel, WindowShouldClose,
-};
+use raylib::drawing::RaylibDrawHandle;
+use raylib::ffi::{ClearBackground, DrawFPS, GetMouseWheelMoveV, SetConfigFlags, SetTargetFPS};
 use raylib::{ffi, math, RaylibHandle, RaylibThread};
 use shared::error::AppError;
 use shared::network::ring_buffer::RingBuffer;
-use std::ffi::CString;
 use std::ops::{Add, Mul};
 use std::sync::{Arc, RwLockReadGuard, RwLockWriteGuard};
-use std::{mem, time};
+use std::time;
 use time::Instant;
 use tokio::sync::RwLock;
 
@@ -33,8 +30,8 @@ fn scrolled_map_origin(map_origin: &MapCoord) -> MapCoord {
     MapCoord(unchecked_origin.into()).overflow_adjusted()
 }
 
-fn update() {
-    input::handle_user_input();
+fn update(rl: &mut RaylibHandle) {
+    input::handle_user_input(rl);
 
     let mut map_origin: RwLockWriteGuard<MapCoord> = STATE.map_origin.write().expect("global state poisoned");
     let old: MapCoord = map_origin.clone();
@@ -45,8 +42,8 @@ fn draw(rl_draw: &mut RaylibDrawHandle) {
     unsafe { ClearBackground(MAP_BACKGROUND_COLOR.into()) };
 
     let map_origin: RwLockReadGuard<MapCoord> = STATE.map_origin.read().expect("global state poisoned");
-    draw_map(&map_origin);
-    draw_players(&map_origin);
+    draw_map(rl_draw, &map_origin);
+    draw_players(rl_draw, &map_origin);
     draw_windows(rl_draw, &map_origin);
     drop(map_origin);
 
@@ -62,35 +59,24 @@ pub fn init() -> Result<(RaylibHandle, RaylibThread), AppError> {
     let mut rl;
     let rl_thread;
     unsafe {
-        SetTraceLogLevel(ffi::TraceLogLevel::LOG_DEBUG as i32);
         SetTargetFPS(TARGET_FPS as i32);
-
         SetConfigFlags(ffi::ConfigFlags::FLAG_WINDOW_HIGHDPI as u32 | ffi::ConfigFlags::FLAG_WINDOW_RESIZABLE as u32);
-        // let name_cstr: CString = CString::new(APPLICATION_NAME).unwrap();
 
-        let (a, b): (RaylibHandle, RaylibThread) = raylib::init()
+        let init_result: (RaylibHandle, RaylibThread) = raylib::init()
             .width(i32::from(DISPLAY_WIDTH))
             .height(i32::from(DISPLAY_HEIGHT))
             .title(APPLICATION_NAME)
+            .log_level(TraceLogLevel::LOG_DEBUG)
             .build();
-        rl = a;
-        rl_thread = b;
+        rl = init_result.0;
+        rl_thread = init_result.1;
 
-        // InitWindow(DISPLAY_WIDTH.into(), DISPLAY_HEIGHT.into(), name_cstr.as_ptr());
-        if !IsWindowReady() {
+        if !rl.is_window_ready() {
             return Err(AppError::new("Failed to initialize window"));
         }
 
         // todo: SetWindowIcon
-
-        {
-            let mut rl_draw: RaylibDrawHandle = rl.begin_drawing(&rl_thread);
-            rl_draw.clear_background(MAP_BACKGROUND_COLOR);
-            // ClearBackground(MAP_BACKGROUND_COLOR.into());
-            let loading_cstr: CString = CString::new("Loading").unwrap();
-            // DrawText(loading_cstr.as_ptr(), 16, GetScreenHeight() - 30, 20, TEXT_COLOR.into());
-            rl_draw.draw_text("Loading", 16, rl_draw.get_screen_height() - 30, 20, TEXT_COLOR);
-        }
+        draw::draw_loading_init(&mut rl, &rl_thread);
     }
 
     init_map();
@@ -105,26 +91,23 @@ pub fn destroy(rl: RaylibHandle) -> Result<(), AppError> {
 }
 
 pub fn run(rl: &mut RaylibHandle, rl_thread: &RaylibThread) -> Result<(), AppError> {
-    while unsafe { !WindowShouldClose() } {
+    while !rl.window_should_close() {
         let frame_start: Instant = Instant::now();
 
-        update();
+        update(rl);
         let update_end: Instant = Instant::now();
 
         let draw_end: Instant;
-        unsafe {
-            let mut rl_draw: RaylibDrawHandle = rl.begin_drawing(rl_thread);
-            // BeginDrawing();
-            draw(&mut rl_draw);
-            draw_end = Instant::now();
-            // EndDrawing();
-        }
+        let mut rl_draw: RaylibDrawHandle = rl.begin_drawing(rl_thread);
+        draw(&mut rl_draw);
+        draw_end = Instant::now();
 
         let mut frame_counter: RwLockWriteGuard<u64> = STATE.frame_counter.write().expect("global state poisoned");
         *frame_counter += 1;
         drop(frame_counter);
+
         let frame_counter: RwLockReadGuard<u64> = STATE.frame_counter.read().expect("global state poisoned");
-        if *frame_counter % 500 == 0 {
+        if *frame_counter % 1000 == 0 {
             log::debug!(
                 "Frame: {}; Update: {:?}; Draw: {:?}; Total: {:?};",
                 frame_counter,

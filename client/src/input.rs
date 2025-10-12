@@ -2,20 +2,25 @@ use crate::map::coordinate::{MapCoord, RenderCoord};
 use crate::state::{Hex, STATE};
 use crate::window::hex::HexWindow;
 use raylib::consts::MouseButton;
-use raylib::ffi;
+use raylib::{ffi, RaylibHandle};
 use raylib::ffi::{GetMousePosition, IsKeyPressed, IsMouseButtonReleased};
 use raylib::math::Vector2;
 use std::ffi::c_int;
 use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 
-pub fn handle_user_input() {
+pub fn handle_user_input(rl: &mut RaylibHandle) {
     if unsafe { IsKeyPressed(ffi::KeyboardKey::KEY_A as c_int) } {
         log::debug!("a pressed");
     }
 
     if unsafe { IsMouseButtonReleased(MouseButton::MOUSE_BUTTON_LEFT as c_int) } {
-        select_hex();
+        // click(rl.get_mouse_position());
+        select_hex()
     }
+}
+
+fn click(mouse_position: Vector2) {
+
 }
 
 fn select_hex() {
