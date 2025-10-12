@@ -1,7 +1,6 @@
 use crate::color::WHITE;
 use crate::map::coordinate::{HexCoord, MapCoord, RenderCoord};
 use crate::state::Hex;
-use crate::window;
 use crate::window::{Window, WindowLayer};
 use raylib::drawing::RaylibDrawHandle;
 use raylib::ffi::{DrawTextEx, GetFontDefault};
@@ -34,12 +33,7 @@ impl Window for HexWindow {
         WindowLayer::HexWindowLayer
     }
 
-    fn draw(&self, rl_draw: &mut RaylibDrawHandle, _map_origin: &MapCoord) {
-        if !self.is_open {
-            return;
-        }
-
-        window::draw_window_base(rl_draw, self);
+    fn draw_content(&self, _rl_draw: &mut RaylibDrawHandle, _map_origin: &MapCoord) {
         draw_title(self);
     }
 

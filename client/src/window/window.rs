@@ -47,7 +47,7 @@ pub trait Window: ClickHandler + HoverHandler {
     fn origin(&self) -> Option<RenderCoord>;
     fn dimensions(&self) -> Vector2;
     fn layer(&self) -> WindowLayer;
-    fn draw<'a, 'b, 'c>(&'a self, rl_draw: &'b mut RaylibDrawHandle, map_origin: &'c MapCoord);
+    fn draw_content(&self, rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord);
     fn handle_window_closed(&mut self);
 
     fn handle_window_clicked(&mut self, _offset: Vector2) -> ClickResult {
@@ -56,6 +56,18 @@ pub trait Window: ClickHandler + HoverHandler {
 
     fn handle_window_hovered(&mut self, _offset: Vector2) -> ClickResult {
         ClickResult::Consume
+    }
+
+    fn draw(&self, rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord)
+    where
+        Self: Sized,
+    {
+        if !self.is_open() {
+            return;
+        }
+
+        draw_window_base(rl_draw, self);
+        self.draw_content(rl_draw, map_origin);
     }
 
     fn try_to_rectangle(&self) -> Result<Rectangle, AppError> {
@@ -129,12 +141,12 @@ pub mod draw {
 
     const POINT_N: usize = 8;
 
-    pub fn draw_window_base<W: Window>(rl_draw: &mut RaylibDrawHandle, window: &W) {
+    pub fn draw_window_base(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
         draw_background(rl_draw, window);
         draw_close_button(rl_draw, window);
     }
 
-    fn draw_background<W: Window>(rl_draw: &mut RaylibDrawHandle, window: &W) {
+    fn draw_background(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
         let origin: RenderCoord = window.origin().unwrap();
         let full: Rectangle = Rectangle {
             x: origin.x,
@@ -205,7 +217,7 @@ pub mod draw {
         }
     }
 
-    fn draw_close_button<W: Window>(rl_draw: &mut RaylibDrawHandle, window: &W) {
+    fn draw_close_button(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
         let rect: Rectangle = button_rectangle(window, 0);
         let vertices = &[
             Vector2 { x: rect.x, y: rect.y },
