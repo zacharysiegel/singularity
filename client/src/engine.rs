@@ -8,8 +8,8 @@ use crate::player::init_players;
 use crate::state::STATE;
 use crate::{connect, input};
 use raylib::callbacks::TraceLogLevel;
-use raylib::drawing::RaylibDrawHandle;
-use raylib::ffi::{ClearBackground, DrawFPS, GetMouseWheelMoveV, SetConfigFlags, SetTargetFPS};
+use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
+use raylib::ffi::SetConfigFlags;
 use raylib::{ffi, math, RaylibHandle, RaylibThread};
 use shared::error::AppError;
 use shared::network::ring_buffer::RingBuffer;
@@ -23,8 +23,8 @@ pub const TARGET_FPS: u8 = 60;
 pub const DISPLAY_WIDTH: u16 = 1600;
 pub const DISPLAY_HEIGHT: u16 = 900;
 
-fn scrolled_map_origin(map_origin: &MapCoord) -> MapCoord {
-    let scroll: ffi::Vector2 = unsafe { GetMouseWheelMoveV() };
+fn scrolled_map_origin(rl: &mut RaylibHandle, map_origin: &MapCoord) -> MapCoord {
+    let scroll: ffi::Vector2 = rl.get_mouse_wheel_move_v();
     let scroll_inverted: math::Vector2 = math::Vector2::mul(scroll.into(), math::Vector2 { x: -1., y: -1. }).into();
     let unchecked_origin: math::Vector2 = math::Vector2::add(map_origin.0.into(), scroll_inverted);
     MapCoord(unchecked_origin.into()).overflow_adjusted()
@@ -35,11 +35,11 @@ fn update(rl: &mut RaylibHandle) {
 
     let mut map_origin: RwLockWriteGuard<MapCoord> = STATE.map_origin.write().expect("global state poisoned");
     let old: MapCoord = map_origin.clone();
-    *map_origin = scrolled_map_origin(&old);
+    *map_origin = scrolled_map_origin(rl, &old);
 }
 
 fn draw(rl_draw: &mut RaylibDrawHandle) {
-    unsafe { ClearBackground(MAP_BACKGROUND_COLOR.into()) };
+    rl_draw.clear_background(MAP_BACKGROUND_COLOR);
 
     let map_origin: RwLockReadGuard<MapCoord> = STATE.map_origin.read().expect("global state poisoned");
     draw_map(rl_draw, &map_origin);
@@ -47,37 +47,29 @@ fn draw(rl_draw: &mut RaylibDrawHandle) {
     draw_windows(rl_draw);
     drop(map_origin);
 
-    unsafe {
-        // debug
-        DrawFPS(10, 10);
-    }
+    rl_draw.draw_fps(10, 10); // debug
 }
 
 pub fn init() -> Result<(RaylibHandle, RaylibThread), AppError> {
     let _: Arc<RwLock<RingBuffer<u8, 4096>>> = connect::connect()?;
 
-    let mut rl;
-    let rl_thread;
     unsafe {
-        SetTargetFPS(TARGET_FPS as i32);
         SetConfigFlags(ffi::ConfigFlags::FLAG_WINDOW_HIGHDPI as u32 | ffi::ConfigFlags::FLAG_WINDOW_RESIZABLE as u32);
-
-        let init_result: (RaylibHandle, RaylibThread) = raylib::init()
-            .width(i32::from(DISPLAY_WIDTH))
-            .height(i32::from(DISPLAY_HEIGHT))
-            .title(APPLICATION_NAME)
-            .log_level(TraceLogLevel::LOG_DEBUG)
-            .build();
-        rl = init_result.0;
-        rl_thread = init_result.1;
-
-        if !rl.is_window_ready() {
-            return Err(AppError::new("Failed to initialize window"));
-        }
-
-        // todo: SetWindowIcon
-        draw::draw_loading_init(&mut rl, &rl_thread);
     }
+    let (mut rl, rl_thread): (RaylibHandle, RaylibThread) = raylib::init()
+        .width(i32::from(DISPLAY_WIDTH))
+        .height(i32::from(DISPLAY_HEIGHT))
+        .title(APPLICATION_NAME)
+        .log_level(TraceLogLevel::LOG_DEBUG)
+        .build();
+
+    if !rl.is_window_ready() {
+        return Err(AppError::new("Failed to initialize window"));
+    }
+
+    // todo: SetWindowIcon
+    rl.set_target_fps(u32::from(TARGET_FPS));
+    draw::draw_loading_init(&mut rl, &rl_thread);
 
     init_map();
     init_players(4);
