@@ -1,12 +1,15 @@
-use crate::color::WHITE;
-use crate::map::coordinate::{HexCoord, RenderCoord};
-use crate::state::Hex;
+use crate::color::{TEXT_COLOR, WHITE};
+use crate::map::coordinate::RenderCoord;
+use crate::state::{Hex, ResourceType};
 use crate::window;
 use crate::window::{Window, WindowLayer};
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
+use raylib::prelude::WeakFont;
 use raylib::RaylibHandle;
 use std::ops::Add;
+use raylib::text::RaylibFont;
+use window::draw::BORDER_GAP;
 
 #[derive(Debug)]
 pub struct HexWindow {
@@ -33,7 +36,8 @@ impl Window for HexWindow {
     }
 
     fn draw_content(&self, rl_draw: &mut RaylibDrawHandle) {
-        draw_title(rl_draw, self);
+        self.draw_title(rl_draw);
+        self.draw_footer(rl_draw);
     }
 
     fn handle_window_closed(&mut self) {
@@ -59,19 +63,50 @@ impl HexWindow {
         self.origin = Self::DEFAULT.origin;
         self.hex = Self::DEFAULT.hex;
     }
-}
 
-fn draw_title(rl_draw: &mut RaylibDrawHandle, window: &HexWindow) {
-    let origin: RenderCoord = window.origin.unwrap();
-    let hex: Hex = window.hex.unwrap();
-    let hex_coord: HexCoord = hex.hex_coord;
+    pub fn get_title(&self) -> Option<&'static str> {
+        Some(match self.hex?.resource_type {
+            ResourceType::None => "Empty Hex",
+            ResourceType::Metal => "Resource: METAL",
+            ResourceType::Oil => "Resource: OIL",
+        })
+    }
 
-    rl_draw.draw_text_ex(
-        rl_draw.get_font_default(),
-        &format!("Hex ({}, {})", hex_coord.i, hex_coord.j),
-        origin.add(Vector2 { x: 20., y: 20. }),
-        20.,
-        2.,
-        WHITE,
-    );
+    fn draw_title(&self, rl_draw: &mut RaylibDrawHandle) {
+        let origin: RenderCoord = self.origin.unwrap();
+
+        rl_draw.draw_text_ex(
+            rl_draw.get_font_default(),
+            self.get_title().unwrap(),
+            origin.add(Vector2 { x: 20., y: 20. }),
+            20.,
+            2.,
+            WHITE,
+        );
+    }
+
+    fn draw_footer(&self, rl_draw: &mut RaylibDrawHandle) {
+        let hex: Hex = self.hex.unwrap();
+        let origin: RenderCoord = self.origin().unwrap();
+
+        const FONT_SIZE: f32 = 12.;
+        const FONT_SPACING: f32 = 2.;
+        const FOOTER_HEIGHT: f32 = 20.;
+        const FOOTER_MARGIN: f32 = 8.;
+
+        let font: WeakFont = rl_draw.get_font_default();
+        let footer_origin: RenderCoord = RenderCoord(Vector2 {
+            x: origin.x + BORDER_GAP,
+            y: origin.y + self.dimensions().y - BORDER_GAP - FOOTER_HEIGHT,
+        });
+        let footer_width: f32 = self.dimensions().x - BORDER_GAP * 2.;
+
+        let coord_text: String = format!("({}, {})", hex.hex_coord.i, hex.hex_coord.j);
+        let text_measurement: Vector2 = font.measure_text(&coord_text, FONT_SIZE, FONT_SPACING);
+        let coord_location: Vector2 = Vector2 {
+            x: footer_origin.x + footer_width - text_measurement.x - FOOTER_MARGIN,
+            y: footer_origin.y,
+        };
+        rl_draw.draw_text_ex(font, &coord_text, coord_location, FONT_SIZE, FONT_SPACING, TEXT_COLOR);
+    }
 }

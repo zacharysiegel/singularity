@@ -16,10 +16,6 @@ use std::sync::{RwLock, RwLockReadGuard};
 pub const WINDOW_LAYERS: [&'static RwLock<dyn Window>; 3] =
     [&STATE.windows.error, &STATE.windows.pause, &STATE.windows.hex];
 
-pub(super) const BUTTON_WIDTH: f32 = 42.;
-pub(super) const BORDER_GAP: f32 = 10.;
-pub(super) const BORDER_THICKNESS: f32 = 1.;
-
 /// Lower numbers indicate higher priority in the z-buffer
 #[repr(u8)]
 pub enum WindowLayer {
@@ -90,7 +86,8 @@ impl<T: Window> ClickHandler for T {
         }
         let origin: RenderCoord = self.origin().unwrap();
 
-        let b0_contains: bool = util::rectangle_contains(button_rectangle(self, 0), Vector2::from(mouse_position));
+        let b0_contains: bool =
+            util::rectangle_contains(draw::button_rectangle(self, 0), Vector2::from(mouse_position));
         if b0_contains {
             self.handle_window_closed();
             return ClickResult::Consume;
@@ -141,16 +138,6 @@ fn window_contains_render_coord(window: &dyn Window, render_coord: RenderCoord) 
 
     let rectangle: Rectangle = window.try_to_rectangle().unwrap();
     util::rectangle_contains(rectangle, Vector2::from(render_coord))
-}
-
-pub(super) fn button_rectangle(window: &dyn Window, button_index: i16) -> Rectangle {
-    let origin: RenderCoord = window.origin().unwrap();
-    Rectangle {
-        x: origin.x + window.dimensions().x - BUTTON_WIDTH - BORDER_GAP,
-        y: origin.y + BORDER_GAP + (f32::from(button_index) * BUTTON_WIDTH),
-        width: BUTTON_WIDTH,
-        height: BUTTON_WIDTH,
-    }
 }
 
 #[cfg(test)]

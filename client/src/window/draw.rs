@@ -2,13 +2,26 @@ use crate::color::{RED, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_INT
 use crate::map::coordinate::RenderCoord;
 use crate::util;
 use crate::util::SIN_FRAC_PI_4;
-use crate::window::window::{BORDER_GAP, BORDER_THICKNESS, BUTTON_WIDTH};
-use crate::window::{window, Window};
+use crate::window::Window;
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::{Rectangle, Vector2};
 
-const POINT_N: usize = 8;
+pub const BUTTON_WIDTH: f32 = 42.;
+pub const BORDER_GAP: f32 = 10.;
+pub const BORDER_THICKNESS: f32 = 1.;
+
+const X_VERTEX_N: usize = 8;
+
+pub fn button_rectangle(window: &dyn Window, button_index: i16) -> Rectangle {
+    let origin: RenderCoord = window.origin().unwrap();
+    Rectangle {
+        x: origin.x + window.dimensions().x - BUTTON_WIDTH - BORDER_GAP,
+        y: origin.y + BORDER_GAP + (f32::from(button_index) * BUTTON_WIDTH),
+        width: BUTTON_WIDTH,
+        height: BUTTON_WIDTH,
+    }
+}
 
 pub fn draw_window_base(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
     draw_background(rl_draw, window);
@@ -77,7 +90,7 @@ fn draw_background(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
 }
 
 fn draw_close_button(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
-    let rect: Rectangle = window::button_rectangle(window, 0);
+    let rect: Rectangle = button_rectangle(window, 0);
     let vertices = &[
         Vector2 { x: rect.x, y: rect.y },
         Vector2 {
@@ -123,19 +136,19 @@ fn draw_close_background(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
 }
 
 fn draw_close_x(rl_draw: &mut RaylibDrawHandle, center: Vector2, radius: f32, width: f32) {
-    let a: [Vector2; POINT_N] = create_close_x_segment(center, radius, width, false);
-    let b: [Vector2; POINT_N] = create_close_x_segment(center, radius, width, true);
+    let a: [Vector2; X_VERTEX_N] = create_close_x_segment(center, radius, width, false);
+    let b: [Vector2; X_VERTEX_N] = create_close_x_segment(center, radius, width, true);
 
     rl_draw.draw_triangle_fan(&a, RED);
     rl_draw.draw_triangle_fan(&b, RED);
 }
 
-fn create_close_x_segment(center: Vector2, radius: f32, width: f32, reflect: bool) -> [Vector2; POINT_N] {
+fn create_close_x_segment(center: Vector2, radius: f32, width: f32, reflect: bool) -> [Vector2; X_VERTEX_N] {
     let r_sin_frac_pi_4: f32 = radius * *SIN_FRAC_PI_4 as f32;
     let point_hypotenuse: f32 = width / 2. / *SIN_FRAC_PI_4 as f32;
 
     // Generate all vertices centered at (0, 0), then transform
-    let mut vertices: [Vector2; POINT_N] = [
+    let mut vertices: [Vector2; X_VERTEX_N] = [
         Vector2 { x: 0., y: 0. },
         Vector2 {
             x: -r_sin_frac_pi_4,
