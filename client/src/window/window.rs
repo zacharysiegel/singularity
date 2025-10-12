@@ -1,15 +1,31 @@
+use crate::input::{ClickResult, Clickable};
 use crate::map::coordinate::{MapCoord, RenderCoord};
+use crate::state::STATE;
 use crate::window::error::ErrorWindow;
 use crate::window::hex::HexWindow;
 use crate::window::pause::PauseWindow;
 use raylib::prelude::{RaylibDrawHandle, Vector2};
+use std::ops::Sub;
 use std::sync::RwLock;
+
+pub use draw::*;
 
 #[derive(Debug)]
 pub struct WindowState {
     pub error: RwLock<ErrorWindow>,
     pub pause: RwLock<PauseWindow>,
     pub hex: RwLock<HexWindow>,
+}
+
+pub const WINDOW_LAYERS: [&'static RwLock<dyn Window>; 3] =
+    [&STATE.windows.error, &STATE.windows.pause, &STATE.windows.hex];
+
+/// Lower numbers indicate higher priority in the z-buffer
+#[repr(u8)]
+pub enum WindowLayer {
+    ErrorWindowLayer = 0,
+    PauseWindowLayer = 1,
+    HexWindowLayer = 2,
 }
 
 impl WindowState {
@@ -20,7 +36,7 @@ impl WindowState {
     };
 }
 
-pub trait Window {
+pub trait Window: Clickable {
     fn is_open(&self) -> bool;
     fn origin(&self) -> Option<RenderCoord>;
     fn dimensions(&self) -> Vector2;
@@ -28,15 +44,26 @@ pub trait Window {
     fn draw<'a, 'b, 'c>(&'a self, rl_draw: &'b mut RaylibDrawHandle, map_origin: &'c MapCoord);
 }
 
-/// Lower numbers indicate higher priority in the z-buffer
-#[repr(u8)]
-pub enum WindowLayer {
-    ErrorWindowLayer = 0,
-    PauseWindowLayer = 1,
-    HexWindowLayer = 2,
+impl<T: Window> Clickable for T {
+    fn handle_click(&self, coord: RenderCoord) -> ClickResult {
+        if !self.is_open() {
+            return ClickResult::Pass;
+        }
+
+        let origin: RenderCoord = self.origin().unwrap();
+        let translated: Vector2 = coord.0.sub(origin.0);
+        let contained: bool = (0. <= translated.x
+            && translated.x < self.dimensions().x
+            && 0. <= translated.y
+            && translated.y < self.dimensions().y);
+
+        match contained {
+            true => ClickResult::Consume,
+            false => ClickResult::Pass,
+        }
+    }
 }
 
-pub use draw::*;
 pub mod draw {
     use crate::color::{RED, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_INTERIOR_BORDER_COLOR};
     use crate::map::coordinate::RenderCoord;
@@ -228,5 +255,19 @@ pub mod draw {
         }
 
         vertices
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::window::{Window, WINDOW_LAYERS};
+    use std::sync::RwLockReadGuard;
+
+    #[test]
+    fn validate_window_layers() {
+        for i in 0..WINDOW_LAYERS.len() {
+            let window: RwLockReadGuard<dyn Window> = WINDOW_LAYERS[i].read().unwrap();
+            debug_assert_eq!(i as u8, window.layer() as u8);
+        }
     }
 }

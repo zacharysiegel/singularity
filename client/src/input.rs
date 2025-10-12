@@ -1,34 +1,35 @@
-use crate::map::coordinate::{MapCoord, RenderCoord};
-use crate::state::{Hex, STATE};
-use crate::window::hex::HexWindow;
+use crate::map;
+use crate::map::coordinate::RenderCoord;
+use crate::window::{Window, WINDOW_LAYERS};
 use raylib::consts::MouseButton;
-use raylib::{ffi, RaylibHandle};
-use raylib::ffi::{GetMousePosition, IsKeyPressed, IsMouseButtonReleased};
-use raylib::math::Vector2;
-use std::ffi::c_int;
-use std::sync::{RwLockReadGuard, RwLockWriteGuard};
+use raylib::RaylibHandle;
+use std::sync::RwLockReadGuard;
+
+pub enum ClickResult {
+    Pass,
+    Consume,
+}
+
+pub trait Clickable {
+    /// Hook to allow an object to handle a click event.
+    /// The hook should return [ClickResult::Consume] to consume the event, or
+    /// [ClickResult::Pass] to allow subsequent objects to handle the same event.
+    fn handle_click(&self, mouse_position: RenderCoord) -> ClickResult;
+}
 
 pub fn handle_user_input(rl: &mut RaylibHandle) {
-    if unsafe { IsKeyPressed(ffi::KeyboardKey::KEY_A as c_int) } {
-        log::debug!("a pressed");
-    }
-
-    if unsafe { IsMouseButtonReleased(MouseButton::MOUSE_BUTTON_LEFT as c_int) } {
-        // click(rl.get_mouse_position());
-        select_hex()
+    if rl.is_mouse_button_released(MouseButton::MOUSE_BUTTON_LEFT) {
+        click(RenderCoord(rl.get_mouse_position()));
     }
 }
 
-fn click(mouse_position: Vector2) {
-
-}
-
-fn select_hex() {
-    let map_origin: RwLockReadGuard<MapCoord> = STATE.map_origin.read().unwrap();
-    let mouse_position: RenderCoord = RenderCoord(Vector2::from(unsafe { GetMousePosition() }));
-    let containing_hex: Hex = mouse_position.containing_hex(&*map_origin);
-
-    let mut hex_window: RwLockWriteGuard<HexWindow> = STATE.windows.hex.write().unwrap();
-    hex_window.open(RenderCoord(Vector2::from(mouse_position)), containing_hex);
-    drop(hex_window);
+fn click(mouse_position: RenderCoord) {
+    for window in WINDOW_LAYERS {
+        let window: RwLockReadGuard<dyn Window> = window.read().unwrap();
+        match window.handle_click(mouse_position) {
+            ClickResult::Pass => {}
+            ClickResult::Consume => return,
+        }
+    }
+    map::select_hex(mouse_position);
 }
