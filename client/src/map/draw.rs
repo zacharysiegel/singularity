@@ -120,7 +120,7 @@ pub fn draw_windows(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord) {
     let pause: RwLockReadGuard<PauseWindow> = STATE.windows.pause.read().unwrap();
     let error: RwLockReadGuard<ErrorWindow> = STATE.windows.error.read().unwrap();
 
-    hex.draw(rl_draw, map_origin);
+    hex.draw(rl_draw);
     assert!(hex.layer() as u8 > pause.layer() as u8);
     // pause.draw(map_origin);
     assert!(pause.layer() as u8 > error.layer() as u8);

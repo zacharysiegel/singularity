@@ -47,7 +47,7 @@ pub trait Window: ClickHandler + HoverHandler {
     fn origin(&self) -> Option<RenderCoord>;
     fn dimensions(&self) -> Vector2;
     fn layer(&self) -> WindowLayer;
-    fn draw_content(&self, rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord);
+    fn draw_content(&self, rl_draw: &mut RaylibDrawHandle);
     fn handle_window_closed(&mut self);
 
     fn handle_window_clicked(&mut self, _offset: Vector2) -> ClickResult {
@@ -58,7 +58,7 @@ pub trait Window: ClickHandler + HoverHandler {
         ClickResult::Consume
     }
 
-    fn draw(&self, rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord)
+    fn draw(&self, rl_draw: &mut RaylibDrawHandle)
     where
         Self: Sized,
     {
@@ -67,7 +67,7 @@ pub trait Window: ClickHandler + HoverHandler {
         }
 
         draw_window_base(rl_draw, self);
-        self.draw_content(rl_draw, map_origin);
+        self.draw_content(rl_draw);
     }
 
     fn try_to_rectangle(&self) -> Result<Rectangle, AppError> {

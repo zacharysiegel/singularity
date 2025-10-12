@@ -2,12 +2,9 @@ use crate::color::WHITE;
 use crate::map::coordinate::{HexCoord, MapCoord, RenderCoord};
 use crate::state::Hex;
 use crate::window::{Window, WindowLayer};
-use raylib::drawing::RaylibDrawHandle;
-use raylib::ffi::{DrawTextEx, GetFontDefault};
+use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
-use std::ffi::CString;
 use std::ops::Add;
-use std::str::FromStr;
 
 #[derive(Debug)]
 pub struct HexWindow {
@@ -33,8 +30,8 @@ impl Window for HexWindow {
         WindowLayer::HexWindowLayer
     }
 
-    fn draw_content(&self, _rl_draw: &mut RaylibDrawHandle, _map_origin: &MapCoord) {
-        draw_title(self);
+    fn draw_content(&self, rl_draw: &mut RaylibDrawHandle) {
+        draw_title(rl_draw, self);
     }
 
     fn handle_window_closed(&mut self) {
@@ -62,19 +59,17 @@ impl HexWindow {
     }
 }
 
-fn draw_title(window: &HexWindow) {
+fn draw_title(rl_draw: &mut RaylibDrawHandle, window: &HexWindow) {
     let origin: RenderCoord = window.origin.unwrap();
     let hex: Hex = window.hex.unwrap();
-    unsafe {
-        let hex_coord: HexCoord = hex.hex_coord;
-        let cstr: CString = CString::from_str(&format!("Hex ({}, {})", hex_coord.i, hex_coord.j)).unwrap();
-        DrawTextEx(
-            GetFontDefault(),
-            cstr.as_ptr(),
-            origin.add(Vector2 { x: 20., y: 20. }).into(),
-            20.,
-            2.,
-            WHITE.into(),
-        );
-    }
+    let hex_coord: HexCoord = hex.hex_coord;
+
+    rl_draw.draw_text_ex(
+        rl_draw.get_font_default(),
+        &format!("Hex ({}, {})", hex_coord.i, hex_coord.j),
+        origin.add(Vector2 { x: 20., y: 20. }),
+        20.,
+        2.,
+        WHITE,
+    );
 }
