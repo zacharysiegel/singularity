@@ -1,5 +1,5 @@
 use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
-use crate::map::coordinate::{MapCoord, RenderCoord};
+use crate::map::coordinate::RenderCoord;
 use crate::state::STATE;
 use crate::util;
 use crate::window::error::ErrorWindow;
@@ -136,7 +136,6 @@ pub mod draw {
     use crate::window::Window;
     use raylib::color::Color;
     use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
-    use raylib::ffi::{DrawLineEx, DrawRectangleLinesEx};
     use raylib::math::{Rectangle, Vector2};
 
     const POINT_N: usize = 8;
@@ -157,63 +156,55 @@ pub mod draw {
 
         unsafe {
             rl_draw.draw_rectangle_rec(full, WINDOW_BACKGROUND_COLOR);
-            DrawLineEx(
+            rl_draw.draw_line_ex(
                 Vector2 {
                     x: origin.x,
                     y: origin.y + BORDER_GAP,
-                }
-                .into(),
+                },
                 Vector2 {
                     x: origin.x + window.dimensions().x,
                     y: origin.y + BORDER_GAP,
-                }
-                .into(),
+                },
                 BORDER_THICKNESS,
-                WINDOW_INTERIOR_BORDER_COLOR.into(),
+                WINDOW_INTERIOR_BORDER_COLOR,
             );
-            DrawLineEx(
+            rl_draw.draw_line_ex(
                 Vector2 {
                     x: origin.x,
                     y: origin.y + window.dimensions().y - BORDER_GAP,
-                }
-                .into(),
+                },
                 Vector2 {
                     x: origin.x + window.dimensions().x,
                     y: origin.y + window.dimensions().y - BORDER_GAP,
-                }
-                .into(),
+                },
                 BORDER_THICKNESS,
-                WINDOW_INTERIOR_BORDER_COLOR.into(),
+                WINDOW_INTERIOR_BORDER_COLOR,
             );
-            DrawLineEx(
+            rl_draw.draw_line_ex(
                 Vector2 {
                     x: origin.x + BORDER_GAP,
                     y: origin.y,
-                }
-                .into(),
+                },
                 Vector2 {
                     x: origin.x + BORDER_GAP,
                     y: origin.y + window.dimensions().y,
-                }
-                .into(),
+                },
                 BORDER_THICKNESS,
-                WINDOW_INTERIOR_BORDER_COLOR.into(),
+                WINDOW_INTERIOR_BORDER_COLOR,
             );
-            DrawLineEx(
+            rl_draw.draw_line_ex(
                 Vector2 {
                     x: origin.x + window.dimensions().x - BORDER_GAP,
                     y: origin.y,
-                }
-                .into(),
+                },
                 Vector2 {
                     x: origin.x + window.dimensions().x - BORDER_GAP,
                     y: origin.y + window.dimensions().y,
-                }
-                .into(),
+                },
                 BORDER_THICKNESS,
-                WINDOW_INTERIOR_BORDER_COLOR.into(),
+                WINDOW_INTERIOR_BORDER_COLOR,
             );
-            DrawRectangleLinesEx(full.into(), BORDER_THICKNESS, WINDOW_BORDER_COLOR.into());
+            rl_draw.draw_rectangle_lines_ex(full, BORDER_THICKNESS, WINDOW_BORDER_COLOR);
         }
     }
 
