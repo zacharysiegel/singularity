@@ -2,15 +2,16 @@ use crate::map::coordinate::{MapCoord, RenderCoord};
 use crate::state::{Hex, STATE};
 use crate::window::hex::HexWindow;
 use raylib::math::Vector2;
+use raylib::RaylibHandle;
 use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 
-pub fn click_map(mouse_position: RenderCoord) {
+pub fn click_map(rl: &mut RaylibHandle, mouse_position: RenderCoord) {
     let map_origin: RwLockReadGuard<MapCoord> = STATE.map_origin.read().unwrap();
     let containing_hex: Hex = mouse_position.containing_hex(&*map_origin);
 
     let mut hex_window: RwLockWriteGuard<HexWindow> = STATE.windows.hex.write().unwrap();
-    hex_window.open(RenderCoord(Vector2::from(mouse_position)), containing_hex);
+    hex_window.open(rl, RenderCoord(Vector2::from(mouse_position)), containing_hex);
     drop(hex_window);
 }
 
-pub fn hover_map(_mouse_position: RenderCoord) {}
+pub fn hover_map(_rl: &mut RaylibHandle, _mouse_position: RenderCoord) {}

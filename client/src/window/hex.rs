@@ -1,9 +1,11 @@
 use crate::color::WHITE;
-use crate::map::coordinate::{HexCoord, MapCoord, RenderCoord};
+use crate::map::coordinate::{HexCoord, RenderCoord};
 use crate::state::Hex;
+use crate::window;
 use crate::window::{Window, WindowLayer};
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
+use raylib::RaylibHandle;
 use std::ops::Add;
 
 #[derive(Debug)]
@@ -46,9 +48,9 @@ impl HexWindow {
         hex: None,
     };
 
-    pub fn open(&mut self, origin: RenderCoord, hex: Hex) {
+    pub fn open(&mut self, rl: &mut RaylibHandle, mut origin: RenderCoord, hex: Hex) {
         self.is_open = true;
-        self.origin = Some(origin);
+        self.origin = Some(window::bounded_origin(rl, &mut origin, self.dimensions()));
         self.hex = Some(hex);
     }
 

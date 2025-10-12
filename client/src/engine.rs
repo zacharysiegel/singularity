@@ -44,7 +44,7 @@ fn draw(rl_draw: &mut RaylibDrawHandle) {
     let map_origin: RwLockReadGuard<MapCoord> = STATE.map_origin.read().expect("global state poisoned");
     draw_map(rl_draw, &map_origin);
     draw_players(rl_draw, &map_origin);
-    draw_windows(rl_draw, &map_origin);
+    draw_windows(rl_draw);
     drop(map_origin);
 
     unsafe {

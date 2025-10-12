@@ -115,7 +115,7 @@ fn draw_facility(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord, facility
     }
 }
 
-pub fn draw_windows(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord) {
+pub fn draw_windows(rl_draw: &mut RaylibDrawHandle) {
     let hex: RwLockReadGuard<HexWindow> = STATE.windows.hex.read().unwrap();
     let pause: RwLockReadGuard<PauseWindow> = STATE.windows.pause.read().unwrap();
     let error: RwLockReadGuard<ErrorWindow> = STATE.windows.error.read().unwrap();

@@ -1,4 +1,4 @@
-use crate::map::coordinate::{MapCoord, RenderCoord};
+use crate::map::coordinate::RenderCoord;
 use crate::window::{Window, WindowLayer};
 use raylib::drawing::RaylibDrawHandle;
 use raylib::math::Vector2;

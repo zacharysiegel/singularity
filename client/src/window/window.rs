@@ -8,6 +8,7 @@ use crate::window::pause::PauseWindow;
 pub use draw::*;
 use raylib::math::Rectangle;
 use raylib::prelude::{RaylibDrawHandle, Vector2};
+use raylib::RaylibHandle;
 use shared::error::AppError;
 use std::ops::Sub;
 use std::sync::RwLock;
@@ -50,7 +51,7 @@ pub trait Window: ClickHandler + HoverHandler {
     fn draw_content(&self, rl_draw: &mut RaylibDrawHandle);
     fn handle_window_closed(&mut self);
 
-    fn handle_window_clicked(&mut self, _offset: Vector2) -> ClickResult {
+    fn handle_window_clicked(&mut self, _rl: &mut RaylibHandle, _offset: Vector2) -> ClickResult {
         ClickResult::Consume
     }
 
@@ -83,7 +84,7 @@ pub trait Window: ClickHandler + HoverHandler {
 }
 
 impl<T: Window> ClickHandler for T {
-    fn handle_click(&mut self, mouse_position: RenderCoord) -> ClickResult {
+    fn handle_click(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
         if !window_contains_render_coord(self, mouse_position) {
             return ClickResult::Pass;
         }
@@ -95,17 +96,32 @@ impl<T: Window> ClickHandler for T {
             return ClickResult::Consume;
         }
 
-        self.handle_window_clicked(mouse_position.sub(origin.0))
+        self.handle_window_clicked(rl, mouse_position.sub(origin.0))
     }
 }
 
 impl<T: Window> HoverHandler for T {
-    fn handle_hover(&mut self, mouse_position: RenderCoord) -> HoverResult {
+    fn handle_hover(&mut self, _rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
         if window_contains_render_coord(self, mouse_position) {
             return HoverResult::Pass;
         }
         HoverResult::Consume
     }
+}
+
+pub fn bounded_origin(rl: &mut RaylibHandle, origin: &mut RenderCoord, dimensions: Vector2) -> RenderCoord {
+    let overflow: Vector2 = Vector2 {
+        x: (origin.x + dimensions.x) - (rl.get_screen_width() as f32),
+        y: (origin.y + dimensions.y) - (rl.get_screen_height() as f32),
+    };
+
+    if overflow.x > 0. {
+        origin.x -= overflow.x;
+    }
+    if overflow.y > 0. {
+        origin.y -= overflow.y;
+    }
+    *origin
 }
 
 fn window_contains_render_coord(window: &dyn Window, render_coord: RenderCoord) -> bool {
@@ -154,58 +170,56 @@ pub mod draw {
             height: window.dimensions().y,
         };
 
-        unsafe {
-            rl_draw.draw_rectangle_rec(full, WINDOW_BACKGROUND_COLOR);
-            rl_draw.draw_line_ex(
-                Vector2 {
-                    x: origin.x,
-                    y: origin.y + BORDER_GAP,
-                },
-                Vector2 {
-                    x: origin.x + window.dimensions().x,
-                    y: origin.y + BORDER_GAP,
-                },
-                BORDER_THICKNESS,
-                WINDOW_INTERIOR_BORDER_COLOR,
-            );
-            rl_draw.draw_line_ex(
-                Vector2 {
-                    x: origin.x,
-                    y: origin.y + window.dimensions().y - BORDER_GAP,
-                },
-                Vector2 {
-                    x: origin.x + window.dimensions().x,
-                    y: origin.y + window.dimensions().y - BORDER_GAP,
-                },
-                BORDER_THICKNESS,
-                WINDOW_INTERIOR_BORDER_COLOR,
-            );
-            rl_draw.draw_line_ex(
-                Vector2 {
-                    x: origin.x + BORDER_GAP,
-                    y: origin.y,
-                },
-                Vector2 {
-                    x: origin.x + BORDER_GAP,
-                    y: origin.y + window.dimensions().y,
-                },
-                BORDER_THICKNESS,
-                WINDOW_INTERIOR_BORDER_COLOR,
-            );
-            rl_draw.draw_line_ex(
-                Vector2 {
-                    x: origin.x + window.dimensions().x - BORDER_GAP,
-                    y: origin.y,
-                },
-                Vector2 {
-                    x: origin.x + window.dimensions().x - BORDER_GAP,
-                    y: origin.y + window.dimensions().y,
-                },
-                BORDER_THICKNESS,
-                WINDOW_INTERIOR_BORDER_COLOR,
-            );
-            rl_draw.draw_rectangle_lines_ex(full, BORDER_THICKNESS, WINDOW_BORDER_COLOR);
-        }
+        rl_draw.draw_rectangle_rec(full, WINDOW_BACKGROUND_COLOR);
+        rl_draw.draw_line_ex(
+            Vector2 {
+                x: origin.x,
+                y: origin.y + BORDER_GAP,
+            },
+            Vector2 {
+                x: origin.x + window.dimensions().x,
+                y: origin.y + BORDER_GAP,
+            },
+            BORDER_THICKNESS,
+            WINDOW_INTERIOR_BORDER_COLOR,
+        );
+        rl_draw.draw_line_ex(
+            Vector2 {
+                x: origin.x,
+                y: origin.y + window.dimensions().y - BORDER_GAP,
+            },
+            Vector2 {
+                x: origin.x + window.dimensions().x,
+                y: origin.y + window.dimensions().y - BORDER_GAP,
+            },
+            BORDER_THICKNESS,
+            WINDOW_INTERIOR_BORDER_COLOR,
+        );
+        rl_draw.draw_line_ex(
+            Vector2 {
+                x: origin.x + BORDER_GAP,
+                y: origin.y,
+            },
+            Vector2 {
+                x: origin.x + BORDER_GAP,
+                y: origin.y + window.dimensions().y,
+            },
+            BORDER_THICKNESS,
+            WINDOW_INTERIOR_BORDER_COLOR,
+        );
+        rl_draw.draw_line_ex(
+            Vector2 {
+                x: origin.x + window.dimensions().x - BORDER_GAP,
+                y: origin.y,
+            },
+            Vector2 {
+                x: origin.x + window.dimensions().x - BORDER_GAP,
+                y: origin.y + window.dimensions().y,
+            },
+            BORDER_THICKNESS,
+            WINDOW_INTERIOR_BORDER_COLOR,
+        );
+        rl_draw.draw_rectangle_lines_ex(full, BORDER_THICKNESS, WINDOW_BORDER_COLOR);
     }
 
     fn draw_close_button(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
