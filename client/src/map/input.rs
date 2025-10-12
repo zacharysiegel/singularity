@@ -1,5 +1,6 @@
 use crate::map::coordinate::{MapCoord, RenderCoord};
 use crate::state::{Hex, STATE};
+use crate::window;
 use crate::window::hex::HexWindow;
 use raylib::math::Vector2;
 use raylib::RaylibHandle;
@@ -15,3 +16,7 @@ pub fn click_map(rl: &mut RaylibHandle, mouse_position: RenderCoord) {
 }
 
 pub fn hover_map(_rl: &mut RaylibHandle, _mouse_position: RenderCoord) {}
+
+pub fn map_has_focus() -> bool {
+    !window::any_window_open()
+}

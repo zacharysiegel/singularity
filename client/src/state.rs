@@ -1,4 +1,4 @@
-use crate::color::{METAL_BACKGROUND_COLOR, OIL_BACKGROUND_COLOR, TRANSPARENT};
+use crate::color::{MAP_BACKGROUND_COLOR, METAL_BACKGROUND_COLOR, OIL_BACKGROUND_COLOR};
 use crate::map;
 use crate::map::coordinate::{HexCoord, MapCoord};
 use crate::window::WindowState;
@@ -14,7 +14,7 @@ pub static STATE: State = State {
 };
 
 #[repr(u8)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum ResourceType {
     None = 0,
     Metal,
@@ -32,7 +32,7 @@ impl ResourceType {
 
     pub const fn color(&self) -> Color {
         match self {
-            ResourceType::None => TRANSPARENT,
+            ResourceType::None => MAP_BACKGROUND_COLOR,
             ResourceType::Metal => METAL_BACKGROUND_COLOR,
             ResourceType::Oil => OIL_BACKGROUND_COLOR,
         }

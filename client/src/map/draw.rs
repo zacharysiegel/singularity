@@ -5,6 +5,7 @@ use crate::color::{
 use crate::map::config::{HEX_COUNT_SQRT, HEX_RADIUS, HEX_ROTATION, HEX_SIDES};
 use crate::map::coordinate::{get_hex_count_height, get_hex_count_width, HexCoord};
 use crate::map::coordinate::{MapCoord, RenderCoord};
+use crate::map::map_has_focus;
 use crate::state::{Facility, FacilityState, FacilityType, Hex, Player, ResourceType, STATE};
 use crate::window::error::ErrorWindow;
 use crate::window::hex::HexWindow;
@@ -44,7 +45,7 @@ pub fn draw_map(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord) {
     let max_hexes_j: u16 = get_hex_count_height(screen_height as f32);
     for _hexes_drawn_j in 0..=(max_hexes_j + 2) {
         for _hexes_drawn_i in 0..=(max_hexes_i + 2) {
-            draw_map_hex(rl_draw, map_origin, &hex_coord);
+            draw_hex(rl_draw, map_origin, &hex_coord);
 
             hex_coord.i += 1;
             if hex_coord.i >= HEX_COUNT_SQRT {
@@ -60,20 +61,15 @@ pub fn draw_map(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord) {
     }
 }
 
-fn draw_map_hex(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord, hex_coord: &HexCoord) {
-    let map_coord: MapCoord = hex_coord.map_coord();
-    let render_coord: RenderCoord = map_coord.render_coord(map_origin);
+fn draw_hex(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord, hex_coord: &HexCoord) {
     let Some(hex): Option<Hex> = hex_coord.clone_map_hex() else {
         panic!("Invalid hex coord: {:?}", hex_coord);
     };
-    let color: Color = hex.resource_type.color();
+    let map_coord: MapCoord = hex_coord.map_coord();
+    let render_coord: RenderCoord = map_coord.render_coord(map_origin);
 
-    match hex.resource_type {
-        ResourceType::None => {}
-        _ => {
-            rl_draw.draw_poly(render_coord, i32::from(HEX_SIDES), HEX_RADIUS, HEX_ROTATION, color);
-        }
-    }
+    draw_hex_background(rl_draw, &hex, map_origin, &render_coord);
+
     rl_draw.draw_poly_lines_ex(
         render_coord.into(),
         i32::from(HEX_SIDES),
@@ -82,6 +78,34 @@ fn draw_map_hex(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord, hex_coord
         1.,
         HEX_OUTLINE_COLOR,
     );
+}
+
+fn draw_hex_background(rl_draw: &mut RaylibDrawHandle, hex: &Hex, map_origin: &MapCoord, render_coord: &RenderCoord) {
+    let mut color: Color = hex.resource_type.color();
+    let mut hovered: bool = false;
+    let mut selected: bool = false;
+
+    if map_has_focus() {
+        let containing_hex = RenderCoord(rl_draw.get_mouse_position()).containing_hex(map_origin);
+        if containing_hex.hex_coord == hex.hex_coord {
+            hovered = true;
+            color.r += 0x08;
+            color.g += 0x08;
+            color.b += 0x08;
+        }
+    }
+
+    let hex_window: RwLockReadGuard<HexWindow> = STATE.windows.hex.read().unwrap();
+    if hex_window.is_open && hex_window.hex.unwrap().hex_coord == hex.hex_coord {
+        selected = true;
+        color.r += 0x08;
+        color.g += 0x08;
+        color.b += 0x08;
+    }
+
+    if hex.resource_type != ResourceType::None || hovered || selected {
+        rl_draw.draw_poly(*render_coord, i32::from(HEX_SIDES), HEX_RADIUS, HEX_ROTATION, color);
+    }
 }
 
 pub fn draw_players(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord) {

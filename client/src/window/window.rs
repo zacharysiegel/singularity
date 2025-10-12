@@ -11,7 +11,7 @@ use raylib::prelude::{RaylibDrawHandle, Vector2};
 use raylib::RaylibHandle;
 use shared::error::AppError;
 use std::ops::Sub;
-use std::sync::RwLock;
+use std::sync::{RwLock, RwLockReadGuard};
 
 pub const WINDOW_LAYERS: [&'static RwLock<dyn Window>; 3] =
     [&STATE.windows.error, &STATE.windows.pause, &STATE.windows.hex];
@@ -107,6 +107,16 @@ impl<T: Window> HoverHandler for T {
         }
         HoverResult::Consume
     }
+}
+
+pub fn any_window_open() -> bool {
+    for window in WINDOW_LAYERS {
+        let window: RwLockReadGuard<dyn Window> = window.read().unwrap();
+        if window.is_open() {
+            return true;
+        }
+    }
+    false
 }
 
 pub fn bounded_origin(rl: &mut RaylibHandle, origin: &mut RenderCoord, dimensions: Vector2) -> RenderCoord {

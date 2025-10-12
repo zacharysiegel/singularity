@@ -1,8 +1,8 @@
 use crate::map::config::{HEX_COUNT_SQRT, HEX_HEIGHT, HEX_RADIUS, HEX_SIDE_LENGTH};
 use crate::state::{Hex, STATE};
+use crate::util::{SIN_FRAC_PI_6, TAN_FRAC_PI_6};
 use raylib::prelude::Vector2;
 use shared::error::AppError;
-use crate::util::{SIN_FRAC_PI_6, TAN_FRAC_PI_6};
 use std::ops::{Deref, DerefMut, Rem, Sub};
 
 #[derive(Debug, Copy, Clone)]
@@ -206,7 +206,7 @@ impl RenderCoord {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct HexCoord {
     pub i: i16,
     pub j: i16,
