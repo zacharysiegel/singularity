@@ -5,6 +5,7 @@ use raylib::consts::MouseButton;
 use raylib::RaylibHandle;
 use std::sync::RwLockWriteGuard;
 
+#[derive(PartialEq)]
 pub enum ClickResult {
     Pass,
     Consume,
@@ -17,6 +18,7 @@ pub trait ClickHandler {
     fn handle_click(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult;
 }
 
+#[derive(PartialEq)]
 pub enum HoverResult {
     Pass,
     Consume,

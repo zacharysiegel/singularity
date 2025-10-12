@@ -10,7 +10,6 @@ use raylib::math::Rectangle;
 use raylib::prelude::{RaylibDrawHandle, Vector2};
 use raylib::RaylibHandle;
 use shared::error::AppError;
-use std::ops::Sub;
 use std::sync::{RwLock, RwLockReadGuard};
 
 pub const WINDOW_LAYERS: [&'static RwLock<dyn Window>; 3] =
@@ -47,12 +46,12 @@ pub trait Window: ClickHandler + HoverHandler {
     fn draw_content(&self, rl_draw: &mut RaylibDrawHandle);
     fn handle_window_closed(&mut self);
 
-    fn handle_window_clicked(&mut self, _rl: &mut RaylibHandle, _offset: Vector2) -> ClickResult {
+    fn handle_window_clicked(&mut self, _rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> ClickResult {
         ClickResult::Consume
     }
 
-    fn handle_window_hovered(&mut self, _offset: Vector2) -> ClickResult {
-        ClickResult::Consume
+    fn handle_window_hovered(&mut self, _mouse_position: RenderCoord) -> HoverResult {
+        HoverResult::Consume
     }
 
     fn draw(&self, rl_draw: &mut RaylibDrawHandle)
@@ -84,16 +83,15 @@ impl<T: Window> ClickHandler for T {
         if !window_contains_render_coord(self, mouse_position) {
             return ClickResult::Pass;
         }
-        let origin: RenderCoord = self.origin().unwrap();
 
         let b0_contains: bool =
-            util::rectangle_contains(draw::button_rectangle(self, 0), Vector2::from(mouse_position));
+            util::rectangle_contains(draw::side_button_rectangle(self, 0), Vector2::from(mouse_position));
         if b0_contains {
             self.handle_window_closed();
             return ClickResult::Consume;
         }
 
-        self.handle_window_clicked(rl, mouse_position.sub(origin.0))
+        self.handle_window_clicked(rl, mouse_position)
     }
 }
 
@@ -102,7 +100,7 @@ impl<T: Window> HoverHandler for T {
         if window_contains_render_coord(self, mouse_position) {
             return HoverResult::Pass;
         }
-        HoverResult::Consume
+        self.handle_window_hovered(mouse_position)
     }
 }
 

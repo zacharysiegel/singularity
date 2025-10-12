@@ -13,7 +13,7 @@ pub const BORDER_THICKNESS: f32 = 1.;
 
 const X_VERTEX_N: usize = 8;
 
-pub fn button_rectangle(window: &dyn Window, button_index: i16) -> Rectangle {
+pub fn side_button_rectangle(window: &dyn Window, button_index: i16) -> Rectangle {
     let origin: RenderCoord = window.origin().unwrap();
     Rectangle {
         x: origin.x + window.dimensions().x - BUTTON_WIDTH - BORDER_GAP,
@@ -90,8 +90,39 @@ fn draw_background(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
 }
 
 fn draw_close_button(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
-    let rect: Rectangle = button_rectangle(window, 0);
-    let vertices = &[
+    let rect: Rectangle = draw_side_button(rl_draw, window, 0);
+    draw_close_x(
+        rl_draw,
+        Vector2 {
+            x: rect.x + BUTTON_WIDTH / 2.,
+            y: rect.y + BUTTON_WIDTH / 2.,
+        },
+        14.,
+        4.5,
+    )
+}
+
+pub fn draw_side_button(rl_draw: &mut RaylibDrawHandle, window: &dyn Window, button_index: i16) -> Rectangle {
+    let rect: Rectangle = side_button_rectangle(window, button_index);
+
+    draw_side_button_background(rl_draw, rect);
+    draw_side_button_border(rl_draw, rect);
+
+    rect
+}
+
+fn draw_side_button_background(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
+    let mut background_color: Color = WINDOW_BACKGROUND_COLOR.clone();
+    if util::rectangle_contains(rect, rl_draw.get_mouse_position()) {
+        background_color.r += 0x10;
+        background_color.g += 0x10;
+        background_color.b += 0x10;
+    }
+    rl_draw.draw_rectangle_rec(rect, background_color);
+}
+
+fn draw_side_button_border(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
+    let vertices: &[Vector2; 4] = &[
         Vector2 { x: rect.x, y: rect.y },
         Vector2 {
             x: rect.x,
@@ -107,32 +138,14 @@ fn draw_close_button(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
         },
     ];
 
-    draw_close_background(rl_draw, rect);
-
-    rl_draw.draw_line_ex(vertices[0], vertices[1], BORDER_THICKNESS, WINDOW_INTERIOR_BORDER_COLOR);
-    rl_draw.draw_line_ex(vertices[1], vertices[2], BORDER_THICKNESS, WINDOW_INTERIOR_BORDER_COLOR);
-    rl_draw.draw_line_ex(vertices[2], vertices[3], BORDER_THICKNESS, WINDOW_INTERIOR_BORDER_COLOR);
-    rl_draw.draw_line_ex(vertices[3], vertices[0], BORDER_THICKNESS, WINDOW_INTERIOR_BORDER_COLOR);
-
-    draw_close_x(
-        rl_draw,
-        Vector2 {
-            x: rect.x + BUTTON_WIDTH / 2.,
-            y: rect.y + BUTTON_WIDTH / 2.,
-        },
-        14.,
-        4.5,
-    )
-}
-
-fn draw_close_background(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
-    let mut background_color: Color = WINDOW_BACKGROUND_COLOR.clone();
-    if util::rectangle_contains(rect, rl_draw.get_mouse_position()) {
-        background_color.r += 0x10;
-        background_color.g += 0x10;
-        background_color.b += 0x10;
+    for i in 0..vertices.len() {
+        rl_draw.draw_line_ex(
+            vertices[i],
+            vertices[(i + 1) % vertices.len()],
+            BORDER_THICKNESS,
+            WINDOW_INTERIOR_BORDER_COLOR,
+        );
     }
-    rl_draw.draw_rectangle_rec(rect, background_color);
 }
 
 fn draw_close_x(rl_draw: &mut RaylibDrawHandle, center: Vector2, radius: f32, width: f32) {

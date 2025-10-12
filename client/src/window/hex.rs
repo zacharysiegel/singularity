@@ -1,10 +1,11 @@
 use crate::color::TEXT_COLOR;
+use crate::input::ClickResult;
 use crate::map::coordinate::RenderCoord;
 use crate::state::{Hex, ResourceType};
 use crate::window;
 use crate::window::{Window, WindowLayer};
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
-use raylib::math::Vector2;
+use raylib::math::{Rectangle, Vector2};
 use raylib::prelude::WeakFont;
 use raylib::text::RaylibFont;
 use raylib::RaylibHandle;
@@ -30,7 +31,7 @@ impl Window for HexWindow {
     }
 
     fn dimensions(&self) -> Vector2 {
-        Vector2 { x: 400., y: 300. }
+        Vector2 { x: 300., y: 200. }
     }
 
     fn layer(&self) -> WindowLayer {
@@ -39,11 +40,20 @@ impl Window for HexWindow {
 
     fn draw_content(&self, rl_draw: &mut RaylibDrawHandle) {
         self.draw_title(rl_draw);
+        self.draw_buttons(rl_draw);
         self.draw_footer(rl_draw);
     }
 
     fn handle_window_closed(&mut self) {
         self.close();
+    }
+
+    fn handle_window_clicked(&mut self, _rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
+        let b1_rect: Rectangle = window::draw::side_button_rectangle(self, 1);
+        if b1_rect.check_collision_point_rec(mouse_position) {
+            log::debug!("Clicked button 1");
+        }
+        ClickResult::Consume
     }
 }
 
@@ -88,6 +98,10 @@ impl HexWindow {
             FONT_SPACING,
             TEXT_COLOR,
         );
+    }
+
+    fn draw_buttons(&self, rl_draw: &mut RaylibDrawHandle) {
+        window::draw::draw_side_button(rl_draw, self, 1);
     }
 
     fn draw_footer(&self, rl_draw: &mut RaylibDrawHandle) {
