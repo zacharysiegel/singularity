@@ -1,4 +1,4 @@
-use crate::input::{ClickResult, Clickable};
+use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
 use crate::map::coordinate::{MapCoord, RenderCoord};
 use crate::state::STATE;
 use crate::util;
@@ -42,7 +42,7 @@ impl WindowState {
     };
 }
 
-pub trait Window: Clickable {
+pub trait Window: ClickHandler + HoverHandler {
     fn is_open(&self) -> bool;
     fn origin(&self) -> Option<RenderCoord>;
     fn dimensions(&self) -> Vector2;
@@ -50,7 +50,11 @@ pub trait Window: Clickable {
     fn draw<'a, 'b, 'c>(&'a self, rl_draw: &'b mut RaylibDrawHandle, map_origin: &'c MapCoord);
     fn handle_window_closed(&mut self);
 
-    fn handle_window_clicked(&mut self, offset: Vector2) -> ClickResult {
+    fn handle_window_clicked(&mut self, _offset: Vector2) -> ClickResult {
+        ClickResult::Consume
+    }
+
+    fn handle_window_hovered(&mut self, _offset: Vector2) -> ClickResult {
         ClickResult::Consume
     }
 
@@ -66,27 +70,39 @@ pub trait Window: Clickable {
     }
 }
 
-impl<T: Window> Clickable for T {
-    fn handle_click(&mut self, coord: RenderCoord) -> ClickResult {
-        if !self.is_open() {
+impl<T: Window> ClickHandler for T {
+    fn handle_click(&mut self, mouse_position: RenderCoord) -> ClickResult {
+        if !window_contains_render_coord(self, mouse_position) {
             return ClickResult::Pass;
         }
         let origin: RenderCoord = self.origin().unwrap();
-        let rectangle: Rectangle = self.try_to_rectangle().unwrap();
 
-        let contained: bool = util::rectangle_contains(rectangle, Vector2::from(coord));
-        if !contained {
-            return ClickResult::Pass;
-        }
-
-        let contained = util::rectangle_contains(button_rectangle(self, 0), Vector2::from(coord));
-        if contained {
+        let b0_contains: bool = util::rectangle_contains(button_rectangle(self, 0), Vector2::from(mouse_position));
+        if b0_contains {
             self.handle_window_closed();
             return ClickResult::Consume;
         }
 
-        self.handle_window_clicked(coord.sub(origin.0))
+        self.handle_window_clicked(mouse_position.sub(origin.0))
     }
+}
+
+impl<T: Window> HoverHandler for T {
+    fn handle_hover(&mut self, mouse_position: RenderCoord) -> HoverResult {
+        if window_contains_render_coord(self, mouse_position) {
+            return HoverResult::Pass;
+        }
+        HoverResult::Consume
+    }
+}
+
+fn window_contains_render_coord(window: &dyn Window, render_coord: RenderCoord) -> bool {
+    if !window.is_open() {
+        return false;
+    }
+
+    let rectangle: Rectangle = window.try_to_rectangle().unwrap();
+    util::rectangle_contains(rectangle, Vector2::from(render_coord))
 }
 
 fn button_rectangle(window: &dyn Window, button_index: i16) -> Rectangle {
@@ -102,9 +118,11 @@ fn button_rectangle(window: &dyn Window, button_index: i16) -> Rectangle {
 pub mod draw {
     use crate::color::{RED, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_INTERIOR_BORDER_COLOR};
     use crate::map::coordinate::RenderCoord;
+    use crate::util;
     use crate::util::SIN_FRAC_PI_4;
     use crate::window::window::{button_rectangle, BORDER_GAP, BORDER_THICKNESS, BUTTON_WIDTH};
     use crate::window::Window;
+    use raylib::color::Color;
     use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
     use raylib::ffi::{DrawLineEx, DrawRectangleLinesEx};
     use raylib::math::{Rectangle, Vector2};
@@ -205,13 +223,14 @@ pub mod draw {
             },
         ];
 
-        rl_draw.draw_rectangle_rec(rect, WINDOW_BACKGROUND_COLOR);
+        draw_close_background(rl_draw, rect);
+
         rl_draw.draw_line_ex(vertices[0], vertices[1], BORDER_THICKNESS, WINDOW_INTERIOR_BORDER_COLOR);
         rl_draw.draw_line_ex(vertices[1], vertices[2], BORDER_THICKNESS, WINDOW_INTERIOR_BORDER_COLOR);
         rl_draw.draw_line_ex(vertices[2], vertices[3], BORDER_THICKNESS, WINDOW_INTERIOR_BORDER_COLOR);
         rl_draw.draw_line_ex(vertices[3], vertices[0], BORDER_THICKNESS, WINDOW_INTERIOR_BORDER_COLOR);
 
-        draw_x(
+        draw_close_x(
             rl_draw,
             Vector2 {
                 x: rect.x + BUTTON_WIDTH / 2.,
@@ -222,15 +241,25 @@ pub mod draw {
         )
     }
 
-    fn draw_x(rl_draw: &mut RaylibDrawHandle, center: Vector2, radius: f32, width: f32) {
-        let a: [Vector2; POINT_N] = create_x_segment(center, radius, width, false);
-        let b: [Vector2; POINT_N] = create_x_segment(center, radius, width, true);
+    fn draw_close_background(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
+        let mut background_color: Color = WINDOW_BACKGROUND_COLOR.clone();
+        if util::rectangle_contains(rect, rl_draw.get_mouse_position()) {
+            background_color.r += 0x10;
+            background_color.g += 0x10;
+            background_color.b += 0x10;
+        }
+        rl_draw.draw_rectangle_rec(rect, background_color);
+    }
+
+    fn draw_close_x(rl_draw: &mut RaylibDrawHandle, center: Vector2, radius: f32, width: f32) {
+        let a: [Vector2; POINT_N] = create_close_x_segment(center, radius, width, false);
+        let b: [Vector2; POINT_N] = create_close_x_segment(center, radius, width, true);
 
         rl_draw.draw_triangle_fan(&a, RED);
         rl_draw.draw_triangle_fan(&b, RED);
     }
 
-    fn create_x_segment(center: Vector2, radius: f32, width: f32, reflect: bool) -> [Vector2; POINT_N] {
+    fn create_close_x_segment(center: Vector2, radius: f32, width: f32, reflect: bool) -> [Vector2; POINT_N] {
         let r_sin_frac_pi_4: f32 = radius * *SIN_FRAC_PI_4 as f32;
         let point_hypotenuse: f32 = width / 2. / *SIN_FRAC_PI_4 as f32;
 
