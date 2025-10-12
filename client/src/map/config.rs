@@ -1,4 +1,4 @@
-use shared::util;
+use crate::util;
 use std::sync::LazyLock;
 
 pub const HEX_COUNT_SQRT: i16 = 64;

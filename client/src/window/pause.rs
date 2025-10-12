@@ -30,6 +30,10 @@ impl Window for PauseWindow {
     fn draw(&self, _rl_draw: &mut RaylibDrawHandle, _map_origin: &MapCoord) {
         todo!()
     }
+
+    fn handle_window_closed(&mut self) {
+        todo!()
+    }
 }
 
 impl PauseWindow {

@@ -1,24 +1,23 @@
 use crate::input::{ClickResult, Clickable};
 use crate::map::coordinate::{MapCoord, RenderCoord};
 use crate::state::STATE;
+use crate::util;
 use crate::window::error::ErrorWindow;
 use crate::window::hex::HexWindow;
 use crate::window::pause::PauseWindow;
+pub use draw::*;
+use raylib::math::Rectangle;
 use raylib::prelude::{RaylibDrawHandle, Vector2};
+use shared::error::AppError;
 use std::ops::Sub;
 use std::sync::RwLock;
 
-pub use draw::*;
-
-#[derive(Debug)]
-pub struct WindowState {
-    pub error: RwLock<ErrorWindow>,
-    pub pause: RwLock<PauseWindow>,
-    pub hex: RwLock<HexWindow>,
-}
-
 pub const WINDOW_LAYERS: [&'static RwLock<dyn Window>; 3] =
     [&STATE.windows.error, &STATE.windows.pause, &STATE.windows.hex];
+
+const BUTTON_WIDTH: f32 = 42.;
+const BORDER_GAP: f32 = 10.;
+const BORDER_THICKNESS: f32 = 1.;
 
 /// Lower numbers indicate higher priority in the z-buffer
 #[repr(u8)]
@@ -26,6 +25,13 @@ pub enum WindowLayer {
     ErrorWindowLayer = 0,
     PauseWindowLayer = 1,
     HexWindowLayer = 2,
+}
+
+#[derive(Debug)]
+pub struct WindowState {
+    pub error: RwLock<ErrorWindow>,
+    pub pause: RwLock<PauseWindow>,
+    pub hex: RwLock<HexWindow>,
 }
 
 impl WindowState {
@@ -42,39 +48,67 @@ pub trait Window: Clickable {
     fn dimensions(&self) -> Vector2;
     fn layer(&self) -> WindowLayer;
     fn draw<'a, 'b, 'c>(&'a self, rl_draw: &'b mut RaylibDrawHandle, map_origin: &'c MapCoord);
+    fn handle_window_closed(&mut self);
+
+    fn handle_window_clicked(&mut self, offset: Vector2) -> ClickResult {
+        ClickResult::Consume
+    }
+
+    fn try_to_rectangle(&self) -> Result<Rectangle, AppError> {
+        let origin: RenderCoord =
+            self.origin().ok_or_else(|| AppError::new("Cannot create Rectangle from non-open Window"))?;
+        Ok(Rectangle {
+            x: origin.x,
+            y: origin.y,
+            width: self.dimensions().x,
+            height: self.dimensions().y,
+        })
+    }
 }
 
 impl<T: Window> Clickable for T {
-    fn handle_click(&self, coord: RenderCoord) -> ClickResult {
+    fn handle_click(&mut self, coord: RenderCoord) -> ClickResult {
         if !self.is_open() {
             return ClickResult::Pass;
         }
-
         let origin: RenderCoord = self.origin().unwrap();
-        let translated: Vector2 = coord.0.sub(origin.0);
-        let contained: bool = (0. <= translated.x
-            && translated.x < self.dimensions().x
-            && 0. <= translated.y
-            && translated.y < self.dimensions().y);
+        let rectangle: Rectangle = self.try_to_rectangle().unwrap();
 
-        match contained {
-            true => ClickResult::Consume,
-            false => ClickResult::Pass,
+        let contained: bool = util::rectangle_contains(rectangle, Vector2::from(coord));
+        if !contained {
+            return ClickResult::Pass;
         }
+
+        let contained = util::rectangle_contains(button_rectangle(self, 0), Vector2::from(coord));
+        if contained {
+            self.handle_window_closed();
+            return ClickResult::Consume;
+        }
+
+        self.handle_window_clicked(coord.sub(origin.0))
+    }
+}
+
+fn button_rectangle(window: &dyn Window, button_index: i16) -> Rectangle {
+    let origin: RenderCoord = window.origin().unwrap();
+    Rectangle {
+        x: origin.x + window.dimensions().x - BUTTON_WIDTH - BORDER_GAP,
+        y: origin.y + BORDER_GAP + (f32::from(button_index) * BUTTON_WIDTH),
+        width: BUTTON_WIDTH,
+        height: BUTTON_WIDTH,
     }
 }
 
 pub mod draw {
     use crate::color::{RED, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_INTERIOR_BORDER_COLOR};
     use crate::map::coordinate::RenderCoord;
+    use crate::util::SIN_FRAC_PI_4;
+    use crate::window::window::{button_rectangle, BORDER_GAP, BORDER_THICKNESS, BUTTON_WIDTH};
     use crate::window::Window;
     use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
     use raylib::ffi::{DrawLineEx, DrawRectangleLinesEx};
     use raylib::math::{Rectangle, Vector2};
-    use shared::util::SIN_FRAC_PI_4;
 
-    const BORDER_GAP: f32 = 10.;
-    const BORDER_THICKNESS: f32 = 1.;
     const POINT_N: usize = 8;
 
     pub fn draw_window_base<W: Window>(rl_draw: &mut RaylibDrawHandle, window: &W) {
@@ -154,15 +188,7 @@ pub mod draw {
     }
 
     fn draw_close_button<W: Window>(rl_draw: &mut RaylibDrawHandle, window: &W) {
-        const BUTTON_WIDTH: f32 = 42.;
-
-        let origin: RenderCoord = window.origin().unwrap();
-        let rect: Rectangle = Rectangle {
-            x: origin.x + window.dimensions().x - BUTTON_WIDTH - BORDER_GAP,
-            y: origin.y + BORDER_GAP,
-            width: BUTTON_WIDTH,
-            height: BUTTON_WIDTH,
-        };
+        let rect: Rectangle = button_rectangle(window, 0);
         let vertices = &[
             Vector2 { x: rect.x, y: rect.y },
             Vector2 {

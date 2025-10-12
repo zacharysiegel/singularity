@@ -2,7 +2,7 @@ use crate::map::config::{HEX_COUNT_SQRT, HEX_HEIGHT, HEX_RADIUS, HEX_SIDE_LENGTH
 use crate::state::{Hex, STATE};
 use raylib::prelude::Vector2;
 use shared::error::AppError;
-use shared::util::{SIN_FRAC_PI_6, TAN_FRAC_PI_6};
+use crate::util::{SIN_FRAC_PI_6, TAN_FRAC_PI_6};
 use std::ops::{Deref, DerefMut, Rem, Sub};
 
 #[derive(Debug, Copy, Clone)]

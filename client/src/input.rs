@@ -3,7 +3,7 @@ use crate::map::coordinate::RenderCoord;
 use crate::window::{Window, WINDOW_LAYERS};
 use raylib::consts::MouseButton;
 use raylib::RaylibHandle;
-use std::sync::RwLockReadGuard;
+use std::sync::RwLockWriteGuard;
 
 pub enum ClickResult {
     Pass,
@@ -14,7 +14,7 @@ pub trait Clickable {
     /// Hook to allow an object to handle a click event.
     /// The hook should return [ClickResult::Consume] to consume the event, or
     /// [ClickResult::Pass] to allow subsequent objects to handle the same event.
-    fn handle_click(&self, mouse_position: RenderCoord) -> ClickResult;
+    fn handle_click(&mut self, mouse_position: RenderCoord) -> ClickResult;
 }
 
 pub fn handle_user_input(rl: &mut RaylibHandle) {
@@ -25,7 +25,7 @@ pub fn handle_user_input(rl: &mut RaylibHandle) {
 
 fn click(mouse_position: RenderCoord) {
     for window in WINDOW_LAYERS {
-        let window: RwLockReadGuard<dyn Window> = window.read().unwrap();
+        let mut window: RwLockWriteGuard<dyn Window> = window.write().unwrap();
         match window.handle_click(mouse_position) {
             ClickResult::Pass => {}
             ClickResult::Consume => return,

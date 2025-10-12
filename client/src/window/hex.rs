@@ -3,12 +3,12 @@ use crate::map::coordinate::{HexCoord, MapCoord, RenderCoord};
 use crate::state::Hex;
 use crate::window;
 use crate::window::{Window, WindowLayer};
+use raylib::drawing::RaylibDrawHandle;
 use raylib::ffi::{DrawTextEx, GetFontDefault};
 use raylib::math::Vector2;
 use std::ffi::CString;
 use std::ops::Add;
 use std::str::FromStr;
-use raylib::drawing::RaylibDrawHandle;
 
 #[derive(Debug)]
 pub struct HexWindow {
@@ -41,6 +41,10 @@ impl Window for HexWindow {
 
         window::draw_window_base(rl_draw, self);
         draw_title(self);
+    }
+
+    fn handle_window_closed(&mut self) {
+        self.close();
     }
 }
 
