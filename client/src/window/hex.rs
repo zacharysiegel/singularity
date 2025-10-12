@@ -1,4 +1,4 @@
-use crate::color::{TEXT_COLOR, WHITE};
+use crate::color::TEXT_COLOR;
 use crate::map::coordinate::RenderCoord;
 use crate::state::{Hex, ResourceType};
 use crate::window;
@@ -6,10 +6,12 @@ use crate::window::{Window, WindowLayer};
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
 use raylib::prelude::WeakFont;
+use raylib::text::RaylibFont;
 use raylib::RaylibHandle;
 use std::ops::Add;
-use raylib::text::RaylibFont;
 use window::draw::BORDER_GAP;
+
+const FONT_SPACING: f32 = 2.;
 
 #[derive(Debug)]
 pub struct HexWindow {
@@ -74,14 +76,17 @@ impl HexWindow {
 
     fn draw_title(&self, rl_draw: &mut RaylibDrawHandle) {
         let origin: RenderCoord = self.origin.unwrap();
+        let title_text: &str = self.get_title().unwrap();
+
+        const FONT_SIZE: f32 = 20.;
 
         rl_draw.draw_text_ex(
             rl_draw.get_font_default(),
-            self.get_title().unwrap(),
+            title_text,
             origin.add(Vector2 { x: 20., y: 20. }),
-            20.,
-            2.,
-            WHITE,
+            FONT_SIZE,
+            FONT_SPACING,
+            TEXT_COLOR,
         );
     }
 
@@ -90,7 +95,6 @@ impl HexWindow {
         let origin: RenderCoord = self.origin().unwrap();
 
         const FONT_SIZE: f32 = 12.;
-        const FONT_SPACING: f32 = 2.;
         const FOOTER_HEIGHT: f32 = 20.;
         const FOOTER_MARGIN: f32 = 8.;
 
