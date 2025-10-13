@@ -13,6 +13,7 @@
    1. Account setup
    1. Game browser
    1. Account
+   1. Debug
 1. Server-side networking
     1. TLS (low)
 1. Client-side networking

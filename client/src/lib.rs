@@ -10,3 +10,4 @@ pub mod color;
 pub mod util;
 pub mod stage;
 pub mod title;
+pub mod font;
