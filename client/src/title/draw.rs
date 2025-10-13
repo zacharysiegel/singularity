@@ -5,11 +5,11 @@ use crate::font::DEFAULT_FONT_SPACING;
 use crate::math;
 use crate::state::STATE;
 use crate::title::DEBUG_TEXT;
+use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
 use shared::environment::RuntimeEnvironment;
 use std::sync::RwLockReadGuard;
-use raylib::color::Color;
 
 pub fn draw_title(rl_draw: &mut RaylibDrawHandle) {
     draw_title_text(rl_draw);
@@ -54,12 +54,12 @@ fn draw_debug_button(rl_draw: &mut RaylibDrawHandle) {
     let debug_button: RwLockReadGuard<RectangularButton> = STATE.stage.title.debug_button.read().unwrap();
     let position: Vector2 = math::rect_origin(debug_button.rectangle);
     let dimensions: Vector2 = math::rect_dimensions(debug_button.rectangle);
-    // let mut bg_color: Color = WINDOW_BACKGROUND_COLOR;
-    // if debug_button.is_hovered() {
-    //     bg_color = math::color_add(&bg_color, &DIFF_HOVER_BUTTON);
-    // }
+    let mut bg_color: Color = WINDOW_BACKGROUND_COLOR;
+    if debug_button.is_hovered() {
+        bg_color = math::color_add(&bg_color, &DIFF_HOVER_BUTTON);
+    }
 
-    rl_draw.draw_rectangle_v(position, dimensions, WINDOW_BACKGROUND_COLOR);
+    rl_draw.draw_rectangle_v(position, dimensions, bg_color);
     rl_draw.draw_text_ex(
         rl_draw.get_font_default(),
         DEBUG_TEXT,

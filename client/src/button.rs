@@ -29,6 +29,7 @@ impl HoverHandler for RectangularButton {
             self.hovered = true;
             (self.on_hover)(rl, mouse_position)
         } else {
+            self.hovered = false;
             HoverResult::Pass
         }
     }
