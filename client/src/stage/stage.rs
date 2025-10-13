@@ -1,6 +1,7 @@
 use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
 use crate::map::RenderCoord;
-use crate::stage::{draw, input};
+use crate::stage::draw;
+use crate::{map, title};
 use raylib::drawing::RaylibDrawHandle;
 use raylib::RaylibHandle;
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
@@ -47,8 +48,8 @@ pub struct Stage {
 impl ClickHandler for Stage {
     fn handle_click(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
         match self.stage_type {
-            StageType::Title => input::handle_click_title(rl, mouse_position),
-            StageType::Map => input::handle_click_map(rl, mouse_position),
+            StageType::Title => title::handle_click_title(rl, mouse_position),
+            StageType::Map => map::handle_click_map(rl, mouse_position),
         }
     }
 }
@@ -56,8 +57,8 @@ impl ClickHandler for Stage {
 impl HoverHandler for Stage {
     fn handle_hover(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
         match self.stage_type {
-            StageType::Title => input::handle_hover_title(rl, mouse_position),
-            StageType::Map => input::handle_hover_map(rl, mouse_position),
+            StageType::Title => title::handle_hover_title(rl, mouse_position),
+            StageType::Map => map::handle_hover_map(rl, mouse_position),
         }
     }
 }

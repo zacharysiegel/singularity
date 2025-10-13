@@ -9,10 +9,10 @@ use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::{Rectangle, Vector2};
 
-pub const BUTTON_WIDTH: f32 = 42.;
 pub const BORDER_GAP: f32 = 10.;
-pub const BORDER_THICKNESS: f32 = 1.;
 
+const BUTTON_WIDTH: f32 = 42.;
+const BORDER_THICKNESS: f32 = 1.;
 const X_VERTEX_N: usize = 8;
 
 pub fn side_button_rectangle(window: &dyn Window, button_index: i16) -> Rectangle {

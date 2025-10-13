@@ -3,10 +3,10 @@ use crate::color::{
     MAP_BACKGROUND_COLOR, TEXT_COLOR,
 };
 use crate::map::config::{HEX_COUNT_SQRT, HEX_RADIUS, HEX_ROTATION, HEX_SIDES};
-use crate::map::coordinate::{get_hex_count_height, get_hex_count_width, HexCoord};
+use crate::map::coordinate::HexCoord;
 use crate::map::coordinate::{MapCoord, RenderCoord};
-use crate::map::map_has_focus;
 use crate::map::state::{Hex, ResourceType};
+use crate::map::{coordinate, input};
 use crate::state::{Facility, FacilityState, FacilityType, Player, STATE};
 use crate::util;
 use crate::window::error::ErrorWindow;
@@ -43,8 +43,8 @@ pub fn draw_map(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord) {
     };
     let mut hex_coord: HexCoord = min_hex_coord;
 
-    let max_hexes_i: u16 = get_hex_count_width(screen_width as f32);
-    let max_hexes_j: u16 = get_hex_count_height(screen_height as f32);
+    let max_hexes_i: u16 = coordinate::get_hex_count_width(screen_width as f32);
+    let max_hexes_j: u16 = coordinate::get_hex_count_height(screen_height as f32);
     for _hexes_drawn_j in 0..=(max_hexes_j + 2) {
         for _hexes_drawn_i in 0..=(max_hexes_i + 2) {
             draw_hex(rl_draw, map_origin, &hex_coord);
@@ -87,7 +87,7 @@ fn draw_hex_background(rl_draw: &mut RaylibDrawHandle, hex: &Hex, map_origin: &M
     let mut hovered: bool = false;
     let mut selected: bool = false;
 
-    if map_has_focus() {
+    if input::map_has_focus() { // todo: refactor to use state and hover handler
         let containing_hex = RenderCoord(rl_draw.get_mouse_position()).containing_hex(map_origin);
         if containing_hex.hex_coord == hex.hex_coord {
             hovered = true;
