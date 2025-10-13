@@ -20,22 +20,6 @@ pub enum RuntimeEnvironment {
     Production,
 }
 
-impl RuntimeEnvironment {
-    pub fn from_env() -> Result<RuntimeEnvironment, AppError> {
-        RuntimeEnvironment::try_from(
-            env::var("RUNTIME_ENVIRONMENT").unwrap_or(String::from("local")),
-        )
-    }
-
-    pub fn get_address(&self) -> &'static str {
-        match self {
-            RuntimeEnvironment::Local => "0.0.0.0:1443",
-            RuntimeEnvironment::Stage => "0.0.0.0:1443", // todo
-            RuntimeEnvironment::Production => "0.0.0.0:1443", // todo
-        }
-    }
-}
-
 impl Default for RuntimeEnvironment {
     fn default() -> RuntimeEnvironment {
         RUNTIME_ENVIRONMENT_DEFAULT.deref().clone()
@@ -50,10 +34,7 @@ impl TryFrom<String> for RuntimeEnvironment {
             "local" => Ok(Self::Local),
             "stage" => Ok(Self::Stage),
             "production" => Ok(Self::Production),
-            _ => Err(AppError::new(&format!(
-                "Error parsing runtime environment [{}]",
-                value
-            ))),
+            _ => Err(AppError::new(&format!("Error parsing runtime environment [{}]", value))),
         }
     }
 }
@@ -66,6 +47,28 @@ impl Display for RuntimeEnvironment {
             RuntimeEnvironment::Production => String::from("production"),
         };
         write!(f, "{}", str)
+    }
+}
+
+impl RuntimeEnvironment {
+    pub fn from_env() -> Result<RuntimeEnvironment, AppError> {
+        RuntimeEnvironment::try_from(env::var("RUNTIME_ENVIRONMENT").unwrap_or(String::from("local")))
+    }
+
+    pub fn get_address(&self) -> &'static str {
+        match self {
+            RuntimeEnvironment::Local => "0.0.0.0:1443",
+            RuntimeEnvironment::Stage => "0.0.0.0:1443",      // todo
+            RuntimeEnvironment::Production => "0.0.0.0:1443", // todo
+        }
+    }
+
+    pub fn is_debug(&self) -> bool {
+        match self {
+            RuntimeEnvironment::Local => true,
+            RuntimeEnvironment::Stage => true,
+            RuntimeEnvironment::Production => false,
+        }
     }
 }
 

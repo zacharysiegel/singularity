@@ -11,6 +11,7 @@ use raylib::callbacks::TraceLogLevel;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::ffi::SetConfigFlags;
 use raylib::{ffi, math, RaylibHandle, RaylibThread};
+use shared::environment::RuntimeEnvironment;
 use shared::error::AppError;
 use shared::network::ring_buffer::RingBuffer;
 use std::ops::{Add, Mul};
@@ -44,7 +45,9 @@ fn draw(rl_draw: &mut RaylibDrawHandle) {
     let stage: RwLockReadGuard<Stage> = STATE.stage.get_current_read();
     stage.draw(rl_draw);
 
-    rl_draw.draw_fps(10, 10); // debug
+    if RuntimeEnvironment::default().is_debug() {
+        rl_draw.draw_fps(10, 10);
+    }
 }
 
 pub fn init() -> Result<(RaylibHandle, RaylibThread), AppError> {

@@ -176,6 +176,7 @@ Menus
 		Friends
 		Change email/username/password
 		Delete account
+	Debug
 
 Map
     Tessellated hexagons
