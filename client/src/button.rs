@@ -4,6 +4,7 @@ use crate::map::RenderCoord;
 use raylib::math::Rectangle;
 use raylib::RaylibHandle;
 
+#[derive(Debug)]
 pub struct RectangularButton {
     pub rectangle: Rectangle,
     pub on_click: fn(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult,
@@ -33,13 +34,32 @@ impl HoverHandler for RectangularButton {
     }
 }
 
+impl Default for RectangularButton {
+    fn default() -> RectangularButton {
+        RectangularButton::DEFAULT
+    }
+}
+
 impl RectangularButton {
+    pub const DEFAULT: RectangularButton = RectangularButton {
+        rectangle: Rectangle {
+            x: 0.0,
+            y: 0.0,
+            width: 0.0,
+            height: 0.0,
+        },
+        on_click: input::noop_on_click,
+        on_hover: input::noop_on_hover,
+        hovered: false,
+    };
+
     pub fn new(rectangle: Rectangle) -> RectangularButton {
-        RectangularButton {
-            rectangle,
-            on_click: input::noop_on_click,
-            on_hover: input::noop_on_hover,
-            hovered: false,
-        }
+        let mut button: RectangularButton = RectangularButton::default();
+        button.rectangle = rectangle;
+        button
+    }
+
+    pub fn is_hovered(&self) -> bool {
+        self.hovered
     }
 }

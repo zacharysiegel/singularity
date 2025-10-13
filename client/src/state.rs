@@ -7,8 +7,8 @@ use std::sync::RwLock;
 pub static STATE: State = State {
     frame_counter: RwLock::new(0),
     stage: StageState::DEFAULT,
-    player: PlayerState::DEFAULT,
-    window: WindowState::DEFAULT,
+    player: PlayerState::DEFAULT, // todo: move to MapState
+    window: WindowState::DEFAULT, // todo: move to MapState
 };
 
 #[derive(Debug)]

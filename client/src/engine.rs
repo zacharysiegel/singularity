@@ -2,11 +2,9 @@ use crate::color::MAP_BACKGROUND_COLOR;
 use crate::config::APPLICATION_NAME;
 use crate::map::coordinate::MapCoord;
 use crate::map::draw;
-use crate::map::init::init_map;
-use crate::player::init_players;
 use crate::stage::Stage;
 use crate::state::STATE;
-use crate::{connect, input};
+use crate::{connect, input, map, player, title};
 use raylib::callbacks::TraceLogLevel;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::ffi::SetConfigFlags;
@@ -71,8 +69,9 @@ pub fn init() -> Result<(RaylibHandle, RaylibThread), AppError> {
     rl.set_target_fps(u32::from(TARGET_FPS));
     draw::draw_loading_init(&mut rl, &rl_thread);
 
-    init_map();
-    init_players(4);
+    title::init_title(&mut rl);
+    map::init_map();
+    player::init_players(4);
 
     Ok((rl, rl_thread))
 }

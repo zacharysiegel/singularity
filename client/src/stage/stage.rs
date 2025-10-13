@@ -1,6 +1,7 @@
 use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
 use crate::map::{MapState, RenderCoord};
 use crate::stage::draw;
+use crate::title::TitleState;
 use crate::{map, title};
 use raylib::drawing::RaylibDrawHandle;
 use raylib::RaylibHandle;
@@ -18,12 +19,14 @@ pub static STAGES: [RwLock<Stage>; 2] = [RwLock::new(STAGE_TITLE), RwLock::new(S
 #[derive(Debug)]
 pub struct StageState {
     pub current_index: RwLock<usize>,
+    pub title: TitleState,
     pub map: MapState,
 }
 
 impl StageState {
     pub const DEFAULT: StageState = StageState {
         current_index: RwLock::new(0),
+        title: TitleState::DEFAULT,
         map: MapState::DEFAULT,
     };
 
