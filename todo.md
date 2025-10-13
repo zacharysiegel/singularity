@@ -9,7 +9,7 @@
 	1. Attack facility (opposed facility spaces)
 	1. Chat
 1. Menus
-   1. Title screen
+   1. Title screen `IN PROGRESS`
    1. Account setup
    1. Game browser
    1. Account

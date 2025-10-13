@@ -33,7 +33,7 @@ fn scrolled_map_origin(rl: &mut RaylibHandle, map_origin: &MapCoord) -> MapCoord
 fn update(rl: &mut RaylibHandle) {
     input::handle_user_input(rl);
 
-    let mut map_origin: RwLockWriteGuard<MapCoord> = STATE.map_origin.write().expect("global state poisoned");
+    let mut map_origin: RwLockWriteGuard<MapCoord> = STATE.map.map_origin.write().expect("global state poisoned");
     let old: MapCoord = map_origin.clone();
     *map_origin = scrolled_map_origin(rl, &old);
 }
@@ -41,7 +41,7 @@ fn update(rl: &mut RaylibHandle) {
 fn draw(rl_draw: &mut RaylibDrawHandle) {
     rl_draw.clear_background(MAP_BACKGROUND_COLOR);
 
-    let map_origin: RwLockReadGuard<MapCoord> = STATE.map_origin.read().expect("global state poisoned");
+    let map_origin: RwLockReadGuard<MapCoord> = STATE.map.map_origin.read().expect("global state poisoned");
     draw_map(rl_draw, &map_origin);
     draw_players(rl_draw, &map_origin);
     draw_windows(rl_draw);

@@ -13,7 +13,7 @@ use shared::error::AppError;
 use std::sync::{RwLock, RwLockReadGuard};
 
 pub const WINDOW_LAYERS: [&'static RwLock<dyn Window>; 3] =
-    [&STATE.windows.error, &STATE.windows.pause, &STATE.windows.hex];
+    [&STATE.window.error, &STATE.window.pause, &STATE.window.hex];
 
 /// Lower numbers indicate higher priority in the z-buffer
 #[repr(u8)]

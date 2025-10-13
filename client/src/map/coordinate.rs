@@ -1,5 +1,6 @@
 use crate::map::config::{HEX_COUNT_SQRT, HEX_HEIGHT, HEX_RADIUS, HEX_SIDE_LENGTH};
-use crate::state::{Hex, STATE};
+use crate::map::state::Hex;
+use crate::state::STATE;
 use crate::util::{SIN_FRAC_PI_6, TAN_FRAC_PI_6};
 use raylib::prelude::Vector2;
 use shared::error::AppError;
@@ -114,7 +115,7 @@ impl MapCoord {
 
         let matched_i: usize = matched_i.unwrap();
 
-        let hexes = STATE.hexes.read().expect("poisoned global state");
+        let hexes = STATE.map.hexes.read().expect("poisoned global state");
         let matched_hex: Hex = hexes[candidate_hex_coords[matched_i].map_index()];
         drop(hexes);
 
@@ -222,7 +223,7 @@ impl HexCoord {
     pub const DEFAULT: HexCoord = HexCoord { i: 0, j: 0 };
 
     pub fn clone_map_hex(&self) -> Option<Hex> {
-        let hexes = STATE.hexes.read().expect("global state poisoned");
+        let hexes = STATE.map.hexes.read().expect("global state poisoned");
         hexes.get(self.map_index()).map(|hex| hex.clone())
     }
 

@@ -1,9 +1,14 @@
-use crate::color::{DIFF_HOVER_HEX, FACILITY_DESTROYED_COLOR, FACILITY_OPERATING_COLOR, FACILITY_PLACING_COLOR, HEX_OUTLINE_COLOR, MAP_BACKGROUND_COLOR, TEXT_COLOR};
+use crate::color::{
+    DIFF_HOVER_HEX, FACILITY_DESTROYED_COLOR, FACILITY_OPERATING_COLOR, FACILITY_PLACING_COLOR, HEX_OUTLINE_COLOR,
+    MAP_BACKGROUND_COLOR, TEXT_COLOR,
+};
 use crate::map::config::{HEX_COUNT_SQRT, HEX_RADIUS, HEX_ROTATION, HEX_SIDES};
 use crate::map::coordinate::{get_hex_count_height, get_hex_count_width, HexCoord};
 use crate::map::coordinate::{MapCoord, RenderCoord};
 use crate::map::map_has_focus;
-use crate::state::{Facility, FacilityState, FacilityType, Hex, Player, ResourceType, STATE};
+use crate::map::state::{Hex, ResourceType};
+use crate::state::{Facility, FacilityState, FacilityType, Player, STATE};
+use crate::util;
 use crate::window::error::ErrorWindow;
 use crate::window::hex::HexWindow;
 use crate::window::pause::PauseWindow;
@@ -12,7 +17,6 @@ use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::{RaylibHandle, RaylibThread};
 use std::sync::RwLockReadGuard;
-use crate::util;
 
 pub fn draw_loading_init(rl: &mut RaylibHandle, rl_thread: &RaylibThread) {
     let mut rl_draw: RaylibDrawHandle = rl.begin_drawing(&rl_thread);
@@ -91,7 +95,7 @@ fn draw_hex_background(rl_draw: &mut RaylibDrawHandle, hex: &Hex, map_origin: &M
         }
     }
 
-    let hex_window: RwLockReadGuard<HexWindow> = STATE.windows.hex.read().unwrap();
+    let hex_window: RwLockReadGuard<HexWindow> = STATE.window.hex.read().unwrap();
     if hex_window.is_open && hex_window.hex.unwrap().hex_coord == hex.hex_coord {
         selected = true;
         color = util::color_add(&color, &DIFF_HOVER_HEX);
@@ -103,7 +107,7 @@ fn draw_hex_background(rl_draw: &mut RaylibDrawHandle, hex: &Hex, map_origin: &M
 }
 
 pub fn draw_players(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord) {
-    let players: RwLockReadGuard<Vec<Player>> = STATE.players.read().expect("global state poisoned");
+    let players: RwLockReadGuard<Vec<Player>> = STATE.player.players.read().expect("global state poisoned");
     for player in &*players {
         for facility in &player.facilities {
             draw_facility(rl_draw, map_origin, facility);
@@ -134,9 +138,9 @@ fn draw_facility(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord, facility
 }
 
 pub fn draw_windows(rl_draw: &mut RaylibDrawHandle) {
-    let hex: RwLockReadGuard<HexWindow> = STATE.windows.hex.read().unwrap();
-    let pause: RwLockReadGuard<PauseWindow> = STATE.windows.pause.read().unwrap();
-    let error: RwLockReadGuard<ErrorWindow> = STATE.windows.error.read().unwrap();
+    let hex: RwLockReadGuard<HexWindow> = STATE.window.hex.read().unwrap();
+    let pause: RwLockReadGuard<PauseWindow> = STATE.window.pause.read().unwrap();
+    let error: RwLockReadGuard<ErrorWindow> = STATE.window.error.read().unwrap();
 
     hex.draw(rl_draw);
     assert!(hex.layer() as u8 > pause.layer() as u8);
