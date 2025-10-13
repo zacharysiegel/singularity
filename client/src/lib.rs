@@ -7,7 +7,7 @@ pub mod state;
 pub mod input;
 pub mod window;
 pub mod color;
-pub mod util;
 pub mod stage;
 pub mod title;
 pub mod font;
+pub mod math;

@@ -1,10 +1,10 @@
 use crate::map::config::{HEX_COUNT_SQRT, HEX_HEIGHT, HEX_RADIUS, HEX_SIDE_LENGTH};
 use crate::map::state::Hex;
 use crate::state::STATE;
-use crate::util::{SIN_FRAC_PI_6, TAN_FRAC_PI_6};
 use raylib::prelude::Vector2;
 use shared::error::AppError;
 use std::ops::{Deref, DerefMut, Rem, Sub};
+use crate::math::{SIN_FRAC_PI_6, TAN_FRAC_PI_6};
 
 #[derive(Debug, Copy, Clone)]
 pub struct MapCoord(pub Vector2);

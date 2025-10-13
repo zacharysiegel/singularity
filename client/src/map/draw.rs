@@ -8,7 +8,6 @@ use crate::map::coordinate::{MapCoord, RenderCoord};
 use crate::map::state::{Hex, ResourceType};
 use crate::map::{coordinate, input};
 use crate::state::{Facility, FacilityState, FacilityType, Player, STATE};
-use crate::util;
 use crate::window::error::ErrorWindow;
 use crate::window::hex::HexWindow;
 use crate::window::pause::PauseWindow;
@@ -17,6 +16,7 @@ use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::{RaylibHandle, RaylibThread};
 use std::sync::RwLockReadGuard;
+use crate::math;
 
 pub fn draw_loading_init(rl: &mut RaylibHandle, rl_thread: &RaylibThread) {
     let mut rl_draw: RaylibDrawHandle = rl.begin_drawing(&rl_thread);
@@ -91,14 +91,14 @@ fn draw_hex_background(rl_draw: &mut RaylibDrawHandle, hex: &Hex, map_origin: &M
         let containing_hex = RenderCoord(rl_draw.get_mouse_position()).containing_hex(map_origin);
         if containing_hex.hex_coord == hex.hex_coord {
             hovered = true;
-            color = util::color_add(&color, &DIFF_HOVER_HEX);
+            color = math::color_add(&color, &DIFF_HOVER_HEX);
         }
     }
 
     let hex_window: RwLockReadGuard<HexWindow> = STATE.window.hex.read().unwrap();
     if hex_window.is_open && hex_window.hex.unwrap().hex_coord == hex.hex_coord {
         selected = true;
-        color = util::color_add(&color, &DIFF_HOVER_HEX);
+        color = math::color_add(&color, &DIFF_HOVER_HEX);
     }
 
     if hex.resource_type != ResourceType::None || hovered || selected {
