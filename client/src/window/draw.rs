@@ -94,8 +94,8 @@ fn draw_close_button(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
     draw_close_x(
         rl_draw,
         Vector2 {
-            x: rect.x + BUTTON_WIDTH / 2.,
-            y: rect.y + BUTTON_WIDTH / 2.,
+            x: rect.x + rect.width / 2.,
+            y: rect.y + rect.height / 2.,
         },
         14.,
         4.5,
@@ -107,6 +107,7 @@ pub fn draw_side_button(rl_draw: &mut RaylibDrawHandle, window: &dyn Window, but
 
     draw_side_button_background(rl_draw, rect);
     draw_side_button_border(rl_draw, rect);
+    draw_side_button_accent(rl_draw, rect);
 
     rect
 }
@@ -126,14 +127,14 @@ fn draw_side_button_border(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
         Vector2 { x: rect.x, y: rect.y },
         Vector2 {
             x: rect.x,
-            y: rect.y + BUTTON_WIDTH,
+            y: rect.y + rect.height,
         },
         Vector2 {
-            x: rect.x + BUTTON_WIDTH,
-            y: rect.y + BUTTON_WIDTH,
+            x: rect.x + rect.width,
+            y: rect.y + rect.height,
         },
         Vector2 {
-            x: rect.x + BUTTON_WIDTH,
+            x: rect.x + rect.width,
             y: rect.y,
         },
     ];
@@ -146,6 +147,21 @@ fn draw_side_button_border(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
             WINDOW_INTERIOR_BORDER_COLOR,
         );
     }
+}
+
+fn draw_side_button_accent(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
+    const ACCENT_HEIGHT: f32 = 10.0;
+    let vertices: &[Vector2; 2] = &[
+        Vector2 {
+            x: rect.x + rect.width,
+            y: rect.y + rect.height - ACCENT_HEIGHT,
+        },
+        Vector2 {
+            x: rect.x + rect.width - ACCENT_HEIGHT,
+            y: rect.y + rect.height,
+        },
+    ];
+    rl_draw.draw_line_ex(vertices[0], vertices[1], BORDER_THICKNESS, WINDOW_INTERIOR_BORDER_COLOR);
 }
 
 fn draw_close_x(rl_draw: &mut RaylibDrawHandle, center: Vector2, radius: f32, width: f32) {
