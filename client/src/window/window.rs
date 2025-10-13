@@ -1,7 +1,6 @@
 use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
 use crate::map::coordinate::RenderCoord;
 use crate::state::STATE;
-use crate::util;
 use crate::window::draw;
 use crate::window::error::ErrorWindow;
 use crate::window::hex::HexWindow;
@@ -85,7 +84,7 @@ impl<T: Window> ClickHandler for T {
         }
 
         let b0_contains: bool =
-            util::rectangle_contains(draw::side_button_rectangle(self, 0), Vector2::from(mouse_position));
+            draw::side_button_rectangle(self, 0).check_collision_point_rec(Vector2::from(mouse_position));
         if b0_contains {
             self.handle_window_closed();
             return ClickResult::Consume;
@@ -135,7 +134,7 @@ fn window_contains_render_coord(window: &dyn Window, render_coord: RenderCoord) 
     }
 
     let rectangle: Rectangle = window.try_to_rectangle().unwrap();
-    util::rectangle_contains(rectangle, Vector2::from(render_coord))
+    rectangle.check_collision_point_rec(Vector2::from(render_coord))
 }
 
 #[cfg(test)]

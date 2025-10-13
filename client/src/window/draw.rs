@@ -116,7 +116,7 @@ pub fn draw_side_button(rl_draw: &mut RaylibDrawHandle, window: &dyn Window, but
 
 fn draw_side_button_background(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
     let mut background_color: Color = WINDOW_BACKGROUND_COLOR.clone();
-    if util::rectangle_contains(rect, rl_draw.get_mouse_position()) {
+    if rect.check_collision_point_rec(rl_draw.get_mouse_position()) {
         background_color = util::color_add(&background_color, &DIFF_HOVER_BUTTON);
     }
     rl_draw.draw_rectangle_rec(rect, background_color);
