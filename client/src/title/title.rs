@@ -7,10 +7,10 @@ use std::sync::LazyLock;
 
 pub const DEBUG_TEXT: &'static str = "Debug";
 pub const BUTTON_TEXT_ARRAY: [&'static str; 2] = ["Account", "Games"];
-
 pub const BUTTON_FONT_SIZE: f32 = 18.;
 pub const BUTTON_MARGIN: f32 = 8.;
-pub const BUTTON_DIMENSIONS: LazyLock<Vector2> = LazyLock::new(|| {
+
+const BUTTON_DIMENSIONS: LazyLock<Vector2> = LazyLock::new(|| {
     let mut max_measure: Vector2 = Vector2 {
         x: f32::NEG_INFINITY,
         y: f32::NEG_INFINITY,

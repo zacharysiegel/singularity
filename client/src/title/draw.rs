@@ -1,7 +1,6 @@
 use crate::color::{TEXT_COLOR, WINDOW_BACKGROUND_COLOR};
 use crate::config::APPLICATION_NAME;
 use crate::font::DEFAULT_FONT_SPACING;
-use crate::title::title::BUTTON_DIMENSIONS;
 use crate::title::DEBUG_TEXT;
 use crate::{math, title};
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
@@ -50,15 +49,16 @@ fn draw_debug_button(rl_draw: &mut RaylibDrawHandle) {
 
     let rect: Rectangle = title::debug_button_rect(rl_draw);
     let position: Vector2 = math::rect_origin(rect);
+    let dimensions: Vector2 = math::rect_dimensions(rect);
 
-    rl_draw.draw_rectangle_v(position, math::rect_dimensions(rect), WINDOW_BACKGROUND_COLOR);
+    rl_draw.draw_rectangle_v(position, dimensions, WINDOW_BACKGROUND_COLOR);
     rl_draw.draw_text_ex(
         rl_draw.get_font_default(),
         DEBUG_TEXT,
         math::centered_text_origin(
             Vector2 {
-                x: position.x + BUTTON_DIMENSIONS.x / 2.,
-                y: position.y + BUTTON_DIMENSIONS.y / 2.,
+                x: position.x + dimensions.x / 2.,
+                y: position.y + dimensions.y / 2.,
             },
             DEBUG_TEXT,
             rl_draw.get_font_default(),
