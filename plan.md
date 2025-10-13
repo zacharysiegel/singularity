@@ -74,7 +74,7 @@ Overclocking
 
 Assembly/Crafting
     Items can be created via the conjunction of other items
-    All assemply is performed by assembler objects
+    All assembly is performed by assembler objects
         There is no "manual" player assembly
     Should assembly be instantaneous?
     Assemblers can be constructed to automatically assemble items
@@ -116,7 +116,7 @@ Subterfuge-like slow tick rate
 Players are expected to attack infrastructure
     Destroyed infrastructure leaves "ghost" traces where it used to be
         Can be repaired at significantly lower cost than new construction
-    Development is implicily slowed by the fragility of investment
+    Development is implicitly slowed by the fragility of investment
         Defenses must be developed alongside infrastructure
         Serious risk evaluation during expansion
         Treaties with other players allow more efficient balance of military resources
