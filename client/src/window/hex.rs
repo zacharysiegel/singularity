@@ -78,7 +78,7 @@ impl HexWindow {
 
     pub fn get_title(&self) -> Option<&'static str> {
         Some(match self.hex?.resource_type {
-            ResourceType::None => "Empty Hex",
+            ResourceType::None => "Empty",
             ResourceType::Metal => "Resource: METAL",
             ResourceType::Oil => "Resource: OIL",
         })
