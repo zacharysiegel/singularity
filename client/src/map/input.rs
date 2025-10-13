@@ -2,9 +2,9 @@ use crate::input::{ClickResult, HoverResult};
 use crate::map::coordinate::{MapCoord, RenderCoord};
 use crate::map::state::Hex;
 use crate::state::STATE;
-use crate::window;
 use crate::window::hex::HexWindow;
 use crate::window::{Window, WINDOW_LAYERS};
+use crate::{input, window};
 use raylib::math::Vector2;
 use raylib::RaylibHandle;
 use std::sync::{RwLockReadGuard, RwLockWriteGuard};
@@ -43,8 +43,8 @@ fn handle_click_hex(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> Click
     ClickResult::Consume
 }
 
-fn handle_hover_hex(_rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> HoverResult {
-    HoverResult::Consume
+fn handle_hover_hex(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
+    input::noop_on_hover(rl, mouse_position)
 }
 
 pub fn map_has_focus() -> bool {

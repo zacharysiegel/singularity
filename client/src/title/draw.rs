@@ -1,10 +1,11 @@
+use crate::button::RectangularButton;
 use crate::color::{TEXT_COLOR, WINDOW_BACKGROUND_COLOR};
 use crate::config::APPLICATION_NAME;
 use crate::font::DEFAULT_FONT_SPACING;
 use crate::title::DEBUG_TEXT;
 use crate::{math, title};
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
-use raylib::math::{Rectangle, Vector2};
+use raylib::math::Vector2;
 use shared::environment::RuntimeEnvironment;
 
 pub fn draw_title(rl_draw: &mut RaylibDrawHandle) {
@@ -47,9 +48,9 @@ fn draw_title_text(rl_draw: &mut RaylibDrawHandle) {
 fn draw_debug_button(rl_draw: &mut RaylibDrawHandle) {
     const FONT_SIZE: f32 = 18.;
 
-    let rect: Rectangle = title::debug_button_rect(rl_draw);
-    let position: Vector2 = math::rect_origin(rect);
-    let dimensions: Vector2 = math::rect_dimensions(rect);
+    let button: RectangularButton = title::debug_button(rl_draw);
+    let position: Vector2 = math::rect_origin(button.rectangle);
+    let dimensions: Vector2 = math::rect_dimensions(button.rectangle);
 
     rl_draw.draw_rectangle_v(position, dimensions, WINDOW_BACKGROUND_COLOR);
     rl_draw.draw_text_ex(

@@ -49,3 +49,11 @@ fn hover(rl: &mut RaylibHandle, mouse_position: RenderCoord) {
     let mut stage: RwLockWriteGuard<Stage> = STATE.stage.get_current_write();
     stage.handle_hover(rl, mouse_position);
 }
+
+pub fn noop_on_click(_rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> ClickResult {
+    ClickResult::Consume
+}
+
+pub fn noop_on_hover(_rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> HoverResult {
+    HoverResult::Consume
+}

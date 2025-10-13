@@ -1,9 +1,14 @@
+use crate::button::RectangularButton;
 use crate::font::DEFAULT_FONT_SPACING;
+use crate::input::ClickResult;
+use crate::map::RenderCoord;
+use crate::state::STATE;
 use raylib::drawing::RaylibDrawHandle;
 use raylib::ffi::GetFontDefault;
 use raylib::math::{Rectangle, Vector2};
 use raylib::prelude::{RaylibFont, WeakFont};
-use std::sync::LazyLock;
+use raylib::RaylibHandle;
+use std::sync::{LazyLock, RwLockWriteGuard};
 
 pub const DEBUG_TEXT: &'static str = "Debug";
 pub const BUTTON_TEXT_ARRAY: [&'static str; 2] = ["Account", "Games"];
@@ -30,13 +35,21 @@ const BUTTON_DIMENSIONS: LazyLock<Vector2> = LazyLock::new(|| {
     }
 });
 
-pub fn debug_button_rect(rl_draw: &mut RaylibDrawHandle) -> Rectangle {
+pub fn debug_button(rl_draw: &mut RaylibDrawHandle) -> RectangularButton {
     const SCREEN_MARGIN: f32 = 20.;
 
-    Rectangle {
+    let mut button: RectangularButton = RectangularButton::new(Rectangle {
         x: rl_draw.get_screen_width() as f32 - SCREEN_MARGIN - BUTTON_DIMENSIONS.x,
         y: SCREEN_MARGIN,
         width: BUTTON_DIMENSIONS.x,
         height: BUTTON_DIMENSIONS.y,
-    }
+    });
+    button.on_click = debug_on_click;
+    button
+}
+
+fn debug_on_click(_rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> ClickResult {
+    let mut current_i: RwLockWriteGuard<usize> = STATE.stage.current_index.write().unwrap();
+    *current_i = 1;
+    ClickResult::Consume
 }
