@@ -41,7 +41,7 @@ fn update(rl: &mut RaylibHandle) {
 fn draw(rl_draw: &mut RaylibDrawHandle) {
     rl_draw.clear_background(MAP_BACKGROUND_COLOR);
 
-    let stage: RwLockReadGuard<Stage> = STATE.stage.current.read().unwrap();
+    let stage: RwLockReadGuard<Stage> = STATE.stage.get_current_read();
     stage.draw(rl_draw);
 
     rl_draw.draw_fps(10, 10); // debug

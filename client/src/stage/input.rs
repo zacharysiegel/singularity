@@ -1,11 +1,15 @@
 use crate::input::{ClickResult, HoverResult};
 use crate::map;
 use crate::map::RenderCoord;
+use crate::state::STATE;
 use crate::window::{Window, WINDOW_LAYERS};
 use raylib::RaylibHandle;
 use std::sync::RwLockWriteGuard;
 
 pub fn handle_click_title(_rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> ClickResult {
+    let mut current_i: RwLockWriteGuard<usize> = STATE.stage.current_index.write().unwrap();
+    *current_i = 1;
+
     ClickResult::Consume
 }
 

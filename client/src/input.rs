@@ -41,11 +41,11 @@ pub fn handle_user_input(rl: &mut RaylibHandle) {
 }
 
 fn click(rl: &mut RaylibHandle, mouse_position: RenderCoord) {
-    let mut stage: RwLockWriteGuard<Stage> = STATE.stage.current.write().unwrap();
+    let mut stage: RwLockWriteGuard<Stage> = STATE.stage.get_current_write();
     stage.handle_click(rl, mouse_position);
 }
 
 fn hover(rl: &mut RaylibHandle, mouse_position: RenderCoord) {
-    let mut stage: RwLockWriteGuard<Stage> = STATE.stage.current.write().unwrap();
+    let mut stage: RwLockWriteGuard<Stage> = STATE.stage.get_current_write();
     stage.handle_hover(rl, mouse_position);
 }
