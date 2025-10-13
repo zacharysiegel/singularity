@@ -1,6 +1,6 @@
-use crate::map;
 use crate::map::coordinate::RenderCoord;
-use crate::window::{Window, WINDOW_LAYERS};
+use crate::stage::Stage;
+use crate::state::STATE;
 use raylib::consts::MouseButton;
 use raylib::RaylibHandle;
 use std::sync::RwLockWriteGuard;
@@ -41,23 +41,11 @@ pub fn handle_user_input(rl: &mut RaylibHandle) {
 }
 
 fn click(rl: &mut RaylibHandle, mouse_position: RenderCoord) {
-    for window in WINDOW_LAYERS {
-        let mut window: RwLockWriteGuard<dyn Window> = window.write().unwrap();
-        match window.handle_click(rl, mouse_position) {
-            ClickResult::Pass => {}
-            ClickResult::Consume => return,
-        }
-    }
-    map::click_map(rl, mouse_position);
+    let mut stage: RwLockWriteGuard<Stage> = STATE.stage.current.write().unwrap();
+    stage.handle_click(rl, mouse_position);
 }
 
 fn hover(rl: &mut RaylibHandle, mouse_position: RenderCoord) {
-    for window in WINDOW_LAYERS {
-        let mut window: RwLockWriteGuard<dyn Window> = window.write().unwrap();
-        match window.handle_hover(rl, mouse_position) {
-            HoverResult::Pass => {}
-            HoverResult::Consume => return,
-        }
-    }
-    map::hover_map(rl, mouse_position);
+    let mut stage: RwLockWriteGuard<Stage> = STATE.stage.current.write().unwrap();
+    stage.handle_hover(rl, mouse_position);
 }

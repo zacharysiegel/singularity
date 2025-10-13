@@ -4,7 +4,7 @@ use crate::map::coordinate::MapCoord;
 use crate::map::draw;
 use crate::map::init::init_map;
 use crate::player::init_players;
-use crate::stage::StageType;
+use crate::stage::Stage;
 use crate::state::STATE;
 use crate::{connect, input};
 use raylib::callbacks::TraceLogLevel;
@@ -41,8 +41,8 @@ fn update(rl: &mut RaylibHandle) {
 fn draw(rl_draw: &mut RaylibDrawHandle) {
     rl_draw.clear_background(MAP_BACKGROUND_COLOR);
 
-    let stage_type: RwLockReadGuard<StageType> = STATE.stage.stage_type.read().unwrap();
-    stage_type.draw(rl_draw);
+    let stage: RwLockReadGuard<Stage> = STATE.stage.current.read().unwrap();
+    stage.draw(rl_draw);
 
     rl_draw.draw_fps(10, 10); // debug
 }
