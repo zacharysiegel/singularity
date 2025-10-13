@@ -33,7 +33,7 @@ pub fn handle_hover_map(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> H
 }
 
 fn handle_click_hex(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
-    let map_origin: RwLockReadGuard<MapCoord> = STATE.map.map_origin.read().unwrap();
+    let map_origin: RwLockReadGuard<MapCoord> = STATE.stage.map.map_origin.read().unwrap();
     let containing_hex: Hex = mouse_position.containing_hex(&*map_origin);
 
     let mut hex_window: RwLockWriteGuard<HexWindow> = STATE.window.hex.write().unwrap();

@@ -7,7 +7,7 @@ use crate::map::state::{Hex, ResourceType};
 
 pub fn init_map() {
     let mut hexes: RwLockWriteGuard<[Hex; map::config::HEX_COUNT as usize]> =
-        STATE.map.hexes.write().expect("global state poisoned");
+        STATE.stage.map.hexes.write().expect("global state poisoned");
     for i in 0..HEX_COUNT_SQRT {
         for j in 0..HEX_COUNT_SQRT {
             let hex_coord: HexCoord = HexCoord { i, j };

@@ -115,7 +115,7 @@ impl MapCoord {
 
         let matched_i: usize = matched_i.unwrap();
 
-        let hexes = STATE.map.hexes.read().expect("poisoned global state");
+        let hexes = STATE.stage.map.hexes.read().expect("poisoned global state");
         let matched_hex: Hex = hexes[candidate_hex_coords[matched_i].map_index()];
         drop(hexes);
 
@@ -223,7 +223,7 @@ impl HexCoord {
     pub const DEFAULT: HexCoord = HexCoord { i: 0, j: 0 };
 
     pub fn clone_map_hex(&self) -> Option<Hex> {
-        let hexes = STATE.map.hexes.read().expect("global state poisoned");
+        let hexes = STATE.stage.map.hexes.read().expect("global state poisoned");
         hexes.get(self.map_index()).map(|hex| hex.clone())
     }
 
