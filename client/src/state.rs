@@ -1,11 +1,13 @@
 use crate::map::coordinate::HexCoord;
 use crate::map::MapState;
 use crate::player::state::PlayerState;
+use crate::stage::StageState;
 use crate::window::WindowState;
 use std::sync::RwLock;
 
 pub static STATE: State = State {
     frame_counter: RwLock::new(0),
+    stage: StageState::DEFAULT,
     player: PlayerState::DEFAULT,
     window: WindowState::DEFAULT,
     map: MapState::DEFAULT,
@@ -14,6 +16,7 @@ pub static STATE: State = State {
 #[derive(Debug)]
 pub struct State {
     pub frame_counter: RwLock<u64>,
+    pub stage: StageState,
     pub player: PlayerState,
     pub map: MapState,
     pub window: WindowState,

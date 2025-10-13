@@ -2,9 +2,9 @@ use crate::color::MAP_BACKGROUND_COLOR;
 use crate::config::APPLICATION_NAME;
 use crate::map::coordinate::MapCoord;
 use crate::map::draw;
-use crate::map::draw::{draw_map, draw_players, draw_windows};
 use crate::map::init::init_map;
 use crate::player::init_players;
+use crate::stage::StageType;
 use crate::state::STATE;
 use crate::{connect, input};
 use raylib::callbacks::TraceLogLevel;
@@ -41,11 +41,8 @@ fn update(rl: &mut RaylibHandle) {
 fn draw(rl_draw: &mut RaylibDrawHandle) {
     rl_draw.clear_background(MAP_BACKGROUND_COLOR);
 
-    let map_origin: RwLockReadGuard<MapCoord> = STATE.map.map_origin.read().expect("global state poisoned");
-    draw_map(rl_draw, &map_origin);
-    draw_players(rl_draw, &map_origin);
-    draw_windows(rl_draw);
-    drop(map_origin);
+    let stage_type: RwLockReadGuard<StageType> = STATE.stage.stage_type.read().unwrap();
+    stage_type.draw(rl_draw);
 
     rl_draw.draw_fps(10, 10); // debug
 }

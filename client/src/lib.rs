@@ -8,3 +8,4 @@ pub mod input;
 pub mod window;
 pub mod color;
 pub mod util;
+pub mod stage;
