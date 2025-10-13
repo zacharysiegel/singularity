@@ -1,7 +1,4 @@
-use crate::color::{
-    FACILITY_DESTROYED_COLOR, FACILITY_OPERATING_COLOR, FACILITY_PLACING_COLOR, HEX_OUTLINE_COLOR,
-    MAP_BACKGROUND_COLOR, TEXT_COLOR,
-};
+use crate::color::{DIFF_HOVER_HEX, FACILITY_DESTROYED_COLOR, FACILITY_OPERATING_COLOR, FACILITY_PLACING_COLOR, HEX_OUTLINE_COLOR, MAP_BACKGROUND_COLOR, TEXT_COLOR};
 use crate::map::config::{HEX_COUNT_SQRT, HEX_RADIUS, HEX_ROTATION, HEX_SIDES};
 use crate::map::coordinate::{get_hex_count_height, get_hex_count_width, HexCoord};
 use crate::map::coordinate::{MapCoord, RenderCoord};
@@ -15,6 +12,7 @@ use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::{RaylibHandle, RaylibThread};
 use std::sync::RwLockReadGuard;
+use crate::util;
 
 pub fn draw_loading_init(rl: &mut RaylibHandle, rl_thread: &RaylibThread) {
     let mut rl_draw: RaylibDrawHandle = rl.begin_drawing(&rl_thread);
@@ -89,18 +87,14 @@ fn draw_hex_background(rl_draw: &mut RaylibDrawHandle, hex: &Hex, map_origin: &M
         let containing_hex = RenderCoord(rl_draw.get_mouse_position()).containing_hex(map_origin);
         if containing_hex.hex_coord == hex.hex_coord {
             hovered = true;
-            color.r += 0x08;
-            color.g += 0x08;
-            color.b += 0x08;
+            color = util::color_add(&color, &DIFF_HOVER_HEX);
         }
     }
 
     let hex_window: RwLockReadGuard<HexWindow> = STATE.windows.hex.read().unwrap();
     if hex_window.is_open && hex_window.hex.unwrap().hex_coord == hex.hex_coord {
         selected = true;
-        color.r += 0x08;
-        color.g += 0x08;
-        color.b += 0x08;
+        color = util::color_add(&color, &DIFF_HOVER_HEX);
     }
 
     if hex.resource_type != ResourceType::None || hovered || selected {

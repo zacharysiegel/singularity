@@ -1,4 +1,6 @@
-use crate::color::{RED, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_INTERIOR_BORDER_COLOR};
+use crate::color::{
+    DIFF_HOVER_BUTTON, RED, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_INTERIOR_BORDER_COLOR,
+};
 use crate::map::coordinate::RenderCoord;
 use crate::util;
 use crate::util::SIN_FRAC_PI_4;
@@ -115,9 +117,7 @@ pub fn draw_side_button(rl_draw: &mut RaylibDrawHandle, window: &dyn Window, but
 fn draw_side_button_background(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
     let mut background_color: Color = WINDOW_BACKGROUND_COLOR.clone();
     if util::rectangle_contains(rect, rl_draw.get_mouse_position()) {
-        background_color.r += 0x10;
-        background_color.g += 0x10;
-        background_color.b += 0x10;
+        background_color = util::color_add(&background_color, &DIFF_HOVER_BUTTON);
     }
     rl_draw.draw_rectangle_rec(rect, background_color);
 }

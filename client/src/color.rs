@@ -6,6 +6,19 @@ pub const TEXT_COLOR: Color = Color {
     b: 0xf0,
     a: 0xff,
 };
+pub const DIFF_HOVER_HEX: Color = Color {
+    r: 0x08,
+    g: 0x08,
+    b: 0x08,
+    a: 0x00,
+};
+pub const DIFF_HOVER_BUTTON: Color = Color {
+    r: 0x08,
+    g: 0x08,
+    b: 0x08,
+    a: 0x00,
+};
+
 pub const TRANSPARENT: Color = Color {
     r: 0x00,
     g: 0x00,
