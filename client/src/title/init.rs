@@ -9,6 +9,7 @@ use raylib::math::{Rectangle, Vector2};
 use raylib::prelude::WeakFont;
 use raylib::text::RaylibFont;
 use raylib::RaylibHandle;
+use shared::environment::RuntimeEnvironment;
 use std::sync::{LazyLock, RwLockWriteGuard};
 
 const BUTTON_DIMENSIONS: LazyLock<Vector2> = LazyLock::new(|| {
@@ -32,8 +33,10 @@ const BUTTON_DIMENSIONS: LazyLock<Vector2> = LazyLock::new(|| {
 });
 
 pub fn init_title(rl: &mut RaylibHandle) {
-    let mut debug_button: RwLockWriteGuard<RectangularButton> = STATE.stage.title.debug_button.write().unwrap();
-    *debug_button = create_debug_button(rl);
+    if RuntimeEnvironment::default().is_debug() {
+        let mut debug_button = STATE.stage.title.debug_button.write().unwrap();
+        *debug_button = Some(create_debug_button(rl));
+    }
 }
 
 fn create_debug_button(rl: &mut RaylibHandle) -> RectangularButton {

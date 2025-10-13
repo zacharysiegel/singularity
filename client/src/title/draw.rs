@@ -8,15 +8,11 @@ use crate::title::DEBUG_TEXT;
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
-use shared::environment::RuntimeEnvironment;
 use std::sync::RwLockReadGuard;
 
 pub fn draw_title(rl_draw: &mut RaylibDrawHandle) {
     draw_title_text(rl_draw);
-
-    if RuntimeEnvironment::default().is_debug() {
-        draw_debug_button(rl_draw);
-    }
+    draw_debug_button(rl_draw);
 }
 
 fn draw_title_text(rl_draw: &mut RaylibDrawHandle) {
@@ -51,7 +47,12 @@ fn draw_title_text(rl_draw: &mut RaylibDrawHandle) {
 fn draw_debug_button(rl_draw: &mut RaylibDrawHandle) {
     const FONT_SIZE: f32 = 18.;
 
-    let debug_button: RwLockReadGuard<RectangularButton> = STATE.stage.title.debug_button.read().unwrap();
+    let debug_button_l: RwLockReadGuard<Option<RectangularButton>> = STATE.stage.title.debug_button.read().unwrap();
+    if (&debug_button_l).is_none() {
+        return;
+    }
+
+    let debug_button: &RectangularButton = (*debug_button_l).as_ref().unwrap();
     let position: Vector2 = math::rect_origin(debug_button.rectangle);
     let dimensions: Vector2 = math::rect_dimensions(debug_button.rectangle);
     let mut bg_color: Color = WINDOW_BACKGROUND_COLOR;
