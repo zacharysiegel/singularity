@@ -5,7 +5,7 @@ use crate::window::{Window, WINDOW_LAYERS};
 use raylib::RaylibHandle;
 use std::sync::RwLockWriteGuard;
 
-pub fn handle_click_title(rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> ClickResult {
+pub fn handle_click_title(_rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> ClickResult {
     ClickResult::Consume
 }
 
@@ -20,7 +20,7 @@ pub fn handle_click_map(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> C
 
     map::click_map(rl, mouse_position)
 }
-pub fn handle_hover_title(rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> HoverResult {
+pub fn handle_hover_title(_rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> HoverResult {
     HoverResult::Consume
 }
 
