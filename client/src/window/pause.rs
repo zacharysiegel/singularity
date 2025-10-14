@@ -1,3 +1,4 @@
+use crate::button::RectangularButton;
 use crate::map::coordinate::RenderCoord;
 use crate::window::state::WindowLayer;
 use crate::window::Window;
@@ -9,6 +10,7 @@ pub struct PauseWindow {
     pub is_open: bool,
     pub origin: Option<RenderCoord>,
     pub dimensions: Vector2,
+    pub close_button: RectangularButton,
 }
 
 impl Window for PauseWindow {
@@ -28,6 +30,14 @@ impl Window for PauseWindow {
         WindowLayer::PauseWindowLayer
     }
 
+    fn close_button(&self) -> &RectangularButton {
+        &self.close_button
+    }
+
+    fn close_button_mut(&mut self) -> &mut RectangularButton {
+        &mut self.close_button
+    }
+
     fn draw_content(&self, _rl_draw: &mut RaylibDrawHandle) {
         todo!()
     }
@@ -42,5 +52,6 @@ impl PauseWindow {
         is_open: false,
         origin: None,
         dimensions: Vector2 { x: 0., y: 0. },
+        close_button: RectangularButton::DEFAULT,
     };
 }

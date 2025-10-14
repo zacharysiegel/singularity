@@ -1,3 +1,4 @@
+use crate::button::RectangularButton;
 use crate::color::{
     DIFF_HOVER_BUTTON, RED, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_INTERIOR_BORDER_COLOR,
 };
@@ -11,19 +12,8 @@ use raylib::math::{Rectangle, Vector2};
 
 pub const BORDER_GAP: f32 = 10.;
 
-const BUTTON_WIDTH: f32 = 42.;
 const BORDER_THICKNESS: f32 = 1.;
 const X_VERTEX_N: usize = 8;
-
-pub fn side_button_rectangle(window: &dyn Window, button_index: i16) -> Rectangle {
-    let origin: RenderCoord = window.origin().unwrap();
-    Rectangle {
-        x: origin.x + window.dimensions().x - BUTTON_WIDTH - BORDER_GAP,
-        y: origin.y + BORDER_GAP + (f32::from(button_index) * BUTTON_WIDTH),
-        width: BUTTON_WIDTH,
-        height: BUTTON_WIDTH,
-    }
-}
 
 pub fn draw_window_base(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
     draw_background(rl_draw, window);
@@ -92,26 +82,23 @@ fn draw_background(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
 }
 
 fn draw_close_button(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
-    let rect: Rectangle = draw_side_button(rl_draw, window, 0);
+    let button: &RectangularButton = window.close_button();
+    draw_side_button(rl_draw, button);
     draw_close_x(
         rl_draw,
         Vector2 {
-            x: rect.x + rect.width / 2.,
-            y: rect.y + rect.height / 2.,
+            x: button.rectangle.x + button.rectangle.width / 2.,
+            y: button.rectangle.y + button.rectangle.height / 2.,
         },
         14.,
         4.5,
     )
 }
 
-pub fn draw_side_button(rl_draw: &mut RaylibDrawHandle, window: &dyn Window, button_index: i16) -> Rectangle {
-    let rect: Rectangle = side_button_rectangle(window, button_index);
-
-    draw_side_button_background(rl_draw, rect);
-    draw_side_button_border(rl_draw, rect);
-    draw_side_button_accent(rl_draw, rect);
-
-    rect
+pub fn draw_side_button(rl_draw: &mut RaylibDrawHandle, button: &RectangularButton) {
+    draw_side_button_background(rl_draw, button.rectangle);
+    draw_side_button_border(rl_draw, button.rectangle);
+    draw_side_button_accent(rl_draw, button.rectangle);
 }
 
 fn draw_side_button_background(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {

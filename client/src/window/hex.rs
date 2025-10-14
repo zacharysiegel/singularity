@@ -1,12 +1,13 @@
+use crate::button::RectangularButton;
 use crate::color::TEXT_COLOR;
-use crate::input::ClickResult;
+use crate::input::{ClickHandler, ClickResult};
 use crate::map::coordinate::RenderCoord;
 use crate::map::state::{Hex, ResourceType};
 use crate::window;
 use crate::window::state::WindowLayer;
-use crate::window::Window;
+use crate::window::{draw, Window};
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
-use raylib::math::{Rectangle, Vector2};
+use raylib::math::Vector2;
 use raylib::prelude::WeakFont;
 use raylib::text::RaylibFont;
 use raylib::RaylibHandle;
@@ -20,6 +21,8 @@ pub struct HexWindow {
     pub is_open: bool,
     pub origin: Option<RenderCoord>,
     pub hex: Option<Hex>,
+    pub close_button: RectangularButton,
+    pub second_button: RectangularButton,
 }
 
 impl Window for HexWindow {
@@ -39,6 +42,14 @@ impl Window for HexWindow {
         WindowLayer::HexWindowLayer
     }
 
+    fn close_button(&self) -> &RectangularButton {
+        &self.close_button
+    }
+
+    fn close_button_mut(&mut self) -> &mut RectangularButton {
+        &mut self.close_button
+    }
+
     fn draw_content(&self, rl_draw: &mut RaylibDrawHandle) {
         self.draw_title(rl_draw);
         self.draw_buttons(rl_draw);
@@ -49,12 +60,8 @@ impl Window for HexWindow {
         self.close();
     }
 
-    fn handle_window_clicked(&mut self, _rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
-        let b1_rect: Rectangle = window::draw::side_button_rectangle(self, 1);
-        if b1_rect.check_collision_point_rec(mouse_position) {
-            log::debug!("Clicked button 1");
-        }
-        ClickResult::Consume
+    fn handle_window_clicked(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
+        self.second_button.handle_click(rl, mouse_position)
     }
 }
 
@@ -63,18 +70,28 @@ impl HexWindow {
         is_open: false,
         origin: None,
         hex: None,
+        close_button: RectangularButton::DEFAULT,
+        second_button: RectangularButton::DEFAULT,
     };
 
-    pub fn open(&mut self, rl: &mut RaylibHandle, mut origin: RenderCoord, hex: Hex) {
+    pub fn open(&mut self, rl: &mut RaylibHandle, origin: RenderCoord, hex: Hex) {
         self.is_open = true;
-        self.origin = Some(window::bounded_origin(rl, &mut origin, self.dimensions()));
+        self.origin = Some(window::bounded_origin(rl, origin, self.dimensions()));
         self.hex = Some(hex);
+        self.close_button = RectangularButton::new(window::side_button_rectangle(self, 0));
+        self.second_button = RectangularButton::new(window::side_button_rectangle(self, 1));
+        self.second_button.on_click = HexWindow::on_click_second;
     }
 
     pub fn close(&mut self) {
         self.is_open = Self::DEFAULT.is_open;
         self.origin = Self::DEFAULT.origin;
         self.hex = Self::DEFAULT.hex;
+    }
+
+    fn on_click_second(_rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> ClickResult {
+        log::debug!("Clicked second button");
+        ClickResult::Consume
     }
 
     pub fn get_title(&self) -> Option<&'static str> {
@@ -102,7 +119,7 @@ impl HexWindow {
     }
 
     fn draw_buttons(&self, rl_draw: &mut RaylibDrawHandle) {
-        window::draw::draw_side_button(rl_draw, self, 1);
+        draw::draw_side_button(rl_draw, &self.second_button);
     }
 
     fn draw_footer(&self, rl_draw: &mut RaylibDrawHandle) {

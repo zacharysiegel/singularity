@@ -1,6 +1,8 @@
+use crate::button::RectangularButton;
 use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
 use crate::map::coordinate::RenderCoord;
 use crate::window::draw;
+use crate::window::draw::BORDER_GAP;
 use crate::window::state::{WindowLayer, WINDOW_LAYERS};
 use raylib::math::Rectangle;
 use raylib::prelude::{RaylibDrawHandle, Vector2};
@@ -8,11 +10,15 @@ use raylib::RaylibHandle;
 use shared::error::AppError;
 use std::sync::RwLockReadGuard;
 
+const BUTTON_WIDTH: f32 = 42.;
+
 pub trait Window: ClickHandler + HoverHandler {
     fn is_open(&self) -> bool;
     fn origin(&self) -> Option<RenderCoord>;
     fn dimensions(&self) -> Vector2;
     fn layer(&self) -> WindowLayer;
+    fn close_button(&self) -> &RectangularButton;
+    fn close_button_mut(&mut self) -> &mut RectangularButton;
     fn draw_content(&self, rl_draw: &mut RaylibDrawHandle);
     fn handle_window_closed(&mut self);
 
@@ -54,14 +60,13 @@ impl<T: Window> ClickHandler for T {
             return ClickResult::Pass;
         }
 
-        let b0_contains: bool =
-            draw::side_button_rectangle(self, 0).check_collision_point_rec(Vector2::from(mouse_position));
-        if b0_contains {
+        if let ClickResult::Consume = self.close_button_mut().handle_click(rl, mouse_position) {
             self.handle_window_closed();
             return ClickResult::Consume;
         }
 
-        self.handle_window_clicked(rl, mouse_position)
+        self.handle_window_clicked(rl, mouse_position);
+        ClickResult::Consume
     }
 }
 
@@ -84,19 +89,33 @@ pub fn any_window_open() -> bool {
     false
 }
 
-pub fn bounded_origin(rl: &mut RaylibHandle, origin: &mut RenderCoord, dimensions: Vector2) -> RenderCoord {
+/// Generate an adjusted window origin to bound the right and bottom to the screen edges
+pub fn bounded_origin(rl: &mut RaylibHandle, origin: RenderCoord, dimensions: Vector2) -> RenderCoord {
     let overflow: Vector2 = Vector2 {
         x: (origin.x + dimensions.x) - (rl.get_screen_width() as f32),
         y: (origin.y + dimensions.y) - (rl.get_screen_height() as f32),
     };
 
+    let mut bounded = RenderCoord(Vector2 {
+        ..origin.0
+    });
     if overflow.x > 0. {
-        origin.x -= overflow.x;
+        bounded.x -= overflow.x;
     }
     if overflow.y > 0. {
-        origin.y -= overflow.y;
+        bounded.y -= overflow.y;
     }
-    *origin
+    bounded
+}
+
+pub fn side_button_rectangle(window: &dyn Window, button_index: i16) -> Rectangle {
+    let origin: RenderCoord = window.origin().unwrap();
+    Rectangle {
+        x: origin.x + window.dimensions().x - BUTTON_WIDTH - BORDER_GAP,
+        y: origin.y + BORDER_GAP + (f32::from(button_index) * BUTTON_WIDTH),
+        width: BUTTON_WIDTH,
+        height: BUTTON_WIDTH,
+    }
 }
 
 fn window_contains_render_coord(window: &dyn Window, render_coord: RenderCoord) -> bool {

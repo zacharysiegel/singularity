@@ -1,8 +1,8 @@
 use crate::state::STATE;
-use crate::window::Window;
 use crate::window::error::ErrorWindow;
 use crate::window::hex::HexWindow;
 use crate::window::pause::PauseWindow;
+use crate::window::Window;
 use std::sync::RwLock;
 
 pub const WINDOW_LAYERS: [&'static RwLock<dyn Window>; 3] = [
