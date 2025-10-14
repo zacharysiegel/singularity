@@ -33,3 +33,15 @@ impl WindowState {
         hex: RwLock::new(HexWindow::DEFAULT),
     };
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn window_layers() {
+        for i in 0..WINDOW_LAYERS.len() {
+            assert_eq!(i, WINDOW_LAYERS[i].read().unwrap().layer() as usize);
+        }
+    }
+}

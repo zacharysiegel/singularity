@@ -132,12 +132,14 @@ fn draw_facility(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord, facility
 
 pub fn draw_windows(rl_draw: &mut RaylibDrawHandle) {
     let hex: RwLockReadGuard<HexWindow> = STATE.stage.map.window.hex.read().unwrap();
-    let pause: RwLockReadGuard<PauseWindow> = STATE.stage.map.window.pause.read().unwrap();
-    let error: RwLockReadGuard<ErrorWindow> = STATE.stage.map.window.error.read().unwrap();
-
     hex.draw(rl_draw);
-    assert!(hex.layer() as u8 > pause.layer() as u8);
+    drop(hex);
+
+    let pause: RwLockReadGuard<PauseWindow> = STATE.stage.map.window.pause.read().unwrap();
     // pause.draw(map_origin);
-    assert!(pause.layer() as u8 > error.layer() as u8);
+    drop(pause);
+
+    let error: RwLockReadGuard<ErrorWindow> = STATE.stage.map.window.error.read().unwrap();
     // error.draw(map_origin);
+    drop(error);
 }
