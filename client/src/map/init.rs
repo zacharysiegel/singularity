@@ -1,12 +1,13 @@
 use crate::map;
 use crate::map::config::HEX_COUNT_SQRT;
 use crate::map::coordinate::HexCoord;
-use crate::state::STATE;
-use std::sync::RwLockWriteGuard;
 use crate::map::state::{Hex, ResourceType};
+use crate::state::STATE;
+use map::config::HEX_COUNT;
+use std::sync::RwLockWriteGuard;
 
 pub fn init_map() {
-    let mut hexes: RwLockWriteGuard<[Hex; map::config::HEX_COUNT as usize]> =
+    let mut hexes: RwLockWriteGuard<[Hex; HEX_COUNT as usize]> =
         STATE.stage.map.hexes.write().expect("global state poisoned");
     for i in 0..HEX_COUNT_SQRT {
         for j in 0..HEX_COUNT_SQRT {

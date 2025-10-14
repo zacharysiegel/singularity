@@ -96,7 +96,7 @@ impl<T: Window> ClickHandler for T {
 
 impl<T: Window> HoverHandler for T {
     fn handle_hover(&mut self, _rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
-        if window_contains_render_coord(self, mouse_position) {
+        if !window_contains_render_coord(self, mouse_position) {
             return HoverResult::Pass;
         }
         self.handle_window_hovered(mouse_position)

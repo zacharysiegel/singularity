@@ -8,12 +8,14 @@ use std::sync::RwLock;
 pub struct MapState {
     pub map_origin: RwLock<MapCoord>,
     pub hexes: RwLock<[Hex; map::config::HEX_COUNT as usize]>,
+    pub hovered_hex_coord: RwLock<Option<HexCoord>>,
 }
 
 impl MapState {
     pub const DEFAULT: MapState = MapState {
         map_origin: RwLock::new(MapCoord::DEFAULT),
         hexes: RwLock::new([Hex::DEFAULT; map::config::HEX_COUNT as usize]),
+        hovered_hex_coord: RwLock::new(None),
     };
 }
 

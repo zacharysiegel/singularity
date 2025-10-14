@@ -6,7 +6,8 @@ use crate::map::config::{HEX_COUNT_SQRT, HEX_RADIUS, HEX_ROTATION, HEX_SIDES};
 use crate::map::coordinate::HexCoord;
 use crate::map::coordinate::{MapCoord, RenderCoord};
 use crate::map::state::{Hex, ResourceType};
-use crate::map::{coordinate, input};
+use crate::map::coordinate;
+use crate::math;
 use crate::state::{Facility, FacilityState, FacilityType, Player, STATE};
 use crate::window::error::ErrorWindow;
 use crate::window::hex::HexWindow;
@@ -16,7 +17,6 @@ use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::{RaylibHandle, RaylibThread};
 use std::sync::RwLockReadGuard;
-use crate::math;
 
 pub fn draw_loading_init(rl: &mut RaylibHandle, rl_thread: &RaylibThread) {
     let mut rl_draw: RaylibDrawHandle = rl.begin_drawing(&rl_thread);
@@ -85,23 +85,16 @@ fn draw_hex(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord, hex_coord: &H
 fn draw_hex_background(rl_draw: &mut RaylibDrawHandle, hex: &Hex, map_origin: &MapCoord, render_coord: &RenderCoord) {
     let mut color: Color = hex.resource_type.color();
     let mut hovered: bool = false;
-    let mut selected: bool = false;
 
-    if input::map_has_focus() { // todo: refactor to use state and hover handler
-        let containing_hex = RenderCoord(rl_draw.get_mouse_position()).containing_hex(map_origin);
-        if containing_hex.hex_coord == hex.hex_coord {
-            hovered = true;
+    let hovered_hex_coord: RwLockReadGuard<Option<HexCoord>> = STATE.stage.map.hovered_hex_coord.read().unwrap();
+    if let Some(hovered_hex_coord) = *hovered_hex_coord {
+        if hex.hex_coord == hovered_hex_coord {
             color = math::color_add(&color, &DIFF_HOVER_HEX);
+            hovered = true;
         }
     }
 
-    let hex_window: RwLockReadGuard<HexWindow> = STATE.window.hex.read().unwrap();
-    if hex_window.is_open && hex_window.hex.unwrap().hex_coord == hex.hex_coord {
-        selected = true;
-        color = math::color_add(&color, &DIFF_HOVER_HEX);
-    }
-
-    if hex.resource_type != ResourceType::None || hovered || selected {
+    if hex.resource_type != ResourceType::None || hovered {
         rl_draw.draw_poly(*render_coord, i32::from(HEX_SIDES), HEX_RADIUS, HEX_ROTATION, color);
     }
 }

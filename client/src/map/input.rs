@@ -1,10 +1,11 @@
 use crate::input::{ClickResult, HoverResult};
 use crate::map::coordinate::{MapCoord, RenderCoord};
 use crate::map::state::Hex;
+use crate::map::HexCoord;
 use crate::state::STATE;
+use crate::window;
 use crate::window::hex::HexWindow;
 use crate::window::{Window, WINDOW_LAYERS};
-use crate::{input, window};
 use raylib::math::Vector2;
 use raylib::RaylibHandle;
 use std::sync::{RwLockReadGuard, RwLockWriteGuard};
@@ -33,8 +34,10 @@ pub fn handle_hover_map(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> H
 }
 
 fn handle_click_hex(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
-    let map_origin: RwLockReadGuard<MapCoord> = STATE.stage.map.map_origin.read().unwrap();
-    let containing_hex: Hex = mouse_position.containing_hex(&*map_origin);
+    let containing_hex: Hex = {
+        let map_origin: RwLockReadGuard<MapCoord> = STATE.stage.map.map_origin.read().unwrap();
+        mouse_position.containing_hex(&*map_origin)
+    };
 
     let mut hex_window: RwLockWriteGuard<HexWindow> = STATE.window.hex.write().unwrap();
     hex_window.open(rl, RenderCoord(Vector2::from(mouse_position)), containing_hex);
@@ -44,9 +47,17 @@ fn handle_click_hex(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> Click
 }
 
 fn handle_hover_hex(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
-    input::noop_on_hover(rl, mouse_position)
-}
+    if window::any_window_open() {
+        return HoverResult::Pass;
+    }
 
-pub fn map_has_focus() -> bool {
-    !window::any_window_open()
+    let containing_hex: Hex = {
+        let map_origin: RwLockReadGuard<MapCoord> = STATE.stage.map.map_origin.read().unwrap();
+        mouse_position.containing_hex(&*map_origin)
+    };
+
+    let mut hovered_hex_coord: RwLockWriteGuard<Option<HexCoord>> = STATE.stage.map.hovered_hex_coord.write().unwrap();
+    *hovered_hex_coord = Some(containing_hex.hex_coord);
+
+    HoverResult::Consume
 }
