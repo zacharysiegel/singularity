@@ -1,5 +1,6 @@
 use crate::map::coordinate::RenderCoord;
-use crate::window::{Window, WindowLayer};
+use crate::window::state::WindowLayer;
+use crate::window::Window;
 use raylib::drawing::RaylibDrawHandle;
 use raylib::math::Vector2;
 

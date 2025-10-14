@@ -2,7 +2,7 @@ use crate::color::{MAP_BACKGROUND_COLOR, METAL_BACKGROUND_COLOR, OIL_BACKGROUND_
 use crate::map;
 use crate::map::{HexCoord, MapCoord};
 use crate::player::state::PlayerState;
-use crate::window::WindowState;
+use crate::window::state::WindowState;
 use raylib::color::Color;
 use std::sync::RwLock;
 

@@ -5,10 +5,11 @@ use crate::map::HexCoord;
 use crate::state::STATE;
 use crate::window;
 use crate::window::hex::HexWindow;
-use crate::window::{Window, WINDOW_LAYERS};
+use crate::window::Window;
 use raylib::math::Vector2;
 use raylib::RaylibHandle;
 use std::sync::{RwLockReadGuard, RwLockWriteGuard};
+use crate::window::state::WINDOW_LAYERS;
 
 pub fn handle_click_map(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
     for window in WINDOW_LAYERS {

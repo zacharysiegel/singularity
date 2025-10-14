@@ -1,8 +1,10 @@
 use crate::color::TEXT_COLOR;
 use crate::input::ClickResult;
 use crate::map::coordinate::RenderCoord;
+use crate::map::state::{Hex, ResourceType};
 use crate::window;
-use crate::window::{Window, WindowLayer};
+use crate::window::state::WindowLayer;
+use crate::window::Window;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::{Rectangle, Vector2};
 use raylib::prelude::WeakFont;
@@ -10,7 +12,6 @@ use raylib::text::RaylibFont;
 use raylib::RaylibHandle;
 use std::ops::Add;
 use window::draw::BORDER_GAP;
-use crate::map::state::{Hex, ResourceType};
 
 const FONT_SPACING: f32 = 2.;
 

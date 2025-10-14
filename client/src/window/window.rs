@@ -1,44 +1,12 @@
 use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
 use crate::map::coordinate::RenderCoord;
-use crate::state::STATE;
 use crate::window::draw;
-use crate::window::error::ErrorWindow;
-use crate::window::hex::HexWindow;
-use crate::window::pause::PauseWindow;
+use crate::window::state::{WindowLayer, WINDOW_LAYERS};
 use raylib::math::Rectangle;
 use raylib::prelude::{RaylibDrawHandle, Vector2};
 use raylib::RaylibHandle;
 use shared::error::AppError;
-use std::sync::{RwLock, RwLockReadGuard};
-
-pub const WINDOW_LAYERS: [&'static RwLock<dyn Window>; 3] = [
-    &STATE.stage.map.window.error,
-    &STATE.stage.map.window.pause,
-    &STATE.stage.map.window.hex,
-];
-
-/// Lower numbers indicate higher priority in the z-buffer
-#[repr(u8)]
-pub enum WindowLayer {
-    ErrorWindowLayer = 0,
-    PauseWindowLayer = 1,
-    HexWindowLayer = 2,
-}
-
-#[derive(Debug)]
-pub struct WindowState {
-    pub error: RwLock<ErrorWindow>,
-    pub pause: RwLock<PauseWindow>,
-    pub hex: RwLock<HexWindow>,
-}
-
-impl WindowState {
-    pub const DEFAULT: WindowState = WindowState {
-        error: RwLock::new(ErrorWindow::DEFAULT),
-        pause: RwLock::new(PauseWindow::DEFAULT),
-        hex: RwLock::new(HexWindow::DEFAULT),
-    };
-}
+use std::sync::RwLockReadGuard;
 
 pub trait Window: ClickHandler + HoverHandler {
     fn is_open(&self) -> bool;
@@ -142,7 +110,8 @@ fn window_contains_render_coord(window: &dyn Window, render_coord: RenderCoord) 
 
 #[cfg(test)]
 mod tests {
-    use crate::window::{Window, WINDOW_LAYERS};
+    use crate::window::state::WINDOW_LAYERS;
+    use crate::window::Window;
     use std::sync::RwLockReadGuard;
 
     #[test]

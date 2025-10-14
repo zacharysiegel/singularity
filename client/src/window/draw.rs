@@ -2,12 +2,12 @@ use crate::color::{
     DIFF_HOVER_BUTTON, RED, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_INTERIOR_BORDER_COLOR,
 };
 use crate::map::coordinate::RenderCoord;
+use crate::math;
+use crate::math::SIN_FRAC_PI_4;
 use crate::window::Window;
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::{Rectangle, Vector2};
-use crate::math;
-use crate::math::SIN_FRAC_PI_4;
 
 pub const BORDER_GAP: f32 = 10.;
 
@@ -116,7 +116,8 @@ pub fn draw_side_button(rl_draw: &mut RaylibDrawHandle, window: &dyn Window, but
 
 fn draw_side_button_background(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
     let mut background_color: Color = WINDOW_BACKGROUND_COLOR.clone();
-    if rect.check_collision_point_rec(rl_draw.get_mouse_position()) { // todo: use stateful, evented hover handler
+    if rect.check_collision_point_rec(rl_draw.get_mouse_position()) {
+        // todo: use stateful, evented hover handler
         background_color = math::color_add(&background_color, &DIFF_HOVER_BUTTON);
     }
     rl_draw.draw_rectangle_rec(rect, background_color);
