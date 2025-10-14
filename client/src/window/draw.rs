@@ -96,18 +96,17 @@ fn draw_close_button(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
 }
 
 pub fn draw_side_button(rl_draw: &mut RaylibDrawHandle, button: &RectangularButton) {
-    draw_side_button_background(rl_draw, button.rectangle);
+    draw_side_button_background(rl_draw, button);
     draw_side_button_border(rl_draw, button.rectangle);
     draw_side_button_accent(rl_draw, button.rectangle);
 }
 
-fn draw_side_button_background(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
+fn draw_side_button_background(rl_draw: &mut RaylibDrawHandle, button: &RectangularButton) {
     let mut background_color: Color = WINDOW_BACKGROUND_COLOR.clone();
-    if rect.check_collision_point_rec(rl_draw.get_mouse_position()) {
-        // todo: use stateful, evented hover handler
+    if button.is_hovered() {
         background_color = math::color_add(&background_color, &DIFF_HOVER_BUTTON);
     }
-    rl_draw.draw_rectangle_rec(rect, background_color);
+    rl_draw.draw_rectangle_rec(button.rectangle, background_color);
 }
 
 fn draw_side_button_border(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {

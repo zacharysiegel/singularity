@@ -22,11 +22,13 @@ pub trait Window: ClickHandler + HoverHandler {
     fn draw_content(&self, rl_draw: &mut RaylibDrawHandle);
     fn handle_window_closed(&mut self);
 
-    fn handle_window_clicked(&mut self, _rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> ClickResult {
+    #[allow(unused)]
+    fn handle_window_clicked(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
         ClickResult::Consume
     }
 
-    fn handle_window_hovered(&mut self, _mouse_position: RenderCoord) -> HoverResult {
+    #[allow(unused)]
+    fn handle_window_hovered(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
         HoverResult::Consume
     }
 
@@ -71,11 +73,13 @@ impl<T: Window> ClickHandler for T {
 }
 
 impl<T: Window> HoverHandler for T {
-    fn handle_hover(&mut self, _rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
+    fn handle_hover(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
         if !window_contains_render_coord(self, mouse_position) {
             return HoverResult::Pass;
         }
-        self.handle_window_hovered(mouse_position)
+
+        self.close_button_mut().handle_hover(rl, mouse_position);
+        self.handle_window_hovered(rl, mouse_position)
     }
 }
 
@@ -96,9 +100,7 @@ pub fn bounded_origin(rl: &mut RaylibHandle, origin: RenderCoord, dimensions: Ve
         y: (origin.y + dimensions.y) - (rl.get_screen_height() as f32),
     };
 
-    let mut bounded = RenderCoord(Vector2 {
-        ..origin.0
-    });
+    let mut bounded = RenderCoord(Vector2 { ..origin.0 });
     if overflow.x > 0. {
         bounded.x -= overflow.x;
     }

@@ -1,6 +1,6 @@
 use crate::button::RectangularButton;
 use crate::color::TEXT_COLOR;
-use crate::input::{ClickHandler, ClickResult};
+use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
 use crate::map::coordinate::RenderCoord;
 use crate::map::state::{Hex, ResourceType};
 use crate::window;
@@ -62,6 +62,10 @@ impl Window for HexWindow {
 
     fn handle_window_clicked(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
         self.second_button.handle_click(rl, mouse_position)
+    }
+
+    fn handle_window_hovered(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
+        self.second_button.handle_hover(rl, mouse_position)
     }
 }
 
