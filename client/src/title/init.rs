@@ -49,7 +49,7 @@ pub fn init_title(rl: &mut RaylibHandle) {
 }
 
 fn create_debug_button(rl: &mut RaylibHandle) -> RectangularButton {
-    let mut button: RectangularButton = RectangularButton::new(
+    let mut button: RectangularButton = RectangularButton::new_with_text(
         "Debug",
         Rectangle {
             x: rl.get_screen_width() as f32 - SCREEN_MARGIN - BUTTON_DIMENSIONS.x,
@@ -75,7 +75,7 @@ fn create_games_button(rl: &mut RaylibHandle) -> RectangularButton {
         y: rl.get_screen_height() as f32 / 2. - BUTTON_DIMENSIONS.y / 2. + TITLE_VERTICAL_MARGIN / 2.,
     };
 
-    let button: RectangularButton = RectangularButton::new(
+    let button: RectangularButton = RectangularButton::new_with_text(
         BUTTON_TEXT_ARRAY[0],
         Rectangle {
             x: position.x,
@@ -96,7 +96,7 @@ fn create_account_button(rl: &mut RaylibHandle) -> RectangularButton {
             + BUTTON_VERTICAL_MARGIN,
     };
 
-    let button: RectangularButton = RectangularButton::new(
+    let button: RectangularButton = RectangularButton::new_with_text(
         BUTTON_TEXT_ARRAY[1],
         Rectangle {
             x: position.x,

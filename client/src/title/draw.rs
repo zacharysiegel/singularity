@@ -71,21 +71,23 @@ fn draw_button(rl_draw: &mut RaylibDrawHandle, button: &RectangularButton) {
     }
 
     rl_draw.draw_rectangle_v(position, dimensions, bg_color);
-    rl_draw.draw_text_ex(
-        rl_draw.get_font_default(),
-        &button.text,
-        math::centered_text_origin(
-            Vector2 {
-                x: position.x + dimensions.x / 2.,
-                y: position.y + dimensions.y / 2.,
-            },
-            &button.text,
+    if let Some(text) = &button.text {
+        rl_draw.draw_text_ex(
             rl_draw.get_font_default(),
+            text,
+            math::centered_text_origin(
+                Vector2 {
+                    x: position.x + dimensions.x / 2.,
+                    y: position.y + dimensions.y / 2.,
+                },
+                text,
+                rl_draw.get_font_default(),
+                BUTTON_FONT_SIZE,
+                DEFAULT_FONT_SPACING,
+            ),
             BUTTON_FONT_SIZE,
             DEFAULT_FONT_SPACING,
-        ),
-        BUTTON_FONT_SIZE,
-        DEFAULT_FONT_SPACING,
-        TEXT_COLOR,
-    );
+            TEXT_COLOR,
+        );
+    }
 }

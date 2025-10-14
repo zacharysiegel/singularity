@@ -7,7 +7,7 @@ use raylib::RaylibHandle;
 #[derive(Debug)]
 pub struct RectangularButton {
     pub rectangle: Rectangle,
-    pub text: String,
+    pub text: Option<String>,
     pub on_click: fn(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult,
     pub on_hover: fn(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult,
 
@@ -50,16 +50,21 @@ impl RectangularButton {
             width: 0.0,
             height: 0.0,
         },
-        text: String::new(),
+        text: None,
         on_click: input::noop_on_click,
         on_hover: input::noop_on_hover,
         hovered: false,
     };
 
-    pub fn new(text: &str, rectangle: Rectangle) -> RectangularButton {
+    pub fn new(rectangle: Rectangle) -> RectangularButton {
         let mut button: RectangularButton = RectangularButton::default();
-        button.text = String::from(text);
         button.rectangle = rectangle;
+        button
+    }
+
+    pub fn new_with_text(text: &str, rectangle: Rectangle) -> RectangularButton {
+        let mut button: RectangularButton = Self::new(rectangle);
+        button.text = Some(text.to_string());
         button
     }
 
