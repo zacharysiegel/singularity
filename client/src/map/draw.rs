@@ -70,7 +70,7 @@ fn draw_hex(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord, hex_coord: &H
     let map_coord: MapCoord = hex_coord.map_coord();
     let render_coord: RenderCoord = map_coord.render_coord(map_origin);
 
-    draw_hex_background(rl_draw, &hex, map_origin, &render_coord);
+    draw_hex_background(rl_draw, &hex, &render_coord);
 
     rl_draw.draw_poly_lines_ex(
         render_coord.into(),
@@ -82,7 +82,7 @@ fn draw_hex(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord, hex_coord: &H
     );
 }
 
-fn draw_hex_background(rl_draw: &mut RaylibDrawHandle, hex: &Hex, map_origin: &MapCoord, render_coord: &RenderCoord) {
+fn draw_hex_background(rl_draw: &mut RaylibDrawHandle, hex: &Hex, render_coord: &RenderCoord) {
     let mut color: Color = hex.resource_type.color();
     let mut hovered: bool = false;
 
@@ -100,7 +100,7 @@ fn draw_hex_background(rl_draw: &mut RaylibDrawHandle, hex: &Hex, map_origin: &M
 }
 
 pub fn draw_players(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord) {
-    let players: RwLockReadGuard<Vec<Player>> = STATE.player.players.read().expect("global state poisoned");
+    let players: RwLockReadGuard<Vec<Player>> = STATE.stage.map.player.players.read().expect("global state poisoned");
     for player in &*players {
         for facility in &player.facilities {
             draw_facility(rl_draw, map_origin, facility);
@@ -131,9 +131,9 @@ fn draw_facility(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord, facility
 }
 
 pub fn draw_windows(rl_draw: &mut RaylibDrawHandle) {
-    let hex: RwLockReadGuard<HexWindow> = STATE.window.hex.read().unwrap();
-    let pause: RwLockReadGuard<PauseWindow> = STATE.window.pause.read().unwrap();
-    let error: RwLockReadGuard<ErrorWindow> = STATE.window.error.read().unwrap();
+    let hex: RwLockReadGuard<HexWindow> = STATE.stage.map.window.hex.read().unwrap();
+    let pause: RwLockReadGuard<PauseWindow> = STATE.stage.map.window.pause.read().unwrap();
+    let error: RwLockReadGuard<ErrorWindow> = STATE.stage.map.window.error.read().unwrap();
 
     hex.draw(rl_draw);
     assert!(hex.layer() as u8 > pause.layer() as u8);

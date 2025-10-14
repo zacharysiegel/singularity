@@ -39,14 +39,14 @@ fn handle_click_hex(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> Click
         mouse_position.containing_hex(&*map_origin)
     };
 
-    let mut hex_window: RwLockWriteGuard<HexWindow> = STATE.window.hex.write().unwrap();
+    let mut hex_window: RwLockWriteGuard<HexWindow> = STATE.stage.map.window.hex.write().unwrap();
     hex_window.open(rl, RenderCoord(Vector2::from(mouse_position)), containing_hex);
     drop(hex_window);
 
     ClickResult::Consume
 }
 
-fn handle_hover_hex(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
+fn handle_hover_hex(_rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
     if window::any_window_open() {
         return HoverResult::Pass;
     }

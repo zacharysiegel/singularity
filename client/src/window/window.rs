@@ -11,8 +11,11 @@ use raylib::RaylibHandle;
 use shared::error::AppError;
 use std::sync::{RwLock, RwLockReadGuard};
 
-pub const WINDOW_LAYERS: [&'static RwLock<dyn Window>; 3] =
-    [&STATE.window.error, &STATE.window.pause, &STATE.window.hex];
+pub const WINDOW_LAYERS: [&'static RwLock<dyn Window>; 3] = [
+    &STATE.stage.map.window.error,
+    &STATE.stage.map.window.pause,
+    &STATE.stage.map.window.hex,
+];
 
 /// Lower numbers indicate higher priority in the z-buffer
 #[repr(u8)]

@@ -20,7 +20,7 @@ pub mod state {
 }
 
 pub fn init_players(player_count: u8) {
-    let mut players: RwLockWriteGuard<Vec<Player>> = STATE.player.players.write().expect("poisoned game state");
+    let mut players: RwLockWriteGuard<Vec<Player>> = STATE.stage.map.player.players.write().expect("poisoned game state");
     players.reserve_exact(player_count as usize);
 
     for p in 0..player_count {
