@@ -6,6 +6,7 @@ use crate::stage::Stage;
 use crate::state::STATE;
 use crate::{connect, input, map, player, title};
 use raylib::callbacks::TraceLogLevel;
+use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::ffi::SetConfigFlags;
 use raylib::{ffi, math, RaylibHandle, RaylibThread};
@@ -67,6 +68,8 @@ pub fn init() -> Result<(RaylibHandle, RaylibThread), AppError> {
 
     // todo: SetWindowIcon
     rl.set_target_fps(u32::from(TARGET_FPS));
+    rl.set_exit_key(Some(KeyboardKey::KEY_F1));
+
     draw::draw_loading_init(&mut rl, &rl_thread);
 
     title::init_title(&mut rl);
