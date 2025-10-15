@@ -1,10 +1,10 @@
 use crate::map::config::{HEX_COUNT_SQRT, HEX_HEIGHT, HEX_RADIUS, HEX_SIDE_LENGTH};
 use crate::map::state::Hex;
+use crate::math::{SIN_FRAC_PI_6, TAN_FRAC_PI_6};
 use crate::state::STATE;
 use raylib::prelude::Vector2;
 use shared::error::AppError;
-use std::ops::{Deref, DerefMut, Rem, Sub};
-use crate::math::{SIN_FRAC_PI_6, TAN_FRAC_PI_6};
+use std::ops::{Add, Deref, DerefMut, Rem, Sub};
 
 #[derive(Debug, Copy, Clone)]
 pub struct MapCoord(pub Vector2);
@@ -219,8 +219,47 @@ impl Default for HexCoord {
     }
 }
 
+impl Add for HexCoord {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self::Output {
+        HexCoord {
+            i: self.i + rhs.i,
+            j: self.j + rhs.j,
+        }
+    }
+}
+
+impl Sub for HexCoord {
+    type Output = Self;
+    fn sub(self, rhs: Self) -> Self::Output {
+        HexCoord {
+            i: self.i - rhs.i,
+            j: self.j - rhs.j,
+        }
+    }
+}
+
 impl HexCoord {
     pub const DEFAULT: HexCoord = HexCoord { i: 0, j: 0 };
+
+    /// Note: Order is important
+    const NEIGHBOR_DIFF_EVEN: [HexCoord; 6] = [
+        HexCoord { i: -1, j: -1 },
+        HexCoord { i: -1, j: 1 },
+        HexCoord { i: -1, j: 0 },
+        HexCoord { i: 1, j: 0 },
+        HexCoord { i: 0, j: -1 },
+        HexCoord { i: 0, j: 1 },
+    ];
+    /// Note: Order is important
+    const NEIGHBOR_DIFF_ODD: [HexCoord; 6] = [
+        HexCoord { i: 1, j: 1 },
+        HexCoord { i: 1, j: -1 },
+        HexCoord { i: -1, j: 0 },
+        HexCoord { i: 0, j: -1 },
+        HexCoord { i: 0, j: 1 },
+        HexCoord { i: 1, j: 0 },
+    ];
 
     pub fn clone_map_hex(&self) -> Option<Hex> {
         let hexes = STATE.stage.map.hexes.read().expect("global state poisoned");
@@ -232,10 +271,55 @@ impl HexCoord {
     }
 
     pub fn map_coord(&self) -> MapCoord {
-        let even_row: bool = self.j % 2 == 0;
-        let x: f32 = (f32::from(self.i) * *HEX_HEIGHT) + (if even_row { 0_f32 } else { *HEX_HEIGHT / 2. });
+        let x: f32 = (f32::from(self.i) * *HEX_HEIGHT) + (if self.even_row() { 0_f32 } else { *HEX_HEIGHT / 2. });
         let y: f32 = f32::from(self.j) * (HEX_RADIUS + HEX_SIDE_LENGTH / 2.);
         MapCoord(Vector2 { x, y })
+    }
+
+    pub fn even_row(&self) -> bool {
+        self.j % 2 == 0
+    }
+
+    pub fn neighbors(&self) -> [HexCoord; 6] {
+        let diffs: &[HexCoord; 6] = match self.even_row() {
+            true => &Self::NEIGHBOR_DIFF_EVEN,
+            false => &Self::NEIGHBOR_DIFF_ODD,
+        };
+
+        let mut neighbors: [HexCoord; 6] = [Self::DEFAULT; 6];
+        for i in 0..diffs.len() {
+            neighbors[i] = self.add(diffs[i])
+        }
+        neighbors
+    }
+
+    /// This method is slightly more efficient than checking if [other] would be contained by [Self::neighbors()].
+    pub fn is_neighbor(&self, other: HexCoord) -> bool {
+        if self.i.abs_diff(other.i) + self.j.abs_diff(other.j) == 1 {
+            return true;
+        }
+
+        let diffs: &[HexCoord] = match self.even_row() {
+            true => &Self::NEIGHBOR_DIFF_EVEN[0..2],
+            false => &Self::NEIGHBOR_DIFF_ODD[0..2],
+        };
+
+        for diff in diffs {
+            if self.add(*diff) == other {
+                return true;
+            }
+        }
+        false
+    }
+
+    pub fn step_distance(&self, other: HexCoord) -> i16 {
+        if other == *self {
+            return 0;
+        } else if self.is_neighbor(other) {
+            return 1;
+        }
+
+        todo!()
     }
 }
 
