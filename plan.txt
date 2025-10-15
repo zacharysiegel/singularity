@@ -170,7 +170,9 @@ Menus
 	Account setup
 	Game browser
 		Active games
+		Past games
 		Open games
+		Create game
 	Account
 		Game history
 		Friends
@@ -243,4 +245,3 @@ Database
             Map
             Player facilities
             Player resources
-

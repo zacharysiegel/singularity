@@ -1,6 +1,7 @@
 # High-level to-do items
 
 1. Player interactions
+    1. 
 	1. Construct facility (empty spaces)
 	1. Inspect facility (owned facility spaces)
 		1. Storage inventory
@@ -11,7 +12,7 @@
 1. Menus
    1. Account setup
    1. Games
-      1. Open
+      1. Active
       1. Past
       1. Current
    	  1. Create
