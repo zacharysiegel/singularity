@@ -10,7 +10,11 @@
 	1. Chat
 1. Menus
    1. Account setup
-   1. Game browser
+   1. Games
+      1. Open
+      1. Past
+      1. Current
+   	  1. Create
    1. Account
    1. Debug
 1. Server-side networking
