@@ -2,7 +2,6 @@ use crate::facility::control_center::ControlCenter;
 use crate::facility::metal_extractor::MetalExtractor;
 use crate::facility::oil_extractor::OilExtractor;
 use crate::map::{HexCoord, RenderCoord};
-use raylib::color::Color;
 use raylib::drawing::RaylibDrawHandle;
 
 #[derive(Debug, Copy, Clone)]
@@ -29,11 +28,11 @@ impl Facility {
         }
     }
 
-    pub fn draw(&self, rl_draw: &mut RaylibDrawHandle, render_coord: RenderCoord, color: Color) {
+    pub fn draw(&self, rl_draw: &mut RaylibDrawHandle, render_coord: RenderCoord) {
         match self {
-            Facility::ControlCenter(facility) => facility.draw(rl_draw, render_coord, color),
-            Facility::MetalExtractor(facility) => facility.draw(rl_draw, render_coord, color),
-            Facility::OilExtractor(facility) => facility.draw(rl_draw, render_coord, color),
+            Facility::ControlCenter(facility) => facility.draw(rl_draw, render_coord),
+            Facility::MetalExtractor(facility) => facility.draw(rl_draw, render_coord),
+            Facility::OilExtractor(facility) => facility.draw(rl_draw, render_coord),
         }
     }
 }
@@ -50,5 +49,5 @@ pub enum FacilityState {
 pub trait FacilityTrait {
     fn location(&self) -> HexCoord;
     fn state(&self) -> FacilityState;
-    fn draw(&self, rl_draw: &mut RaylibDrawHandle, render_coord: RenderCoord, color: Color);
+    fn draw(&self, rl_draw: &mut RaylibDrawHandle, render_coord: RenderCoord);
 }
