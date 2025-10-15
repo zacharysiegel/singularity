@@ -3,12 +3,13 @@ use crate::color::{
     MAP_BACKGROUND_COLOR, TEXT_COLOR,
 };
 use crate::map::config::{HEX_COUNT_SQRT, HEX_RADIUS, HEX_ROTATION, HEX_SIDES};
+use crate::map::coordinate;
 use crate::map::coordinate::HexCoord;
 use crate::map::coordinate::{MapCoord, RenderCoord};
 use crate::map::state::{Hex, ResourceType};
-use crate::map::coordinate;
 use crate::math;
-use crate::state::{Facility, FacilityState, FacilityType, Player, STATE};
+use crate::player::{Facility, FacilityState, FacilityType, Player};
+use crate::state::STATE;
 use crate::window::error::ErrorWindow;
 use crate::window::hex::HexWindow;
 use crate::window::pause::PauseWindow;

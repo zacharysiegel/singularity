@@ -1,6 +1,7 @@
 use crate::map::config::HEX_COUNT_SQRT;
 use crate::map::coordinate::HexCoord;
-use crate::state::{Facility, FacilityState, FacilityType, Player, STATE};
+use crate::player::{Facility, FacilityState, FacilityType, Player};
+use crate::state::STATE;
 use std::sync::RwLockWriteGuard;
 
 pub fn init_players(player_count: u8) {
