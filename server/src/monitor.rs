@@ -1,5 +1,6 @@
 use crate::route::route_frame;
 use futures::future;
+use futures::future::Either;
 use network::monitor;
 use shared::network;
 use shared::network::connection::Connection;
@@ -140,8 +141,9 @@ async fn monitor_client_task(tcp_stream: TcpStream, socket_addr: SocketAddr) {
     let outgoing_f = monitor::monitor_outgoing_frames(connection.writer);
     let outgoing_f = pin::pin!(outgoing_f);
 
-    match future::join(incoming_f, outgoing_f).await {
-        (_, outgoing) => match outgoing {
+    match future::select(incoming_f, outgoing_f).await {
+        Either::Left(_) => {}
+        Either::Right((outgoing_r, _)) => match outgoing_r {
             Ok(_) => {}
             Err(e) => {
                 log::error!("Error monitoring outgoing frames; {:#}", e);

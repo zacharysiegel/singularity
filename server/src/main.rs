@@ -20,7 +20,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     drop(cancellation_receiver);
 
     match tokio::signal::ctrl_c().await {
-        Ok(_) => graceful_shutdown(cancellation_sender),
+        Ok(_) => {
+            log::info!("Received <C-C> signal");
+            graceful_shutdown(cancellation_sender)
+        },
         Err(err) => {
             log::error!("Failed to await <C-C> signal. Shutting down. [{:#}]", err);
             graceful_shutdown(cancellation_sender);
