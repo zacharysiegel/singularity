@@ -1,5 +1,15 @@
 # High-level to-do items
 
+Concepts
+	Sphere of influence around control centers
+	Fog of war
+	Items
+	Storage
+	Transportation
+	Assembly
+	Workers
+	Killers
+	Victory condition
 Player interactions
 	Construct facility (empty spaces)
 	Inspect facility (owned facility spaces)
