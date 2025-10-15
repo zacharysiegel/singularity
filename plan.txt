@@ -139,6 +139,7 @@ Stage 0
     Each player starts with a standard set of objects
         Control center
             Home of worker bots
+            Limited range
             Unlimited workers?
         Battery
             Provides temporary power

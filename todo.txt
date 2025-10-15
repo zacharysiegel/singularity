@@ -1,7 +1,7 @@
 # High-level to-do items
 
 Concepts
-	Sphere of influence around control centers
+	Sphere of influence around control centers [in progress]
 	Fog of war
 	Items
 	Storage
@@ -10,6 +10,9 @@ Concepts
 	Workers
 	Killers
 	Victory condition
+	Passage of time
+	Queued actions
+	Action journal
 Player interactions
 	Construct facility (empty spaces)
 	Inspect facility (owned facility spaces)
@@ -18,6 +21,7 @@ Player interactions
 		Repair
 	Attack facility (opposed facility spaces)
 	Chat
+	Time machine
 Menus
    Account setup
    Games
