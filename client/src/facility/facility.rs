@@ -1,12 +1,28 @@
 use crate::map::HexCoord;
 
-#[repr(u8)]
-#[derive(Debug, Default, Copy, Clone)]
-pub enum FacilityType {
-    #[default]
-    ControlCenter = 0,
-    MetalExtractor,
-    OilExtractor,
+#[derive(Debug, Copy, Clone)]
+pub enum Facility {
+    ControlCenter(ControlCenter),
+    MetalExtractor(MetalExtractor),
+    OilExtractor(OilExtractor),
+}
+
+impl Facility {
+    pub fn location(&self) -> HexCoord {
+        match self {
+            Facility::ControlCenter(facility) => facility.location,
+            Facility::MetalExtractor(facility) => facility.location,
+            Facility::OilExtractor(facility) => facility.location,
+        }
+    }
+
+    pub fn state(&self) -> FacilityState {
+        match self {
+            Facility::ControlCenter(facility) => facility.state,
+            Facility::MetalExtractor(facility) => facility.state,
+            Facility::OilExtractor(facility) => facility.state,
+        }
+    }
 }
 
 #[repr(u8)]
@@ -19,8 +35,19 @@ pub enum FacilityState {
 }
 
 #[derive(Debug, Default, Copy, Clone)]
-pub struct Facility {
+pub struct ControlCenter {
     pub location: HexCoord,
-    pub facility_type: FacilityType,
-    pub facility_state: FacilityState,
+    pub state: FacilityState,
+}
+
+#[derive(Debug, Default, Copy, Clone)]
+pub struct MetalExtractor {
+    pub location: HexCoord,
+    pub state: FacilityState,
+}
+
+#[derive(Debug, Default, Copy, Clone)]
+pub struct OilExtractor {
+    pub location: HexCoord,
+    pub state: FacilityState,
 }

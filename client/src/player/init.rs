@@ -1,4 +1,4 @@
-use crate::facility::{Facility, FacilityState, FacilityType};
+use crate::facility::{ControlCenter, Facility, FacilityState};
 use crate::map::config::HEX_COUNT_SQRT;
 use crate::map::coordinate::HexCoord;
 use crate::player::Player;
@@ -19,12 +19,11 @@ pub fn init_players(player_count: u8) {
             i: HEX_COUNT_SQRT / i16::from(player_count) * i16::from(p),
             j: HEX_COUNT_SQRT / i16::from(player_count) * i16::from(p),
         };
-        let facility: Facility = Facility {
+        let facility = ControlCenter {
             location: facility_location,
-            facility_type: FacilityType::default(),
-            facility_state: FacilityState::default(),
+            state: FacilityState::default(),
         };
-        player.facilities.push(facility);
+        player.facilities.push(Facility::ControlCenter(facility));
         players.push(player);
     }
 }

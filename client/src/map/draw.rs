@@ -2,7 +2,7 @@ use crate::color::{
     DIFF_HOVER_HEX, FACILITY_DESTROYED_COLOR, FACILITY_OPERATING_COLOR, FACILITY_PLACING_COLOR, HEX_OUTLINE_COLOR,
     MAP_BACKGROUND_COLOR, TEXT_COLOR,
 };
-use crate::facility::{Facility, FacilityState, FacilityType};
+use crate::facility::{Facility, FacilityState};
 use crate::map::config::{HEX_COUNT_SQRT, HEX_RADIUS, HEX_ROTATION, HEX_SIDES};
 use crate::map::coordinate;
 use crate::map::coordinate::HexCoord;
@@ -111,22 +111,22 @@ pub fn draw_players(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord) {
 }
 
 fn draw_facility(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord, facility: &Facility) {
-    let map_coord: MapCoord = facility.location.map_coord();
+    let map_coord: MapCoord = facility.location().map_coord();
     let render_coord: RenderCoord = map_coord.render_coord(map_origin);
-    let color: Color = match facility.facility_state {
+    let color: Color = match facility.state() {
         FacilityState::Operating => FACILITY_OPERATING_COLOR,
         FacilityState::Placing => FACILITY_PLACING_COLOR,
         FacilityState::Destroyed => FACILITY_DESTROYED_COLOR,
     };
 
-    match facility.facility_type {
-        FacilityType::ControlCenter => {
+    match facility {
+        Facility::ControlCenter(_) => {
             rl_draw.draw_text("CC", render_coord.x as i32 - 10, render_coord.y as i32 - 10, 10, color);
         }
-        FacilityType::MetalExtractor => {
+        Facility::MetalExtractor(_) => {
             rl_draw.draw_text("ME", render_coord.x as i32 - 10, render_coord.y as i32 - 10, 10, color);
         }
-        FacilityType::OilExtractor => {
+        Facility::OilExtractor(_) => {
             rl_draw.draw_text("OE", render_coord.x as i32 - 10, render_coord.y as i32 - 10, 10, color);
         }
     }
