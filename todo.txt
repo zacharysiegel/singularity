@@ -1,0 +1,24 @@
+# High-level to-do items
+
+Player interactions
+	Construct facility (empty spaces)
+	Inspect facility (owned facility spaces)
+		Storage inventory
+		Assembler details
+		Repair
+	Attack facility (opposed facility spaces)
+	Chat
+Menus
+   Account setup
+   Games
+      Active
+      Past
+      Current
+   	  Create
+   Account
+   Debug
+Server-side networking
+    TLS (low)
+Client-side networking
+    TLS (low)
+Proper map generation (see plan.md)
