@@ -1,20 +1,16 @@
-use crate::color::{
-    DIFF_HOVER_HEX, FACILITY_DESTROYED_COLOR, FACILITY_OPERATING_COLOR, FACILITY_PLACING_COLOR, HEX_OUTLINE_COLOR,
-    MAP_BACKGROUND_COLOR, TEXT_COLOR,
-};
-use crate::facility::{Facility, FacilityState};
+use crate::color::{DIFF_HOVER_HEX, HEX_OUTLINE_COLOR, MAP_BACKGROUND_COLOR, TEXT_COLOR};
 use crate::map::config::{HEX_COUNT_SQRT, HEX_RADIUS, HEX_ROTATION, HEX_SIDES};
 use crate::map::coordinate;
 use crate::map::coordinate::HexCoord;
 use crate::map::coordinate::{MapCoord, RenderCoord};
 use crate::map::state::{Hex, ResourceType};
-use crate::math;
 use crate::player::Player;
 use crate::state::STATE;
 use crate::window::error::ErrorWindow;
 use crate::window::hex::HexWindow;
 use crate::window::pause::PauseWindow;
 use crate::window::Window;
+use crate::{facility, math};
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::{RaylibHandle, RaylibThread};
@@ -105,29 +101,7 @@ pub fn draw_players(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord) {
     let players: RwLockReadGuard<Vec<Player>> = STATE.stage.map.player.players.read().expect("global state poisoned");
     for player in &*players {
         for facility in &player.facilities {
-            draw_facility(rl_draw, map_origin, facility);
-        }
-    }
-}
-
-fn draw_facility(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord, facility: &Facility) {
-    let map_coord: MapCoord = facility.location().map_coord();
-    let render_coord: RenderCoord = map_coord.render_coord(map_origin);
-    let color: Color = match facility.state() {
-        FacilityState::Operating => FACILITY_OPERATING_COLOR,
-        FacilityState::Placing => FACILITY_PLACING_COLOR,
-        FacilityState::Destroyed => FACILITY_DESTROYED_COLOR,
-    };
-
-    match facility {
-        Facility::ControlCenter(_) => {
-            rl_draw.draw_text("CC", render_coord.x as i32 - 10, render_coord.y as i32 - 10, 10, color);
-        }
-        Facility::MetalExtractor(_) => {
-            rl_draw.draw_text("ME", render_coord.x as i32 - 10, render_coord.y as i32 - 10, 10, color);
-        }
-        Facility::OilExtractor(_) => {
-            rl_draw.draw_text("OE", render_coord.x as i32 - 10, render_coord.y as i32 - 10, 10, color);
+            facility::draw_facility(rl_draw, map_origin, facility);
         }
     }
 }
