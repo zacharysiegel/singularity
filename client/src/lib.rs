@@ -12,3 +12,4 @@ pub mod title;
 pub mod font;
 pub mod math;
 pub mod button;
+pub mod facility;

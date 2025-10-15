@@ -2,13 +2,14 @@ use crate::color::{
     DIFF_HOVER_HEX, FACILITY_DESTROYED_COLOR, FACILITY_OPERATING_COLOR, FACILITY_PLACING_COLOR, HEX_OUTLINE_COLOR,
     MAP_BACKGROUND_COLOR, TEXT_COLOR,
 };
+use crate::facility::{Facility, FacilityState, FacilityType};
 use crate::map::config::{HEX_COUNT_SQRT, HEX_RADIUS, HEX_ROTATION, HEX_SIDES};
 use crate::map::coordinate;
 use crate::map::coordinate::HexCoord;
 use crate::map::coordinate::{MapCoord, RenderCoord};
 use crate::map::state::{Hex, ResourceType};
 use crate::math;
-use crate::player::{Facility, FacilityState, FacilityType, Player};
+use crate::player::Player;
 use crate::state::STATE;
 use crate::window::error::ErrorWindow;
 use crate::window::hex::HexWindow;
