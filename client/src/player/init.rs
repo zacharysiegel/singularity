@@ -1,9 +1,10 @@
-use crate::facility::{ControlCenter, Facility, FacilityState};
+use crate::facility::{Facility, FacilityState};
 use crate::map::config::HEX_COUNT_SQRT;
 use crate::map::coordinate::HexCoord;
 use crate::player::Player;
 use crate::state::STATE;
 use std::sync::RwLockWriteGuard;
+use crate::facility::control_center::ControlCenter;
 
 pub fn init_players(player_count: u8) {
     let mut players: RwLockWriteGuard<Vec<Player>> =

@@ -1,4 +1,9 @@
-use crate::map::HexCoord;
+use crate::facility::control_center::ControlCenter;
+use crate::facility::metal_extractor::MetalExtractor;
+use crate::facility::oil_extractor::OilExtractor;
+use crate::map::{HexCoord, RenderCoord};
+use raylib::color::Color;
+use raylib::drawing::RaylibDrawHandle;
 
 #[derive(Debug, Copy, Clone)]
 pub enum Facility {
@@ -10,17 +15,25 @@ pub enum Facility {
 impl Facility {
     pub fn location(&self) -> HexCoord {
         match self {
-            Facility::ControlCenter(facility) => facility.location,
-            Facility::MetalExtractor(facility) => facility.location,
-            Facility::OilExtractor(facility) => facility.location,
+            Facility::ControlCenter(facility) => facility.location(),
+            Facility::MetalExtractor(facility) => facility.location(),
+            Facility::OilExtractor(facility) => facility.location(),
         }
     }
 
     pub fn state(&self) -> FacilityState {
         match self {
-            Facility::ControlCenter(facility) => facility.state,
-            Facility::MetalExtractor(facility) => facility.state,
-            Facility::OilExtractor(facility) => facility.state,
+            Facility::ControlCenter(facility) => facility.state(),
+            Facility::MetalExtractor(facility) => facility.state(),
+            Facility::OilExtractor(facility) => facility.state(),
+        }
+    }
+
+    pub fn draw(&self, rl_draw: &mut RaylibDrawHandle, render_coord: RenderCoord, color: Color) {
+        match self {
+            Facility::ControlCenter(facility) => facility.draw(rl_draw, render_coord, color),
+            Facility::MetalExtractor(facility) => facility.draw(rl_draw, render_coord, color),
+            Facility::OilExtractor(facility) => facility.draw(rl_draw, render_coord, color),
         }
     }
 }
@@ -34,20 +47,8 @@ pub enum FacilityState {
     Destroyed,
 }
 
-#[derive(Debug, Default, Copy, Clone)]
-pub struct ControlCenter {
-    pub location: HexCoord,
-    pub state: FacilityState,
-}
-
-#[derive(Debug, Default, Copy, Clone)]
-pub struct MetalExtractor {
-    pub location: HexCoord,
-    pub state: FacilityState,
-}
-
-#[derive(Debug, Default, Copy, Clone)]
-pub struct OilExtractor {
-    pub location: HexCoord,
-    pub state: FacilityState,
+pub trait FacilityTrait {
+    fn location(&self) -> HexCoord;
+    fn state(&self) -> FacilityState;
+    fn draw(&self, rl_draw: &mut RaylibDrawHandle, render_coord: RenderCoord, color: Color);
 }

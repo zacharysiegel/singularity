@@ -101,7 +101,7 @@ pub fn draw_players(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord) {
     let players: RwLockReadGuard<Vec<Player>> = STATE.stage.map.player.players.read().expect("global state poisoned");
     for player in &*players {
         for facility in &player.facilities {
-            facility::draw_facility(rl_draw, map_origin, facility);
+            facility::draw_facility(rl_draw, facility, map_origin);
         }
     }
 }

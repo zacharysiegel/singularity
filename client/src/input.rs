@@ -5,6 +5,15 @@ use raylib::consts::MouseButton;
 use raylib::RaylibHandle;
 use std::sync::RwLockWriteGuard;
 
+pub fn handle_user_input(rl: &mut RaylibHandle) {
+    let mouse_position: RenderCoord = RenderCoord(rl.get_mouse_position());
+
+    hover(rl, mouse_position);
+    if rl.is_mouse_button_released(MouseButton::MOUSE_BUTTON_LEFT) {
+        click(rl, mouse_position);
+    }
+}
+
 #[derive(PartialEq)]
 pub enum ClickResult {
     Pass,
@@ -31,14 +40,8 @@ pub trait HoverHandler {
     fn handle_hover(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult;
 }
 
-pub fn handle_user_input(rl: &mut RaylibHandle) {
-    let mouse_position: RenderCoord = RenderCoord(rl.get_mouse_position());
-
-    hover(rl, mouse_position);
-    if rl.is_mouse_button_released(MouseButton::MOUSE_BUTTON_LEFT) {
-        click(rl, mouse_position);
-    }
-}
+// todo: KeyHandler
+//  impl for Stage. similar event pattern
 
 fn click(rl: &mut RaylibHandle, mouse_position: RenderCoord) {
     let mut stage: RwLockWriteGuard<Stage> = STATE.stage.get_current_write();
