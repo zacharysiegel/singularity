@@ -63,10 +63,10 @@ pub const MAP_BACKGROUND_COLOR: Color = Color {
     a: 0xff,
 };
 pub const HEX_OUTLINE_COLOR: Color = Color {
-    r: 0xff,
-    g: 0xff,
-    b: 0xff,
-    a: 0x80,
+    r: 0x50,
+    g: 0x50,
+    b: 0x50,
+    a: 0xff,
 };
 pub const METAL_BACKGROUND_COLOR: Color = Color {
     r: 0x60,
