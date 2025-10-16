@@ -7,7 +7,7 @@ use raylib::color::Color;
 use std::sync::RwLock;
 
 #[derive(Debug)]
-pub struct MapState {
+pub struct MapState { // todo: split to GameState and MapState
     pub map_origin: RwLock<MapCoord>,
     pub hexes: RwLock<[Hex; map::config::HEX_COUNT as usize]>,
     pub hovered_hex_coord: RwLock<Option<HexCoord>>,

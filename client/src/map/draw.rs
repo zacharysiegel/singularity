@@ -1,4 +1,4 @@
-use crate::color::{DIFF_HOVER_HEX, HEX_OUTLINE_COLOR, MAP_BACKGROUND_COLOR, TEXT_COLOR};
+use crate::color::{DIFF_HOVER_HEX, DIFF_WITHIN_INFLUENCE, HEX_OUTLINE_COLOR, MAP_BACKGROUND_COLOR, TEXT_COLOR};
 use crate::map::config::{HEX_COUNT_SQRT, HEX_RADIUS, HEX_ROTATION, HEX_SIDES};
 use crate::map::coordinate;
 use crate::map::coordinate::HexCoord;
@@ -91,8 +91,20 @@ fn draw_hex_background(rl_draw: &mut RaylibDrawHandle, hex: &Hex, render_coord: 
             hovered = true;
         }
     }
+    drop(hovered_hex_coord);
 
-    if hex.resource_type != ResourceType::None || hovered {
+    let mut influenced: bool = false;
+    let selected_player_i: RwLockReadGuard<usize> = STATE.stage.map.player.selected.read().unwrap();
+    let players: RwLockReadGuard<Vec<Player>> = STATE.stage.map.player.players.read().unwrap();
+    let selected_player: &Player = &players[*selected_player_i];
+    drop(selected_player_i);
+    if selected_player.within_influence(hex.hex_coord) {
+        color = math::color_add(&color, &DIFF_WITHIN_INFLUENCE);
+        influenced = true;
+    }
+    drop(players);
+
+    if hex.resource_type != ResourceType::None || hovered || influenced {
         rl_draw.draw_poly(*render_coord, i32::from(HEX_SIDES), HEX_RADIUS, HEX_ROTATION, color);
     }
 }

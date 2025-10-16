@@ -1,9 +1,10 @@
 use crate::map::config::{HEX_COUNT_SQRT, HEX_HEIGHT, HEX_RADIUS, HEX_SIDE_LENGTH};
 use crate::map::state::Hex;
-use crate::math::{SIN_FRAC_PI_6, TAN_FRAC_PI_6};
+use crate::math::{SIN_FRAC_PI_3, SIN_FRAC_PI_6, TAN_FRAC_PI_6};
 use crate::state::STATE;
 use raylib::prelude::Vector2;
 use shared::error::AppError;
+use std::f32::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_6};
 use std::ops::{Add, Deref, DerefMut, Rem, Sub};
 
 #[derive(Debug, Copy, Clone)]
@@ -319,7 +320,46 @@ impl HexCoord {
             return 1;
         }
 
-        todo!()
+        let self_map_coord: MapCoord = self.map_coord();
+        let other_map_coord: MapCoord = other.map_coord();
+        let euclidean_distance: f32 =
+            ((self_map_coord.x - other_map_coord.x).powi(2) + (self_map_coord.y - other_map_coord.y).powi(2)).sqrt();
+
+        let mut k: i16 = (euclidean_distance / HEX_RADIUS).ceil() as i16;
+        let theta: f32 = ((other_map_coord.y - self_map_coord.y) / (other_map_coord.x - self_map_coord.x)).abs().atan();
+        debug_assert!(0. <= theta && theta <= FRAC_PI_2);
+
+        loop {
+            let p: f32 = if theta < FRAC_PI_3 {
+                (*HEX_HEIGHT * f32::from(k) * *SIN_FRAC_PI_3 as f32) / (FRAC_PI_6 - theta).cos()
+            } else {
+                (*HEX_HEIGHT * f32::from(k) * *SIN_FRAC_PI_3 as f32) / theta.sin()
+            };
+
+            if (p - euclidean_distance).abs() < 0.001 || p < euclidean_distance {
+                break;
+            } else {
+                k -= 1;
+            }
+        }
+
+        k
+    }
+
+    /// Determine if a hex's [HexCoord::step_distance()] is less than or equal to the given `step_distance`.
+    /// This implementation is more efficient than a simple inequality.
+    pub fn step_distance_le(&self, hex_coord: HexCoord, step_distance: i16) -> bool {
+        if (self.i - hex_coord.i).abs() > step_distance || (self.j - hex_coord.j).abs() > step_distance {
+            return false; // Discard the vast majority of hexes which lie outside a rectangular boundary
+        }
+
+        let euclidean_distance: f32 = self.map_coord().distance_to(hex_coord.map_coord().0);
+        let max_euclidean_distance: f32 = f32::from(step_distance) * *HEX_HEIGHT;
+        if euclidean_distance > max_euclidean_distance + 0.001 {
+            return false; // Discard a smaller number of hexes which lie outside a circular boundary
+        }
+
+        self.step_distance(hex_coord) <= step_distance
     }
 }
 

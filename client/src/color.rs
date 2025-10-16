@@ -18,6 +18,12 @@ pub const DIFF_HOVER_BUTTON: Color = Color {
     b: 0x08,
     a: 0x00,
 };
+pub const DIFF_WITHIN_INFLUENCE: Color = Color {
+    r: 0x06,
+    g: 0x06,
+    b: 0x0a,
+    a: 0x00,
+};
 
 pub const TRANSPARENT: Color = Color {
     r: 0x00,
@@ -35,6 +41,18 @@ pub const RED: Color = Color {
     r: 0xe7,
     g: 0x82,
     b: 0x84,
+    a: 0xff,
+};
+pub const GREEN: Color = Color {
+    r: 0xa6,
+    g: 0xe3,
+    b: 0xa1,
+    a: 0xff,
+};
+pub const BLUE: Color = Color {
+    r: 0x89,
+    g: 0xb4,
+    b: 0xfa,
     a: 0xff,
 };
 

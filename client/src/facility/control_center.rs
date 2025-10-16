@@ -30,5 +30,9 @@ impl FacilityTrait for ControlCenter {
 }
 
 impl ControlCenter {
-    pub const INFLUENCE_RADIUS: i8 = 4;
+    pub const INFLUENCE_RADIUS_STEP: i16 = 4;
+
+    pub fn within_influence(&self, hex_coord: HexCoord) -> bool {
+        self.location.step_distance_le(hex_coord, Self::INFLUENCE_RADIUS_STEP)
+    }
 }
