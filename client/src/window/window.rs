@@ -14,6 +14,7 @@ const BUTTON_WIDTH: f32 = 42.;
 
 pub trait Window: ClickHandler + HoverHandler {
     fn is_open(&self) -> bool;
+    fn close(&mut self);
     fn origin(&self) -> Option<RenderCoord>;
     fn dimensions(&self) -> Vector2;
     fn layer(&self) -> WindowLayer;
@@ -59,7 +60,12 @@ pub trait Window: ClickHandler + HoverHandler {
 impl<T: Window> ClickHandler for T {
     fn handle_click(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
         if !window_contains_render_coord(self, mouse_position) {
-            return ClickResult::Pass;
+            return if self.is_open() {
+                self.close();
+                ClickResult::Consume
+            } else {
+                ClickResult::Pass
+            }
         }
 
         if let ClickResult::Consume = self.close_button_mut().handle_click(rl, mouse_position) {

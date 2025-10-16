@@ -18,6 +18,10 @@ impl Window for PauseWindow {
         self.is_open
     }
 
+    fn close(&mut self) {
+        self.is_open = false;
+    }
+
     fn origin(&self) -> Option<RenderCoord> {
         self.origin
     }

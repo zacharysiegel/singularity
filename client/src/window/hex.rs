@@ -30,6 +30,12 @@ impl Window for HexWindow {
         self.is_open
     }
 
+    fn close(&mut self) {
+        self.is_open = Self::DEFAULT.is_open;
+        self.origin = Self::DEFAULT.origin;
+        self.hex = Self::DEFAULT.hex;
+    }
+
     fn origin(&self) -> Option<RenderCoord> {
         self.origin
     }
@@ -85,12 +91,6 @@ impl HexWindow {
         self.close_button = RectangularButton::new(window::side_button_rectangle(self, 0));
         self.second_button = RectangularButton::new(window::side_button_rectangle(self, 1));
         self.second_button.on_click = HexWindow::on_click_second;
-    }
-
-    pub fn close(&mut self) {
-        self.is_open = Self::DEFAULT.is_open;
-        self.origin = Self::DEFAULT.origin;
-        self.hex = Self::DEFAULT.hex;
     }
 
     fn on_click_second(_rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> ClickResult {
