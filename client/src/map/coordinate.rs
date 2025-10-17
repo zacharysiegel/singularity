@@ -159,6 +159,19 @@ impl MapCoord {
 
         *self
     }
+
+    pub fn toroidal_distance(&self, other: MapCoord) -> f32 {
+        let toroidal_diff: MapCoord = self.toroidal_diff(other);
+        (toroidal_diff.x.powi(2) + toroidal_diff.y.powi(2)).sqrt()
+    }
+
+    pub fn toroidal_diff(&self, other: MapCoord) -> MapCoord {
+        let dx: f32 = (self.x - other.x).abs();
+        let dy: f32 = (self.y - other.y).abs();
+        let min_dx: f32 = dx.min((get_map_width_pixels() - dx).abs());
+        let min_dy: f32 = dy.min((get_map_height_pixels() - dy).abs());
+        MapCoord(Vector2 { x: min_dx, y: min_dy })
+    }
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -226,8 +239,8 @@ impl Add for HexCoord {
     type Output = Self;
     fn add(self, rhs: Self) -> Self::Output {
         HexCoord {
-            i: self.i + rhs.i,
-            j: self.j + rhs.j,
+            i: (self.i + rhs.i) % HEX_COUNT_SQRT,
+            j: (self.j + rhs.j) % HEX_COUNT_SQRT,
         }
     }
 }
@@ -320,7 +333,8 @@ impl HexCoord {
 
     /// This method is slightly more efficient than checking if [other] would be contained by [Self::neighbors()].
     pub fn is_neighbor(&self, other: HexCoord) -> bool {
-        if self.i.abs_diff(other.i) + self.j.abs_diff(other.j) == 1 {
+        let toroidal_diff: HexCoord = self.toroidal_diff(other);
+        if toroidal_diff.i + toroidal_diff.j == 1 {
             return true;
         }
 
@@ -337,23 +351,20 @@ impl HexCoord {
         false
     }
 
-    // todo: check/adapt for 63-0 wrap
-    pub fn step_distance(&self, other: HexCoord, map_origin: &MapCoord) -> i16 {
+    pub fn step_distance(&self, other: HexCoord) -> i16 {
         if other == *self {
             return 0;
         } else if self.is_neighbor(other) {
             return 1;
         }
 
-        let self_render_coord: RenderCoord = self.map_coord().render_coord(map_origin);
-        let other_render_coord: RenderCoord = other.map_coord().render_coord(map_origin);
-        let euclidean_distance: f32 = ((self_render_coord.x - other_render_coord.x).powi(2)
-            + (self_render_coord.y - other_render_coord.y).powi(2))
-        .sqrt();
+        let self_coord: MapCoord = self.map_coord();
+        let other_coord: MapCoord = other.map_coord();
+        let toroidal_distance: f32 = self_coord.toroidal_distance(other_coord);
+        let toroidal_diff: MapCoord = self_coord.toroidal_diff(other_coord);
 
-        let mut k: i16 = (euclidean_distance / HEX_RADIUS).ceil() as i16;
-        let theta: f32 =
-            ((other_render_coord.y - self_render_coord.y) / (other_render_coord.x - self_render_coord.x)).abs().atan();
+        let mut k: i16 = (toroidal_distance / HEX_RADIUS).ceil() as i16;
+        let theta: f32 = (toroidal_diff.y / toroidal_diff.x).atan();
         debug_assert!(0. <= theta && theta <= FRAC_PI_2);
 
         loop {
@@ -363,7 +374,7 @@ impl HexCoord {
                 (*HEX_HEIGHT * f32::from(k) * *SIN_FRAC_PI_3 as f32) / theta.sin()
             };
 
-            if (p - euclidean_distance).abs() < 0.001 || p < euclidean_distance {
+            if (p - toroidal_distance).abs() < 0.001 || p < toroidal_distance {
                 break;
             } else {
                 k -= 1;
@@ -375,18 +386,22 @@ impl HexCoord {
 
     /// Determine if a hex's [HexCoord::step_distance()] is less than or equal to the given `step_distance`.
     /// This implementation is more efficient than a simple inequality.
-    pub fn step_distance_le(&self, hex_coord: HexCoord, step_distance: i16, map_origin: &MapCoord) -> bool {
-        if (self.i - hex_coord.i).abs() > step_distance || (self.j - hex_coord.j).abs() > step_distance {
+    pub fn step_distance_le(&self, other: HexCoord, step_distance: i16) -> bool {
+        let toroidal_diff: HexCoord = self.toroidal_diff(other);
+        if toroidal_diff.i > step_distance || toroidal_diff.j > step_distance {
             return false; // Discard the vast majority of hexes which lie outside a rectangular boundary
         }
 
-        let euclidean_distance: f32 = self.map_coord().distance_to(hex_coord.map_coord().0);
+        let self_coord: MapCoord = self.map_coord();
+        let other_coord: MapCoord = other.map_coord();
+        let toroidal_distance: f32 = self_coord.toroidal_distance(other_coord);
+
         let max_euclidean_distance: f32 = f32::from(step_distance) * *HEX_HEIGHT;
-        if euclidean_distance > max_euclidean_distance + 0.001 {
-            return false; // Discard a smaller number of hexes which lie outside a circular boundary
+        if toroidal_distance > max_euclidean_distance + 0.001 {
+            // return false; // Discard a smaller number of hexes which lie outside a circular boundary
         }
 
-        self.step_distance(hex_coord, map_origin) <= step_distance
+        self.step_distance(other) <= step_distance
     }
 
     pub fn hex_vertices(&self) -> [MapCoord; 6] {
@@ -412,7 +427,8 @@ impl HexCoord {
 
         for self_vertex in self_vertices {
             for other_vertex in other_vertices {
-                if (self_vertex.x - other_vertex.x).abs() < 0.001 && (self_vertex.y - other_vertex.y).abs() < 0.001 {
+                let toroidal_diff: MapCoord = self_vertex.toroidal_diff(other_vertex);
+                if toroidal_diff.x < 0.001 && toroidal_diff.y < 0.001 {
                     shared[counter] = self_vertex;
                     counter += 1;
                     if counter >= shared.len() {
@@ -423,6 +439,15 @@ impl HexCoord {
         }
 
         unreachable!()
+    }
+
+    pub fn toroidal_diff(&self, other: HexCoord) -> HexCoord {
+        let di: i16 = self.i.abs_diff(other.i) as i16;
+        let dj: i16 = self.j.abs_diff(other.j) as i16;
+        HexCoord {
+            i: di.min(HEX_COUNT_SQRT - di),
+            j: dj.min(HEX_COUNT_SQRT - dj),
+        }
     }
 }
 

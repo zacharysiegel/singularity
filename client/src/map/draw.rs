@@ -87,11 +87,11 @@ fn draw_hex(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord, hex_coord: He
     let selected_player: &Player = &players[*selected_player_i];
     drop(selected_player_i);
 
-    draw_hex_background(rl_draw, &hex, render_coord, selected_player, map_origin);
+    draw_hex_background(rl_draw, &hex, render_coord, selected_player);
     draw_hex_outline(rl_draw, render_coord);
 }
 
-fn draw_hex_background(rl_draw: &mut RaylibDrawHandle, hex: &Hex, render_coord: RenderCoord, selected_player: &Player, map_origin: &MapCoord) {
+fn draw_hex_background(rl_draw: &mut RaylibDrawHandle, hex: &Hex, render_coord: RenderCoord, selected_player: &Player) {
     let mut color: Color = hex.resource_type.color();
     let mut hovered: bool = false;
 
@@ -105,7 +105,7 @@ fn draw_hex_background(rl_draw: &mut RaylibDrawHandle, hex: &Hex, render_coord: 
     drop(hovered_hex_coord);
 
     let mut influenced: bool = false;
-    if selected_player.within_influence(hex.hex_coord, map_origin) {
+    if selected_player.within_influence(hex.hex_coord) {
         color = math::color_add(&color, &DIFF_WITHIN_INFLUENCE);
         influenced = true;
     }
@@ -132,11 +132,11 @@ fn draw_player_influence_outlines(rl_draw: &mut RaylibDrawHandle, map_origin: &M
     let selected_player: &Player = &players[*selected_player_i];
     drop(selected_player_i);
 
-    if selected_player.within_influence(hex_coord, map_origin) {
+    if selected_player.within_influence(hex_coord) {
         let neighbors: [HexCoord; 6] = hex_coord.neighbors();
         for i in 0..neighbors.len() {
             let neighbor: HexCoord = neighbors[i];
-            if selected_player.within_influence(neighbor, map_origin) {
+            if selected_player.within_influence(neighbor) {
                 continue;
             }
 
