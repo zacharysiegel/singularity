@@ -43,7 +43,7 @@ fn draw(rl_draw: &mut RaylibDrawHandle) {
     rl_draw.clear_background(MAP_BACKGROUND_COLOR);
 
     let current_stage: RwLockReadGuard<StageType> = STATE.stage.current.read().unwrap();
-    stage::draw(rl_draw, *current_stage);
+    current_stage.draw(rl_draw);
     drop(current_stage);
 
     if RuntimeEnvironment::default().is_debug() {

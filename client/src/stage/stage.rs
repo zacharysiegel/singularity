@@ -1,12 +1,12 @@
 use crate::game::GameState;
 use crate::input::{ClickResult, HoverResult};
 use crate::map::RenderCoord;
+use crate::state::STATE;
 use crate::title::TitleState;
 use crate::{map, title};
 use raylib::drawing::RaylibDrawHandle;
 use raylib::RaylibHandle;
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
-use crate::state::STATE;
 
 #[derive(Debug)]
 pub struct StageState {
@@ -31,24 +31,26 @@ pub enum StageType {
     Game,
 }
 
-pub fn click(rl: &mut RaylibHandle, stage_type: StageType, mouse_position: RenderCoord) -> ClickResult {
-    match stage_type {
-        StageType::Title => title::handle_click_title(rl, mouse_position),
-        StageType::Game => map::handle_click_map(rl, mouse_position),
+impl StageType {
+    pub fn click(&self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
+        match self {
+            StageType::Title => title::handle_click_title(rl, mouse_position),
+            StageType::Game => map::handle_click_map(rl, mouse_position),
+        }
     }
-}
 
-pub fn hover(rl: &mut RaylibHandle, stage_type: StageType, mouse_position: RenderCoord) -> HoverResult {
-    match stage_type {
-        StageType::Title => title::handle_hover_title(rl, mouse_position),
-        StageType::Game => map::handle_hover_map(rl, mouse_position),
+    pub fn hover(&self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
+        match self {
+            StageType::Title => title::handle_hover_title(rl, mouse_position),
+            StageType::Game => map::handle_hover_map(rl, mouse_position),
+        }
     }
-}
 
-pub fn draw(rl_draw: &mut RaylibDrawHandle, stage_type: StageType) {
-    match stage_type {
-        StageType::Title => super::draw::draw_stage_title(rl_draw),
-        StageType::Game => super::draw::draw_stage_map(rl_draw),
+    pub fn draw(&self, rl_draw: &mut RaylibDrawHandle) {
+        match self {
+            StageType::Title => super::draw::draw_stage_title(rl_draw),
+            StageType::Game => super::draw::draw_stage_map(rl_draw),
+        }
     }
 }
 
