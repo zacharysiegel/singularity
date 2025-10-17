@@ -70,7 +70,12 @@ pub fn init() -> Result<(RaylibHandle, RaylibThread), AppError> {
 
     // todo: SetWindowIcon
     rl.set_target_fps(u32::from(TARGET_FPS));
-    rl.set_exit_key(Some(KeyboardKey::KEY_F1));
+
+    if RuntimeEnvironment::default().is_debug() {
+        rl.set_exit_key(Some(KeyboardKey::KEY_F1));
+    } else {
+        rl.set_exit_key(None);
+    }
 
     draw_loading_init(&mut rl, &rl_thread);
 
