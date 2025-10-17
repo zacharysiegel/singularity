@@ -33,12 +33,24 @@ pub fn hover(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult 
 }
 
 pub fn key_press(rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
-    if key == KeyboardKey::KEY_ESCAPE {
-        let mut pause_window: RwLockWriteGuard<PauseWindow> = STATE.stage.game.window.pause.write().unwrap();
-        if pause_window.is_open() {
+    let mut pause_window: RwLockWriteGuard<PauseWindow> = STATE.stage.game.window.pause.write().unwrap();
+    if pause_window.is_open() {
+        if key == KeyboardKey::KEY_P {
             pause_window.close();
-        } else {
-            pause_window.open(rl);
+            return KeyPressResult::Consume;
+        }
+        return KeyPressResult::Pass;
+    }
+    if key == KeyboardKey::KEY_P {
+        pause_window.open(rl);
+        return KeyPressResult::Consume;
+    }
+    drop(pause_window);
+
+    if key == KeyboardKey::KEY_ESCAPE {
+        let mut hex_window = STATE.stage.game.window.hex.write().unwrap();
+        if hex_window.is_open() {
+            hex_window.close();
         }
         return KeyPressResult::Consume;
     }
