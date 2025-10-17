@@ -170,7 +170,7 @@ fn draw_player_influence_outlines(rl_draw: &mut RaylibDrawHandle, map_origin: &M
 pub fn draw_players(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord) {
     let players: RwLockReadGuard<Vec<Player>> = STATE.stage.map.player.players.read().expect("global state poisoned");
     for player in &*players {
-        for facility in &player.facilities {
+        for facility in player.facilities.all_facilities() {
             facility::draw_facility(rl_draw, facility, map_origin);
         }
     }

@@ -5,13 +5,13 @@ use crate::map::{HexCoord, RenderCoord};
 use raylib::drawing::RaylibDrawHandle;
 
 #[derive(Debug, Copy, Clone)]
-pub enum Facility {
-    ControlCenter(ControlCenter),
-    MetalExtractor(MetalExtractor),
-    OilExtractor(OilExtractor),
+pub enum Facility<'a> {
+    ControlCenter(&'a ControlCenter),
+    MetalExtractor(&'a MetalExtractor),
+    OilExtractor(&'a OilExtractor),
 }
 
-impl Facility {
+impl<'a> Facility<'a> {
     pub fn location(&self) -> HexCoord {
         match self {
             Facility::ControlCenter(facility) => facility.location(),
@@ -50,4 +50,24 @@ pub trait FacilityTrait {
     fn location(&self) -> HexCoord;
     fn state(&self) -> FacilityState;
     fn draw(&self, rl_draw: &mut RaylibDrawHandle, render_coord: RenderCoord);
+    fn facility<'a>(&'a self) -> Facility<'a>;
+}
+
+#[derive(Debug, Default)]
+pub struct FacilityCollection {
+    pub control_center_vec: Vec<ControlCenter>,
+    pub metal_extractor_vec: Vec<MetalExtractor>,
+    pub oil_extractor_vec: Vec<OilExtractor>,
+}
+
+impl FacilityCollection {
+    pub fn all_facilities<'a>(&'a self) -> Vec<Facility<'a>> {
+        let mut output: Vec<Facility> = Vec::with_capacity(
+            self.control_center_vec.len() + self.metal_extractor_vec.len() + self.oil_extractor_vec.len(),
+        );
+        output.extend(self.control_center_vec.iter().map(|f| f.facility()).collect::<Vec<Facility>>());
+        output.extend(self.metal_extractor_vec.iter().map(|f| f.facility()).collect::<Vec<Facility>>());
+        output.extend(self.oil_extractor_vec.iter().map(|f| f.facility()).collect::<Vec<Facility>>());
+        output
+    }
 }
