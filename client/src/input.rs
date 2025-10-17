@@ -1,4 +1,4 @@
-use crate::map::coordinate::RenderCoord;
+use crate::map::RenderCoord;
 use crate::stage;
 use crate::stage::StageType;
 use crate::state::STATE;

@@ -1,11 +1,11 @@
-pub mod text;
+mod text;
 pub use text::*;
 
-pub mod rectangle;
+mod rectangle;
 pub use rectangle::*;
 
-pub mod color;
+mod color;
 pub use color::*;
 
-pub mod consts;
+mod consts;
 pub use consts::*;

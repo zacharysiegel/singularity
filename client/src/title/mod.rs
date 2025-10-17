@@ -1,14 +1,14 @@
-pub mod title;
+mod title;
 pub use title::*;
 
-pub mod draw;
+mod draw;
 pub use draw::*;
 
-pub mod input;
+mod input;
 pub use input::*;
 
-pub mod state;
+mod state;
 pub use state::*;
 
-pub mod init;
+mod init;
 pub use init::*;

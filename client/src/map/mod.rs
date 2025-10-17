@@ -1,17 +1,17 @@
-pub mod config;
+mod config;
 pub use config::*;
 
-pub mod coordinate;
+mod coordinate;
 pub use coordinate::*;
 
-pub mod draw;
+mod draw;
 pub use draw::*;
 
-pub mod init;
+mod init;
 pub use init::*;
 
-pub mod input;
+mod input;
 pub use input::*;
 
-pub mod state;
+mod state;
 pub use state::*;

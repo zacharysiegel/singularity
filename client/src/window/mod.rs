@@ -1,8 +1,17 @@
 mod window;
-pub use self::window::*;
+pub use window::*;
 
-pub mod draw;
-pub mod error;
-pub mod hex;
-pub mod pause;
-pub mod state;
+mod draw;
+pub use draw::*;
+
+mod error;
+pub use error::*;
+
+mod hex;
+pub use hex::*;
+
+mod pause;
+pub use pause::*;
+
+mod state;
+pub use state::*;

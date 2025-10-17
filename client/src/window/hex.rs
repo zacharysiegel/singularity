@@ -1,8 +1,8 @@
 use crate::button::RectangularButton;
 use crate::color::TEXT_COLOR;
 use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
-use crate::map::coordinate::RenderCoord;
-use crate::map::state::{Hex, ResourceType};
+use crate::map::RenderCoord;
+use crate::map::{Hex, ResourceType};
 use crate::window;
 use crate::window::state::WindowLayer;
 use crate::window::{draw, Window};

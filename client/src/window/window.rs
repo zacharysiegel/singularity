@@ -1,6 +1,6 @@
 use crate::button::RectangularButton;
 use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
-use crate::map::coordinate::RenderCoord;
+use crate::map::RenderCoord;
 use crate::window::draw;
 use crate::window::draw::BORDER_GAP;
 use crate::window::state::{WindowLayer, WINDOW_LAYERS};

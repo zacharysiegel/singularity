@@ -1,6 +1,6 @@
 use crate::map::MapState;
 use crate::player::PlayerState;
-use crate::window::state::WindowState;
+use crate::window::WindowState;
 
 #[derive(Debug)]
 pub struct GameState {

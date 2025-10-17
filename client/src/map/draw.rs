@@ -1,6 +1,6 @@
 use crate::color::{
-    DIFF_HOVER_HEX, DIFF_WITHIN_INFLUENCE, HEX_OUTLINE_ACCENTED_COLOR, HEX_OUTLINE_COLOR, MAP_BACKGROUND_COLOR,
-    TEXT_COLOR,
+    DIFF_HOVER_HEX, DIFF_WITHIN_INFLUENCE, HEX_OUTLINE_ACCENTED_COLOR, HEX_OUTLINE_COLOR
+    ,
 };
 use crate::map::config::{HEX_COUNT_SQRT, HEX_RADIUS, HEX_ROTATION};
 use crate::map::coordinate;
@@ -9,25 +9,17 @@ use crate::map::coordinate::{MapCoord, RenderCoord};
 use crate::map::state::{Hex, ResourceType};
 use crate::player::Player;
 use crate::state::STATE;
-use crate::window::error::ErrorWindow;
-use crate::window::hex::HexWindow;
-use crate::window::pause::PauseWindow;
+use crate::window::ErrorWindow;
+use crate::window::HexWindow;
+use crate::window::PauseWindow;
 use crate::window::Window;
 use crate::{facility, math};
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
-use raylib::{RaylibHandle, RaylibThread};
 use std::sync::RwLockReadGuard;
 
 const HEX_SIDES: u8 = 6;
 const HEX_OUTLINE_THICKNESS: f32 = 1.;
-
-pub fn draw_loading_init(rl: &mut RaylibHandle, rl_thread: &RaylibThread) {
-    let mut rl_draw: RaylibDrawHandle = rl.begin_drawing(&rl_thread);
-    rl_draw.clear_background(MAP_BACKGROUND_COLOR);
-    rl_draw.draw_text("Loading", 16, rl_draw.get_screen_height() - 30, 20, TEXT_COLOR);
-    drop(rl_draw);
-}
 
 pub fn draw_map(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord) {
     loop_hexes(rl_draw, map_origin, draw_hex);

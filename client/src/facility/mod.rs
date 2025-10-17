@@ -1,14 +1,14 @@
-pub mod facility;
+mod facility;
 pub use facility::*;
 
-pub mod draw;
+mod draw;
 pub use draw::*;
 
-pub mod control_center;
+mod control_center;
 pub use control_center::*;
 
-pub mod metal_extractor;
+mod metal_extractor;
 pub use metal_extractor::*;
 
-pub mod oil_extractor;
+mod oil_extractor;
 pub use oil_extractor::*;

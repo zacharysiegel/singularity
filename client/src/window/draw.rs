@@ -2,7 +2,7 @@ use crate::button::RectangularButton;
 use crate::color::{
     DIFF_HOVER_BUTTON, RED, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_INTERIOR_BORDER_COLOR,
 };
-use crate::map::coordinate::RenderCoord;
+use crate::map::RenderCoord;
 use crate::math;
 use crate::math::SIN_FRAC_PI_4;
 use crate::window::Window;

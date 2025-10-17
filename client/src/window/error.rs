@@ -1,5 +1,5 @@
 use crate::button::RectangularButton;
-use crate::map::coordinate::RenderCoord;
+use crate::map::RenderCoord;
 use crate::window::state::WindowLayer;
 use crate::window::Window;
 use raylib::drawing::RaylibDrawHandle;

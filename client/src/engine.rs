@@ -1,7 +1,6 @@
-use crate::color::MAP_BACKGROUND_COLOR;
+use crate::color::{MAP_BACKGROUND_COLOR, TEXT_COLOR};
 use crate::config::APPLICATION_NAME;
-use crate::map::coordinate::MapCoord;
-use crate::map::draw;
+use crate::map::MapCoord;
 use crate::stage::StageType;
 use crate::state::STATE;
 use crate::{connect, input, map, player, stage, title};
@@ -73,7 +72,7 @@ pub fn init() -> Result<(RaylibHandle, RaylibThread), AppError> {
     rl.set_target_fps(u32::from(TARGET_FPS));
     rl.set_exit_key(Some(KeyboardKey::KEY_F1));
 
-    draw::draw_loading_init(&mut rl, &rl_thread);
+    draw_loading_init(&mut rl, &rl_thread);
 
     title::init_title(&mut rl);
     map::init_map();
@@ -116,4 +115,11 @@ pub fn run(rl: &mut RaylibHandle, rl_thread: &RaylibThread) -> Result<(), AppErr
     }
 
     Ok(())
+}
+
+pub fn draw_loading_init(rl: &mut RaylibHandle, rl_thread: &RaylibThread) {
+    let mut rl_draw: RaylibDrawHandle = rl.begin_drawing(&rl_thread);
+    rl_draw.clear_background(MAP_BACKGROUND_COLOR);
+    rl_draw.draw_text("Loading", 16, rl_draw.get_screen_height() - 30, 20, TEXT_COLOR);
+    drop(rl_draw);
 }
