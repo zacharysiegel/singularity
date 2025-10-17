@@ -1,5 +1,5 @@
 use crate::facility::Facility;
-use crate::map::HexCoord;
+use crate::map::{HexCoord, MapCoord};
 use std::sync::RwLock;
 
 #[derive(Debug)]
@@ -29,10 +29,10 @@ impl Player {
         }
     }
 
-    pub fn within_influence(&self, hex_coord: HexCoord) -> bool {
+    pub fn within_influence(&self, hex_coord: HexCoord, map_origin: &MapCoord) -> bool {
         for facility in &self.facilities {
             match facility {
-                Facility::ControlCenter(facility) => match facility.within_influence(hex_coord) {
+                Facility::ControlCenter(facility) => match facility.within_influence(hex_coord, map_origin) {
                     true => return true,
                     false => continue,
                 },

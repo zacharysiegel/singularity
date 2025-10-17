@@ -34,11 +34,10 @@ pub fn draw_map(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord) {
     loop_hexes(rl_draw, map_origin, draw_player_influence_outlines);
 }
 
-fn loop_hexes(
-    rl_draw: &mut RaylibDrawHandle,
-    map_origin: &MapCoord,
-    callback: fn(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord, hex_coord: HexCoord) -> (),
-) {
+fn loop_hexes<F>(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord, callback: F)
+where
+    F: Fn(&mut RaylibDrawHandle, &MapCoord, HexCoord) -> (),
+{
     let screen_width: i32 = rl_draw.get_screen_width();
     let screen_height: i32 = rl_draw.get_screen_height();
     let origin_hex_coord: HexCoord = map_origin.hex_coord_rect();
@@ -88,11 +87,11 @@ fn draw_hex(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord, hex_coord: He
     let selected_player: &Player = &players[*selected_player_i];
     drop(selected_player_i);
 
-    draw_hex_background(rl_draw, &hex, render_coord, selected_player);
+    draw_hex_background(rl_draw, &hex, render_coord, selected_player, map_origin);
     draw_hex_outline(rl_draw, render_coord);
 }
 
-fn draw_hex_background(rl_draw: &mut RaylibDrawHandle, hex: &Hex, render_coord: RenderCoord, selected_player: &Player) {
+fn draw_hex_background(rl_draw: &mut RaylibDrawHandle, hex: &Hex, render_coord: RenderCoord, selected_player: &Player, map_origin: &MapCoord) {
     let mut color: Color = hex.resource_type.color();
     let mut hovered: bool = false;
 
@@ -106,7 +105,7 @@ fn draw_hex_background(rl_draw: &mut RaylibDrawHandle, hex: &Hex, render_coord: 
     drop(hovered_hex_coord);
 
     let mut influenced: bool = false;
-    if selected_player.within_influence(hex.hex_coord) {
+    if selected_player.within_influence(hex.hex_coord, map_origin) {
         color = math::color_add(&color, &DIFF_WITHIN_INFLUENCE);
         influenced = true;
     }
@@ -133,11 +132,11 @@ fn draw_player_influence_outlines(rl_draw: &mut RaylibDrawHandle, map_origin: &M
     let selected_player: &Player = &players[*selected_player_i];
     drop(selected_player_i);
 
-    if selected_player.within_influence(hex_coord) {
+    if selected_player.within_influence(hex_coord, map_origin) {
         let neighbors: [HexCoord; 6] = hex_coord.neighbors();
         for i in 0..neighbors.len() {
             let neighbor: HexCoord = neighbors[i];
-            if selected_player.within_influence(neighbor) {
+            if selected_player.within_influence(neighbor, map_origin) {
                 continue;
             }
 

@@ -338,20 +338,22 @@ impl HexCoord {
     }
 
     // todo: check/adapt for 63-0 wrap
-    pub fn step_distance(&self, other: HexCoord) -> i16 {
+    pub fn step_distance(&self, other: HexCoord, map_origin: &MapCoord) -> i16 {
         if other == *self {
             return 0;
         } else if self.is_neighbor(other) {
             return 1;
         }
 
-        let self_map_coord: MapCoord = self.map_coord();
-        let other_map_coord: MapCoord = other.map_coord();
-        let euclidean_distance: f32 =
-            ((self_map_coord.x - other_map_coord.x).powi(2) + (self_map_coord.y - other_map_coord.y).powi(2)).sqrt();
+        let self_render_coord: RenderCoord = self.map_coord().render_coord(map_origin);
+        let other_render_coord: RenderCoord = other.map_coord().render_coord(map_origin);
+        let euclidean_distance: f32 = ((self_render_coord.x - other_render_coord.x).powi(2)
+            + (self_render_coord.y - other_render_coord.y).powi(2))
+        .sqrt();
 
         let mut k: i16 = (euclidean_distance / HEX_RADIUS).ceil() as i16;
-        let theta: f32 = ((other_map_coord.y - self_map_coord.y) / (other_map_coord.x - self_map_coord.x)).abs().atan();
+        let theta: f32 =
+            ((other_render_coord.y - self_render_coord.y) / (other_render_coord.x - self_render_coord.x)).abs().atan();
         debug_assert!(0. <= theta && theta <= FRAC_PI_2);
 
         loop {
@@ -373,7 +375,7 @@ impl HexCoord {
 
     /// Determine if a hex's [HexCoord::step_distance()] is less than or equal to the given `step_distance`.
     /// This implementation is more efficient than a simple inequality.
-    pub fn step_distance_le(&self, hex_coord: HexCoord, step_distance: i16) -> bool {
+    pub fn step_distance_le(&self, hex_coord: HexCoord, step_distance: i16, map_origin: &MapCoord) -> bool {
         if (self.i - hex_coord.i).abs() > step_distance || (self.j - hex_coord.j).abs() > step_distance {
             return false; // Discard the vast majority of hexes which lie outside a rectangular boundary
         }
@@ -384,7 +386,7 @@ impl HexCoord {
             return false; // Discard a smaller number of hexes which lie outside a circular boundary
         }
 
-        self.step_distance(hex_coord) <= step_distance
+        self.step_distance(hex_coord, map_origin) <= step_distance
     }
 
     pub fn hex_vertices(&self) -> [MapCoord; 6] {

@@ -1,6 +1,6 @@
 use crate::color::{FACILITY_DESTROYED_COLOR, FACILITY_OPERATING_COLOR, FACILITY_PLACING_COLOR};
 use crate::facility::{FacilityState, FacilityTrait};
-use crate::map::{HexCoord, RenderCoord};
+use crate::map::{HexCoord, MapCoord, RenderCoord};
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 
@@ -32,7 +32,7 @@ impl FacilityTrait for ControlCenter {
 impl ControlCenter {
     pub const INFLUENCE_RADIUS_STEP: i16 = 4;
 
-    pub fn within_influence(&self, hex_coord: HexCoord) -> bool {
-        self.location.step_distance_le(hex_coord, Self::INFLUENCE_RADIUS_STEP)
+    pub fn within_influence(&self, hex_coord: HexCoord, map_origin: &MapCoord) -> bool {
+        self.location.step_distance_le(hex_coord, Self::INFLUENCE_RADIUS_STEP, map_origin)
     }
 }
