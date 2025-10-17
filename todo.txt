@@ -1,6 +1,7 @@
 # High-level to-do items
 
 Concepts
+	Pause window [in progress]
 	Fog of war
 	Items
 	Storage
