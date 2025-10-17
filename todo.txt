@@ -1,7 +1,6 @@
 # High-level to-do items
 
 Concepts
-	Sphere of influence around control centers [in progress]
 	Fog of war
 	Items
 	Storage
