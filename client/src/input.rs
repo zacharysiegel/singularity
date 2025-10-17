@@ -1,9 +1,10 @@
 use crate::map::coordinate::RenderCoord;
-use crate::stage::Stage;
+use crate::stage;
+use crate::stage::StageType;
 use crate::state::STATE;
 use raylib::consts::MouseButton;
 use raylib::RaylibHandle;
-use std::sync::RwLockWriteGuard;
+use std::sync::RwLockReadGuard;
 
 pub fn handle_user_input(rl: &mut RaylibHandle) {
     let mouse_position: RenderCoord = RenderCoord(rl.get_mouse_position());
@@ -44,13 +45,13 @@ pub trait HoverHandler {
 //  impl for Stage. similar event pattern
 
 fn click(rl: &mut RaylibHandle, mouse_position: RenderCoord) {
-    let mut stage: RwLockWriteGuard<Stage> = STATE.stage.get_current_write();
-    stage.handle_click(rl, mouse_position);
+    let current_stage: RwLockReadGuard<StageType> = STATE.stage.current.read().unwrap();
+    stage::click(rl, *current_stage, mouse_position);
 }
 
 fn hover(rl: &mut RaylibHandle, mouse_position: RenderCoord) {
-    let mut stage: RwLockWriteGuard<Stage> = STATE.stage.get_current_write();
-    stage.handle_hover(rl, mouse_position);
+    let current_stage: RwLockReadGuard<StageType> = STATE.stage.current.read().unwrap();
+    stage::hover(rl, *current_stage, mouse_position);
 }
 
 pub fn noop_on_click(_rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> ClickResult {

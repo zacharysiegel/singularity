@@ -2,9 +2,9 @@ use crate::color::MAP_BACKGROUND_COLOR;
 use crate::config::APPLICATION_NAME;
 use crate::map::coordinate::MapCoord;
 use crate::map::draw;
-use crate::stage::Stage;
+use crate::stage::StageType;
 use crate::state::STATE;
-use crate::{connect, input, map, player, title};
+use crate::{connect, input, map, player, stage, title};
 use raylib::callbacks::TraceLogLevel;
 use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
@@ -31,6 +31,7 @@ fn scrolled_map_origin(rl: &mut RaylibHandle, map_origin: &MapCoord) -> MapCoord
 }
 
 fn update(rl: &mut RaylibHandle) {
+    stage::update();
     input::handle_user_input(rl);
 
     let mut map_origin: RwLockWriteGuard<MapCoord> =
@@ -42,8 +43,9 @@ fn update(rl: &mut RaylibHandle) {
 fn draw(rl_draw: &mut RaylibDrawHandle) {
     rl_draw.clear_background(MAP_BACKGROUND_COLOR);
 
-    let stage: RwLockReadGuard<Stage> = STATE.stage.get_current_read();
-    stage.draw(rl_draw);
+    let current_stage: RwLockReadGuard<StageType> = STATE.stage.current.read().unwrap();
+    stage::draw(rl_draw, *current_stage);
+    drop(current_stage);
 
     if RuntimeEnvironment::default().is_debug() {
         rl_draw.draw_fps(10, 10);

@@ -1,5 +1,6 @@
-pub mod stage;
+mod stage;
 pub use stage::*;
 
-pub mod draw;
+mod draw;
 pub use draw::*;
+//todo: refactor other modules to work like this

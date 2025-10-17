@@ -2,6 +2,7 @@ use crate::button::RectangularButton;
 use crate::font::DEFAULT_FONT_SPACING;
 use crate::input::ClickResult;
 use crate::map::RenderCoord;
+use crate::stage::StageType;
 use crate::state::STATE;
 use crate::title::{
     BUTTON_FONT_SIZE, BUTTON_INTERNAL_MARGIN, BUTTON_TEXT_ARRAY, BUTTON_VERTICAL_MARGIN, SCREEN_MARGIN,
@@ -14,6 +15,7 @@ use raylib::text::RaylibFont;
 use raylib::RaylibHandle;
 use shared::environment::RuntimeEnvironment;
 use std::sync::{LazyLock, RwLockWriteGuard};
+use crate::stage;
 
 const BUTTON_DIMENSIONS: LazyLock<Vector2> = LazyLock::new(|| {
     let mut max_measure: Vector2 = Vector2 {
@@ -60,8 +62,7 @@ fn create_debug_button(rl: &mut RaylibHandle) -> RectangularButton {
     );
 
     fn on_click(_rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> ClickResult {
-        let mut current_i: RwLockWriteGuard<usize> = STATE.stage.current_index.write().unwrap();
-        *current_i = 1;
+        stage::register_next(StageType::Game);
         ClickResult::Consume
     }
     button.on_click = on_click;
