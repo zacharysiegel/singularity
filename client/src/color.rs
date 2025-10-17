@@ -68,6 +68,12 @@ pub const HEX_OUTLINE_COLOR: Color = Color {
     b: 0x50,
     a: 0xff,
 };
+pub const HEX_OUTLINE_ACCENTED_COLOR: Color = Color {
+    r: 0x90,
+    g: 0x90,
+    b: 0x98,
+    a: 0xff,
+};
 pub const METAL_BACKGROUND_COLOR: Color = Color {
     r: 0x60,
     g: 0x50,

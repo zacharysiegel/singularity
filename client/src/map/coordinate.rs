@@ -5,7 +5,9 @@ use crate::state::STATE;
 use raylib::prelude::Vector2;
 use shared::error::AppError;
 use std::f32::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_6};
+use std::mem;
 use std::ops::{Add, Deref, DerefMut, Rem, Sub};
+use std::sync::LazyLock;
 
 #[derive(Debug, Copy, Clone)]
 pub struct MapCoord(pub Vector2);
@@ -261,6 +263,28 @@ impl HexCoord {
         HexCoord { i: 0, j: 1 },
         HexCoord { i: 1, j: 0 },
     ];
+    const VERTEX_DIFF: LazyLock<[Vector2; 6]> = LazyLock::new(|| {
+        [
+            Vector2 { x: 0., y: -HEX_RADIUS },
+            Vector2 {
+                x: *HEX_HEIGHT / 2.,
+                y: -HEX_RADIUS / 2.,
+            },
+            Vector2 {
+                x: *HEX_HEIGHT / 2.,
+                y: HEX_RADIUS / 2.,
+            },
+            Vector2 { x: 0., y: HEX_RADIUS },
+            Vector2 {
+                x: -*HEX_HEIGHT / 2.,
+                y: HEX_RADIUS / 2.,
+            },
+            Vector2 {
+                x: -*HEX_HEIGHT / 2.,
+                y: -HEX_RADIUS / 2.,
+            },
+        ]
+    });
 
     pub fn clone_map_hex(&self) -> Option<Hex> {
         let hexes = STATE.stage.map.hexes.read().expect("global state poisoned");
@@ -313,6 +337,7 @@ impl HexCoord {
         false
     }
 
+    // todo: check/adapt for 63-0 wrap
     pub fn step_distance(&self, other: HexCoord) -> i16 {
         if other == *self {
             return 0;
@@ -360,6 +385,42 @@ impl HexCoord {
         }
 
         self.step_distance(hex_coord) <= step_distance
+    }
+
+    pub fn hex_vertices(&self) -> [MapCoord; 6] {
+        let center: MapCoord = self.map_coord();
+        let mut vertices: [MapCoord; 6] = unsafe { mem::zeroed() };
+        for i in 0..vertices.len() {
+            vertices[i] = MapCoord(center.0 + Self::VERTEX_DIFF[i]);
+        }
+        vertices
+    }
+
+    /// Find the two vertices shared between two hexes.
+    /// Returns [None] iff the hexes are not adjacent.
+    pub fn shared_vertices(&self, other: HexCoord) -> Option<[MapCoord; 2]> {
+        if !self.is_neighbor(other) {
+            return None;
+        }
+
+        let mut shared: [MapCoord; 2] = unsafe { mem::zeroed() };
+        let mut counter: usize = 0;
+        let self_vertices: [MapCoord; 6] = self.hex_vertices();
+        let other_vertices: [MapCoord; 6] = other.hex_vertices();
+
+        for self_vertex in self_vertices {
+            for other_vertex in other_vertices {
+                if (self_vertex.x - other_vertex.x).abs() < 0.001 && (self_vertex.y - other_vertex.y).abs() < 0.001 {
+                    shared[counter] = self_vertex;
+                    counter += 1;
+                    if counter >= shared.len() {
+                        return Some(shared);
+                    }
+                }
+            }
+        }
+
+        unreachable!()
     }
 }
 
