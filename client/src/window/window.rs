@@ -21,7 +21,6 @@ pub trait Window: ClickHandler + HoverHandler {
     fn close_button(&self) -> &RectangularButton;
     fn close_button_mut(&mut self) -> &mut RectangularButton;
     fn draw_content(&self, rl_draw: &mut RaylibDrawHandle);
-    fn handle_window_closed(&mut self);
 
     #[allow(unused)]
     fn handle_window_clicked(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
@@ -54,38 +53,6 @@ pub trait Window: ClickHandler + HoverHandler {
             width: self.dimensions().x,
             height: self.dimensions().y,
         })
-    }
-}
-
-impl<T: Window> ClickHandler for T {
-    fn handle_click(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
-        if !window_contains_render_coord(self, mouse_position) {
-            return if self.is_open() {
-                self.close();
-                ClickResult::Consume
-            } else {
-                ClickResult::Pass
-            }
-        }
-
-        if let ClickResult::Consume = self.close_button_mut().handle_click(rl, mouse_position) {
-            self.handle_window_closed();
-            return ClickResult::Consume;
-        }
-
-        self.handle_window_clicked(rl, mouse_position);
-        ClickResult::Consume
-    }
-}
-
-impl<T: Window> HoverHandler for T {
-    fn handle_hover(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
-        if !window_contains_render_coord(self, mouse_position) {
-            return HoverResult::Pass;
-        }
-
-        self.close_button_mut().handle_hover(rl, mouse_position);
-        self.handle_window_hovered(rl, mouse_position)
     }
 }
 
@@ -124,15 +91,6 @@ pub fn side_button_rectangle(window: &dyn Window, button_index: i16) -> Rectangl
         width: BUTTON_WIDTH,
         height: BUTTON_WIDTH,
     }
-}
-
-fn window_contains_render_coord(window: &dyn Window, render_coord: RenderCoord) -> bool {
-    if !window.is_open() {
-        return false;
-    }
-
-    let rectangle: Rectangle = window.try_to_rectangle().unwrap();
-    rectangle.check_collision_point_rec(Vector2::from(render_coord))
 }
 
 #[cfg(test)]

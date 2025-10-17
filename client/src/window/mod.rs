@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+
 mod window;
 pub use window::*;
 
@@ -15,3 +17,6 @@ pub use pause::*;
 
 mod state;
 pub use state::*;
+
+mod input;
+pub use input::*;

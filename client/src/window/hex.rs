@@ -18,7 +18,6 @@ const FONT_SPACING: f32 = 2.;
 
 #[derive(Debug)]
 pub struct HexWindow {
-    pub is_open: bool,
     pub origin: Option<RenderCoord>,
     pub hex: Option<Hex>,
     pub close_button: RectangularButton,
@@ -27,11 +26,10 @@ pub struct HexWindow {
 
 impl Window for HexWindow {
     fn is_open(&self) -> bool {
-        self.is_open
+        self.origin.is_some()
     }
 
     fn close(&mut self) {
-        self.is_open = Self::DEFAULT.is_open;
         self.origin = Self::DEFAULT.origin;
         self.hex = Self::DEFAULT.hex;
     }
@@ -62,22 +60,17 @@ impl Window for HexWindow {
         self.draw_footer(rl_draw);
     }
 
-    fn handle_window_closed(&mut self) {
-        self.close();
-    }
-
     fn handle_window_clicked(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
-        self.second_button.handle_click(rl, mouse_position)
+        self.second_button.click(rl, mouse_position)
     }
 
     fn handle_window_hovered(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
-        self.second_button.handle_hover(rl, mouse_position)
+        self.second_button.hover(rl, mouse_position)
     }
 }
 
 impl HexWindow {
     pub const DEFAULT: HexWindow = HexWindow {
-        is_open: false,
         origin: None,
         hex: None,
         close_button: RectangularButton::DEFAULT,
@@ -85,7 +78,6 @@ impl HexWindow {
     };
 
     pub fn open(&mut self, rl: &mut RaylibHandle, origin: RenderCoord, hex: Hex) {
-        self.is_open = true;
         self.origin = Some(window::bounded_origin(rl, origin, self.dimensions()));
         self.hex = Some(hex);
         self.close_button = RectangularButton::new(window::side_button_rectangle(self, 0));

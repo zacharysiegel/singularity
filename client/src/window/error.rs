@@ -7,7 +7,6 @@ use raylib::math::Vector2;
 
 #[derive(Debug)]
 pub struct ErrorWindow {
-    pub is_open: bool,
     pub origin: Option<RenderCoord>,
     pub dimensions: Vector2,
     pub close_button: RectangularButton,
@@ -15,11 +14,11 @@ pub struct ErrorWindow {
 
 impl Window for ErrorWindow {
     fn is_open(&self) -> bool {
-        self.is_open
+        self.origin.is_some()
     }
 
     fn close(&mut self) {
-        self.is_open = false;
+        self.origin = None;
     }
 
     fn origin(&self) -> Option<RenderCoord> {
@@ -42,18 +41,11 @@ impl Window for ErrorWindow {
         &mut self.close_button
     }
 
-    fn draw_content(&self, _rl_draw: &mut RaylibDrawHandle) {
-        todo!()
-    }
-
-    fn handle_window_closed(&mut self) {
-        todo!()
-    }
+    fn draw_content(&self, _rl_draw: &mut RaylibDrawHandle) {}
 }
 
 impl ErrorWindow {
     pub const DEFAULT: ErrorWindow = ErrorWindow {
-        is_open: false,
         origin: None,
         dimensions: Vector2 { x: 0., y: 0. },
         close_button: RectangularButton::DEFAULT,

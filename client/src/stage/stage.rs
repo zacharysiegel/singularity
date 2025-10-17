@@ -1,9 +1,10 @@
 use crate::game::GameState;
-use crate::input::{ClickResult, HoverResult};
+use crate::input::{ClickResult, HoverResult, KeyPressResult};
 use crate::map::RenderCoord;
 use crate::state::STATE;
 use crate::title::TitleState;
-use crate::{map, title};
+use crate::{game, title};
+use raylib::consts::KeyboardKey;
 use raylib::drawing::RaylibDrawHandle;
 use raylib::RaylibHandle;
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
@@ -34,15 +35,22 @@ pub enum StageType {
 impl StageType {
     pub fn click(&self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
         match self {
-            StageType::Title => title::handle_click_title(rl, mouse_position),
-            StageType::Game => map::handle_click_map(rl, mouse_position),
+            StageType::Title => title::click(rl, mouse_position),
+            StageType::Game => game::click(rl, mouse_position),
         }
     }
 
     pub fn hover(&self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
         match self {
-            StageType::Title => title::handle_hover_title(rl, mouse_position),
-            StageType::Game => map::handle_hover_map(rl, mouse_position),
+            StageType::Title => title::hover(rl, mouse_position),
+            StageType::Game => game::hover(rl, mouse_position),
+        }
+    }
+
+    pub fn key_press(&self, rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
+        match self {
+            StageType::Game => game::key_press(rl, key),
+            _ => KeyPressResult::Pass,
         }
     }
 

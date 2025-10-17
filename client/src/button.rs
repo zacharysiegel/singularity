@@ -15,7 +15,7 @@ pub struct RectangularButton {
 }
 
 impl ClickHandler for RectangularButton {
-    fn handle_click(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
+    fn click(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
         if self.rectangle.check_collision_point_rec(mouse_position) {
             (self.on_click)(rl, mouse_position)
         } else {
@@ -25,7 +25,7 @@ impl ClickHandler for RectangularButton {
 }
 
 impl HoverHandler for RectangularButton {
-    fn handle_hover(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
+    fn hover(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
         if self.rectangle.check_collision_point_rec(mouse_position) {
             self.hovered = true;
             (self.on_hover)(rl, mouse_position)

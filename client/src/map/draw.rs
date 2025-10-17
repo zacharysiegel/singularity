@@ -174,10 +174,10 @@ pub fn draw_windows(rl_draw: &mut RaylibDrawHandle) {
     drop(hex);
 
     let pause: RwLockReadGuard<PauseWindow> = STATE.stage.game.window.pause.read().unwrap();
-    // pause.draw(map_origin);
+    pause.draw(rl_draw);
     drop(pause);
 
     let error: RwLockReadGuard<ErrorWindow> = STATE.stage.game.window.error.read().unwrap();
-    // error.draw(map_origin);
+    // error.draw(rl_draw);
     drop(error);
 }
