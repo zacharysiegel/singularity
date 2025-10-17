@@ -6,9 +6,9 @@ use crate::window::Window;
 use std::sync::RwLock;
 
 pub const WINDOW_LAYERS: [&'static RwLock<dyn Window>; 3] = [
-    &STATE.stage.map.window.error,
-    &STATE.stage.map.window.pause,
-    &STATE.stage.map.window.hex,
+    &STATE.stage.game.window.error,
+    &STATE.stage.game.window.pause,
+    &STATE.stage.game.window.hex,
 ];
 
 /// Lower numbers indicate higher priority in the z-buffer

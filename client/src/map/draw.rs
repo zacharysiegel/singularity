@@ -82,8 +82,8 @@ fn draw_hex(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord, hex_coord: He
     let map_coord: MapCoord = hex_coord.map_coord();
     let render_coord: RenderCoord = map_coord.render_coord(map_origin);
 
-    let selected_player_i: RwLockReadGuard<usize> = STATE.stage.map.player.selected.read().unwrap();
-    let players: RwLockReadGuard<Vec<Player>> = STATE.stage.map.player.players.read().unwrap();
+    let selected_player_i: RwLockReadGuard<usize> = STATE.stage.game.player.selected.read().unwrap();
+    let players: RwLockReadGuard<Vec<Player>> = STATE.stage.game.player.players.read().unwrap();
     let selected_player: &Player = &players[*selected_player_i];
     drop(selected_player_i);
 
@@ -95,7 +95,7 @@ fn draw_hex_background(rl_draw: &mut RaylibDrawHandle, hex: &Hex, render_coord: 
     let mut color: Color = hex.resource_type.color();
     let mut hovered: bool = false;
 
-    let hovered_hex_coord: RwLockReadGuard<Option<HexCoord>> = STATE.stage.map.hovered_hex_coord.read().unwrap();
+    let hovered_hex_coord: RwLockReadGuard<Option<HexCoord>> = STATE.stage.game.map.hovered_hex_coord.read().unwrap();
     if let Some(hovered_hex_coord) = *hovered_hex_coord {
         if hex.hex_coord == hovered_hex_coord {
             color = math::color_add(&color, &DIFF_HOVER_HEX);
@@ -127,8 +127,8 @@ fn draw_hex_outline(rl_draw: &mut RaylibDrawHandle, render_coord: RenderCoord) {
 }
 
 fn draw_player_influence_outlines(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord, hex_coord: HexCoord) {
-    let selected_player_i: RwLockReadGuard<usize> = STATE.stage.map.player.selected.read().unwrap();
-    let players: RwLockReadGuard<Vec<Player>> = STATE.stage.map.player.players.read().unwrap();
+    let selected_player_i: RwLockReadGuard<usize> = STATE.stage.game.player.selected.read().unwrap();
+    let players: RwLockReadGuard<Vec<Player>> = STATE.stage.game.player.players.read().unwrap();
     let selected_player: &Player = &players[*selected_player_i];
     drop(selected_player_i);
 
@@ -168,7 +168,7 @@ fn draw_player_influence_outlines(rl_draw: &mut RaylibDrawHandle, map_origin: &M
 }
 
 pub fn draw_players(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord) {
-    let players: RwLockReadGuard<Vec<Player>> = STATE.stage.map.player.players.read().expect("global state poisoned");
+    let players: RwLockReadGuard<Vec<Player>> = STATE.stage.game.player.players.read().expect("global state poisoned");
     for player in &*players {
         for facility in player.facilities.all_facilities() {
             facility::draw_facility(rl_draw, facility, map_origin);
@@ -177,15 +177,15 @@ pub fn draw_players(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord) {
 }
 
 pub fn draw_windows(rl_draw: &mut RaylibDrawHandle) {
-    let hex: RwLockReadGuard<HexWindow> = STATE.stage.map.window.hex.read().unwrap();
+    let hex: RwLockReadGuard<HexWindow> = STATE.stage.game.window.hex.read().unwrap();
     hex.draw(rl_draw);
     drop(hex);
 
-    let pause: RwLockReadGuard<PauseWindow> = STATE.stage.map.window.pause.read().unwrap();
+    let pause: RwLockReadGuard<PauseWindow> = STATE.stage.game.window.pause.read().unwrap();
     // pause.draw(map_origin);
     drop(pause);
 
-    let error: RwLockReadGuard<ErrorWindow> = STATE.stage.map.window.error.read().unwrap();
+    let error: RwLockReadGuard<ErrorWindow> = STATE.stage.game.window.error.read().unwrap();
     // error.draw(map_origin);
     drop(error);
 }
