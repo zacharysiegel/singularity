@@ -14,8 +14,8 @@ framework_names = \
 other_flags = -Wall -std=c++23
 exe_path_client_app = ./ce
 exe_path_client_test = ./ct
-src_paths_client_app = $(wildcard client/archive/*.cpp)
-src_paths_client_test = $(wildcard client/archive/test/*.cpp)
+src_paths_client_app = $(wildcard *.cpp)
+src_paths_client_test = $(wildcard test/*.cpp)
 compile_command_base = $(compiler) $(include_paths) $(library_paths) $(library_names) $(framework_names)
 compile_command_client_app = $(compile_command_base) -o $(exe_path_client_app) $(other_flags) $(src_paths_client_app)
 compile_command_client_test = $(compile_command_base) -o $(exe_path_client_test) $(other_flags) $(src_paths_client_test) -g -O0
@@ -28,7 +28,7 @@ default: all
 all: setup build
 
 .PHONY: setup
-setup: client/compile_commands.json
+setup: compile_commands.json
 
 .PHONY: run
 run: build
@@ -61,8 +61,8 @@ build-test-client:
 test: build-test
 	$(exe_path_client_test)
 
-client/compile_commands.json:
-	echo '[{"directory": "$(PWD)", "command": "$(compile_command_client_app)", "file": "$(src_paths_client_app)"}]' > client/compile_commands.json
+compile_commands.json:
+	echo '[{"directory": "$(PWD)", "command": "$(compile_command_client_app)", "file": "$(src_paths_client_app)"}]' > ./compile_commands.json
 
 # Target "clean" is expected by CLion
 .PHONY: clean
