@@ -140,24 +140,10 @@ impl MapCoord {
     }
 
     pub fn overflow_adjusted(&mut self) -> Self {
-        let map_width_pixels: f32 = get_map_width_pixels();
-        let map_height_pixels: f32 = get_map_height_pixels();
-
-        while self.x < 0. {
-            self.x += map_width_pixels;
-        }
-        while self.y < 0. {
-            self.y += map_height_pixels;
-        }
-
-        while self.x >= map_width_pixels {
-            self.x -= map_width_pixels;
-        }
-        while self.y >= map_height_pixels {
-            self.y -= map_height_pixels;
-        }
-
-        *self
+        MapCoord(Vector2 {
+            x: self.x.rem_euclid(get_map_width_pixels()),
+            y: self.y.rem_euclid(get_map_height_pixels()),
+        })
     }
 
     pub fn toroidal_distance(&self, other: MapCoord) -> f32 {
