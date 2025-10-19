@@ -4,12 +4,12 @@ use crate::input::{ClickResult, ScrollResult};
 use crate::map;
 use crate::map::{MapCoord, RenderCoord};
 use crate::state::STATE;
-use crate::window::{PauseWindow, WINDOW_LAYERS, Window};
-use raylib::RaylibHandle;
+use crate::window::{PauseWindow, Window, WINDOW_LAYERS};
 use raylib::consts::KeyboardKey;
 use raylib::math::Vector2;
+use raylib::RaylibHandle;
 use std::ops::{Add, Mul};
-use std::sync::RwLockWriteGuard;
+use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 
 pub fn scroll(_rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult {
     let mut map_origin: RwLockWriteGuard<MapCoord> =
@@ -43,27 +43,45 @@ pub fn hover(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult 
 }
 
 pub fn key_press(rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
-    let mut pause_window: RwLockWriteGuard<PauseWindow> = STATE.stage.game.window.pause.write().unwrap();
-    if pause_window.is_open() {
-        if key == KeyboardKey::KEY_P {
-            pause_window.close();
+    if key == KeyboardKey::KEY_P {
+        let pause_window: RwLockReadGuard<PauseWindow> = STATE.stage.game.window.pause.read().unwrap();
+        if !pause_window.is_open() {
+            drop(pause_window);
+            let mut pause_window: RwLockWriteGuard<PauseWindow> = STATE.stage.game.window.pause.write().unwrap();
+            pause_window.open(rl);
             return KeyPressResult::Consume;
         }
-        return KeyPressResult::Pass;
     }
-    if key == KeyboardKey::KEY_P {
-        pause_window.open(rl);
-        return KeyPressResult::Consume;
-    }
-    drop(pause_window);
 
-    if key == KeyboardKey::KEY_ESCAPE {
-        let mut hex_window = STATE.stage.game.window.hex.write().unwrap();
-        if hex_window.is_open() {
-            hex_window.close();
+    for window in WINDOW_LAYERS {
+        let mut window: RwLockWriteGuard<dyn Window> = window.write().unwrap();
+        match window.key_press(rl, key) {
+            KeyPressResult::Pass => continue,
+            KeyPressResult::Consume => return KeyPressResult::Consume,
         }
-        return KeyPressResult::Consume;
     }
+
+    // let mut pause_window: RwLockWriteGuard<PauseWindow> = STATE.stage.game.window.pause.write().unwrap();
+    // if pause_window.is_open() {
+    //     if key == KeyboardKey::KEY_P {
+    //         pause_window.close();
+    //         return KeyPressResult::Consume;
+    //     }
+    //     return KeyPressResult::Pass;
+    // }
+    // if key == KeyboardKey::KEY_P {
+    //     pause_window.open(rl);
+    //     return KeyPressResult::Consume;
+    // }
+    // drop(pause_window);
+    //
+    // if key == KeyboardKey::KEY_ESCAPE {
+    //     let mut hex_window = STATE.stage.game.window.hex.write().unwrap();
+    //     if hex_window.is_open() {
+    //         hex_window.close();
+    //     }
+    //     return KeyPressResult::Consume;
+    // }
     KeyPressResult::Pass
 }
 

@@ -1,16 +1,18 @@
 use crate::button::RectangularButton;
 use crate::color::TEXT_COLOR;
-use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
+use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult};
 use crate::map::RenderCoord;
 use crate::map::{Hex, ResourceType};
+use crate::state::STATE;
 use crate::window;
 use crate::window::state::WindowLayer;
-use crate::window::{Window, draw};
-use raylib::RaylibHandle;
+use crate::window::{draw, Window};
+use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
 use raylib::prelude::WeakFont;
 use raylib::text::RaylibFont;
+use raylib::RaylibHandle;
 use std::ops::Add;
 use window::draw::BORDER_GAP;
 

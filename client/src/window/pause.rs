@@ -1,13 +1,13 @@
 use crate::button::RectangularButton;
-use crate::color::TEXT_COLOR;
-use crate::font::DEFAULT_FONT_SPACING;
+use crate::input::{KeyPressHandler, KeyPressResult};
 use crate::map::RenderCoord;
 use crate::window;
 use crate::window::state::WindowLayer;
-use crate::window::{BORDER_GAP, Window};
-use raylib::RaylibHandle;
+use crate::window::{Window, BORDER_GAP};
+use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
+use raylib::RaylibHandle;
 
 const PAUSE_MARGIN: f32 = 40.;
 const PAUSE_INTERNAL_MARGIN: f32 = 14.;
@@ -51,6 +51,13 @@ impl Window for PauseWindow {
     fn draw_content(&self, rl_draw: &mut RaylibDrawHandle) {
         draw::draw_title(rl_draw, self);
     }
+
+    fn handle_window_key_press(&mut self, rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
+        if key == KeyboardKey::KEY_P {
+            self.close();
+        }
+        KeyPressResult::Consume
+    }
 }
 
 impl PauseWindow {
@@ -77,7 +84,7 @@ mod draw {
     use crate::color::TEXT_COLOR;
     use crate::font::DEFAULT_FONT_SPACING;
     use crate::window::pause::PAUSE_INTERNAL_MARGIN;
-    use crate::window::{BORDER_GAP, PauseWindow};
+    use crate::window::{PauseWindow, BORDER_GAP};
     use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
     use raylib::math::Vector2;
 

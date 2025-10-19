@@ -9,6 +9,10 @@ use raylib::RaylibHandle;
 
 impl<T: Window> ScrollHandler for T {
     fn scroll(&mut self, _rl: &mut RaylibHandle, _scroll_v: Vector2) -> ScrollResult {
+        if !self.is_open() {
+            return ScrollResult::Pass;
+        }
+
         ScrollResult::Pass
     }
 }
@@ -46,8 +50,17 @@ impl<T: Window> HoverHandler for T {
 }
 
 impl<T: Window> KeyPressHandler for T {
-    fn key_press(&mut self, _rl: &mut RaylibHandle, _key: KeyboardKey) -> KeyPressResult {
-        KeyPressResult::Pass
+    fn key_press(&mut self, rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
+        if self.is_open() {
+            if key == KeyboardKey::KEY_ESCAPE {
+                self.close();
+                KeyPressResult::Consume
+            } else {
+                self.handle_window_key_press(rl, key)
+            }
+        } else {
+            KeyPressResult::Pass
+        }
     }
 }
 
