@@ -1,12 +1,13 @@
 use crate::game::GameState;
-use crate::input::{ClickResult, HoverResult, KeyPressResult};
+use crate::input::{ClickResult, HoverResult, KeyPressResult, ScrollResult};
 use crate::map::RenderCoord;
 use crate::state::STATE;
 use crate::title::TitleState;
 use crate::{game, title};
+use raylib::RaylibHandle;
 use raylib::consts::KeyboardKey;
 use raylib::drawing::RaylibDrawHandle;
-use raylib::RaylibHandle;
+use raylib::math::Vector2;
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 #[derive(Debug)]
@@ -33,6 +34,13 @@ pub enum StageType {
 }
 
 impl StageType {
+    pub fn scroll(&self, rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult {
+        match self {
+            StageType::Game => game::scroll(rl, scroll_v),
+            _ => ScrollResult::Consume,
+        }
+    }
+
     pub fn click(&self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
         match self {
             StageType::Title => title::click(rl, mouse_position),

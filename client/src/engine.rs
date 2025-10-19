@@ -8,7 +8,7 @@ use raylib::callbacks::TraceLogLevel;
 use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::ffi::SetConfigFlags;
-use raylib::{ffi, math, RaylibHandle, RaylibThread};
+use raylib::{RaylibHandle, RaylibThread, ffi, math};
 use shared::environment::RuntimeEnvironment;
 use shared::error::AppError;
 use shared::network::ring_buffer::RingBuffer;
@@ -22,21 +22,9 @@ pub const TARGET_FPS: u8 = 60;
 pub const DISPLAY_WIDTH: u16 = 1600;
 pub const DISPLAY_HEIGHT: u16 = 900;
 
-fn scrolled_map_origin(rl: &mut RaylibHandle, map_origin: &MapCoord) -> MapCoord {
-    let scroll: ffi::Vector2 = rl.get_mouse_wheel_move_v();
-    let scroll_inverted: math::Vector2 = math::Vector2::mul(scroll.into(), math::Vector2 { x: -1., y: -1. }).into();
-    let unchecked_origin: math::Vector2 = math::Vector2::add(map_origin.0.into(), scroll_inverted);
-    MapCoord(unchecked_origin.into()).overflow_adjusted()
-}
-
 fn update(rl: &mut RaylibHandle) {
     stage::update();
     input::handle_user_input(rl);
-
-    let mut map_origin: RwLockWriteGuard<MapCoord> =
-        STATE.stage.game.map.map_origin.write().expect("global state poisoned");
-    let old: MapCoord = map_origin.clone();
-    *map_origin = scrolled_map_origin(rl, &old);
 }
 
 fn draw(rl_draw: &mut RaylibDrawHandle) {
