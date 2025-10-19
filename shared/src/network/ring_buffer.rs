@@ -283,9 +283,7 @@ mod tests {
             assert!(!ring_buffer.is_empty());
             assert_eq!(hello_world.len() + numbers.len(), ring_buffer.used_space());
 
-            ring_buffer
-                .push(&vec![1; ring_buffer.capacity() - ring_buffer.used_space()])
-                .unwrap();
+            ring_buffer.push(&vec![1; ring_buffer.capacity() - ring_buffer.used_space()]).unwrap();
             assert!(ring_buffer.is_full());
             assert_eq!(b'e', unsafe { ring_buffer.buffer[1].assume_init() });
             assert_eq!(2, unsafe { ring_buffer.buffer[hello_world.len() + 2].assume_init() });

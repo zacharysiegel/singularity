@@ -5,12 +5,12 @@ use crate::map::RenderCoord;
 use crate::map::{Hex, ResourceType};
 use crate::window;
 use crate::window::state::WindowLayer;
-use crate::window::{draw, Window};
+use crate::window::{Window, draw};
+use raylib::RaylibHandle;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
 use raylib::prelude::WeakFont;
 use raylib::text::RaylibFont;
-use raylib::RaylibHandle;
 use std::ops::Add;
 use window::draw::BORDER_GAP;
 

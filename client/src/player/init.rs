@@ -1,7 +1,7 @@
 use crate::facility::ControlCenter;
 use crate::facility::{FacilityCollection, FacilityState};
-use crate::map::HexCoord;
 use crate::map::HEX_COUNT_SQRT;
+use crate::map::HexCoord;
 use crate::player::Player;
 use crate::state::STATE;
 use std::sync::RwLockWriteGuard;

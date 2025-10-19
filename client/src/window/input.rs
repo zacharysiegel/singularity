@@ -1,8 +1,8 @@
 use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
 use crate::map::RenderCoord;
 use crate::window::Window;
-use raylib::math::{Rectangle, Vector2};
 use raylib::RaylibHandle;
+use raylib::math::{Rectangle, Vector2};
 
 impl<T: Window> ClickHandler for T {
     fn click(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {

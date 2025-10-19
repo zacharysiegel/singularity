@@ -1,8 +1,8 @@
-use std::sync::RwLockReadGuard;
-use raylib::drawing::RaylibDrawHandle;
 use crate::map::MapCoord;
 use crate::state::STATE;
 use crate::{map, title};
+use raylib::drawing::RaylibDrawHandle;
+use std::sync::RwLockReadGuard;
 
 pub fn draw_stage_title(rl_draw: &mut RaylibDrawHandle) {
     title::draw_title(rl_draw);

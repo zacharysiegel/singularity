@@ -1,7 +1,7 @@
 use client::engine;
-use std::error::Error;
 use raylib::{RaylibHandle, RaylibThread};
 use shared::environment;
+use std::error::Error;
 
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn Error>> {

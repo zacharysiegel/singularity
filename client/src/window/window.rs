@@ -3,10 +3,10 @@ use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
 use crate::map::RenderCoord;
 use crate::window::draw;
 use crate::window::draw::BORDER_GAP;
-use crate::window::state::{WindowLayer, WINDOW_LAYERS};
+use crate::window::state::{WINDOW_LAYERS, WindowLayer};
+use raylib::RaylibHandle;
 use raylib::math::Rectangle;
 use raylib::prelude::{RaylibDrawHandle, Vector2};
-use raylib::RaylibHandle;
 use shared::error::AppError;
 use std::sync::RwLockReadGuard;
 
@@ -95,8 +95,8 @@ pub fn side_button_rectangle(window: &dyn Window, button_index: i16) -> Rectangl
 
 #[cfg(test)]
 mod tests {
-    use crate::window::state::WINDOW_LAYERS;
     use crate::window::Window;
+    use crate::window::state::WINDOW_LAYERS;
     use std::sync::RwLockReadGuard;
 
     #[test]

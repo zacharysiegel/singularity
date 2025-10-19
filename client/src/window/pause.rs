@@ -4,10 +4,10 @@ use crate::font::DEFAULT_FONT_SPACING;
 use crate::map::RenderCoord;
 use crate::window;
 use crate::window::state::WindowLayer;
-use crate::window::{Window, BORDER_GAP};
+use crate::window::{BORDER_GAP, Window};
+use raylib::RaylibHandle;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
-use raylib::RaylibHandle;
 
 const PAUSE_MARGIN: f32 = 40.;
 const PAUSE_INTERNAL_MARGIN: f32 = 14.;
@@ -74,19 +74,19 @@ impl PauseWindow {
 }
 
 mod draw {
-    use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
-    use raylib::math::Vector2;
     use crate::color::TEXT_COLOR;
     use crate::font::DEFAULT_FONT_SPACING;
-    use crate::window::{PauseWindow, BORDER_GAP};
     use crate::window::pause::PAUSE_INTERNAL_MARGIN;
+    use crate::window::{BORDER_GAP, PauseWindow};
+    use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
+    use raylib::math::Vector2;
 
     pub fn draw_title(rl_draw: &mut RaylibDrawHandle, window: &PauseWindow) {
         let position: Vector2 = window.origin.unwrap().0
             + Vector2 {
-            x: BORDER_GAP + PAUSE_INTERNAL_MARGIN,
-            y: BORDER_GAP + PAUSE_INTERNAL_MARGIN,
-        };
+                x: BORDER_GAP + PAUSE_INTERNAL_MARGIN,
+                y: BORDER_GAP + PAUSE_INTERNAL_MARGIN,
+            };
         rl_draw.draw_text_ex(
             rl_draw.get_font_default(),
             "Paused",

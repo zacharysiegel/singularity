@@ -7,10 +7,7 @@ use tokio::sync;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     environment::load_env()?;
-    env_logger::builder()
-        .filter_level(log::LevelFilter::Debug)
-        .format_source_path(true)
-        .try_init()?;
+    env_logger::builder().filter_level(log::LevelFilter::Debug).format_source_path(true).try_init()?;
 
     let listener: TcpListener = listen::listen().await?;
     let (cancellation_sender, cancellation_receiver) = sync::broadcast::channel::<()>(1);
@@ -23,7 +20,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Ok(_) => {
             log::info!("Received <C-C> signal");
             graceful_shutdown(cancellation_sender)
-        },
+        }
         Err(err) => {
             log::error!("Failed to await <C-C> signal. Shutting down. [{:#}]", err);
             graceful_shutdown(cancellation_sender);

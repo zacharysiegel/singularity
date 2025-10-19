@@ -1,12 +1,12 @@
 use crate::input::{ClickResult, HoverResult};
+use crate::map::HexCoord;
 use crate::map::coordinate::{MapCoord, RenderCoord};
 use crate::map::state::Hex;
-use crate::map::HexCoord;
 use crate::state::STATE;
 use crate::window;
 use crate::window::HexWindow;
-use raylib::math::Vector2;
 use raylib::RaylibHandle;
+use raylib::math::Vector2;
 use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 
 pub fn handle_click_hex(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {

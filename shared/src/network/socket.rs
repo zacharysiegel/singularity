@@ -18,10 +18,8 @@ pub fn get_sock_addr() -> Result<SockAddr, AppError> {
 }
 
 pub fn create_socket() -> Result<Socket, AppError> {
-    let tcp_keep_alive: TcpKeepalive = TcpKeepalive::new()
-        .with_time(Duration::from_secs(60))
-        .with_interval(Duration::from_secs(10))
-        .with_retries(3);
+    let tcp_keep_alive: TcpKeepalive =
+        TcpKeepalive::new().with_time(Duration::from_secs(60)).with_interval(Duration::from_secs(10)).with_retries(3);
 
     let socket: Socket = Socket::new(Domain::IPV4, Type::STREAM, Some(Protocol::TCP))?;
     socket.set_tcp_nodelay(true)?;

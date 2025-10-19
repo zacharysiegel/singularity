@@ -2,20 +2,20 @@ use crate::button::RectangularButton;
 use crate::font::DEFAULT_FONT_SPACING;
 use crate::input::ClickResult;
 use crate::map::RenderCoord;
+use crate::stage;
 use crate::stage::StageType;
 use crate::state::STATE;
 use crate::title::{
     BUTTON_FONT_SIZE, BUTTON_INTERNAL_MARGIN, BUTTON_TEXT_ARRAY, BUTTON_VERTICAL_MARGIN, SCREEN_MARGIN,
     TITLE_VERTICAL_MARGIN,
 };
+use raylib::RaylibHandle;
 use raylib::ffi::GetFontDefault;
 use raylib::math::{Rectangle, Vector2};
 use raylib::prelude::WeakFont;
 use raylib::text::RaylibFont;
-use raylib::RaylibHandle;
 use shared::environment::RuntimeEnvironment;
 use std::sync::{LazyLock, RwLockWriteGuard};
-use crate::stage;
 
 const BUTTON_DIMENSIONS: LazyLock<Vector2> = LazyLock::new(|| {
     let mut max_measure: Vector2 = Vector2 {

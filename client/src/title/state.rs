@@ -1,5 +1,5 @@
-use std::sync::RwLock;
 use crate::button::RectangularButton;
+use std::sync::RwLock;
 
 #[derive(Debug)]
 pub struct TitleState {

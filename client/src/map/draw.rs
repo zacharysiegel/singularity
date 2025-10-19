@@ -1,7 +1,4 @@
-use crate::color::{
-    DIFF_HOVER_HEX, DIFF_WITHIN_INFLUENCE, HEX_OUTLINE_ACCENTED_COLOR, HEX_OUTLINE_COLOR
-    ,
-};
+use crate::color::{DIFF_HOVER_HEX, DIFF_WITHIN_INFLUENCE, HEX_OUTLINE_ACCENTED_COLOR, HEX_OUTLINE_COLOR};
 use crate::map::config::{HEX_COUNT_SQRT, HEX_RADIUS, HEX_ROTATION};
 use crate::map::coordinate;
 use crate::map::coordinate::HexCoord;

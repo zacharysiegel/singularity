@@ -1,4 +1,4 @@
-use shared::network::protocol::{Acknowledgement, Frame, Heartbeat, OperationType, Register, _PlaceholderDynamic};
+use shared::network::protocol::{_PlaceholderDynamic, Acknowledgement, Frame, Heartbeat, OperationType, Register};
 
 pub async fn route_frame(frame: Frame) {
     match frame.head.op_type {
