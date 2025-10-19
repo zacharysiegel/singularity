@@ -1,8 +1,17 @@
-use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
+use crate::input::{
+    ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult, ScrollHandler, ScrollResult,
+};
 use crate::map::RenderCoord;
 use crate::window::Window;
-use raylib::RaylibHandle;
+use raylib::consts::KeyboardKey;
 use raylib::math::{Rectangle, Vector2};
+use raylib::RaylibHandle;
+
+impl<T: Window> ScrollHandler for T {
+    fn scroll(&mut self, _rl: &mut RaylibHandle, _scroll_v: Vector2) -> ScrollResult {
+        ScrollResult::Pass
+    }
+}
 
 impl<T: Window> ClickHandler for T {
     fn click(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
@@ -33,6 +42,12 @@ impl<T: Window> HoverHandler for T {
 
         self.close_button_mut().hover(rl, mouse_position);
         self.handle_window_hovered(rl, mouse_position)
+    }
+}
+
+impl<T: Window> KeyPressHandler for T {
+    fn key_press(&mut self, _rl: &mut RaylibHandle, _key: KeyboardKey) -> KeyPressResult {
+        KeyPressResult::Pass
     }
 }
 

@@ -55,7 +55,7 @@ pub trait KeyPressHandler {
     /// Hook to allow an object to handle a key press event.
     /// The hook should return [KeyPressResult::Consume] to consume the event, or
     /// [KeyPressResult::Pass] to allow subsequent objects to handle the same event.
-    fn key_press(&mut self, rl: &mut RaylibHandle, key: KeyboardKey) -> HoverResult;
+    fn key_press(&mut self, rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult;
 }
 
 pub fn handle_user_input(rl: &mut RaylibHandle) {

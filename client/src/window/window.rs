@@ -1,18 +1,18 @@
 use crate::button::RectangularButton;
-use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
+use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, ScrollHandler};
 use crate::map::RenderCoord;
 use crate::window::draw;
 use crate::window::draw::BORDER_GAP;
-use crate::window::state::{WINDOW_LAYERS, WindowLayer};
-use raylib::RaylibHandle;
+use crate::window::state::{WindowLayer, WINDOW_LAYERS};
 use raylib::math::Rectangle;
 use raylib::prelude::{RaylibDrawHandle, Vector2};
+use raylib::RaylibHandle;
 use shared::error::AppError;
 use std::sync::RwLockReadGuard;
 
 const BUTTON_WIDTH: f32 = 42.;
 
-pub trait Window: ClickHandler + HoverHandler {
+pub trait Window: ScrollHandler + ClickHandler + HoverHandler + KeyPressHandler {
     fn is_open(&self) -> bool;
     fn close(&mut self);
     fn origin(&self) -> Option<RenderCoord>;
@@ -95,8 +95,8 @@ pub fn side_button_rectangle(window: &dyn Window, button_index: i16) -> Rectangl
 
 #[cfg(test)]
 mod tests {
-    use crate::window::Window;
     use crate::window::state::WINDOW_LAYERS;
+    use crate::window::Window;
     use std::sync::RwLockReadGuard;
 
     #[test]
