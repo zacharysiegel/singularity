@@ -49,7 +49,7 @@ impl Window for PauseWindow {
     }
 
     fn draw_content(&self, rl_draw: &mut RaylibDrawHandle) {
-        self.draw_title(rl_draw);
+        draw::draw_title(rl_draw, self);
     }
 }
 
@@ -71,13 +71,22 @@ impl PauseWindow {
         }));
         self.close_button = RectangularButton::new(window::side_button_rectangle(self, 0));
     }
+}
 
-    fn draw_title(&self, rl_draw: &mut RaylibDrawHandle) {
-        let position: Vector2 = self.origin.unwrap().0
+mod draw {
+    use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
+    use raylib::math::Vector2;
+    use crate::color::TEXT_COLOR;
+    use crate::font::DEFAULT_FONT_SPACING;
+    use crate::window::{PauseWindow, BORDER_GAP};
+    use crate::window::pause::PAUSE_INTERNAL_MARGIN;
+
+    pub fn draw_title(rl_draw: &mut RaylibDrawHandle, window: &PauseWindow) {
+        let position: Vector2 = window.origin.unwrap().0
             + Vector2 {
-                x: BORDER_GAP + PAUSE_INTERNAL_MARGIN,
-                y: BORDER_GAP + PAUSE_INTERNAL_MARGIN,
-            };
+            x: BORDER_GAP + PAUSE_INTERNAL_MARGIN,
+            y: BORDER_GAP + PAUSE_INTERNAL_MARGIN,
+        };
         rl_draw.draw_text_ex(
             rl_draw.get_font_default(),
             "Paused",
@@ -86,5 +95,12 @@ impl PauseWindow {
             DEFAULT_FONT_SPACING,
             TEXT_COLOR,
         );
+    }
+
+    pub fn draw_blur(rl_draw: &mut RaylibDrawHandle) {
+        // todo:
+        //  draw game to a "game texture"
+        //  draw pause window to "pause texture"
+        //  apply fragment shader to blur the game texture
     }
 }

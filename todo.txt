@@ -1,7 +1,6 @@
 # High-level to-do items
 
 Concepts
-	Pause window [in progress]
 	Fog of war
 	Items
 	Storage
@@ -23,14 +22,16 @@ Player interactions
 	Chat
 	Time machine
 Menus
-   Account setup
-   Games
-      Active
-      Past
-      Current
-   	  Create
-   Account
-   Debug
+	Pause window [in progress]
+		Return to title
+   	Account setup
+   	Games
+   	   Active
+   	   Past
+   	   Current
+   		  Create
+   	Account
+   	Debug
 Server-side networking
     TLS (low)
 Client-side networking
