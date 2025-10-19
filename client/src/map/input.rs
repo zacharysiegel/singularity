@@ -1,4 +1,4 @@
-use crate::input::{ClickResult, HoverResult};
+use crate::input::{ClickResult, HoverResult, ScrollResult};
 use crate::map::HexCoord;
 use crate::map::coordinate::{MapCoord, RenderCoord};
 use crate::map::state::Hex;
@@ -7,7 +7,22 @@ use crate::window;
 use crate::window::HexWindow;
 use raylib::RaylibHandle;
 use raylib::math::Vector2;
+use std::ops::{Add, Mul};
 use std::sync::{RwLockReadGuard, RwLockWriteGuard};
+
+pub fn scroll(_rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult {
+    let mut map_origin: RwLockWriteGuard<MapCoord> =
+        STATE.stage.game.map.map_origin.write().expect("global state poisoned");
+
+    *map_origin = scrolled_map_origin(*map_origin, scroll_v);
+    ScrollResult::Consume
+}
+
+fn scrolled_map_origin(map_origin: MapCoord, scroll_v: Vector2) -> MapCoord {
+    let scroll_inverted: Vector2 = scroll_v.mul(Vector2 { x: -1., y: -1. });
+    let unchecked_origin: Vector2 = map_origin.add(scroll_inverted);
+    MapCoord(unchecked_origin).overflow_adjusted()
+}
 
 pub fn handle_click_hex(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
     let containing_hex: Hex = {

@@ -7,7 +7,7 @@ use raylib::callbacks::TraceLogLevel;
 use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::ffi::SetConfigFlags;
-use raylib::{ffi, RaylibHandle, RaylibThread};
+use raylib::{RaylibHandle, RaylibThread, ffi};
 use shared::environment::RuntimeEnvironment;
 use shared::error::AppError;
 use shared::network::ring_buffer::RingBuffer;

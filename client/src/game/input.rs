@@ -2,21 +2,24 @@ use crate::input::HoverResult;
 use crate::input::KeyPressResult;
 use crate::input::{ClickResult, ScrollResult};
 use crate::map;
-use crate::map::{MapCoord, RenderCoord};
+use crate::map::RenderCoord;
 use crate::state::STATE;
-use crate::window::{PauseWindow, Window, WINDOW_LAYERS};
+use crate::window::{PauseWindow, WINDOW_LAYERS, Window};
+use raylib::RaylibHandle;
 use raylib::consts::KeyboardKey;
 use raylib::math::Vector2;
-use raylib::RaylibHandle;
-use std::ops::{Add, Mul};
 use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 
-pub fn scroll(_rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult {
-    let mut map_origin: RwLockWriteGuard<MapCoord> =
-        STATE.stage.game.map.map_origin.write().expect("global state poisoned");
+pub fn scroll(rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult {
+    for window in WINDOW_LAYERS {
+        let mut window: RwLockWriteGuard<dyn Window> = window.write().unwrap();
+        match window.scroll(rl, scroll_v) {
+            ScrollResult::Pass => continue,
+            ScrollResult::Consume => return ScrollResult::Consume,
+        }
+    }
 
-    *map_origin = scrolled_map_origin(*map_origin, scroll_v);
-    ScrollResult::Consume
+    map::scroll(rl, scroll_v)
 }
 
 pub fn click(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
@@ -61,32 +64,5 @@ pub fn key_press(rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
         }
     }
 
-    // let mut pause_window: RwLockWriteGuard<PauseWindow> = STATE.stage.game.window.pause.write().unwrap();
-    // if pause_window.is_open() {
-    //     if key == KeyboardKey::KEY_P {
-    //         pause_window.close();
-    //         return KeyPressResult::Consume;
-    //     }
-    //     return KeyPressResult::Pass;
-    // }
-    // if key == KeyboardKey::KEY_P {
-    //     pause_window.open(rl);
-    //     return KeyPressResult::Consume;
-    // }
-    // drop(pause_window);
-    //
-    // if key == KeyboardKey::KEY_ESCAPE {
-    //     let mut hex_window = STATE.stage.game.window.hex.write().unwrap();
-    //     if hex_window.is_open() {
-    //         hex_window.close();
-    //     }
-    //     return KeyPressResult::Consume;
-    // }
     KeyPressResult::Pass
-}
-
-fn scrolled_map_origin(map_origin: MapCoord, scroll_v: Vector2) -> MapCoord {
-    let scroll_inverted: Vector2 = scroll_v.mul(Vector2 { x: -1., y: -1. });
-    let unchecked_origin: Vector2 = map_origin.add(scroll_inverted);
-    MapCoord(unchecked_origin).overflow_adjusted()
 }

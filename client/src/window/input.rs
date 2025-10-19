@@ -3,17 +3,17 @@ use crate::input::{
 };
 use crate::map::RenderCoord;
 use crate::window::Window;
+use raylib::RaylibHandle;
 use raylib::consts::KeyboardKey;
 use raylib::math::{Rectangle, Vector2};
-use raylib::RaylibHandle;
 
 impl<T: Window> ScrollHandler for T {
-    fn scroll(&mut self, _rl: &mut RaylibHandle, _scroll_v: Vector2) -> ScrollResult {
-        if !self.is_open() {
-            return ScrollResult::Pass;
+    fn scroll(&mut self, rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult {
+        if self.is_open() {
+            self.handle_window_scroll(rl, scroll_v)
+        } else {
+            ScrollResult::Pass
         }
-
-        ScrollResult::Pass
     }
 }
 
@@ -33,7 +33,7 @@ impl<T: Window> ClickHandler for T {
             return ClickResult::Consume;
         }
 
-        self.handle_window_clicked(rl, mouse_position);
+        self.handle_window_click(rl, mouse_position);
         ClickResult::Consume
     }
 }
@@ -45,7 +45,7 @@ impl<T: Window> HoverHandler for T {
         }
 
         self.close_button_mut().hover(rl, mouse_position);
-        self.handle_window_hovered(rl, mouse_position)
+        self.handle_window_hover(rl, mouse_position)
     }
 }
 

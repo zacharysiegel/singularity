@@ -1,18 +1,20 @@
 use crate::button::RectangularButton;
 use crate::color::TEXT_COLOR;
-use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult};
+use crate::input::{
+    ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult, ScrollResult,
+};
 use crate::map::RenderCoord;
 use crate::map::{Hex, ResourceType};
 use crate::state::STATE;
 use crate::window;
 use crate::window::state::WindowLayer;
-use crate::window::{draw, Window};
+use crate::window::{Window, draw};
+use raylib::RaylibHandle;
 use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
 use raylib::prelude::WeakFont;
 use raylib::text::RaylibFont;
-use raylib::RaylibHandle;
 use std::ops::Add;
 use window::draw::BORDER_GAP;
 
@@ -62,11 +64,15 @@ impl Window for HexWindow {
         self.draw_footer(rl_draw);
     }
 
-    fn handle_window_clicked(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
+    fn handle_window_scroll(&mut self, _rl: &mut RaylibHandle, _scroll_v: Vector2) -> ScrollResult {
+        ScrollResult::Pass
+    }
+
+    fn handle_window_click(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
         self.second_button.click(rl, mouse_position)
     }
 
-    fn handle_window_hovered(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
+    fn handle_window_hover(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
         self.second_button.hover(rl, mouse_position)
     }
 }

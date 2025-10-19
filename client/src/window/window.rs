@@ -1,15 +1,15 @@
 use crate::button::RectangularButton;
 use crate::input::{
-    ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult, ScrollHandler,
+    ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult, ScrollHandler, ScrollResult,
 };
 use crate::map::RenderCoord;
 use crate::window::draw;
 use crate::window::draw::BORDER_GAP;
-use crate::window::state::{WindowLayer, WINDOW_LAYERS};
+use crate::window::state::{WINDOW_LAYERS, WindowLayer};
+use raylib::RaylibHandle;
 use raylib::consts::KeyboardKey;
 use raylib::math::Rectangle;
 use raylib::prelude::{RaylibDrawHandle, Vector2};
-use raylib::RaylibHandle;
 use shared::error::AppError;
 use std::sync::RwLockReadGuard;
 
@@ -26,12 +26,17 @@ pub trait Window: ScrollHandler + ClickHandler + HoverHandler + KeyPressHandler 
     fn draw_content(&self, rl_draw: &mut RaylibDrawHandle);
 
     #[allow(unused)]
-    fn handle_window_clicked(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
+    fn handle_window_scroll(&mut self, rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult {
+        ScrollResult::Consume
+    }
+
+    #[allow(unused)]
+    fn handle_window_click(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
         ClickResult::Consume
     }
 
     #[allow(unused)]
-    fn handle_window_hovered(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
+    fn handle_window_hover(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
         HoverResult::Consume
     }
 
@@ -103,8 +108,8 @@ pub fn side_button_rectangle(window: &dyn Window, button_index: i16) -> Rectangl
 
 #[cfg(test)]
 mod tests {
-    use crate::window::state::WINDOW_LAYERS;
     use crate::window::Window;
+    use crate::window::state::WINDOW_LAYERS;
     use std::sync::RwLockReadGuard;
 
     #[test]
