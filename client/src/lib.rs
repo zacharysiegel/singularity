@@ -14,3 +14,4 @@ pub mod stage;
 pub mod state;
 pub mod title;
 pub mod window;
+pub mod shader;

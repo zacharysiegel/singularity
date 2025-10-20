@@ -2,7 +2,7 @@ use crate::color::{MAP_BACKGROUND_COLOR, TEXT_COLOR};
 use crate::config::APPLICATION_NAME;
 use crate::stage::StageType;
 use crate::state::STATE;
-use crate::{connect, input, map, player, stage, title};
+use crate::{connect, input, map, player, shader, stage, title};
 use raylib::callbacks::TraceLogLevel;
 use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
@@ -65,6 +65,7 @@ pub fn init() -> Result<(RaylibHandle, RaylibThread), AppError> {
 
     draw_loading_init(&mut rl, &rl_thread);
 
+    shader::init(&mut rl, &rl_thread);
     title::init_title(&mut rl);
     map::init_map();
     player::init_players(4);
