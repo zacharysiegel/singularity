@@ -1,34 +1,38 @@
 use raylib::prelude::RaylibShader;
 use raylib::shaders::Shader;
 use raylib::{RaylibHandle, RaylibThread};
-use std::sync::OnceLock;
+use std::cell::RefCell;
+use std::mem::MaybeUninit;
+use std::rc::Rc;
 
-pub const SHADER_STORE: OnceLock<ShaderStore> = OnceLock::new();
+thread_local! {
+pub static SHADER_STORE: RefCell<MaybeUninit<ShaderStore>> = RefCell::new(MaybeUninit::uninit());
+}
 
 const BLUR: &str = include_str!("../shader/blur.fs.glsl");
 
 pub struct ShaderStore {
-    blur: StandardShader,
+    pub blur: Rc<StandardShader>,
 }
 
 pub struct StandardShader {
-    shader: Shader,
-    uniforms: StandardUniforms,
+    pub shader: RefCell<Shader>,
+    pub uniforms: StandardUniforms,
 }
 
 impl StandardShader {
     pub fn new(shader: Shader) -> Self {
         StandardShader {
             uniforms: StandardUniforms::new(&shader),
-            shader,
+            shader: RefCell::new(shader),
         }
     }
 }
 
 pub struct StandardUniforms {
-    u_dimensions: i32,
-    u_mouse: i32,
-    u_time: i32,
+    pub u_dimensions: i32,
+    pub u_mouse: i32,
+    pub u_time: i32,
 }
 
 impl StandardUniforms {
@@ -42,7 +46,12 @@ impl StandardUniforms {
 }
 
 pub fn init(rl: &mut RaylibHandle, rl_thread: &RaylibThread) {
-    SHADER_STORE.get_or_init(|| ShaderStore {
-        blur: StandardShader::new(rl.load_shader(rl_thread, None, Some(BLUR))),
-    });
+    SHADER_STORE.replace(MaybeUninit::new({
+        let blur = StandardShader::new(rl.load_shader_from_memory(rl_thread, None, Some(BLUR)));
+        if blur.shader.borrow().locs.is_null() {
+            panic!("Failed to load shader; [{}]", stringify!(blur));
+        }
+
+        ShaderStore { blur: Rc::new(blur) }
+    }));
 }

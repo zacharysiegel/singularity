@@ -2,12 +2,12 @@ use crate::color::{MAP_BACKGROUND_COLOR, TEXT_COLOR};
 use crate::config::APPLICATION_NAME;
 use crate::stage::StageType;
 use crate::state::STATE;
-use crate::{connect, input, map, player, shader, stage, title};
+use crate::{connect, game, input, map, player, shader, stage, title};
 use raylib::callbacks::TraceLogLevel;
 use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::ffi::SetConfigFlags;
-use raylib::{RaylibHandle, RaylibThread, ffi};
+use raylib::{ffi, RaylibHandle, RaylibThread};
 use shared::environment::RuntimeEnvironment;
 use shared::error::AppError;
 use shared::network::ring_buffer::RingBuffer;
@@ -25,11 +25,9 @@ fn update(rl: &mut RaylibHandle) {
     input::handle_user_input(rl);
 }
 
-fn draw(rl_draw: &mut RaylibDrawHandle) {
-    rl_draw.clear_background(MAP_BACKGROUND_COLOR);
-
+fn draw(rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
     let current_stage: RwLockReadGuard<StageType> = STATE.stage.current.read().unwrap();
-    current_stage.draw(rl_draw);
+    current_stage.draw(rl_draw, rl_thread);
     drop(current_stage);
 
     if RuntimeEnvironment::default().is_debug() {
@@ -41,7 +39,7 @@ pub fn init() -> Result<(RaylibHandle, RaylibThread), AppError> {
     let _: Arc<RwLock<RingBuffer<u8, 4096>>> = connect::connect()?;
 
     unsafe {
-        SetConfigFlags(ffi::ConfigFlags::FLAG_WINDOW_HIGHDPI as u32 | ffi::ConfigFlags::FLAG_WINDOW_RESIZABLE as u32);
+        SetConfigFlags(ffi::ConfigFlags::FLAG_WINDOW_RESIZABLE as u32);
     }
     let (mut rl, rl_thread): (RaylibHandle, RaylibThread) = raylib::init()
         .width(i32::from(DISPLAY_WIDTH))
@@ -65,6 +63,7 @@ pub fn init() -> Result<(RaylibHandle, RaylibThread), AppError> {
 
     draw_loading_init(&mut rl, &rl_thread);
 
+    game::init(&mut rl, &rl_thread);
     shader::init(&mut rl, &rl_thread);
     title::init_title(&mut rl);
     map::init_map();
@@ -87,7 +86,7 @@ pub fn run(rl: &mut RaylibHandle, rl_thread: &RaylibThread) -> Result<(), AppErr
 
         let draw_end: Instant;
         let mut rl_draw: RaylibDrawHandle = rl.begin_drawing(rl_thread);
-        draw(&mut rl_draw);
+        draw(&mut rl_draw, rl_thread);
         draw_end = Instant::now();
 
         let mut frame_counter: RwLockWriteGuard<u64> = STATE.frame_counter.write().expect("global state poisoned");

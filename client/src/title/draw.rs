@@ -1,5 +1,5 @@
 use crate::button::RectangularButton;
-use crate::color::{DIFF_HOVER_BUTTON, TEXT_COLOR, WINDOW_BACKGROUND_COLOR};
+use crate::color::{DIFF_HOVER_BUTTON, MAP_BACKGROUND_COLOR, TEXT_COLOR, WINDOW_BACKGROUND_COLOR};
 use crate::config::APPLICATION_NAME;
 use crate::font::DEFAULT_FONT_SPACING;
 use crate::math;
@@ -11,6 +11,8 @@ use raylib::math::Vector2;
 use std::sync::RwLockReadGuard;
 
 pub fn draw_title(rl_draw: &mut RaylibDrawHandle) {
+    rl_draw.clear_background(MAP_BACKGROUND_COLOR);
+
     draw_title_text(rl_draw);
     draw_debug_button(rl_draw);
     draw_main_buttons(rl_draw);

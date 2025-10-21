@@ -3,7 +3,7 @@ use crate::window::error::ErrorWindow;
 use crate::window::hex::HexWindow;
 use crate::window::pause::PauseWindow;
 use crate::window::Window;
-use std::sync::{OnceLock, RwLock};
+use std::sync::RwLock;
 
 pub const WINDOW_LAYERS: [&'static RwLock<dyn Window>; 3] = [
     &STATE.stage.game.window.error,
@@ -24,7 +24,6 @@ pub struct WindowState {
     pub error: RwLock<ErrorWindow>,
     pub pause: RwLock<PauseWindow>,
     pub hex: RwLock<HexWindow>,
-    pub blur_shader: OnceLock<String>,
 }
 
 impl WindowState {
@@ -32,7 +31,6 @@ impl WindowState {
         error: RwLock::new(ErrorWindow::DEFAULT),
         pause: RwLock::new(PauseWindow::DEFAULT),
         hex: RwLock::new(HexWindow::DEFAULT),
-        blur_shader: OnceLock::new(),
     };
 }
 

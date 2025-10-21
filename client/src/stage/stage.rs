@@ -4,10 +4,10 @@ use crate::map::RenderCoord;
 use crate::state::STATE;
 use crate::title::TitleState;
 use crate::{game, title};
-use raylib::RaylibHandle;
 use raylib::consts::KeyboardKey;
 use raylib::drawing::RaylibDrawHandle;
 use raylib::math::Vector2;
+use raylib::{RaylibHandle, RaylibThread};
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 #[derive(Debug)]
@@ -62,10 +62,10 @@ impl StageType {
         }
     }
 
-    pub fn draw(&self, rl_draw: &mut RaylibDrawHandle) {
+    pub fn draw(&self, rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
         match self {
             StageType::Title => super::draw::draw_stage_title(rl_draw),
-            StageType::Game => super::draw::draw_stage_map(rl_draw),
+            StageType::Game => super::draw::draw_stage_map(rl_draw, rl_thread),
         }
     }
 }

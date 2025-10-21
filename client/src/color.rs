@@ -31,6 +31,12 @@ pub const TRANSPARENT: Color = Color {
     b: 0x00,
     a: 0x00,
 };
+pub const BLACK: Color = Color {
+    r: 0x00,
+    g: 0x00,
+    b: 0x00,
+    a: 0xff,
+};
 pub const WHITE: Color = Color {
     r: 0xff,
     g: 0xff,
