@@ -21,16 +21,21 @@ pub fn draw_stage_map(rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) 
         let store: &mut ShaderStore = unsafe { store_m.assume_init_mut() };
         store.blur.clone()
     });
+    let fxaa: Rc<StandardShader> = SHADER_STORE.with_borrow_mut(|store_m| {
+        let store: &mut ShaderStore = unsafe { store_m.assume_init_mut() };
+        store.fxaa.clone()
+    });
 
     let dimensions: [f32; 2] = [rl_draw.get_screen_width() as f32, rl_draw.get_screen_height() as f32];
     blur.shader.borrow_mut().set_shader_value_v(blur.uniforms.u_dimensions, &dimensions);
+    fxaa.shader.borrow_mut().set_shader_value_v(fxaa.uniforms.u_dimensions, &dimensions);
 
     let mut game_texture: RwLockWriteGuard<RenderTexture2D> = STATE.stage.game.render_texture.write().unwrap();
     rl_draw.draw_texture_mode(rl_thread, &mut game_texture, |mut t| {
         draw_map_texture(t.deref_mut());
     });
 
-    rl_draw.draw_shader_mode(&mut blur.shader.borrow_mut(), |mut s| {
+    rl_draw.draw_shader_mode(&mut fxaa.shader.borrow_mut(), |mut s| {
         s.draw_texture_pro(
             &game_texture.texture(),
             Rectangle::new(
@@ -40,7 +45,7 @@ pub fn draw_stage_map(rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) 
                 -game_texture.texture.height as f32, // Textures are drawn with the origin at the bottom left of the screen, so we must translate up
             ),
             Rectangle::new(0.0, 0.0, s.get_screen_width() as f32, s.get_screen_height() as f32),
-            Vector2::zero(),
+            Vector2::default(),
             0.0,
             WHITE,
         );

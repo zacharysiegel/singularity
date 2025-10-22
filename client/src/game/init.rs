@@ -6,7 +6,6 @@ use raylib::{RaylibHandle, RaylibThread};
 use std::sync::RwLockWriteGuard;
 
 pub fn init(rl: &mut RaylibHandle, rl_thread: &RaylibThread) {
-    // todo: update on resize
     let width: u32 = rl.get_screen_width() as u32;
     let height: u32 = rl.get_screen_height() as u32;
 

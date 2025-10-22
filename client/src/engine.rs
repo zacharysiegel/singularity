@@ -6,8 +6,8 @@ use crate::{connect, game, input, map, player, shader, stage, title};
 use raylib::callbacks::TraceLogLevel;
 use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
-use raylib::ffi::SetConfigFlags;
-use raylib::{ffi, RaylibHandle, RaylibThread};
+use raylib::ffi::rlGetVersion;
+use raylib::{RaylibHandle, RaylibThread};
 use shared::environment::RuntimeEnvironment;
 use shared::error::AppError;
 use shared::network::ring_buffer::RingBuffer;
@@ -39,13 +39,16 @@ pub fn init() -> Result<(RaylibHandle, RaylibThread), AppError> {
     let _: Arc<RwLock<RingBuffer<u8, 4096>>> = connect::connect()?;
 
     unsafe {
-        SetConfigFlags(ffi::ConfigFlags::FLAG_WINDOW_RESIZABLE as u32);
+        log::info!("OpenGL version: {}", rlGetVersion());
     }
+
     let (mut rl, rl_thread): (RaylibHandle, RaylibThread) = raylib::init()
         .width(i32::from(DISPLAY_WIDTH))
         .height(i32::from(DISPLAY_HEIGHT))
         .title(APPLICATION_NAME)
         .log_level(TraceLogLevel::LOG_DEBUG)
+        .resizable()
+        .msaa_4x()
         .build();
 
     if !rl.is_window_ready() {

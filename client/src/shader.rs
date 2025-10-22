@@ -10,9 +10,11 @@ pub static SHADER_STORE: RefCell<MaybeUninit<ShaderStore>> = RefCell::new(MaybeU
 }
 
 const BLUR: &str = include_str!("../shader/blur.fs.glsl");
+const FXAA: &str = include_str!("../shader/fxaa.fs.glsl");
 
 pub struct ShaderStore {
     pub blur: Rc<StandardShader>,
+    pub fxaa: Rc<StandardShader>,
 }
 
 pub struct StandardShader {
@@ -47,11 +49,19 @@ impl StandardUniforms {
 
 pub fn init(rl: &mut RaylibHandle, rl_thread: &RaylibThread) {
     SHADER_STORE.replace(MaybeUninit::new({
-        let blur = StandardShader::new(rl.load_shader_from_memory(rl_thread, None, Some(BLUR)));
+        let blur: StandardShader = StandardShader::new(rl.load_shader_from_memory(rl_thread, None, Some(BLUR)));
         if blur.shader.borrow().locs.is_null() {
             panic!("Failed to load shader; [{}]", stringify!(blur));
         }
 
-        ShaderStore { blur: Rc::new(blur) }
+        let fxaa: StandardShader = StandardShader::new(rl.load_shader_from_memory(rl_thread, None, Some(FXAA)));
+        if fxaa.shader.borrow().locs.is_null() {
+            panic!("Failed to load shader; [{}]", stringify!(fxaa));
+        }
+
+        ShaderStore {
+            blur: Rc::new(blur),
+            fxaa: Rc::new(fxaa),
+        }
     }));
 }

@@ -9,7 +9,7 @@ in vec4 fragColor;
 in vec3 fragPosition;
 in vec3 fragNormal;
 
-out vec4 FragColor;
+out vec4 finalColor;
 
 uniform vec2 u_dimensions;
 uniform vec2 u_mouse;
@@ -35,5 +35,5 @@ void main() {
     vec4 avg = sum / sample_count;
     avg.a = 1.;
 
-    FragColor = avg;
+    finalColor = avg * colDiffuse;
 }
