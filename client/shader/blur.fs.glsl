@@ -18,7 +18,7 @@ uniform float u_time;
 uniform sampler2D u_sampler0;
 uniform vec4 colDiffuse;
 
-const int kernel_size = 5;
+const int kernel_size = 3;
 const float sample_count = pow(1. + kernel_size * 2., 2.);
 
 void main() {
@@ -27,7 +27,7 @@ void main() {
 
     for (int x = -kernel_size; x <= kernel_size; x += 1) {
         for (int y = -kernel_size; y <= kernel_size; y += 1) {
-            vec2 offset = vec2(float(x), float(y)) / 1000.;
+            vec2 offset = vec2(float(x), float(y)) / 500.;
             sum += texture(u_sampler0, st + offset);
         }
     }
