@@ -64,8 +64,8 @@ impl StageType {
 
     pub fn draw(&self, rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
         match self {
-            StageType::Title => super::draw::draw_stage_title(rl_draw),
-            StageType::Game => super::draw::draw_stage_map(rl_draw, rl_thread),
+            StageType::Title => title::draw(rl_draw),
+            StageType::Game => game::draw(rl_draw, rl_thread),
         }
     }
 }

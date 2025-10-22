@@ -8,13 +8,13 @@ use crate::map::{Hex, ResourceType};
 use crate::state::STATE;
 use crate::window;
 use crate::window::state::WindowLayer;
-use crate::window::{Window, draw};
-use raylib::RaylibHandle;
+use crate::window::{draw_all, Window};
 use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
 use raylib::prelude::WeakFont;
 use raylib::text::RaylibFont;
+use raylib::RaylibHandle;
 use std::ops::Add;
 use window::draw::BORDER_GAP;
 
@@ -123,7 +123,7 @@ impl HexWindow {
     }
 
     fn draw_buttons(&self, rl_draw: &mut RaylibDrawHandle) {
-        draw::draw_side_button(rl_draw, &self.second_button);
+        window::draw_side_button(rl_draw, &self.second_button);
     }
 
     fn draw_footer(&self, rl_draw: &mut RaylibDrawHandle) {

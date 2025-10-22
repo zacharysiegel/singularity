@@ -3,13 +3,13 @@ use crate::input::{
     ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult, ScrollHandler, ScrollResult,
 };
 use crate::map::RenderCoord;
-use crate::window::draw;
+use crate::window;
 use crate::window::draw::BORDER_GAP;
-use crate::window::state::{WINDOW_LAYERS, WindowLayer};
-use raylib::RaylibHandle;
+use crate::window::state::{WindowLayer, WINDOW_LAYERS};
 use raylib::consts::KeyboardKey;
 use raylib::math::Rectangle;
 use raylib::prelude::{RaylibDrawHandle, Vector2};
+use raylib::RaylibHandle;
 use shared::error::AppError;
 use std::sync::RwLockReadGuard;
 
@@ -53,7 +53,7 @@ pub trait Window: ScrollHandler + ClickHandler + HoverHandler + KeyPressHandler 
             return;
         }
 
-        draw::draw_window_base(rl_draw, self);
+        window::draw_window_base(rl_draw, self);
         self.draw_content(rl_draw);
     }
 
@@ -108,8 +108,8 @@ pub fn side_button_rectangle(window: &dyn Window, button_index: i16) -> Rectangl
 
 #[cfg(test)]
 mod tests {
-    use crate::window::Window;
     use crate::window::state::WINDOW_LAYERS;
+    use crate::window::Window;
     use std::sync::RwLockReadGuard;
 
     #[test]

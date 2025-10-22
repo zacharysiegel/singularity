@@ -5,15 +5,31 @@ use crate::color::{
 use crate::map::RenderCoord;
 use crate::math;
 use crate::math::SIN_FRAC_PI_4;
-use crate::window::Window;
+use crate::state::STATE;
+use crate::window::{ErrorWindow, HexWindow, PauseWindow, Window};
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::{Rectangle, Vector2};
+use std::sync::RwLockReadGuard;
 
 pub const BORDER_GAP: f32 = 10.;
 
 const BORDER_THICKNESS: f32 = 1.;
 const X_VERTEX_N: usize = 8;
+
+pub fn draw_all(rl_draw: &mut RaylibDrawHandle) {
+    let hex: RwLockReadGuard<HexWindow> = STATE.stage.game.window.hex.read().unwrap();
+    hex.draw(rl_draw);
+    drop(hex);
+
+    let pause: RwLockReadGuard<PauseWindow> = STATE.stage.game.window.pause.read().unwrap();
+    pause.draw(rl_draw);
+    drop(pause);
+
+    let error: RwLockReadGuard<ErrorWindow> = STATE.stage.game.window.error.read().unwrap();
+    // error.draw(rl_draw);
+    drop(error);
+}
 
 pub fn draw_window_base(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
     draw_background(rl_draw, window);
