@@ -8,7 +8,7 @@ use crate::map::{Hex, ResourceType};
 use crate::state::STATE;
 use crate::window;
 use crate::window::state::WindowLayer;
-use crate::window::{draw_all, Window};
+use crate::window::{draw_game_windows, Window};
 use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;

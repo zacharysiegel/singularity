@@ -27,14 +27,12 @@ pub fn draw(rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
     blur.shader.borrow_mut().set_shader_value_v(blur.uniforms.u_dimensions, &dimensions);
     let mut blur_shader_r: RefMut<Shader> = blur.shader.borrow_mut();
 
-    let map_origin: RwLockReadGuard<MapCoord> = STATE.stage.game.map.map_origin.read().unwrap();
     let pause_window: RwLockReadGuard<PauseWindow> = STATE.stage.game.window.pause.read().unwrap();
-
     if pause_window.is_open() {
         let mut map_texture: RwLockWriteGuard<RenderTexture2D> = STATE.stage.game.render_texture.write().unwrap();
 
         rl_draw.draw_texture_mode(rl_thread, &mut map_texture, |mut t| {
-            map::draw(&mut t, &map_origin);
+            draw_game(&mut t);
         });
 
         rl_draw.draw_shader_mode(blur_shader_r.deref_mut(), |mut s| {
@@ -53,8 +51,14 @@ pub fn draw(rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
             );
         });
     } else {
-        map::draw(rl_draw, &map_origin)
+        draw_game(rl_draw);
     }
 
-    window::draw_all(rl_draw);
+    window::draw_overlay_windows(rl_draw);
+}
+
+fn draw_game(rl_draw: &mut RaylibDrawHandle) {
+    let map_origin: RwLockReadGuard<MapCoord> = STATE.stage.game.map.map_origin.read().unwrap();
+    map::draw(rl_draw, &map_origin);
+    window::draw_game_windows(rl_draw);
 }

@@ -17,11 +17,15 @@ pub const BORDER_GAP: f32 = 10.;
 const BORDER_THICKNESS: f32 = 1.;
 const X_VERTEX_N: usize = 8;
 
-pub fn draw_all(rl_draw: &mut RaylibDrawHandle) {
+/// These windows are considered part of the "game" and will be blurred when an overlay window is active
+pub fn draw_game_windows(rl_draw: &mut RaylibDrawHandle) {
     let hex: RwLockReadGuard<HexWindow> = STATE.stage.game.window.hex.read().unwrap();
     hex.draw(rl_draw);
     drop(hex);
+}
 
+/// These windows are not considered part of the "game" and will not be blurred when an overlay window is active
+pub fn draw_overlay_windows(rl_draw: &mut RaylibDrawHandle) {
     let pause: RwLockReadGuard<PauseWindow> = STATE.stage.game.window.pause.read().unwrap();
     pause.draw(rl_draw);
     drop(pause);

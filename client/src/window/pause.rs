@@ -9,7 +9,8 @@ use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
 use raylib::RaylibHandle;
 
-const PAUSE_MARGIN: f32 = 40.;
+const PAUSE_WIDTH: f32 = 350.;
+const PAUSE_HEIGHT: f32 = 400.;
 const PAUSE_INTERNAL_MARGIN: f32 = 14.;
 
 #[derive(Debug)]
@@ -69,12 +70,12 @@ impl PauseWindow {
 
     pub fn open(&mut self, rl: &mut RaylibHandle) {
         self.dimensions = Vector2 {
-            x: rl.get_screen_width() as f32 - PAUSE_MARGIN * 2.,
-            y: rl.get_screen_height() as f32 - PAUSE_MARGIN * 2.,
+            x: PAUSE_WIDTH,
+            y: PAUSE_HEIGHT,
         };
         self.origin = Some(RenderCoord(Vector2 {
-            x: PAUSE_MARGIN,
-            y: PAUSE_MARGIN,
+            x: (rl.get_screen_width() as f32 - PAUSE_WIDTH) / 2.,
+            y: (rl.get_screen_height() as f32 - PAUSE_HEIGHT) / 2.,
         }));
         self.close_button = RectangularButton::new(window::side_button_rectangle(self, 0));
     }
