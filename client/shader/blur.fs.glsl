@@ -11,7 +11,7 @@ in vec3 fragNormal;
 
 out vec4 finalColor;
 
-uniform vec2 u_dimensions;
+uniform vec2 u_resolution;
 uniform vec2 u_mouse;
 uniform float u_time;
 

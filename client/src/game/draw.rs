@@ -24,8 +24,8 @@ pub fn draw(rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
     });
 
     // todo: fix uniform setting
-    let dimensions: [f32; 2] = [rl_draw.get_screen_width() as f32, rl_draw.get_screen_height() as f32];
-    blur.shader.borrow_mut().set_shader_value_v(blur.uniforms.u_dimensions, &dimensions);
+    let u_resolution: [f32; 2] = [screen_width, screen_height];
+    blur.shader.borrow_mut().set_shader_value_v(blur.uniforms.u_resolution, &u_resolution);
     let mut blur_shader_r: RefMut<Shader> = blur.shader.borrow_mut();
 
     let pause_window: RwLockReadGuard<PauseWindow> = STATE.stage.game.window.pause.read().unwrap();

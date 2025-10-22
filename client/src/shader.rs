@@ -11,10 +11,12 @@ pub static SHADER_STORE: RefCell<MaybeUninit<ShaderStore>> = RefCell::new(MaybeU
 
 const BLUR: &str = include_str!("../shader/blur.fs.glsl");
 const FXAA: &str = include_str!("../shader/fxaa.fs.glsl");
+const EXIT_ICON: &str = include_str!("../shader/exit_icon.fs.glsl");
 
 pub struct ShaderStore {
     pub blur: Rc<StandardShader>,
     pub fxaa: Rc<StandardShader>,
+    pub exit_icon: Rc<StandardShader>,
 }
 
 pub struct StandardShader {
@@ -32,7 +34,7 @@ impl StandardShader {
 }
 
 pub struct StandardUniforms {
-    pub u_dimensions: i32,
+    pub u_resolution: i32,
     pub u_mouse: i32,
     pub u_time: i32,
 }
@@ -40,28 +42,42 @@ pub struct StandardUniforms {
 impl StandardUniforms {
     pub fn new(shader: &Shader) -> Self {
         StandardUniforms {
-            u_dimensions: shader.get_shader_location("u_dimensions"),
+            u_resolution: shader.get_shader_location("u_resolution"),
             u_mouse: shader.get_shader_location("u_mouse"),
             u_time: shader.get_shader_location("u_time"),
         }
     }
 }
 
+macro_rules! new_standard_shader {
+    ($rl:ident, $rl_thread:ident, $vertex_shader:expr, $fragment_shader:expr) => {{
+        let standard_shader = crate::shader::StandardShader::new(::raylib::RaylibHandle::load_shader_from_memory(
+            $rl,
+            $rl_thread,
+            $vertex_shader,
+            $fragment_shader,
+        ));
+        if standard_shader.shader.borrow().locs.is_null() {
+            panic!(
+                "Failed to load shader; [{}, {}]",
+                stringify!($vertex_shader),
+                stringify!($fragment_shader)
+            );
+        }
+        standard_shader
+    }};
+}
+
 pub fn init(rl: &mut RaylibHandle, rl_thread: &RaylibThread) {
     SHADER_STORE.replace(MaybeUninit::new({
-        let blur: StandardShader = StandardShader::new(rl.load_shader_from_memory(rl_thread, None, Some(BLUR)));
-        if blur.shader.borrow().locs.is_null() {
-            panic!("Failed to load shader; [{}]", stringify!(blur));
-        }
-
-        let fxaa: StandardShader = StandardShader::new(rl.load_shader_from_memory(rl_thread, None, Some(FXAA)));
-        if fxaa.shader.borrow().locs.is_null() {
-            panic!("Failed to load shader; [{}]", stringify!(fxaa));
-        }
+        let blur: StandardShader = new_standard_shader!(rl, rl_thread, None, Some(BLUR));
+        let fxaa: StandardShader = new_standard_shader!(rl, rl_thread, None, Some(FXAA));
+        let exit_icon: StandardShader = new_standard_shader!(rl, rl_thread, None, Some(EXIT_ICON));
 
         ShaderStore {
             blur: Rc::new(blur),
             fxaa: Rc::new(fxaa),
+            exit_icon: Rc::new(exit_icon),
         }
     }));
 }

@@ -50,7 +50,8 @@ impl Window for PauseWindow {
     }
 
     fn draw_content(&self, rl_draw: &mut RaylibDrawHandle) {
-        draw::draw_title(rl_draw, self);
+        self.draw_title(rl_draw);
+        self.draw_buttons(rl_draw);
     }
 
     fn handle_window_key_press(&mut self, _rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
@@ -89,19 +90,25 @@ mod draw {
     use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
     use raylib::math::Vector2;
 
-    pub fn draw_title(rl_draw: &mut RaylibDrawHandle, window: &PauseWindow) {
-        let position: Vector2 = window.origin.unwrap().0
-            + Vector2 {
-                x: BORDER_GAP + PAUSE_INTERNAL_MARGIN,
-                y: BORDER_GAP + PAUSE_INTERNAL_MARGIN,
-            };
-        rl_draw.draw_text_ex(
-            rl_draw.get_font_default(),
-            "Paused",
-            position,
-            24.,
-            DEFAULT_FONT_SPACING,
-            TEXT_COLOR,
-        );
+    impl PauseWindow {
+        pub fn draw_title(&self, rl_draw: &mut RaylibDrawHandle) {
+            let position: Vector2 = self.origin.unwrap().0
+                + Vector2 {
+                    x: BORDER_GAP + PAUSE_INTERNAL_MARGIN,
+                    y: BORDER_GAP + PAUSE_INTERNAL_MARGIN,
+                };
+            rl_draw.draw_text_ex(
+                rl_draw.get_font_default(),
+                "Paused",
+                position,
+                24.,
+                DEFAULT_FONT_SPACING,
+                TEXT_COLOR,
+            );
+        }
+
+        pub fn draw_buttons(&self, rl_draw: &mut RaylibDrawHandle) {
+            
+        }
     }
 }
