@@ -23,6 +23,7 @@ pub fn draw(rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
         store.blur.clone()
     });
 
+    // todo: fix uniform setting
     let dimensions: [f32; 2] = [rl_draw.get_screen_width() as f32, rl_draw.get_screen_height() as f32];
     blur.shader.borrow_mut().set_shader_value_v(blur.uniforms.u_dimensions, &dimensions);
     let mut blur_shader_r: RefMut<Shader> = blur.shader.borrow_mut();

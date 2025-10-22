@@ -24,7 +24,6 @@ Player interactions
 Menus
 	Pause window [in progress]
 		Return to title
-		Background blur
    	Account setup
    	Games
    	   Active
