@@ -13,6 +13,30 @@ const BLUR: &str = include_str!("../shader/blur.fs.glsl");
 const FXAA: &str = include_str!("../shader/fxaa.fs.glsl");
 const EXIT_ICON: &str = include_str!("../shader/exit_icon.fs.glsl");
 
+macro_rules! new_standard_shader {
+    ($rl:ident, $rl_thread:ident, $vertex_shader:expr, $fragment_shader:expr) => {{
+        ::log::debug!(
+            "Loading shaders; [{}, {}]",
+            ::std::stringify!($vertex_shader),
+            ::std::stringify!($fragment_shader)
+        );
+        let standard_shader = crate::shader::StandardShader::new(::raylib::RaylibHandle::load_shader_from_memory(
+            $rl,
+            $rl_thread,
+            $vertex_shader,
+            $fragment_shader,
+        ));
+        if standard_shader.shader.borrow().locs.is_null() {
+            panic!(
+                "Failed to load shader; [{}, {}]",
+                ::std::stringify!($vertex_shader),
+                ::std::stringify!($fragment_shader)
+            );
+        }
+        standard_shader
+    }};
+}
+
 pub struct ShaderStore {
     pub blur: Rc<StandardShader>,
     pub fxaa: Rc<StandardShader>,
@@ -47,25 +71,6 @@ impl StandardUniforms {
             u_time: shader.get_shader_location("u_time"),
         }
     }
-}
-
-macro_rules! new_standard_shader {
-    ($rl:ident, $rl_thread:ident, $vertex_shader:expr, $fragment_shader:expr) => {{
-        let standard_shader = crate::shader::StandardShader::new(::raylib::RaylibHandle::load_shader_from_memory(
-            $rl,
-            $rl_thread,
-            $vertex_shader,
-            $fragment_shader,
-        ));
-        if standard_shader.shader.borrow().locs.is_null() {
-            panic!(
-                "Failed to load shader; [{}, {}]",
-                stringify!($vertex_shader),
-                stringify!($fragment_shader)
-            );
-        }
-        standard_shader
-    }};
 }
 
 pub fn init(rl: &mut RaylibHandle, rl_thread: &RaylibThread) {

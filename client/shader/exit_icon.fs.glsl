@@ -19,37 +19,29 @@ uniform sampler2D u_sampler0;
 uniform vec4 colDiffuse;
 
 float line_width = 0.1;
+float margin_x = 0.134;
 
-float in_box(in vec2 st, in float upper_bound) {
-    float accumulator = 1.;
-    float edge = 1. - upper_bound;
-    float top = step(edge, 1. - st.y);
-    float right = step(edge, 1. - st.x);
-
-    accumulator *= top * right;
-    return accumulator;
-}
-
-float in_frame_outline(in vec2 st) {
+float in_frame_outline(vec2 st) {
     float acc = 0.;
-    vec2 margin = vec2(.2, .1);
+    vec2 margin = vec2(margin_x, 0.);
+    float max_x = 0.6;
 
     acc += step(margin.x, st.x);
     acc *= step(margin.y, st.y);
-    acc *= step(margin.y, 1. - st.y);
+    acc *= step(margin.y, 1.000 - st.y);
     if (margin.y + line_width < st.y && st.y < 1. - margin.y - line_width) {
         acc *= step((1. - margin.x - line_width), 1. - st.x);
     }
-    acc *= step(0.480, 1. - st.x);
+    acc *= step(1. - max_x, 1. - st.x);
 
     return acc;
 }
 
-float in_arrow_body(in vec2 st) {
+float in_arrow_body(vec2 st) {
     float acc = 0.;
 
-    float start = .4;
-    float stop = .8;
+    float start = 0.35;
+    float stop = 1. - line_width - margin_x;
     float x_in = start < st.x && st.x < stop ? 1. : 0.;
     float y_in = .5 - line_width / 2. < st.y && st.y < .5 + line_width / 2. ? 1. : 0.;
     float in_line = x_in * y_in;
@@ -60,13 +52,14 @@ float in_arrow_body(in vec2 st) {
 
 float in_arrow_head(in vec2 st) {
     float acc = 0.;
-    st = vec2(st.x - .8, st.y - .5);
+    vec2 point = vec2(1. - line_width / 2. - margin_x, .5);
+    st -= point;
 
     float upper_bound = step(.0, -abs(st.y) - (st.x - line_width / 2.));
     float lower_bound = step(.0, -abs(st.y) - (st.x - line_width / 2. + line_width * sqrt(2.)));
     acc += upper_bound - lower_bound;
 
-    float max_extent = .2;
+    float max_extent = .22;
     acc *= 1. - step(max_extent, abs(st.y));
 
     return acc;
