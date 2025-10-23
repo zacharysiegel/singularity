@@ -69,10 +69,10 @@ void main() {
     vec2 st = fragTexCoord.xy/u_resolution.xy;
     st.x *= u_resolution.x/u_resolution.y;
 
-    vec3 color_bg = vec3(0.);
+    vec4 color_bg = texture(u_sampler0, fragTexCoord.xy);
     float in_shape = in_frame_outline(st) + in_arrow_body(st) + in_arrow_head(st);
-    vec3 color_fg = vec3(in_shape);
-    vec3 color = color_bg + color_fg;
+    vec4 color_fg = vec4(vec3(in_shape), 1.);
+    vec4 color = vec4(color_bg.rgb + color_fg.rgb, color_bg.a);
 
-    finalColor = vec4(color, 1.0);
+    finalColor = color * colDiffuse;
 }

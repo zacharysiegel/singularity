@@ -1,9 +1,10 @@
 use crate::map::RenderCoord;
 use crate::stage::StageType;
 use crate::state::STATE;
-use raylib::RaylibHandle;
 use raylib::consts::{KeyboardKey, MouseButton};
 use raylib::math::Vector2;
+use raylib::RaylibHandle;
+use shared::environment::RuntimeEnvironment;
 use std::sync::RwLockReadGuard;
 
 #[derive(PartialEq)]
@@ -67,6 +68,9 @@ pub fn handle_user_input(rl: &mut RaylibHandle) {
 
     if rl.is_mouse_button_released(MouseButton::MOUSE_BUTTON_LEFT) {
         click(rl, mouse_position);
+    }
+    if RuntimeEnvironment::default().is_debug() && rl.is_mouse_button_released(MouseButton::MOUSE_BUTTON_MIDDLE) {
+        log::debug!("Position: ({}, {})", mouse_position.x, mouse_position.y);
     }
 
     if let Some(key) = rl.get_key_pressed() {

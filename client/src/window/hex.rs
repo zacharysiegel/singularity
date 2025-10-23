@@ -14,7 +14,7 @@ use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
 use raylib::prelude::WeakFont;
 use raylib::text::RaylibFont;
-use raylib::RaylibHandle;
+use raylib::{RaylibHandle, RaylibThread};
 use std::ops::Add;
 use window::draw::BORDER_GAP;
 
@@ -58,7 +58,7 @@ impl Window for HexWindow {
         &mut self.close_button
     }
 
-    fn draw_content(&self, rl_draw: &mut RaylibDrawHandle) {
+    fn draw_content(&self, rl_draw: &mut RaylibDrawHandle, _rl_thread: &RaylibThread) {
         self.draw_title(rl_draw);
         self.draw_buttons(rl_draw);
         self.draw_footer(rl_draw);

@@ -1,9 +1,10 @@
 use crate::button::RectangularButton;
 use crate::map::RenderCoord;
-use crate::window::Window;
 use crate::window::state::WindowLayer;
+use crate::window::Window;
 use raylib::drawing::RaylibDrawHandle;
 use raylib::math::Vector2;
+use raylib::RaylibThread;
 
 #[derive(Debug)]
 pub struct ErrorWindow {
@@ -41,7 +42,7 @@ impl Window for ErrorWindow {
         &mut self.close_button
     }
 
-    fn draw_content(&self, _rl_draw: &mut RaylibDrawHandle) {}
+    fn draw_content(&self, _rl_draw: &mut RaylibDrawHandle, _rl_thread: &RaylibThread) {}
 }
 
 impl ErrorWindow {

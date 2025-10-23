@@ -1,18 +1,10 @@
 use crate::state::STATE;
-use raylib::consts::{TextureFilter, TextureWrap};
-use raylib::prelude::RenderTexture2D;
-use raylib::texture::RaylibTexture2D;
+use crate::texture::ScreenRenderTexture;
 use raylib::{RaylibHandle, RaylibThread};
 use std::sync::RwLockWriteGuard;
 
 pub fn init(rl: &mut RaylibHandle, rl_thread: &RaylibThread) {
-    let width: u32 = rl.get_screen_width() as u32;
-    let height: u32 = rl.get_screen_height() as u32;
-
-    let render_texture: RenderTexture2D = rl.load_render_texture(rl_thread, width, height).unwrap();
-    render_texture.set_texture_filter(rl_thread, TextureFilter::TEXTURE_FILTER_BILINEAR);
-    render_texture.set_texture_wrap(rl_thread, TextureWrap::TEXTURE_WRAP_CLAMP);
-
-    let mut render_texture_g: RwLockWriteGuard<RenderTexture2D> = STATE.stage.game.render_texture.write().unwrap();
-    *render_texture_g = render_texture;
+    let screen_texture: ScreenRenderTexture = ScreenRenderTexture::new(rl, rl_thread);
+    let mut texture_g: RwLockWriteGuard<ScreenRenderTexture> = STATE.screen_texture.write().unwrap();
+    *texture_g = screen_texture;
 }

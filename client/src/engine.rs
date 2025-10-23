@@ -2,7 +2,7 @@ use crate::color::{MAP_BACKGROUND_COLOR, TEXT_COLOR};
 use crate::config::APPLICATION_NAME;
 use crate::stage::StageType;
 use crate::state::STATE;
-use crate::{connect, game, input, map, player, shader, stage, title};
+use crate::{connect, game, input, map, player, shader, stage, texture, title};
 use raylib::callbacks::TraceLogLevel;
 use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
@@ -20,7 +20,8 @@ pub const TARGET_FPS: u8 = 60;
 pub const DISPLAY_WIDTH: u16 = 1600;
 pub const DISPLAY_HEIGHT: u16 = 900;
 
-fn update(rl: &mut RaylibHandle) {
+fn update(rl: &mut RaylibHandle, rl_thread: &RaylibThread) {
+    texture::update(rl, rl_thread);
     stage::update();
     input::handle_user_input(rl);
 }
@@ -84,7 +85,7 @@ pub fn run(rl: &mut RaylibHandle, rl_thread: &RaylibThread) -> Result<(), AppErr
     while !rl.window_should_close() {
         let frame_start: Instant = Instant::now();
 
-        update(rl);
+        update(rl, rl_thread);
         let update_end: Instant = Instant::now();
 
         let draw_end: Instant;

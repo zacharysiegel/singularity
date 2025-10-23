@@ -9,7 +9,7 @@ use crate::window::state::{WindowLayer, WINDOW_LAYERS};
 use raylib::consts::KeyboardKey;
 use raylib::math::Rectangle;
 use raylib::prelude::{RaylibDrawHandle, Vector2};
-use raylib::RaylibHandle;
+use raylib::{RaylibHandle, RaylibThread};
 use shared::error::AppError;
 use std::sync::RwLockReadGuard;
 
@@ -23,7 +23,7 @@ pub trait Window: ScrollHandler + ClickHandler + HoverHandler + KeyPressHandler 
     fn layer(&self) -> WindowLayer;
     fn close_button(&self) -> &RectangularButton;
     fn close_button_mut(&mut self) -> &mut RectangularButton;
-    fn draw_content(&self, rl_draw: &mut RaylibDrawHandle);
+    fn draw_content(&self, rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread);
 
     #[allow(unused)]
     fn handle_window_scroll(&mut self, rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult {
@@ -45,7 +45,7 @@ pub trait Window: ScrollHandler + ClickHandler + HoverHandler + KeyPressHandler 
         KeyPressResult::Consume
     }
 
-    fn draw(&self, rl_draw: &mut RaylibDrawHandle)
+    fn draw(&self, rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread)
     where
         Self: Sized,
     {
@@ -54,7 +54,7 @@ pub trait Window: ScrollHandler + ClickHandler + HoverHandler + KeyPressHandler 
         }
 
         window::draw_window_base(rl_draw, self);
-        self.draw_content(rl_draw);
+        self.draw_content(rl_draw, rl_thread);
     }
 
     fn try_to_rectangle(&self) -> Result<Rectangle, AppError> {

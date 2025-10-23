@@ -3,9 +3,9 @@ use crate::input::{
 };
 use crate::map::RenderCoord;
 use crate::window::Window;
-use raylib::RaylibHandle;
 use raylib::consts::KeyboardKey;
 use raylib::math::{Rectangle, Vector2};
+use raylib::RaylibHandle;
 
 impl<T: Window> ScrollHandler for T {
     fn scroll(&mut self, rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult {

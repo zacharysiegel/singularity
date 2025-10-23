@@ -18,19 +18,17 @@ macro_rules! new_standard_shader {
         ::log::debug!(
             "Loading shaders; [{}, {}]",
             ::std::stringify!($vertex_shader),
-            ::std::stringify!($fragment_shader)
+            ::std::stringify!($fragment_shader),
         );
-        let standard_shader = crate::shader::StandardShader::new(::raylib::RaylibHandle::load_shader_from_memory(
-            $rl,
-            $rl_thread,
-            $vertex_shader,
-            $fragment_shader,
-        ));
+
+        let shader = ::raylib::RaylibHandle::load_shader_from_memory($rl, $rl_thread, $vertex_shader, $fragment_shader);
+        let standard_shader = crate::shader::StandardShader::new(shader);
+
         if standard_shader.shader.borrow().locs.is_null() {
-            panic!(
+            ::std::panic!(
                 "Failed to load shader; [{}, {}]",
                 ::std::stringify!($vertex_shader),
-                ::std::stringify!($fragment_shader)
+                ::std::stringify!($fragment_shader),
             );
         }
         standard_shader
@@ -74,11 +72,11 @@ impl StandardUniforms {
 }
 
 pub fn init(rl: &mut RaylibHandle, rl_thread: &RaylibThread) {
-    SHADER_STORE.replace(MaybeUninit::new({
-        let blur: StandardShader = new_standard_shader!(rl, rl_thread, None, Some(BLUR));
-        let fxaa: StandardShader = new_standard_shader!(rl, rl_thread, None, Some(FXAA));
-        let exit_icon: StandardShader = new_standard_shader!(rl, rl_thread, None, Some(EXIT_ICON));
+    let blur: StandardShader = new_standard_shader!(rl, rl_thread, None, Some(BLUR));
+    let fxaa: StandardShader = new_standard_shader!(rl, rl_thread, None, Some(FXAA));
+    let exit_icon: StandardShader = new_standard_shader!(rl, rl_thread, None, Some(EXIT_ICON));
 
+    SHADER_STORE.replace(MaybeUninit::new({
         ShaderStore {
             blur: Rc::new(blur),
             fxaa: Rc::new(fxaa),
