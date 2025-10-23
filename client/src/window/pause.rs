@@ -127,6 +127,9 @@ mod draw {
         pub fn draw_buttons(&self, rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
             let exit_icon: Rc<StandardShader> =
                 SHADER_STORE.with_borrow_mut(|store| unsafe { store.assume_init_ref().exit_icon.clone() });
+            let u_resolution: [f32; 2] = [rl_draw.get_screen_width() as f32, rl_draw.get_screen_height() as f32];
+            exit_icon.shader.borrow_mut().set_shader_value(exit_icon.uniforms.u_resolution, u_resolution);
+
             let mut screen_texture: RwLockWriteGuard<ScreenRenderTexture> = STATE.screen_texture.write().unwrap();
 
             rl_draw.draw_shader_mode(&mut exit_icon.shader.borrow_mut(), |mut s| {
