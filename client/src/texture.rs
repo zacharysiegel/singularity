@@ -46,6 +46,12 @@ impl ScreenRenderTexture {
     }
 }
 
+pub fn init(rl: &mut RaylibHandle, rl_thread: &RaylibThread) {
+    let screen_texture: ScreenRenderTexture = ScreenRenderTexture::new(rl, rl_thread);
+    let mut texture_g: RwLockWriteGuard<ScreenRenderTexture> = STATE.screen_texture.write().unwrap();
+    *texture_g = screen_texture;
+}
+
 pub fn update(rl: &mut RaylibHandle, rl_thread: &RaylibThread) {
     let screen_width: i32 = rl.get_screen_width();
     let screen_height: i32 = rl.get_screen_height();
