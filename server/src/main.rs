@@ -1,3 +1,4 @@
+use std::error::Error;
 use server::listen;
 use server::monitor;
 use shared::environment::{self};
@@ -5,7 +6,7 @@ use tokio::net::TcpListener;
 use tokio::sync;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), Box<dyn Error>> {
     environment::load_env()?;
     env_logger::builder().filter_level(log::LevelFilter::Debug).format_source_path(true).try_init()?;
 

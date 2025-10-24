@@ -24,15 +24,24 @@ const int sample_count = 1 + kernel_size * fan;
 const float pi_2 = 6.2831853072;
 const float d_theta = pi_2 / fan;
 const float d_r = 1.5;
+const float scaling_factor = 1. / 1000.;
 
 void main() {
     vec4 sum = texture(u_sampler0, fragTexCoord);
 
     // Theta should start within the vertical line
     for (float theta = pi_2 / 4.; theta < pi_2 * 5. / 4.; theta += d_theta) {
-        for (float r = d_r; r <= kernel_size * d_r + d_r / 1000.; r += d_r) {
+        for (float r = d_r; r <= kernel_size * d_r + d_r * scaling_factor; r += d_r) {
             vec2 offset = vec2(float(r * cos(theta)), float(r * sin(theta))) / u_resolution;
-            sum += texture(u_sampler0, fragTexCoord + offset);
+
+            vec2 target = fragTexCoord + offset;
+            vec4 color;
+            if (target.x < 0 || target.x > 1. || target.y < 0 || target.y > 1.) {
+                color = vec4(0.);
+            } else {
+                color = texture(u_sampler0, target);;
+            }
+            sum += color;
         }
     }
 
