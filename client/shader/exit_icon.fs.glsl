@@ -68,11 +68,15 @@ bool in_arrow_head(in vec2 st) {
     return acc;
 }
 
+vec2 st(vec2 givenCoord, vec2 resolution, vec2 target_origin, vec2 target_dimensions) {
+    vec2 st = givenCoord * resolution;
+    st.y = resolution.y - st.y;
+    st = (st - target_origin) / target_dimensions;
+    return st;
+}
+
 void main() {
-    vec2 m = (vec2(u_mouse.x, u_resolution.y - u_mouse.y) - u_button_origin) / u_button_size;
-    vec2 st = fragTexCoord * u_resolution;
-    st.y = u_resolution.y - st.y;
-    st = (st - u_button_origin) / u_button_size;
+    vec2 st = st(fragTexCoord, u_resolution, u_button_origin, vec2(u_button_size));
 
     vec4 color_bg = texture(texture0, fragTexCoord.xy);
     bool in_shape = in_frame_outline(st) || in_arrow_body(st) || in_arrow_head(st);
