@@ -1,5 +1,5 @@
 use crate::button::RectangularButton;
-use crate::input::{ClickResult, KeyPressHandler, KeyPressResult};
+use crate::input::{ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult};
 use crate::map::RenderCoord;
 use crate::window;
 use crate::window::state::WindowLayer;
@@ -55,6 +55,10 @@ impl Window for PauseWindow {
         self.draw_buttons(rl_draw, rl_thread);
     }
 
+    fn handle_window_hover(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
+        self.exit_button.hover(rl, mouse_position)
+    }
+
     fn handle_window_key_press(&mut self, _rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
         if key == KeyboardKey::KEY_P {
             self.close();
@@ -91,15 +95,14 @@ fn exit(rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> ClickResult {
 }
 
 mod draw {
-    use crate::color::{GREEN, TEXT_COLOR, TRANSPARENT};
+    use crate::color::{DIFF_HOVER_BUTTON, RED, TEXT_COLOR, WINDOW_BACKGROUND_COLOR};
     use crate::font::DEFAULT_FONT_SPACING;
-    use crate::shader::{StandardShader, SHADER_STORE};
+    use crate::shader::{ExitIconShader, SHADER_STORE};
     use crate::state::STATE;
     use crate::texture::ScreenRenderTexture;
-    use crate::window;
     use crate::window::pause::PAUSE_INTERNAL_MARGIN;
-    use crate::window::{PauseWindow, BORDER_GAP, BORDER_THICKNESS};
-    use raylib::color::Color;
+    use crate::window::{PauseWindow, BORDER_GAP, BUTTON_INTERNAL_MARGIN};
+    use crate::{math, window};
     use raylib::drawing::{RaylibDraw, RaylibDrawHandle, RaylibShaderModeExt, RaylibTextureModeExt};
     use raylib::math::{Rectangle, Vector2};
     use raylib::texture::RaylibTexture2D;
@@ -125,19 +128,22 @@ mod draw {
         }
 
         pub fn draw_buttons(&self, rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
-            let exit_icon: Rc<StandardShader> =
-                SHADER_STORE.with_borrow_mut(|store| unsafe { store.assume_init_ref().exit_icon.clone() });
-            let u_resolution: [f32; 2] = [rl_draw.get_screen_width() as f32, rl_draw.get_screen_height() as f32];
-            exit_icon.shader.borrow_mut().set_shader_value(exit_icon.uniforms.u_resolution, u_resolution);
+            self.draw_exit_button(rl_draw, rl_thread);
+        }
+
+        fn draw_exit_button(&self, rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
+            window::draw_side_button(rl_draw, &self.exit_button);
 
             let mut screen_texture: RwLockWriteGuard<ScreenRenderTexture> = STATE.screen_texture.write().unwrap();
-
-            rl_draw.draw_shader_mode(&mut exit_icon.shader.borrow_mut(), |mut s| {
-                s.draw_texture_mode(rl_thread, &mut screen_texture, |mut t| {
-                    let m = t.get_mouse_position();
-                    t.draw_rectangle_rec(self.exit_button.rectangle, TRANSPARENT);
-                    t.draw_circle_v(m, 5., GREEN);
-                });
+            rl_draw.draw_texture_mode(rl_thread, &mut screen_texture, |mut t| {
+                t.draw_rectangle_rec(
+                    self.exit_button.rectangle,
+                    if self.exit_button.is_hovered() {
+                        math::color_add(&WINDOW_BACKGROUND_COLOR, &DIFF_HOVER_BUTTON)
+                    } else {
+                        WINDOW_BACKGROUND_COLOR
+                    },
+                );
             });
 
             let source = Rectangle {
@@ -146,13 +152,19 @@ mod draw {
                 ..self.exit_button.rectangle
             };
             let dest = Rectangle {
-                x: self.exit_button.rectangle.x + BORDER_THICKNESS,
-                y: self.exit_button.rectangle.y + BORDER_THICKNESS,
-                width: self.exit_button.rectangle.width - BORDER_THICKNESS * 2.,
-                height: self.exit_button.rectangle.height - BORDER_THICKNESS * 2.,
+                x: self.exit_button.rectangle.x + BUTTON_INTERNAL_MARGIN.x,
+                y: self.exit_button.rectangle.y + BUTTON_INTERNAL_MARGIN.y,
+                width: self.exit_button.rectangle.width - BUTTON_INTERNAL_MARGIN.x * 2.,
+                height: self.exit_button.rectangle.height - BUTTON_INTERNAL_MARGIN.y * 2.,
             };
-            window::draw_side_button(rl_draw, &self.exit_button);
-            rl_draw.draw_texture_pro(&*screen_texture, source, dest, Vector2::zero(), 0., Color::WHITE)
+
+            let exit_icon: Rc<ExitIconShader> =
+                SHADER_STORE.with_borrow_mut(|store| unsafe { store.assume_init_ref().exit_icon.clone() });
+            exit_icon.set_values(rl_draw, self.exit_button.rectangle);
+
+            rl_draw.draw_shader_mode(&mut exit_icon.standard.shader.borrow_mut(), |mut s| {
+                s.draw_texture_pro(&*screen_texture, source, dest, Vector2::zero(), 0., RED)
+            });
         }
     }
 }

@@ -7,11 +7,8 @@ use crate::window::{PauseWindow, Window};
 use crate::{map, window};
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle, RaylibShaderModeExt, RaylibTextureModeExt};
 use raylib::math::{Rectangle, Vector2};
-use raylib::prelude::Shader;
 use raylib::texture::RaylibRenderTexture2D;
 use raylib::RaylibThread;
-use std::cell::RefMut;
-use std::ops::DerefMut;
 use std::rc::Rc;
 use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 
@@ -23,9 +20,7 @@ pub fn draw(rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
         let store: &ShaderStore = unsafe { store_m.assume_init_ref() };
         store.blur.clone()
     });
-
-    blur.shader.borrow_mut().set_shader_value(blur.uniforms.u_resolution, [screen_width, screen_height]);
-    let mut blur_shader_r: RefMut<Shader> = blur.shader.borrow_mut();
+    blur.set_values(rl_draw);
 
     let pause_window: RwLockReadGuard<PauseWindow> = STATE.stage.game.window.pause.read().unwrap();
     if pause_window.is_open() {
@@ -35,7 +30,7 @@ pub fn draw(rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
             draw_game(&mut t, rl_thread);
         });
 
-        rl_draw.draw_shader_mode(blur_shader_r.deref_mut(), |mut s| {
+        rl_draw.draw_shader_mode(&mut blur.shader.borrow_mut(), |mut s| {
             s.draw_texture_pro(
                 &screen_texture.texture(),
                 Rectangle::new(

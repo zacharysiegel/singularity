@@ -1,3 +1,4 @@
+use std::f32::consts::SQRT_2;
 use crate::button::RectangularButton;
 use crate::color::{
     DIFF_HOVER_BUTTON, RED, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_INTERIOR_BORDER_COLOR,
@@ -6,7 +7,7 @@ use crate::map::RenderCoord;
 use crate::math;
 use crate::math::SIN_FRAC_PI_4;
 use crate::state::STATE;
-use crate::window::{ErrorWindow, HexWindow, PauseWindow, Window};
+use crate::window::{ErrorWindow, HexWindow, PauseWindow, Window, BUTTON_WIDTH};
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::{Rectangle, Vector2};
@@ -15,6 +16,7 @@ use std::sync::RwLockReadGuard;
 
 pub const BORDER_GAP: f32 = 10.;
 pub const BORDER_THICKNESS: f32 = 1.;
+pub const BUTTON_INTERNAL_MARGIN: Vector2 = Vector2 { x: 11., y: 11. };
 
 const X_VERTEX_N: usize = 8;
 
@@ -111,13 +113,18 @@ fn draw_close_button(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
             x: button.rectangle.x + button.rectangle.width / 2.,
             y: button.rectangle.y + button.rectangle.height / 2.,
         },
-        14.,
+        (BUTTON_WIDTH / 2. - BUTTON_INTERNAL_MARGIN.x) * SQRT_2,
         4.5,
     )
 }
 
 pub fn draw_side_button(rl_draw: &mut RaylibDrawHandle, button: &RectangularButton) {
     draw_side_button_background(rl_draw, button);
+    draw_side_button_border(rl_draw, button.rectangle);
+    draw_side_button_accent(rl_draw, button.rectangle);
+}
+
+pub fn draw_side_button_lines(rl_draw: &mut RaylibDrawHandle, button: &RectangularButton) {
     draw_side_button_border(rl_draw, button.rectangle);
     draw_side_button_accent(rl_draw, button.rectangle);
 }

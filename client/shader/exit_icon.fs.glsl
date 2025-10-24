@@ -15,16 +15,19 @@ uniform vec2 u_resolution;
 uniform vec2 u_mouse;
 uniform float u_time;
 
-uniform sampler2D u_sampler0;
+uniform sampler2D texture0;
 uniform vec4 colDiffuse;
 
-float line_width = 0.1;
-float margin_x = 0.134;
+uniform float u_button_size;
+uniform vec2 u_button_origin;
 
-float in_frame_outline(vec2 st) {
+float line_width = 0.135;
+float margin_x = 0.;
+
+bool in_frame_outline(vec2 st) {
     float acc = 0.;
     vec2 margin = vec2(margin_x, 0.);
-    float max_x = 0.6;
+    float max_x = 0.75;
 
     acc += step(margin.x, st.x);
     acc *= step(margin.y, st.y);
@@ -34,45 +37,47 @@ float in_frame_outline(vec2 st) {
     }
     acc *= step(1. - max_x, 1. - st.x);
 
-    return acc;
+    return acc == 1.;
 }
 
-float in_arrow_body(vec2 st) {
-    float acc = 0.;
+bool in_arrow_body(vec2 st) {
+    bool acc = false;
 
     float start = 0.35;
     float stop = 1. - line_width - margin_x;
-    float x_in = start < st.x && st.x < stop ? 1. : 0.;
-    float y_in = .5 - line_width / 2. < st.y && st.y < .5 + line_width / 2. ? 1. : 0.;
-    float in_line = x_in * y_in;
+    bool x_in = start < st.x && st.x < stop ? true : false;
+    bool y_in = .5 - line_width / 2. < st.y && st.y < .5 + line_width / 2. ? true : false;
+    bool in_line = x_in && y_in;
 
-    acc += in_line;
+    acc = acc || in_line;
     return acc;
 }
 
-float in_arrow_head(in vec2 st) {
-    float acc = 0.;
+bool in_arrow_head(in vec2 st) {
+    bool acc = false;
     vec2 point = vec2(1. - line_width / 2. - margin_x, .5);
     st -= point;
 
     float upper_bound = step(.0, -abs(st.y) - (st.x - line_width / 2.));
     float lower_bound = step(.0, -abs(st.y) - (st.x - line_width / 2. + line_width * sqrt(2.)));
-    acc += upper_bound - lower_bound;
+    acc = acc || (upper_bound - lower_bound > 0.);
 
-    float max_extent = .22;
-    acc *= 1. - step(max_extent, abs(st.y));
+    float max_extent = .26;
+    acc = acc && (1. - step(max_extent, abs(st.y)) > 0.);
 
     return acc;
 }
 
 void main() {
-    vec2 st = fragTexCoord.xy/u_resolution.xy;
-    st.x *= u_resolution.x/u_resolution.y;
+    vec2 m = (vec2(u_mouse.x, u_resolution.y - u_mouse.y) - u_button_origin) / u_button_size;
+    vec2 st = fragTexCoord * u_resolution;
+    st.y = u_resolution.y - st.y;
+    st = (st - u_button_origin) / u_button_size;
 
-    vec4 color_bg = texture(u_sampler0, fragTexCoord.xy);
-    float in_shape = in_frame_outline(st) + in_arrow_body(st) + in_arrow_head(st);
-    vec4 color_fg = vec4(vec3(in_shape), 1.);
-    vec4 color = vec4(color_bg.rgb + color_fg.rgb, color_bg.a);
+    vec4 color_bg = texture(texture0, fragTexCoord.xy);
+    bool in_shape = in_frame_outline(st) || in_arrow_body(st) || in_arrow_head(st);
+    vec4 color_fg = vec4(float(in_shape) * fragColor.rgb, 1.);
+    vec4 color = in_shape ? color_fg : color_bg;
 
-    finalColor = color * colDiffuse;
+    finalColor = color;
 }

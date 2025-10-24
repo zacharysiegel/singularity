@@ -18,7 +18,7 @@ uniform float u_time;
 uniform sampler2D u_sampler0;
 uniform vec4 colDiffuse;
 
-const int kernel_size = 3;
+const int kernel_size = 1;
 const float sample_count = pow(1. + kernel_size * 2., 2.);
 
 void main() {

@@ -56,6 +56,8 @@ pub fn init() -> Result<(RaylibHandle, RaylibThread), AppError> {
         return Err(AppError::new("Failed to initialize window"));
     }
 
+    rl.set_window_state(rl.get_window_state().set_window_highdpi(true));
+
     // todo: SetWindowIcon
     rl.set_target_fps(u32::from(TARGET_FPS));
 

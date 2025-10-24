@@ -13,7 +13,7 @@ use raylib::{RaylibHandle, RaylibThread};
 use shared::error::AppError;
 use std::sync::RwLockReadGuard;
 
-const BUTTON_WIDTH: f32 = 42.;
+pub const BUTTON_WIDTH: f32 = 42.;
 
 pub trait Window: ScrollHandler + ClickHandler + HoverHandler + KeyPressHandler {
     fn is_open(&self) -> bool;
