@@ -97,7 +97,7 @@ impl PauseWindow {
     }
 }
 
-fn on_click(rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> ClickResult {
+fn on_click(_rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> ClickResult {
     let mut next: RwLockWriteGuard<Option<StageType>> = STATE.stage.next.write().unwrap();
     *next = Some(StageType::Title);
 

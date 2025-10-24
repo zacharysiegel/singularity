@@ -1,15 +1,11 @@
 use crate::button::RectangularButton;
 use crate::color::TEXT_COLOR;
-use crate::input::{
-    ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult, ScrollResult,
-};
+use crate::input::ScrollResult;
 use crate::map::RenderCoord;
 use crate::map::{Hex, ResourceType};
-use crate::state::STATE;
 use crate::window;
 use crate::window::state::WindowLayer;
-use crate::window::{draw_game_windows, Window};
-use raylib::consts::KeyboardKey;
+use crate::window::Window;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
 use raylib::prelude::WeakFont;
@@ -25,7 +21,6 @@ pub struct HexWindow {
     pub origin: Option<RenderCoord>,
     pub hex: Option<Hex>,
     pub close_button: RectangularButton,
-    pub second_button: RectangularButton,
 }
 
 impl Window for HexWindow {
@@ -60,20 +55,11 @@ impl Window for HexWindow {
 
     fn draw_content(&self, rl_draw: &mut RaylibDrawHandle, _rl_thread: &RaylibThread) {
         self.draw_title(rl_draw);
-        self.draw_buttons(rl_draw);
         self.draw_footer(rl_draw);
     }
 
     fn handle_window_scroll(&mut self, _rl: &mut RaylibHandle, _scroll_v: Vector2) -> ScrollResult {
         ScrollResult::Pass
-    }
-
-    fn handle_window_click(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
-        self.second_button.click(rl, mouse_position)
-    }
-
-    fn handle_window_hover(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
-        self.second_button.hover(rl, mouse_position)
     }
 }
 
@@ -82,20 +68,12 @@ impl HexWindow {
         origin: None,
         hex: None,
         close_button: RectangularButton::DEFAULT,
-        second_button: RectangularButton::DEFAULT,
     };
 
     pub fn open(&mut self, rl: &mut RaylibHandle, origin: RenderCoord, hex: Hex) {
         self.origin = Some(window::bounded_origin(rl, origin, self.dimensions()));
         self.hex = Some(hex);
         self.close_button = RectangularButton::new(window::side_button_rectangle(self, 0));
-        self.second_button = RectangularButton::new(window::side_button_rectangle(self, 1));
-        self.second_button.on_click = HexWindow::on_click_second;
-    }
-
-    fn on_click_second(_rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> ClickResult {
-        log::debug!("Clicked second button");
-        ClickResult::Consume
     }
 
     pub fn get_title(&self) -> Option<&'static str> {
@@ -120,10 +98,6 @@ impl HexWindow {
             FONT_SPACING,
             TEXT_COLOR,
         );
-    }
-
-    fn draw_buttons(&self, rl_draw: &mut RaylibDrawHandle) {
-        window::draw_side_button(rl_draw, &self.second_button);
     }
 
     fn draw_footer(&self, rl_draw: &mut RaylibDrawHandle) {
