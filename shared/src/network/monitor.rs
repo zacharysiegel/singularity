@@ -1,16 +1,16 @@
 use crate::error::AppErrorStatic;
-use crate::network::connection::{ConnectionReader, ConnectionWriter};
+use crate::network::connection::{ConnectionReader, ConnectionWriter, WriteBufferT};
 use crate::network::frame_buffer::FrameBuffer;
 use crate::network::protocol::Frame;
 use crate::network::ring_buffer::RingBuffer;
-use std::future::Future;
+use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::{RwLockReadGuard, RwLockWriteGuard};
+use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use tokio::time;
 
 pub async fn monitor_incoming_frames<F, Fut>(mut reader: ConnectionReader, callback: F)
 where
-    F: Fn(Frame) -> Fut,
+    F: Fn(WriteBufferT, Frame) -> Fut,
     Fut: Future<Output = ()>,
 {
     loop {
@@ -19,10 +19,10 @@ where
             break;
         };
 
-        match reader.buffer.pop_frames() {
+        match reader.read_buffer.pop_frames() {
             Ok(frames) => {
                 for frame in frames {
-                    callback(frame).await;
+                    callback(reader.write_buffer.clone(), frame).await;
                 }
             }
             Err(e) => {
@@ -35,7 +35,7 @@ where
 
 pub async fn monitor_outgoing_frames(mut writer: ConnectionWriter) -> Result<(), AppErrorStatic> {
     loop {
-        let buffer_p = writer.buffer.clone();
+        let buffer_p: Arc<RwLock<RingBuffer<u8, 4096>>> = writer.buffer.clone();
 
         let buffer_l: RwLockReadGuard<RingBuffer<u8, 4096>> = buffer_p.read().await;
         if buffer_l.used_space() == 0 {

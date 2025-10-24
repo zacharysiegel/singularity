@@ -5,14 +5,14 @@ use std::time::Duration;
 
 use shared::error::AppError;
 use shared::network;
-use shared::network::connection::{Connection, ConnectionReader, ConnectionWriter};
+use shared::network::connection::{Connection, ConnectionReader, ConnectionWriter, WriteBufferT};
 use shared::network::ring_buffer::RingBuffer;
-use shared::network::{connection, socket};
+use shared::network::socket;
 use socket2::{SockAddr, Socket};
 use tokio::net::TcpStream;
 use tokio::sync::RwLock;
 
-pub fn connect() -> Result<Arc<RwLock<RingBuffer<u8, { connection::BUFFER_SIZE }>>>, AppError> {
+pub fn connect() -> Result<WriteBufferT, AppError> {
     let sock_addr: SockAddr = socket::get_sock_addr()?;
     let socket: Socket = socket::create_socket()?;
     socket.connect_timeout(&sock_addr, Duration::from_secs(3))?;
@@ -33,7 +33,8 @@ pub fn connect() -> Result<Arc<RwLock<RingBuffer<u8, { connection::BUFFER_SIZE }
 
 fn spawn_reader(reader: ConnectionReader) {
     tokio::spawn(async move {
-        network::monitor::monitor_incoming_frames(reader, |frame| async move {
+        network::monitor::monitor_incoming_frames(reader, |w, frame| async move {
+            log::debug!("write buffer: {:?}", w);
             log::debug!("frame: {:?}", frame);
             // todo: route frames
         })

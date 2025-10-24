@@ -7,11 +7,14 @@ use std::io::IoSliceMut;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::io::AsyncWriteExt;
-use tokio::net::TcpStream;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
+use tokio::net::TcpStream;
 use tokio::sync::RwLock;
 
 pub const BUFFER_SIZE: usize = 4096;
+
+pub type ReadBufferT = RingBuffer<u8, { BUFFER_SIZE }>;
+pub type WriteBufferT = Arc<RwLock<RingBuffer<u8, { BUFFER_SIZE }>>>;
 
 pub enum BytesRead {
     Some(usize),
@@ -29,17 +32,19 @@ impl Connection {
     pub fn new(tcp_stream: TcpStream, socket_addr: SocketAddr) -> Self {
         let socket_addr: Arc<SocketAddr> = Arc::new(socket_addr);
         let (reader, writer): (OwnedReadHalf, OwnedWriteHalf) = tcp_stream.into_split();
+        let write_buffer: Arc<RwLock<RingBuffer<u8, 4096>>> = Arc::new(RwLock::new(RingBuffer::new()));
         Connection {
             socket_addr: socket_addr.clone(),
             reader: ConnectionReader {
                 socket_addr: socket_addr.clone(),
                 tcp_stream_read: reader,
-                buffer: RingBuffer::new(),
+                read_buffer: RingBuffer::new(),
+                write_buffer: write_buffer.clone(),
             },
             writer: ConnectionWriter {
-                socket_addr: socket_addr.clone(),
+                socket_addr,
                 tcp_stream_write: writer,
-                buffer: Arc::new(RwLock::new(RingBuffer::new())),
+                buffer: write_buffer,
             },
         }
     }
@@ -49,7 +54,7 @@ impl Connection {
 pub struct ConnectionWriter {
     pub socket_addr: Arc<SocketAddr>,
     pub tcp_stream_write: OwnedWriteHalf,
-    pub buffer: Arc<RwLock<RingBuffer<u8, BUFFER_SIZE>>>,
+    pub buffer: WriteBufferT,
 }
 
 impl ConnectionWriter {
@@ -63,14 +68,15 @@ impl ConnectionWriter {
 pub struct ConnectionReader {
     pub socket_addr: Arc<SocketAddr>,
     pub tcp_stream_read: OwnedReadHalf,
-    pub buffer: RingBuffer<u8, BUFFER_SIZE>,
+    pub read_buffer: ReadBufferT,
+    pub write_buffer: WriteBufferT,
 }
 
 impl ConnectionReader {
     pub async fn read_chunk(&mut self) -> Result<BytesRead, AppError> {
         loop {
             self.tcp_stream_read.readable().await?;
-            let mut io_slices: [IoSliceMut; 2] = unsafe { self.buffer.current_empty_slices_as_io_slice_mut() };
+            let mut io_slices: [IoSliceMut; 2] = unsafe { self.read_buffer.current_empty_slices_as_io_slice_mut() };
             let read_r: io::Result<usize> = self.tcp_stream_read.try_read_vectored(&mut io_slices);
 
             match read_r {
@@ -78,7 +84,7 @@ impl ConnectionReader {
                     return Ok(BytesRead::ReadClosed);
                 }
                 Ok(n) => {
-                    self.buffer.advance(n)?;
+                    self.read_buffer.advance(n)?;
                     return Ok(BytesRead::Some(n));
                 }
                 Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
