@@ -30,8 +30,10 @@ Menus
    		  Create
    	Account
    	Debug
-Server-side networking
+Networking
     TLS (low)
-Client-side networking
-    TLS (low)
+	Initialize game data from server [in progress]
+	Real-time upload
+	Data consistency
+	Real-time download
 Proper map generation (see plan.md)
