@@ -28,9 +28,6 @@ const float d_r = 1.5;
 void main() {
     vec4 sum = texture(u_sampler0, fragTexCoord);
 
-    float r;
-    float theta;
-
     // Theta should start within the vertical line
     for (float theta = pi_2 / 4.; theta < pi_2 * 5. / 4.; theta += d_theta) {
         for (float r = d_r; r <= kernel_size * d_r + d_r / 1000.; r += d_r) {
