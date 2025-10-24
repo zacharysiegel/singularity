@@ -35,6 +35,14 @@ impl<'a> Facility<'a> {
             Facility::OilExtractor(facility) => facility.draw(rl_draw, render_coord),
         }
     }
+
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            Facility::ControlCenter(_) => "Control Center",
+            Facility::MetalExtractor(_) => "Metal Extractor",
+            Facility::OilExtractor(_) => "Oil Extractor",
+        }
+    }
 }
 
 #[repr(u8)]
@@ -69,5 +77,14 @@ impl FacilityCollection {
         output.extend(self.metal_extractor_vec.iter().map(|f| f.facility()).collect::<Vec<Facility>>());
         output.extend(self.oil_extractor_vec.iter().map(|f| f.facility()).collect::<Vec<Facility>>());
         output
+    }
+
+    pub fn at<'a>(&'a self, hex_coord: HexCoord) -> Option<Facility<'a>> {
+        for facility in self.all_facilities() {
+            if hex_coord == facility.location() {
+                return Some(facility);
+            }
+        }
+        None
     }
 }
