@@ -4,10 +4,10 @@ use crate::input::{ClickResult, ScrollResult};
 use crate::map;
 use crate::map::RenderCoord;
 use crate::state::STATE;
-use crate::window::{PauseWindow, WINDOW_LAYERS, Window};
-use raylib::RaylibHandle;
+use crate::window::{PauseWindow, Window, WINDOW_LAYERS};
 use raylib::consts::KeyboardKey;
 use raylib::math::Vector2;
+use raylib::RaylibHandle;
 use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 
 pub fn scroll(rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult {
@@ -38,7 +38,13 @@ pub fn hover(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult 
     for window in WINDOW_LAYERS {
         let mut window: RwLockWriteGuard<dyn Window> = window.write().unwrap();
         match window.hover(rl, mouse_position) {
-            HoverResult::Pass => continue,
+            HoverResult::Pass => {
+                if window.is_open() {
+                    return HoverResult::Consume;
+                } else {
+                    continue;
+                }
+            }
             HoverResult::Consume => return HoverResult::Consume,
         }
     }
