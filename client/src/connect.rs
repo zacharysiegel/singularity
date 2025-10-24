@@ -4,10 +4,11 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use shared::error::AppError;
-use shared::network;
 use shared::network::connection::{Connection, ConnectionReader, ConnectionWriter, WriteBufferT};
+use shared::network::protocol::{Operation, Register};
 use shared::network::ring_buffer::RingBuffer;
 use shared::network::socket;
+use shared::{network, random};
 use socket2::{SockAddr, Socket};
 use tokio::net::TcpStream;
 use tokio::sync::RwLock;
@@ -25,6 +26,7 @@ pub fn connect() -> Result<WriteBufferT, AppError> {
     let connection: Connection = Connection::new(tcp_stream, peer_addr);
     let write_buffer: Arc<RwLock<RingBuffer<u8, 4096>>> = connection.writer.buffer.clone();
 
+    send_register(write_buffer.clone());
     spawn_reader(connection.reader);
     spawn_writer(connection.writer);
 
@@ -50,5 +52,15 @@ fn spawn_writer(writer: ConnectionWriter) {
                 log::error!("Error writing frame to the network; {:#}", e);
             }
         }
+    });
+}
+
+fn send_register(write_buffer: WriteBufferT) {
+    let message = Register {
+        op_code: Register::OP_CODE,
+        user_id: random::random_uuid(),
+    };
+    tokio::spawn(async move {
+        write_buffer.write().await.push(message.as_bytes().as_slice()).expect("Register message failed");
     });
 }

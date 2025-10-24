@@ -3,9 +3,8 @@ use crate::network::connection::{ConnectionReader, ConnectionWriter, WriteBuffer
 use crate::network::frame_buffer::FrameBuffer;
 use crate::network::protocol::Frame;
 use crate::network::ring_buffer::RingBuffer;
-use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
+use tokio::sync::{RwLockReadGuard, RwLockWriteGuard};
 use tokio::time;
 
 pub async fn monitor_incoming_frames<F, Fut>(mut reader: ConnectionReader, callback: F)
@@ -35,18 +34,16 @@ where
 
 pub async fn monitor_outgoing_frames(mut writer: ConnectionWriter) -> Result<(), AppErrorStatic> {
     loop {
-        let buffer_p: Arc<RwLock<RingBuffer<u8, 4096>>> = writer.buffer.clone();
-
-        let buffer_l: RwLockReadGuard<RingBuffer<u8, 4096>> = buffer_p.read().await;
-        if buffer_l.used_space() == 0 {
+        let buffer_g: RwLockReadGuard<RingBuffer<u8, 4096>> = writer.buffer.read().await;
+        if buffer_g.used_space() == 0 {
             time::sleep(Duration::from_millis(50)).await;
             continue;
         }
-        drop(buffer_l);
+        drop(buffer_g);
 
-        let mut buffer_l: RwLockWriteGuard<RingBuffer<u8, 4096>> = buffer_p.write().await;
-        let frames: Vec<Frame> = buffer_l.pop_frames()?;
-        drop(buffer_l);
+        let mut buffer_g: RwLockWriteGuard<RingBuffer<u8, 4096>> = writer.buffer.write().await;
+        let frames: Vec<Frame> = buffer_g.pop_frames()?;
+        drop(buffer_g);
 
         for frame in frames {
             writer.write_frame(&frame).await?;

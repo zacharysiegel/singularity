@@ -8,7 +8,18 @@
 
 use crate::error::AppError;
 use std::fmt::{self, Display};
+use std::mem;
 use uuid::Uuid;
+
+macro_rules! fixed_size_impl {
+    () => {
+        const FIXED_SIZE: ::std::option::Option<usize> = ::std::option::Option::Some(size_of::<Self>());
+
+        fn as_bytes(&self) -> ::std::vec::Vec<u8> {
+            ::std::vec::Vec::from(unsafe { mem::transmute_copy::<Self, [u8; Self::FIXED_SIZE.unwrap()]>(self) })
+        }
+    };
+}
 
 #[derive(Debug)]
 pub struct Frame {
@@ -56,6 +67,27 @@ impl Display for OperationType {
     }
 }
 
+impl OperationType {
+    pub fn from_op_code(op_code: &OpCode) -> Result<Self, AppError> {
+        match op_code {
+            &Heartbeat::OP_CODE => Ok(OperationType::Heartbeat),
+            &Register::OP_CODE => Ok(OperationType::Register),
+            &Acknowledgement::OP_CODE => Ok(OperationType::Acknowledgement),
+            &_PlaceholderDynamic::OP_CODE => Ok(OperationType::_PlaceholderDynamic),
+            _ => Err(AppError::new(&format!("Invalid op code; [{}]", op_code))),
+        }
+    }
+
+    pub const fn fixed_size(&self) -> Option<usize> {
+        match self {
+            OperationType::Heartbeat => Heartbeat::FIXED_SIZE,
+            OperationType::Register => Register::FIXED_SIZE,
+            OperationType::Acknowledgement => Acknowledgement::FIXED_SIZE,
+            OperationType::_PlaceholderDynamic => _PlaceholderDynamic::FIXED_SIZE,
+        }
+    }
+}
+
 #[derive(Debug, Copy, Clone)]
 #[repr(C, packed(1))]
 pub struct Heartbeat {
@@ -70,7 +102,8 @@ impl<'a> From<&'a Frame> for Heartbeat {
 
 impl<'a> Operation for Heartbeat {
     const OP_CODE: OpCode = 1;
-    const FIXED_SIZE: Option<usize> = Some(size_of::<Self>());
+
+    fixed_size_impl!();
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -88,7 +121,8 @@ impl<'a> From<&'a Frame> for Register {
 
 impl<'a> Operation for Register {
     const OP_CODE: OpCode = 2;
-    const FIXED_SIZE: Option<usize> = Some(size_of::<Self>());
+
+    fixed_size_impl!();
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -106,7 +140,8 @@ impl<'a> From<&'a Frame> for Acknowledgement {
 
 impl<'a> Operation for Acknowledgement {
     const OP_CODE: OpCode = 3;
-    const FIXED_SIZE: Option<usize> = Some(size_of::<Self>());
+
+    fixed_size_impl!();
 }
 
 // Dynamically-sized frames cannot be directly interpreted from bits, since their size is not statically known
@@ -131,26 +166,13 @@ impl<'a> From<&'a Frame> for _PlaceholderDynamic<'a> {
 impl<'a> Operation for _PlaceholderDynamic<'a> {
     const OP_CODE: OpCode = 4;
     const FIXED_SIZE: Option<usize> = None;
-}
 
-impl OperationType {
-    pub fn from_op_code(op_code: &OpCode) -> Result<Self, AppError> {
-        match op_code {
-            &Heartbeat::OP_CODE => Ok(OperationType::Heartbeat),
-            &Register::OP_CODE => Ok(OperationType::Register),
-            &Acknowledgement::OP_CODE => Ok(OperationType::Acknowledgement),
-            &_PlaceholderDynamic::OP_CODE => Ok(OperationType::_PlaceholderDynamic),
-            _ => Err(AppError::new(&format!("Invalid op code; [{}]", op_code))),
-        }
-    }
-
-    pub const fn fixed_size(&self) -> Option<usize> {
-        match self {
-            OperationType::Heartbeat => Heartbeat::FIXED_SIZE,
-            OperationType::Register => Register::FIXED_SIZE,
-            OperationType::Acknowledgement => Acknowledgement::FIXED_SIZE,
-            OperationType::_PlaceholderDynamic => _PlaceholderDynamic::FIXED_SIZE,
-        }
+    fn as_bytes(&self) -> Vec<u8> {
+        let mut bytes: Vec<u8> = Vec::with_capacity(usize::from(self.length));
+        bytes.push(self.op_code);
+        bytes.extend_from_slice(&self.length.to_be_bytes());
+        bytes.extend_from_slice(self.string.as_bytes());
+        bytes
     }
 }
 
@@ -158,6 +180,8 @@ pub trait Operation {
     const OP_CODE: OpCode;
     /// None iff not fixed size
     const FIXED_SIZE: Option<usize>;
+
+    fn as_bytes(&self) -> Vec<u8>;
 }
 
 #[cfg(test)]
