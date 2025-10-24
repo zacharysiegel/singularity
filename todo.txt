@@ -22,8 +22,6 @@ Player interactions
 	Chat
 	Time machine
 Menus
-	Pause window [in progress]
-		Return to title
    	Account setup
    	Games
    	   Active

@@ -1,6 +1,8 @@
 use crate::button::RectangularButton;
-use crate::input::{ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult};
+use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult};
 use crate::map::RenderCoord;
+use crate::stage::StageType;
+use crate::state::STATE;
 use crate::window;
 use crate::window::state::WindowLayer;
 use crate::window::{Window, BORDER_GAP};
@@ -8,6 +10,7 @@ use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
 use raylib::{RaylibHandle, RaylibThread};
+use std::sync::RwLockWriteGuard;
 
 const PAUSE_WIDTH: f32 = 350.;
 const PAUSE_HEIGHT: f32 = 400.;
@@ -55,6 +58,10 @@ impl Window for PauseWindow {
         self.draw_buttons(rl_draw, rl_thread);
     }
 
+    fn handle_window_click(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
+        self.exit_button.click(rl, mouse_position)
+    }
+
     fn handle_window_hover(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
         self.exit_button.hover(rl, mouse_position)
     }
@@ -86,11 +93,14 @@ impl PauseWindow {
         }));
         self.close_button = RectangularButton::new(window::side_button_rectangle(self, 0));
         self.exit_button = RectangularButton::new(window::side_button_rectangle(self, 1));
-        self.exit_button.on_click = exit;
+        self.exit_button.on_click = on_click;
     }
 }
 
-fn exit(rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> ClickResult {
+fn on_click(rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> ClickResult {
+    let mut next: RwLockWriteGuard<Option<StageType>> = STATE.stage.next.write().unwrap();
+    *next = Some(StageType::Title);
+
     ClickResult::Consume
 }
 
