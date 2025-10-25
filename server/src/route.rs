@@ -10,8 +10,6 @@ pub async fn route_frame(write_buffer: WriteBufferT, frame: Frame) {
         OperationType::Register => {
             log::trace!("Register received; [{}]", frame);
             register(frame);
-
-            write_buffer.write().await.push(b"\x01").unwrap();
         }
         OperationType::Acknowledgement => {
             log::trace!("Acknowledgement received; [{}]", frame);
@@ -32,6 +30,8 @@ fn heartbeat(frame: Frame) {
 fn register(frame: Frame) {
     let register: Register = Register::from(&frame);
     log::debug!("parsed frame; [{:?}]", register);
+
+    // todo: send game collection to client
 }
 
 fn acknowledgement(frame: Frame) {

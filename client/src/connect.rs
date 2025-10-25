@@ -36,8 +36,6 @@ pub fn connect() -> Result<WriteBufferT, AppError> {
 fn spawn_reader(reader: ConnectionReader) {
     tokio::spawn(async move {
         network::monitor::monitor_incoming_frames(reader, |w, frame| async move {
-            log::debug!("write buffer: {:?}", w);
-            log::debug!("frame: {:?}", frame);
             // todo: route frames
         })
         .await;

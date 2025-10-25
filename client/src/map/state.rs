@@ -3,18 +3,19 @@ use crate::map;
 use crate::map::{HexCoord, MapCoord};
 use raylib::color::Color;
 use std::sync::RwLock;
+use map::config::HEX_COUNT;
 
 #[derive(Debug)]
 pub struct MapState {
     pub map_origin: RwLock<MapCoord>,
-    pub hexes: RwLock<[Hex; map::config::HEX_COUNT as usize]>,
+    pub hexes: RwLock<[Hex; HEX_COUNT as usize]>,
     pub hovered_hex_coord: RwLock<Option<HexCoord>>,
 }
 
 impl MapState {
     pub const DEFAULT: MapState = MapState {
         map_origin: RwLock::new(MapCoord::DEFAULT),
-        hexes: RwLock::new([Hex::DEFAULT; map::config::HEX_COUNT as usize]),
+        hexes: RwLock::new([Hex::DEFAULT; HEX_COUNT as usize]),
         hovered_hex_coord: RwLock::new(None),
     };
 }
