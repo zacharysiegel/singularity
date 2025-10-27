@@ -769,6 +769,7 @@ dependencies = [
  "dotenvy",
  "log",
  "rand",
+ "raylib",
  "socket2",
  "tokio",
  "uuid",

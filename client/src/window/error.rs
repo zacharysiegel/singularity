@@ -1,10 +1,10 @@
 use crate::button::RectangularButton;
-use crate::map::RenderCoord;
-use crate::window::state::WindowLayer;
 use crate::window::Window;
+use crate::window::state::WindowLayer;
+use raylib::RaylibThread;
 use raylib::drawing::RaylibDrawHandle;
 use raylib::math::Vector2;
-use raylib::RaylibThread;
+use shared::map::RenderCoord;
 
 #[derive(Debug)]
 pub struct ErrorWindow {

@@ -1,10 +1,10 @@
-use crate::map::RenderCoord;
 use crate::stage::StageType;
 use crate::state::STATE;
+use raylib::RaylibHandle;
 use raylib::consts::{KeyboardKey, MouseButton};
 use raylib::math::Vector2;
-use raylib::RaylibHandle;
 use shared::environment::RuntimeEnvironment;
+use shared::map::RenderCoord;
 use std::sync::RwLockReadGuard;
 
 #[derive(PartialEq)]

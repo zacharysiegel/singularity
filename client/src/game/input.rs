@@ -2,12 +2,12 @@ use crate::input::HoverResult;
 use crate::input::KeyPressResult;
 use crate::input::{ClickResult, ScrollResult};
 use crate::map;
-use crate::map::RenderCoord;
 use crate::state::STATE;
-use crate::window::{PauseWindow, Window, WINDOW_LAYERS};
+use crate::window::{PauseWindow, WINDOW_LAYERS, Window};
+use raylib::RaylibHandle;
 use raylib::consts::KeyboardKey;
 use raylib::math::Vector2;
-use raylib::RaylibHandle;
+use shared::map::RenderCoord;
 use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 
 pub fn scroll(rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult {

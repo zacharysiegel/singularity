@@ -1,0 +1,28 @@
+use crate::color::{MAP_BACKGROUND_COLOR, METAL_BACKGROUND_COLOR, OIL_BACKGROUND_COLOR};
+use raylib::color::Color;
+
+#[repr(u8)]
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum ResourceType {
+    None = 0,
+    Metal,
+    Oil,
+}
+
+impl Default for ResourceType {
+    fn default() -> Self {
+        Self::DEFAULT
+    }
+}
+
+impl ResourceType {
+    pub const DEFAULT: ResourceType = ResourceType::None;
+
+    pub const fn color(&self) -> Color {
+        match self {
+            ResourceType::None => MAP_BACKGROUND_COLOR,
+            ResourceType::Metal => METAL_BACKGROUND_COLOR,
+            ResourceType::Oil => OIL_BACKGROUND_COLOR,
+        }
+    }
+}

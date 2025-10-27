@@ -1,14 +1,14 @@
-use crate::color::WHITE;
-use crate::map::MapCoord;
-use crate::shader::{ShaderStore, StandardShader, SHADER_STORE};
+use crate::shader::{SHADER_STORE, ShaderStore, StandardShader};
 use crate::state::STATE;
 use crate::texture::ScreenRenderTexture;
 use crate::window::{PauseWindow, Window};
 use crate::{map, window};
+use raylib::RaylibThread;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle, RaylibShaderModeExt, RaylibTextureModeExt};
 use raylib::math::{Rectangle, Vector2};
 use raylib::texture::RaylibRenderTexture2D;
-use raylib::RaylibThread;
+use shared::color::WHITE;
+use shared::map::MapCoord;
 use std::rc::Rc;
 use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 

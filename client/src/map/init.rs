@@ -1,9 +1,7 @@
-use crate::map;
-use crate::map::config::HEX_COUNT_SQRT;
-use crate::map::coordinate::HexCoord;
-use crate::map::state::{Hex, ResourceType};
 use crate::state::STATE;
-use map::config::HEX_COUNT;
+use shared::map::HEX_COUNT;
+use shared::map::HEX_COUNT_SQRT;
+use shared::map::{Hex, HexCoord, ResourceType};
 use std::sync::RwLockWriteGuard;
 
 pub fn init_map() {

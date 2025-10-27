@@ -1,7 +1,6 @@
 use crate::button::RectangularButton;
 use crate::font::DEFAULT_FONT_SPACING;
 use crate::input::ClickResult;
-use crate::map::RenderCoord;
 use crate::stage;
 use crate::stage::StageType;
 use crate::state::STATE;
@@ -15,6 +14,7 @@ use raylib::math::{Rectangle, Vector2};
 use raylib::prelude::WeakFont;
 use raylib::text::RaylibFont;
 use shared::environment::RuntimeEnvironment;
+use shared::map::RenderCoord;
 use std::sync::{LazyLock, RwLockWriteGuard};
 
 const BUTTON_DIMENSIONS: LazyLock<Vector2> = LazyLock::new(|| {

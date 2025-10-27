@@ -1,8 +1,8 @@
 use crate::facility::control_center::ControlCenter;
 use crate::facility::metal_extractor::MetalExtractor;
 use crate::facility::oil_extractor::OilExtractor;
-use crate::map::{HexCoord, RenderCoord};
 use raylib::drawing::RaylibDrawHandle;
+use shared::map::{HexCoord, RenderCoord};
 
 #[derive(Debug, Copy, Clone)]
 pub enum Facility<'a> {

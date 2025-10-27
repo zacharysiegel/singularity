@@ -1,12 +1,10 @@
 use crate::input::{ClickResult, HoverResult, ScrollResult};
-use crate::map::HexCoord;
-use crate::map::coordinate::{MapCoord, RenderCoord};
-use crate::map::state::Hex;
 use crate::state::STATE;
 use crate::window;
 use crate::window::HexWindow;
 use raylib::RaylibHandle;
 use raylib::math::Vector2;
+use shared::map::{HexCoord, MapCoord, RenderCoord};
 use std::ops::{Add, Mul};
 use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 
@@ -25,13 +23,17 @@ fn scrolled_map_origin(map_origin: MapCoord, scroll_v: Vector2) -> MapCoord {
 }
 
 pub fn handle_click_hex(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
-    let containing_hex: Hex = {
+    let containing_hex_coord: HexCoord = {
         let map_origin: RwLockReadGuard<MapCoord> = STATE.stage.game.map.map_origin.read().unwrap();
         mouse_position.containing_hex(&*map_origin)
     };
 
     let mut hex_window: RwLockWriteGuard<HexWindow> = STATE.stage.game.window.hex.write().unwrap();
-    hex_window.open(rl, RenderCoord(Vector2::from(mouse_position)), containing_hex);
+    hex_window.open(
+        rl,
+        RenderCoord(Vector2::from(mouse_position)),
+        super::clone_hex(containing_hex_coord).unwrap(),
+    );
     drop(hex_window);
 
     ClickResult::Consume
@@ -42,14 +44,14 @@ pub fn handle_hover_hex(_rl: &mut RaylibHandle, mouse_position: RenderCoord) -> 
         return HoverResult::Pass;
     }
 
-    let containing_hex: Hex = {
+    let containing_hex_coord: HexCoord = {
         let map_origin: RwLockReadGuard<MapCoord> = STATE.stage.game.map.map_origin.read().unwrap();
         mouse_position.containing_hex(&*map_origin)
     };
 
     let mut hovered_hex_coord: RwLockWriteGuard<Option<HexCoord>> =
         STATE.stage.game.map.hovered_hex_coord.write().unwrap();
-    *hovered_hex_coord = Some(containing_hex.hex_coord);
+    *hovered_hex_coord = Some(containing_hex_coord);
 
     HoverResult::Consume
 }

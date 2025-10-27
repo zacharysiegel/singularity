@@ -1,9 +1,8 @@
 use crate::facility::ControlCenter;
 use crate::facility::{FacilityCollection, FacilityState};
-use crate::map::HEX_COUNT_SQRT;
-use crate::map::HexCoord;
 use crate::player::Player;
 use crate::state::STATE;
+use shared::map::{HEX_COUNT_SQRT, HexCoord};
 use std::sync::RwLockWriteGuard;
 
 pub fn init_players(player_count: u8) {

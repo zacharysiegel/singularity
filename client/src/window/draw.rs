@@ -1,17 +1,17 @@
-use std::f32::consts::SQRT_2;
 use crate::button::RectangularButton;
-use crate::color::{
-    DIFF_HOVER_BUTTON, RED, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_INTERIOR_BORDER_COLOR,
-};
-use crate::map::RenderCoord;
-use crate::math;
-use crate::math::SIN_FRAC_PI_4;
 use crate::state::STATE;
-use crate::window::{ErrorWindow, HexWindow, PauseWindow, Window, BUTTON_WIDTH};
+use crate::window::{BUTTON_WIDTH, ErrorWindow, HexWindow, PauseWindow, Window};
+use raylib::RaylibThread;
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::{Rectangle, Vector2};
-use raylib::RaylibThread;
+use shared::color::{
+    DIFF_HOVER_BUTTON, RED, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_INTERIOR_BORDER_COLOR,
+};
+use shared::map::RenderCoord;
+use shared::math;
+use shared::math::SIN_FRAC_PI_4;
+use std::f32::consts::SQRT_2;
 use std::sync::RwLockReadGuard;
 
 pub const BORDER_GAP: f32 = 10.;

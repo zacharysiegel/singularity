@@ -1,8 +1,8 @@
 use crate::button::RectangularButton;
 use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
-use crate::map::RenderCoord;
 use crate::state::STATE;
 use raylib::RaylibHandle;
+use shared::map::RenderCoord;
 use std::sync::RwLockWriteGuard;
 
 pub fn click(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {

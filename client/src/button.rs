@@ -1,8 +1,8 @@
 use crate::input;
 use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
-use crate::map::RenderCoord;
-use raylib::math::Rectangle;
 use raylib::RaylibHandle;
+use raylib::math::Rectangle;
+use shared::map::RenderCoord;
 
 #[derive(Debug)]
 pub struct RectangularButton {

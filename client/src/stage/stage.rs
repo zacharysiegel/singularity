@@ -1,6 +1,5 @@
 use crate::game::GameState;
 use crate::input::{ClickResult, HoverResult, KeyPressResult, ScrollResult};
-use crate::map::RenderCoord;
 use crate::state::STATE;
 use crate::title::TitleState;
 use crate::{game, title};
@@ -8,6 +7,7 @@ use raylib::consts::KeyboardKey;
 use raylib::drawing::RaylibDrawHandle;
 use raylib::math::Vector2;
 use raylib::{RaylibHandle, RaylibThread};
+use shared::map::RenderCoord;
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 #[derive(Debug)]

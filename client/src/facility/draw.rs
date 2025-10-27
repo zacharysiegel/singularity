@@ -1,6 +1,6 @@
 use crate::facility::Facility;
-use crate::map::{MapCoord, RenderCoord};
 use raylib::drawing::RaylibDrawHandle;
+use shared::map::{MapCoord, RenderCoord};
 
 pub fn draw_facility(rl_draw: &mut RaylibDrawHandle, facility: Facility, map_origin: &MapCoord) {
     let map_coord: MapCoord = facility.location().map_coord();

@@ -1,9 +1,3 @@
-mod config;
-pub use config::*;
-
-mod coordinate;
-pub use coordinate::*;
-
 mod draw;
 pub use draw::*;
 

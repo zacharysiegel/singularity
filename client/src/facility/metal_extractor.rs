@@ -1,8 +1,8 @@
-use crate::color::{FACILITY_DESTROYED_COLOR, FACILITY_OPERATING_COLOR, FACILITY_PLACING_COLOR};
 use crate::facility::{Facility, FacilityState, FacilityTrait};
-use crate::map::{HexCoord, RenderCoord};
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
+use shared::color::{FACILITY_DESTROYED_COLOR, FACILITY_OPERATING_COLOR, FACILITY_PLACING_COLOR};
+use shared::map::{HexCoord, RenderCoord};
 
 #[derive(Debug, Default, Copy, Clone)]
 pub struct MetalExtractor {

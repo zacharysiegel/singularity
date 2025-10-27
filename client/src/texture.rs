@@ -2,7 +2,7 @@ use crate::state::STATE;
 use raylib::consts::{TextureFilter, TextureWrap};
 use raylib::prelude::RaylibTexture2D;
 use raylib::texture::RenderTexture2D;
-use raylib::{ffi, RaylibHandle, RaylibThread};
+use raylib::{RaylibHandle, RaylibThread, ffi};
 use std::ops::{Deref, DerefMut};
 use std::sync::RwLockWriteGuard;
 

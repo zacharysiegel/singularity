@@ -1,9 +1,6 @@
-use crate::color::{MAP_BACKGROUND_COLOR, METAL_BACKGROUND_COLOR, OIL_BACKGROUND_COLOR};
-use crate::map;
-use crate::map::{HexCoord, MapCoord};
-use raylib::color::Color;
+use crate::state::STATE;
+use shared::map::{HEX_COUNT, Hex, HexCoord, MapCoord};
 use std::sync::RwLock;
-use map::config::HEX_COUNT;
 
 #[derive(Debug)]
 pub struct MapState {
@@ -20,47 +17,7 @@ impl MapState {
     };
 }
 
-#[repr(u8)]
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub enum ResourceType {
-    None = 0,
-    Metal,
-    Oil,
-}
-
-impl Default for ResourceType {
-    fn default() -> Self {
-        Self::DEFAULT
-    }
-}
-
-impl ResourceType {
-    pub const DEFAULT: ResourceType = ResourceType::None;
-
-    pub const fn color(&self) -> Color {
-        match self {
-            ResourceType::None => MAP_BACKGROUND_COLOR,
-            ResourceType::Metal => METAL_BACKGROUND_COLOR,
-            ResourceType::Oil => OIL_BACKGROUND_COLOR,
-        }
-    }
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct Hex {
-    pub hex_coord: HexCoord,
-    pub resource_type: ResourceType,
-}
-
-impl Default for Hex {
-    fn default() -> Self {
-        Self::DEFAULT
-    }
-}
-
-impl Hex {
-    pub const DEFAULT: Hex = Hex {
-        hex_coord: HexCoord::DEFAULT,
-        resource_type: ResourceType::DEFAULT,
-    };
+pub fn clone_hex(hex_coord: HexCoord) -> Option<Hex> {
+    let hexes = STATE.stage.game.map.hexes.read().expect("global state poisoned");
+    hexes.get(hex_coord.map_index()).map(|hex| hex.clone())
 }

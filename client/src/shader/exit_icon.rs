@@ -1,8 +1,9 @@
+use crate::new_standard_shader;
 use crate::shader::StandardShader;
-use crate::{math, new_standard_shader};
 use raylib::math::Rectangle;
 use raylib::prelude::RaylibShader;
 use raylib::{RaylibHandle, RaylibThread};
+use shared::math;
 
 const EXIT_ICON: &str = include_str!("../../shader/exit_icon.fs.glsl");
 

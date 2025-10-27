@@ -2,15 +2,15 @@ use crate::button::RectangularButton;
 use crate::input::{
     ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult, ScrollHandler, ScrollResult,
 };
-use crate::map::RenderCoord;
 use crate::window;
 use crate::window::draw::BORDER_GAP;
-use crate::window::state::{WindowLayer, WINDOW_LAYERS};
+use crate::window::state::{WINDOW_LAYERS, WindowLayer};
 use raylib::consts::KeyboardKey;
 use raylib::math::Rectangle;
 use raylib::prelude::{RaylibDrawHandle, Vector2};
 use raylib::{RaylibHandle, RaylibThread};
 use shared::error::AppError;
+use shared::map::RenderCoord;
 use std::sync::RwLockReadGuard;
 
 pub const BUTTON_WIDTH: f32 = 42.;
@@ -108,8 +108,8 @@ pub fn side_button_rectangle(window: &dyn Window, button_index: i16) -> Rectangl
 
 #[cfg(test)]
 mod tests {
-    use crate::window::state::WINDOW_LAYERS;
     use crate::window::Window;
+    use crate::window::state::WINDOW_LAYERS;
     use std::sync::RwLockReadGuard;
 
     #[test]

@@ -1,9 +1,7 @@
-use crate::map::config::{HEX_COUNT_SQRT, HEX_HEIGHT, HEX_RADIUS, HEX_SIDE_LENGTH};
-use crate::map::state::Hex;
+use crate::error::AppError;
+use crate::map::{HEX_COUNT_SQRT, HEX_HEIGHT, HEX_RADIUS, HEX_SIDE_LENGTH};
 use crate::math::{SIN_FRAC_PI_3, SIN_FRAC_PI_6, TAN_FRAC_PI_6};
-use crate::state::STATE;
 use raylib::prelude::Vector2;
-use shared::error::AppError;
 use std::f32::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_6};
 use std::mem;
 use std::ops::{Add, Deref, DerefMut, Rem, Sub};
@@ -52,7 +50,7 @@ impl MapCoord {
         HexCoord { i, j }
     }
 
-    pub fn containing_hex(&self) -> Hex {
+    pub fn containing_hex(&self) -> HexCoord {
         // Rather than check the entire map, limit search to a subset of possible candidates based on the truncated hex coord conversion
         let hex_coord_rect: HexCoord = self.hex_coord_rect();
         const N_CANDIDATES: usize = 4;
@@ -117,12 +115,7 @@ impl MapCoord {
         }
 
         let matched_i: usize = matched_i.unwrap();
-
-        let hexes = STATE.stage.game.map.hexes.read().expect("poisoned global state");
-        let matched_hex: Hex = hexes[candidate_hex_coords[matched_i].map_index()];
-        drop(hexes);
-
-        matched_hex
+        candidate_hex_coords[matched_i]
     }
 
     pub fn render_coord(&self, map_origin: &MapCoord) -> RenderCoord {
@@ -204,7 +197,7 @@ impl RenderCoord {
         .overflow_adjusted()
     }
 
-    pub fn containing_hex(&self, map_origin: &MapCoord) -> Hex {
+    pub fn containing_hex(&self, map_origin: &MapCoord) -> HexCoord {
         self.map_coord(map_origin).containing_hex()
     }
 }
@@ -284,11 +277,6 @@ impl HexCoord {
             },
         ]
     });
-
-    pub fn clone_map_hex(&self) -> Option<Hex> {
-        let hexes = STATE.stage.game.map.hexes.read().expect("global state poisoned");
-        hexes.get(self.map_index()).map(|hex| hex.clone())
-    }
 
     pub const fn map_index(&self) -> usize {
         (self.i + self.j * HEX_COUNT_SQRT) as usize

@@ -1,4 +1,8 @@
+pub mod color;
 pub mod environment;
 pub mod error;
+pub mod map;
+pub mod math;
 pub mod network;
 pub mod random;
+pub mod sync;

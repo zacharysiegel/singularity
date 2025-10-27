@@ -1,7 +1,7 @@
-use std::error::Error;
 use server::listen;
 use server::monitor;
 use shared::environment::{self};
+use std::error::Error;
 use tokio::net::TcpListener;
 use tokio::sync;
 

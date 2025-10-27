@@ -10,3 +10,4 @@ dotenvy = { workspace = true }
 tokio = { workspace = true }
 socket2 = { workspace = true }
 log = { workspace = true }
+raylib = { workspace = true }

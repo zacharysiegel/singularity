@@ -1,5 +1,4 @@
 pub mod button;
-pub mod color;
 pub mod config;
 pub mod connect;
 pub mod engine;
@@ -8,7 +7,6 @@ pub mod font;
 pub mod game;
 pub mod input;
 pub mod map;
-pub mod math;
 pub mod player;
 pub mod shader;
 pub mod stage;

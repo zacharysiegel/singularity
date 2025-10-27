@@ -1,16 +1,13 @@
-use crate::color::{
-    DIFF_HOVER_HEX, DIFF_WITHIN_INFLUENCE, HEX_OUTLINE_ACCENTED_COLOR, HEX_OUTLINE_COLOR, MAP_BACKGROUND_COLOR,
-};
-use crate::map::config::{HEX_COUNT_SQRT, HEX_RADIUS, HEX_ROTATION};
-use crate::map::coordinate;
-use crate::map::coordinate::HexCoord;
-use crate::map::coordinate::{MapCoord, RenderCoord};
-use crate::map::state::{Hex, ResourceType};
+use crate::facility;
 use crate::player::Player;
 use crate::state::STATE;
-use crate::{facility, math};
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
+use shared::color::{
+    DIFF_HOVER_HEX, DIFF_WITHIN_INFLUENCE, HEX_OUTLINE_ACCENTED_COLOR, HEX_OUTLINE_COLOR, MAP_BACKGROUND_COLOR,
+};
+use shared::map::{HEX_COUNT_SQRT, HEX_RADIUS, HEX_ROTATION, Hex, HexCoord, MapCoord, RenderCoord, ResourceType};
+use shared::{map, math};
 use std::sync::RwLockReadGuard;
 
 const HEX_SIDES: u8 = 6;
@@ -49,8 +46,8 @@ where
     };
     let mut hex_coord: HexCoord = min_hex_coord;
 
-    let max_hexes_i: u16 = coordinate::get_hex_count_width(screen_width as f32);
-    let max_hexes_j: u16 = coordinate::get_hex_count_height(screen_height as f32);
+    let max_hexes_i: u16 = map::get_hex_count_width(screen_width as f32);
+    let max_hexes_j: u16 = map::get_hex_count_height(screen_height as f32);
     for _hexes_drawn_j in 0..=(max_hexes_j + 2) {
         for _hexes_drawn_i in 0..=(max_hexes_i + 2) {
             callback(rl_draw, map_origin, hex_coord);
@@ -70,7 +67,7 @@ where
 }
 
 fn draw_hex(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord, hex_coord: HexCoord) {
-    let Some(hex): Option<Hex> = hex_coord.clone_map_hex() else {
+    let Some(hex): Option<Hex> = super::clone_hex(hex_coord) else {
         panic!("Invalid hex coord: {:?}", hex_coord);
     };
     let map_coord: MapCoord = hex_coord.map_coord();

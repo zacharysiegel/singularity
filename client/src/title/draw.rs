@@ -1,13 +1,13 @@
 use crate::button::RectangularButton;
-use crate::color::{DIFF_HOVER_BUTTON, MAP_BACKGROUND_COLOR, TEXT_COLOR, WINDOW_BACKGROUND_COLOR};
 use crate::config::APPLICATION_NAME;
 use crate::font::DEFAULT_FONT_SPACING;
-use crate::math;
 use crate::state::STATE;
 use crate::title::{BUTTON_FONT_SIZE, TITLE_VERTICAL_MARGIN};
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
+use shared::color::{DIFF_HOVER_BUTTON, MAP_BACKGROUND_COLOR, TEXT_COLOR, WINDOW_BACKGROUND_COLOR};
+use shared::math;
 use std::sync::RwLockReadGuard;
 
 pub fn draw(rl_draw: &mut RaylibDrawHandle) {

@@ -13,13 +13,10 @@ use uuid::Uuid;
 
 macro_rules! fixed_size_impl {
     () => {
-        const FIXED_SIZE: ::std::option::Option<usize> =
-            ::std::option::Option::Some(::std::mem::size_of::<Self>());
+        const FIXED_SIZE: ::std::option::Option<usize> = ::std::option::Option::Some(::std::mem::size_of::<Self>());
 
         fn as_bytes(&self) -> ::std::vec::Vec<u8> {
-            ::std::vec::Vec::from(unsafe {
-                mem::transmute_copy::<Self, [u8; Self::FIXED_SIZE.unwrap()]>(self)
-            })
+            ::std::vec::Vec::from(unsafe { mem::transmute_copy::<Self, [u8; Self::FIXED_SIZE.unwrap()]>(self) })
         }
     };
 }

@@ -1,4 +1,3 @@
-use crate::color::{MAP_BACKGROUND_COLOR, TEXT_COLOR};
 use crate::config::APPLICATION_NAME;
 use crate::stage::StageType;
 use crate::state::STATE;
@@ -8,6 +7,7 @@ use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::ffi::rlGetVersion;
 use raylib::{RaylibHandle, RaylibThread};
+use shared::color::{MAP_BACKGROUND_COLOR, TEXT_COLOR};
 use shared::environment::RuntimeEnvironment;
 use shared::error::AppError;
 use shared::network::ring_buffer::RingBuffer;

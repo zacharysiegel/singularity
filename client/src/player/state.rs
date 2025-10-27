@@ -1,5 +1,5 @@
 use crate::facility::FacilityCollection;
-use crate::map::HexCoord;
+use shared::map::HexCoord;
 use std::sync::RwLock;
 
 #[derive(Debug)]
