@@ -1,10 +1,12 @@
+extern crate core;
+
 pub mod color;
 pub mod environment;
 pub mod error;
+pub mod facility;
 pub mod map;
 pub mod math;
 pub mod network;
+pub mod player;
 pub mod random;
 pub mod sync;
-pub mod facility;
-pub mod player;

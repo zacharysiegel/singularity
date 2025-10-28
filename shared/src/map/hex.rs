@@ -1,5 +1,5 @@
 use crate::map::{HexCoord, ResourceType};
-use crate::sync::SyncTrait;
+use crate::sync::{SyncBytes, SyncTrait};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Hex {
@@ -14,15 +14,17 @@ impl Default for Hex {
 }
 
 impl SyncTrait for Hex {
-    fn as_bytes(&self) -> Vec<u8> {
-        let mut out: Vec<u8> = Vec::with_capacity(self.fixed_size().unwrap());
-        out.extend_from_slice(self.hex_coord.as_bytes().as_slice());
-        out.extend_from_slice(self.resource_type.as_bytes().as_slice());
-        out
-    }
-
     fn fixed_size(&self) -> Option<usize> {
         Some(self.hex_coord.fixed_size()? + self.resource_type.fixed_size()?)
+    }
+}
+
+impl From<Hex> for SyncBytes {
+    fn from(value: Hex) -> Self {
+        let mut out: Vec<u8> = Vec::with_capacity(value.fixed_size().unwrap());
+        out.extend_from_slice(SyncBytes::from(value.hex_coord).as_slice());
+        out.extend_from_slice(SyncBytes::from(value.resource_type).as_slice());
+        SyncBytes::new(out)
     }
 }
 
@@ -39,6 +41,9 @@ mod test {
 
     #[test]
     fn correct_size() {
-        assert_eq!(Hex::default().fixed_size().unwrap(), Hex::default().as_bytes().len())
+        assert_eq!(
+            Hex::default().fixed_size().unwrap(),
+            SyncBytes::from(Hex::default()).len()
+        )
     }
 }

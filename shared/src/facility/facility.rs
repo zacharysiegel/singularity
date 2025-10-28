@@ -1,6 +1,6 @@
 use crate::facility::{ControlCenter, MetalExtractor, OilExtractor};
 use crate::map::HexCoord;
-use crate::sync::SyncTrait;
+use crate::sync::{SyncBytes, SyncTrait};
 
 #[derive(Debug, Copy, Clone)]
 pub enum Facility<'a> {
@@ -45,12 +45,14 @@ pub enum FacilityState {
 }
 
 impl SyncTrait for FacilityState {
-    fn as_bytes(&self) -> Vec<u8> {
-        (*self as u8).as_bytes()
-    }
-
     fn fixed_size(&self) -> Option<usize> {
         (*self as u8).fixed_size()
+    }
+}
+
+impl From<FacilityState> for SyncBytes {
+    fn from(value: FacilityState) -> Self {
+        SyncBytes::from(value as u8)
     }
 }
 
@@ -60,37 +62,24 @@ pub trait FacilityTrait {
     fn facility<'a>(&'a self) -> Facility<'a>;
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct FacilityCollection {
     pub control_center_vec: Vec<ControlCenter>,
     pub metal_extractor_vec: Vec<MetalExtractor>,
     pub oil_extractor_vec: Vec<OilExtractor>,
 }
 
-impl SyncTrait for FacilityCollection {
-    fn as_bytes(&self) -> Vec<u8> {
-        let mut out: Vec<u8> = Vec::new();
-        out.extend((self.control_center_vec.len() as u16).as_bytes());
-        out.extend(
-            self.control_center_vec
-                .iter()
-                .map(|e| e.as_bytes())
-                .flatten(),
-        );
-        out.extend((self.metal_extractor_vec.len() as u16).as_bytes());
-        out.extend(
-            self.metal_extractor_vec
-                .iter()
-                .map(|e| e.as_bytes())
-                .flatten(),
-        );
-        out.extend((self.metal_extractor_vec.len() as u16).as_bytes());
-        out.extend(
-            self.oil_extractor_vec
-                .iter()
-                .map(|e| e.as_bytes())
-                .flatten(),
-        );
+impl SyncTrait for FacilityCollection {}
+
+impl From<FacilityCollection> for SyncBytes {
+    fn from(value: FacilityCollection) -> Self {
+        let mut out: SyncBytes = SyncBytes::new(Vec::new());
+        out.extend(SyncBytes::from(value.control_center_vec.len() as u16));
+        out.extend(value.control_center_vec.iter().map(|facility| SyncBytes::from(facility.clone())).flatten());
+        out.extend(SyncBytes::from(value.metal_extractor_vec.len() as u16));
+        out.extend(value.metal_extractor_vec.iter().map(|facility| SyncBytes::from(facility.clone())).flatten());
+        out.extend(SyncBytes::from(value.metal_extractor_vec.len() as u16));
+        out.extend(value.oil_extractor_vec.iter().map(|facility| SyncBytes::from(facility.clone())).flatten());
         out
     }
 }
@@ -100,24 +89,9 @@ impl FacilityCollection {
         let mut output: Vec<Facility> = Vec::with_capacity(
             self.control_center_vec.len() + self.metal_extractor_vec.len() + self.oil_extractor_vec.len(),
         );
-        output.extend(
-            self.control_center_vec
-                .iter()
-                .map(|f| f.facility())
-                .collect::<Vec<Facility>>(),
-        );
-        output.extend(
-            self.metal_extractor_vec
-                .iter()
-                .map(|f| f.facility())
-                .collect::<Vec<Facility>>(),
-        );
-        output.extend(
-            self.oil_extractor_vec
-                .iter()
-                .map(|f| f.facility())
-                .collect::<Vec<Facility>>(),
-        );
+        output.extend(self.control_center_vec.iter().map(|f| f.facility()).collect::<Vec<Facility>>());
+        output.extend(self.metal_extractor_vec.iter().map(|f| f.facility()).collect::<Vec<Facility>>());
+        output.extend(self.oil_extractor_vec.iter().map(|f| f.facility()).collect::<Vec<Facility>>());
         output
     }
 
@@ -142,7 +116,7 @@ mod test {
         fn facility_state() {
             assert_eq!(
                 FacilityState::default().fixed_size().unwrap(),
-                FacilityState::default().as_bytes().len()
+                SyncBytes::from(FacilityState::default()).len()
             )
         }
     }

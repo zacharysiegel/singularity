@@ -8,7 +8,7 @@
 
 use crate::error::{AppError, AppErrorStatic};
 use crate::network::connection::WriteBufferT;
-use crate::sync::{SyncGame, SyncTrait};
+use crate::sync::{SyncBytes, SyncGame};
 use std::fmt::{self, Display};
 use std::mem;
 use uuid::Uuid;
@@ -171,8 +171,8 @@ impl Operation for AllGames {
     fn as_bytes(&self) -> Vec<u8> {
         let mut out: Vec<u8> = Vec::new();
         out.push(Self::OP_CODE);
-        out.extend_from_slice((self.games.len() as u16).as_bytes().as_slice());
-        out.extend(self.games.iter().map(|game| game.as_bytes()).flatten());
+        out.extend_from_slice(SyncBytes::from(self.games.len() as u16).as_slice());
+        out.extend(self.games.iter().map(|game| SyncBytes::from(game.clone())).flatten());
         out
     }
 }

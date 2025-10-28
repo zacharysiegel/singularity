@@ -4,7 +4,7 @@ use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use shared::color::{
     DIFF_HOVER_HEX, DIFF_WITHIN_INFLUENCE, HEX_OUTLINE_ACCENTED_COLOR, HEX_OUTLINE_COLOR, MAP_BACKGROUND_COLOR,
 };
-use shared::map::{Hex, HexCoord, MapCoord, RenderCoord, ResourceType, HEX_COUNT_SQRT, HEX_RADIUS, HEX_ROTATION};
+use shared::map::{HEX_COUNT_SQRT, HEX_RADIUS, HEX_ROTATION, Hex, HexCoord, MapCoord, RenderCoord, ResourceType};
 use shared::player::Player;
 use shared::{map, math};
 use std::sync::RwLockReadGuard;

@@ -1,5 +1,5 @@
 use crate::color::{MAP_BACKGROUND_COLOR, METAL_BACKGROUND_COLOR, OIL_BACKGROUND_COLOR};
-use crate::sync::SyncTrait;
+use crate::sync::{SyncBytes, SyncTrait};
 use raylib::color::Color;
 
 #[repr(u8)]
@@ -17,12 +17,14 @@ impl Default for ResourceType {
 }
 
 impl SyncTrait for ResourceType {
-    fn as_bytes(&self) -> Vec<u8> {
-        vec![*self as u8]
-    }
-
     fn fixed_size(&self) -> Option<usize> {
         Some(1)
+    }
+}
+
+impl From<ResourceType> for SyncBytes {
+    fn from(value: ResourceType) -> Self {
+        SyncBytes::new(vec![value as u8])
     }
 }
 
@@ -46,7 +48,7 @@ mod test {
     fn correct_size() {
         assert_eq!(
             ResourceType::default().fixed_size().unwrap(),
-            ResourceType::default().as_bytes().len()
+            SyncBytes::from(ResourceType::default()).len()
         )
     }
 }

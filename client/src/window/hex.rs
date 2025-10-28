@@ -2,8 +2,8 @@ use crate::button::RectangularButton;
 use crate::input::ScrollResult;
 use crate::state::STATE;
 use crate::window;
-use crate::window::state::WindowLayer;
 use crate::window::Window;
+use crate::window::state::WindowLayer;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
 use raylib::text::RaylibFont;
@@ -119,7 +119,7 @@ impl HexWindow {
 
 mod draw {
     use crate::window::hex::FONT_SPACING;
-    use crate::window::{HexWindow, Window, BORDER_GAP};
+    use crate::window::{BORDER_GAP, HexWindow, Window};
     use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
     use raylib::math::Vector2;
     use raylib::prelude::{RaylibFont, WeakFont};

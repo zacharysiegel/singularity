@@ -1,6 +1,6 @@
 use crate::facility::{Facility, FacilityState, FacilityTrait};
 use crate::map::HexCoord;
-use crate::sync::SyncTrait;
+use crate::sync::{SyncBytes, SyncTrait};
 
 #[derive(Debug, Default, Copy, Clone)]
 pub struct MetalExtractor {
@@ -9,15 +9,17 @@ pub struct MetalExtractor {
 }
 
 impl SyncTrait for MetalExtractor {
-    fn as_bytes(&self) -> Vec<u8> {
-        let mut out = Vec::with_capacity(self.fixed_size().unwrap());
-        out.extend_from_slice(self.location.as_bytes().as_slice());
-        out.extend_from_slice(self.state.as_bytes().as_slice());
-        out
-    }
-
     fn fixed_size(&self) -> Option<usize> {
         Some(self.location.fixed_size()? + self.state.fixed_size()?)
+    }
+}
+
+impl From<MetalExtractor> for SyncBytes {
+    fn from(value: MetalExtractor) -> Self {
+        let mut out: Vec<u8> = Vec::with_capacity(value.fixed_size().unwrap());
+        out.extend_from_slice(SyncBytes::from(value.location).as_slice());
+        out.extend_from_slice(SyncBytes::from(value.state).as_slice());
+        SyncBytes::new(out)
     }
 }
 
@@ -43,7 +45,7 @@ mod test {
     fn correct_size() {
         assert_eq!(
             MetalExtractor::default().fixed_size().unwrap(),
-            MetalExtractor::default().as_bytes().len()
+            SyncBytes::from(MetalExtractor::default()).len()
         )
     }
 }

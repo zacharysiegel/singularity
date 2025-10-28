@@ -1,7 +1,7 @@
 use crate::error::AppError;
 use crate::map::{HEX_COUNT_SQRT, HEX_HEIGHT, HEX_RADIUS, HEX_SIDE_LENGTH};
 use crate::math::{SIN_FRAC_PI_3, SIN_FRAC_PI_6, TAN_FRAC_PI_6};
-use crate::sync::SyncTrait;
+use crate::sync::{SyncBytes, SyncTrait};
 use raylib::prelude::Vector2;
 use std::f32::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_6};
 use std::mem;
@@ -236,15 +236,17 @@ impl Sub for HexCoord {
 }
 
 impl SyncTrait for HexCoord {
-    fn as_bytes(&self) -> Vec<u8> {
-        let mut out = Vec::with_capacity(self.fixed_size().unwrap());
-        out.extend_from_slice(&self.i.to_be_bytes());
-        out.extend_from_slice(&self.j.to_be_bytes());
-        out
-    }
-
     fn fixed_size(&self) -> Option<usize> {
         Some(4)
+    }
+}
+
+impl From<HexCoord> for SyncBytes {
+    fn from(value: HexCoord) -> Self {
+        let mut out: Vec<u8> = Vec::with_capacity(value.fixed_size().unwrap());
+        out.extend_from_slice(&value.i.to_be_bytes());
+        out.extend_from_slice(&value.j.to_be_bytes());
+        SyncBytes::new(out)
     }
 }
 
@@ -475,7 +477,7 @@ mod test {
     fn hex_coord_correct_size() {
         assert_eq!(
             HexCoord::default().fixed_size().unwrap(),
-            HexCoord::default().as_bytes().len()
+            SyncBytes::from(HexCoord::default()).len()
         )
     }
 }

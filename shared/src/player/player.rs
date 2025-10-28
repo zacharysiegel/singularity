@@ -1,18 +1,20 @@
 use crate::facility::FacilityCollection;
 use crate::map::HexCoord;
-use crate::sync::SyncTrait;
+use crate::sync::{SyncBytes, SyncTrait};
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct Player {
     pub id: u8,
     pub facilities: FacilityCollection,
 }
 
-impl SyncTrait for Player {
-    fn as_bytes(&self) -> Vec<u8> {
-        let mut out = Vec::new();
-        out.push(self.id);
-        out.extend_from_slice(self.facilities.as_bytes().as_slice());
+impl SyncTrait for Player {}
+
+impl From<Player> for SyncBytes {
+    fn from(value: Player) -> Self {
+        let mut out: SyncBytes = SyncBytes::new(Vec::new());
+        out.push(value.id);
+        out.extend_from_slice(SyncBytes::from(value.facilities).as_slice());
         out
     }
 }

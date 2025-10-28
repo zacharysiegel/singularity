@@ -27,7 +27,10 @@ impl ExitIconShader {
 
     pub fn set_values(&self, rl: &RaylibHandle, container: Rectangle) {
         self.standard.set_values(rl);
-        self.standard.shader.borrow_mut().set_shader_value(self.u_button_origin, math::rect_origin(container));
+        self.standard
+            .shader
+            .borrow_mut()
+            .set_shader_value(self.u_button_origin, math::rect_origin(container));
         self.standard.shader.borrow_mut().set_shader_value(self.u_button_size, container.width)
     }
 }
