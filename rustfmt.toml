@@ -1,4 +1,5 @@
 edition = "2024"
 max_width = 120
-chain_width = 120
+chain_width = 60
 remove_nested_parens = true
+
