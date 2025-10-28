@@ -22,6 +22,16 @@ macro_rules! fixed_size_impl {
     };
 }
 
+macro_rules! from_frame_fixed {
+    ($id:ident) => {
+        impl<'a> ::std::convert::From<&'a Frame> for $id {
+            fn from(frame: &'a Frame) -> Self {
+                unsafe { *(frame.data.as_ptr() as *const $id) }
+            }
+        }
+    };
+}
+
 #[derive(Debug)]
 pub struct Frame {
     pub head: Head,
@@ -95,11 +105,7 @@ pub struct Heartbeat {
     pub op_code: OpCode,
 }
 
-impl<'a> From<&'a Frame> for Heartbeat {
-    fn from(frame: &'a Frame) -> Self {
-        unsafe { *(frame.data.as_ptr() as *const Heartbeat) }
-    }
-}
+from_frame_fixed!(Heartbeat);
 
 impl<'a> Operation for Heartbeat {
     const OP_CODE: OpCode = 1;
@@ -114,11 +120,7 @@ pub struct Register {
     pub user_id: Uuid,
 }
 
-impl<'a> From<&'a Frame> for Register {
-    fn from(frame: &'a Frame) -> Self {
-        unsafe { *(frame.data.as_ptr() as *const Register) }
-    }
-}
+from_frame_fixed!(Register);
 
 impl<'a> Operation for Register {
     const OP_CODE: OpCode = 2;
@@ -133,11 +135,7 @@ pub struct Acknowledgement {
     pub op_code_acknowledged: OpCode,
 }
 
-impl<'a> From<&'a Frame> for Acknowledgement {
-    fn from(frame: &'a Frame) -> Self {
-        unsafe { *(frame.data.as_ptr() as *const Acknowledgement) }
-    }
-}
+from_frame_fixed!(Acknowledgement);
 
 impl<'a> Operation for Acknowledgement {
     const OP_CODE: OpCode = 3;
