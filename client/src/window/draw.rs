@@ -34,7 +34,7 @@ pub fn draw_overlay_windows(rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibTh
     drop(pause);
 
     let error: RwLockReadGuard<ErrorWindow> = STATE.stage.game.window.error.read().unwrap();
-    // error.draw(rl_draw, rl_thread);
+    // error.draw.rs(rl_draw, rl_thread);
     drop(error);
 }
 

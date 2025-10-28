@@ -1,4 +1,3 @@
-use shared::facility;
 use crate::player::Player;
 use crate::state::STATE;
 use raylib::color::Color;
@@ -6,7 +5,7 @@ use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use shared::color::{
     DIFF_HOVER_HEX, DIFF_WITHIN_INFLUENCE, HEX_OUTLINE_ACCENTED_COLOR, HEX_OUTLINE_COLOR, MAP_BACKGROUND_COLOR,
 };
-use shared::map::{HEX_COUNT_SQRT, HEX_RADIUS, HEX_ROTATION, Hex, HexCoord, MapCoord, RenderCoord, ResourceType};
+use shared::map::{Hex, HexCoord, MapCoord, RenderCoord, ResourceType, HEX_COUNT_SQRT, HEX_RADIUS, HEX_ROTATION};
 use shared::{map, math};
 use std::sync::RwLockReadGuard;
 
@@ -162,7 +161,7 @@ pub fn draw_players(rl_draw: &mut RaylibDrawHandle, map_origin: &MapCoord) {
     let players: RwLockReadGuard<Vec<Player>> = STATE.stage.game.player.players.read().expect("global state poisoned");
     for player in &*players {
         for facility in player.facilities.all_facilities() {
-            facility::draw_facility(rl_draw, facility, map_origin);
+            crate::facility::draw_facility(rl_draw, facility, map_origin);
         }
     }
 }

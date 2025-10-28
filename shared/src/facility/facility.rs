@@ -1,6 +1,5 @@
 use crate::facility::{ControlCenter, MetalExtractor, OilExtractor};
-use crate::map::{HexCoord, RenderCoord};
-use raylib::drawing::RaylibDrawHandle;
+use crate::map::HexCoord;
 
 #[derive(Debug, Copy, Clone)]
 pub enum Facility<'a> {
@@ -26,14 +25,6 @@ impl<'a> Facility<'a> {
         }
     }
 
-    pub fn draw(&self, rl_draw: &mut RaylibDrawHandle, render_coord: RenderCoord) {
-        match self {
-            Facility::ControlCenter(facility) => facility.draw(rl_draw, render_coord),
-            Facility::MetalExtractor(facility) => facility.draw(rl_draw, render_coord),
-            Facility::OilExtractor(facility) => facility.draw(rl_draw, render_coord),
-        }
-    }
-
     pub fn display_name(&self) -> &'static str {
         match self {
             Facility::ControlCenter(_) => "Control Center",
@@ -55,7 +46,6 @@ pub enum FacilityState {
 pub trait FacilityTrait {
     fn location(&self) -> HexCoord;
     fn state(&self) -> FacilityState;
-    fn draw(&self, rl_draw: &mut RaylibDrawHandle, render_coord: RenderCoord);
     fn facility<'a>(&'a self) -> Facility<'a>;
 }
 
