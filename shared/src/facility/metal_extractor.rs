@@ -1,16 +1,16 @@
 use crate::facility::{Facility, FacilityState, FacilityTrait};
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
-use shared::color::{FACILITY_DESTROYED_COLOR, FACILITY_OPERATING_COLOR, FACILITY_PLACING_COLOR};
-use shared::map::{HexCoord, RenderCoord};
+use crate::color::{FACILITY_DESTROYED_COLOR, FACILITY_OPERATING_COLOR, FACILITY_PLACING_COLOR};
+use crate::map::{HexCoord, RenderCoord};
 
 #[derive(Debug, Default, Copy, Clone)]
-pub struct ControlCenter {
+pub struct MetalExtractor {
     pub location: HexCoord,
     pub state: FacilityState,
 }
 
-impl FacilityTrait for ControlCenter {
+impl FacilityTrait for MetalExtractor {
     fn location(&self) -> HexCoord {
         self.location
     }
@@ -25,18 +25,10 @@ impl FacilityTrait for ControlCenter {
             FacilityState::Placing => FACILITY_PLACING_COLOR,
             FacilityState::Destroyed => FACILITY_DESTROYED_COLOR,
         };
-        rl_draw.draw_text("CC", render_coord.x as i32 - 10, render_coord.y as i32 - 10, 10, color);
+        rl_draw.draw_text("ME", render_coord.x as i32 - 10, render_coord.y as i32 - 10, 10, color);
     }
 
     fn facility<'a>(&'a self) -> Facility<'a> {
-        Facility::ControlCenter(self)
-    }
-}
-
-impl ControlCenter {
-    pub const INFLUENCE_RADIUS_STEP: i16 = 4;
-
-    pub fn within_influence(&self, hex_coord: HexCoord) -> bool {
-        self.location.step_distance_le(hex_coord, Self::INFLUENCE_RADIUS_STEP)
+        Facility::MetalExtractor(self)
     }
 }

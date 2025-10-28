@@ -1,5 +1,5 @@
-use crate::facility::ControlCenter;
-use crate::facility::{FacilityCollection, FacilityState};
+use shared::facility::ControlCenter;
+use shared::facility::{FacilityCollection, FacilityState};
 use crate::player::Player;
 use crate::state::STATE;
 use shared::map::{HEX_COUNT_SQRT, HexCoord};

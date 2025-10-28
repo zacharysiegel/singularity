@@ -2,7 +2,6 @@ pub mod button;
 pub mod config;
 pub mod connect;
 pub mod engine;
-pub mod facility;
 pub mod font;
 pub mod game;
 pub mod input;

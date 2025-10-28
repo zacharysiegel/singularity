@@ -1,4 +1,4 @@
-use crate::facility::FacilityCollection;
+use shared::facility::FacilityCollection;
 use shared::map::HexCoord;
 use std::sync::RwLock;
 

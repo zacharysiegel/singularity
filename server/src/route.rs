@@ -1,7 +1,7 @@
 use shared::network::connection::WriteBufferT;
 use shared::network::protocol::{_PlaceholderDynamic, Acknowledgement, Frame, Heartbeat, OperationType, Register};
 
-pub async fn route_frame(write_buffer: WriteBufferT, frame: Frame) {
+pub async fn route_frame(_write_buffer: WriteBufferT, frame: Frame) {
     match frame.head.op_type {
         OperationType::Heartbeat => {
             log::trace!("Heartbeat received; [{}]", frame);
