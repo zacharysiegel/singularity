@@ -7,7 +7,7 @@ use shared::error::AppError;
 use shared::network::connection::{Connection, ConnectionReader, ConnectionWriter, WriteBufferT};
 use shared::network::protocol::{Operation, Register};
 use shared::network::ring_buffer::RingBuffer;
-use shared::network::socket;
+use shared::network::{protocol, socket};
 use shared::{network, random};
 use socket2::{SockAddr, Socket};
 use tokio::net::TcpStream;
@@ -59,6 +59,6 @@ fn send_register(write_buffer: WriteBufferT) {
         user_id: random::random_uuid(),
     };
     tokio::spawn(async move {
-        write_buffer.write().await.push(message.as_bytes().as_slice()).expect("Register message failed");
+        protocol::send_message(write_buffer, message).await
     });
 }

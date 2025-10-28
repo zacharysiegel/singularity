@@ -31,7 +31,7 @@ fn register(frame: Frame) {
     let register: Register = Register::from(&frame);
     log::debug!("parsed frame; [{:?}]", register);
 
-    // todo: send game collection to client
+    // todo: fetch game collection from database
 }
 
 fn acknowledgement(frame: Frame) {

@@ -6,7 +6,8 @@
 //! The operation code and optional length field constitute the frame's "head".
 //! The rest of the frame is considered the frame's "body".
 
-use crate::error::AppError;
+use crate::error::{AppError, AppErrorStatic};
+use crate::network::connection::WriteBufferT;
 use std::fmt::{self, Display};
 use std::mem;
 use uuid::Uuid;
@@ -182,6 +183,14 @@ pub trait Operation {
     const FIXED_SIZE: Option<usize>;
 
     fn as_bytes(&self) -> Vec<u8>;
+}
+
+pub async fn send_message<T: Operation>(write_buffer: WriteBufferT, message: T) -> Result<(), AppErrorStatic> {
+    write_buffer
+        .write()
+        .await
+        .push(message.as_bytes().as_slice())?;
+    Ok(())
 }
 
 #[cfg(test)]
