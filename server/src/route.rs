@@ -1,7 +1,10 @@
+use crate::game;
 use shared::network::connection::WriteBufferT;
-use shared::network::protocol::{_PlaceholderDynamic, Acknowledgement, Frame, Heartbeat, OperationType, Register};
+use shared::network::protocol;
+use shared::network::protocol::{Acknowledgement, AllGames, Frame, Heartbeat, OperationType, Register};
+use shared::sync::SyncGame;
 
-pub async fn route_frame(_write_buffer: WriteBufferT, frame: Frame) {
+pub async fn route_frame(write_buffer: WriteBufferT, frame: Frame) {
     match frame.head.op_type {
         OperationType::Heartbeat => {
             log::trace!("Heartbeat received; [{}]", frame);
@@ -9,16 +12,13 @@ pub async fn route_frame(_write_buffer: WriteBufferT, frame: Frame) {
         }
         OperationType::Register => {
             log::trace!("Register received; [{}]", frame);
-            register(frame);
+            register(write_buffer, frame);
         }
         OperationType::Acknowledgement => {
             log::trace!("Acknowledgement received; [{}]", frame);
             acknowledgement(frame);
         }
-        OperationType::_PlaceholderDynamic => {
-            log::trace!("_PlaceholderDynamic received; [{}]", frame);
-            _placeholder_dynamic(frame);
-        }
+        OperationType::AllGames => todo!(),
     }
 }
 
@@ -27,23 +27,21 @@ fn heartbeat(frame: Frame) {
     log::debug!("parsed frame; [{:?}]", heartbeat);
 }
 
-fn register(frame: Frame) {
+fn register(write_buffer: WriteBufferT, frame: Frame) {
     let register: Register = Register::from(&frame);
     log::debug!("parsed frame; [{:?}]", register);
 
     // todo: fetch game collection from database
+
+    tokio::spawn(async {
+        let game: SyncGame = game::init_game();
+        protocol::enqueue_message(write_buffer, AllGames { games: vec![game] }).await.unwrap();
+    });
 }
 
 fn acknowledgement(frame: Frame) {
     let acknowledgement: Acknowledgement = Acknowledgement::from(&frame);
     log::debug!("parsed frame; [{:?}]", acknowledgement);
-
-    todo!();
-}
-
-fn _placeholder_dynamic(frame: Frame) {
-    let _placeholder_dynamic: _PlaceholderDynamic = _PlaceholderDynamic::from(&frame);
-    log::debug!("parsed frame; [{:?}]", _placeholder_dynamic);
 
     todo!();
 }

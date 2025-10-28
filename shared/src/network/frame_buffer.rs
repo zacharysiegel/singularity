@@ -32,7 +32,7 @@ impl<const N: usize> FrameBuffer for RingBuffer<u8, N> {
             return Ok(None);
         }
         let op_code_view: RingBufferView<u8> = self.peek(1)?; // Must be modified if OpCode changes size
-        let op_type: OperationType = OperationType::from_op_code(&op_code_view[0])?;
+        let op_type: OperationType = OperationType::from_op_code(op_code_view[0])?;
 
         let frame_size: usize = match op_type.fixed_size() {
             None => {

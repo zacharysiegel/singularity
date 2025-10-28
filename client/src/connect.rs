@@ -59,6 +59,6 @@ fn send_register(write_buffer: WriteBufferT) {
         user_id: random::random_uuid(),
     };
     tokio::spawn(async move {
-        protocol::send_message(write_buffer, message).await
+        protocol::enqueue_message(write_buffer, message).await
     });
 }

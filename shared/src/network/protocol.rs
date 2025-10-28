@@ -8,6 +8,7 @@
 
 use crate::error::{AppError, AppErrorStatic};
 use crate::network::connection::WriteBufferT;
+use crate::sync::{SyncGame, SyncTrait};
 use std::fmt::{self, Display};
 use std::mem;
 use uuid::Uuid;
@@ -31,6 +32,8 @@ macro_rules! from_frame_fixed {
         }
     };
 }
+
+pub type OpCode = u8;
 
 #[derive(Debug)]
 pub struct Frame {
@@ -56,14 +59,21 @@ impl Display for Head {
     }
 }
 
-pub type OpCode = u8;
+// todo: + Into<Vec<u8>>
+pub trait Operation: for<'a> From<&'a Frame> {
+    const OP_CODE: OpCode;
+    /// None iff not fixed size
+    const FIXED_SIZE: Option<usize>;
+
+    fn as_bytes(&self) -> Vec<u8>;
+}
 
 #[derive(Debug)]
 pub enum OperationType {
     Heartbeat,
     Register,
     Acknowledgement,
-    _PlaceholderDynamic,
+    AllGames,
 }
 
 impl Display for OperationType {
@@ -72,19 +82,19 @@ impl Display for OperationType {
             OperationType::Heartbeat => "Heartbeat",
             OperationType::Register => "Register",
             OperationType::Acknowledgement => "Acknowledgement",
-            OperationType::_PlaceholderDynamic => "_PlaceholderDynamic",
+            OperationType::AllGames => "AllGames",
         };
         write!(f, "OperationType({})", string)
     }
 }
 
 impl OperationType {
-    pub fn from_op_code(op_code: &OpCode) -> Result<Self, AppError> {
+    pub fn from_op_code(op_code: OpCode) -> Result<Self, AppError> {
         match op_code {
-            &Heartbeat::OP_CODE => Ok(OperationType::Heartbeat),
-            &Register::OP_CODE => Ok(OperationType::Register),
-            &Acknowledgement::OP_CODE => Ok(OperationType::Acknowledgement),
-            &_PlaceholderDynamic::OP_CODE => Ok(OperationType::_PlaceholderDynamic),
+            Heartbeat::OP_CODE => Ok(OperationType::Heartbeat),
+            Register::OP_CODE => Ok(OperationType::Register),
+            Acknowledgement::OP_CODE => Ok(OperationType::Acknowledgement),
+            AllGames::OP_CODE => Ok(OperationType::AllGames),
             _ => Err(AppError::new(&format!("Invalid op code; [{}]", op_code))),
         }
     }
@@ -94,7 +104,7 @@ impl OperationType {
             OperationType::Heartbeat => Heartbeat::FIXED_SIZE,
             OperationType::Register => Register::FIXED_SIZE,
             OperationType::Acknowledgement => Acknowledgement::FIXED_SIZE,
-            OperationType::_PlaceholderDynamic => _PlaceholderDynamic::FIXED_SIZE,
+            OperationType::AllGames => AllGames::FIXED_SIZE,
         }
     }
 }
@@ -144,50 +154,31 @@ impl<'a> Operation for Acknowledgement {
 }
 
 // Dynamically-sized frames cannot be directly interpreted from bits, since their size is not statically known
-#[derive(Debug)]
-#[repr(C, packed(1))]
-pub struct _PlaceholderDynamic<'a> {
-    pub op_code: OpCode,
-    pub length: u16,
-    pub string: &'a str,
+pub struct AllGames {
+    pub games: Vec<SyncGame>,
 }
 
-impl<'a> From<&'a Frame> for _PlaceholderDynamic<'a> {
-    fn from(frame: &'a Frame) -> Self {
-        _PlaceholderDynamic {
-            op_code: frame.data[0],
-            length: u16::from_be_bytes(frame.data[1..3].try_into().unwrap()),
-            string: str::from_utf8(&frame.data[3..]).unwrap(),
-        }
+impl<'a> From<&'a Frame> for AllGames {
+    fn from(value: &'a Frame) -> Self {
+        todo!()
     }
 }
 
-impl<'a> Operation for _PlaceholderDynamic<'a> {
-    const OP_CODE: OpCode = 4;
+impl Operation for AllGames {
+    const OP_CODE: OpCode = 5;
     const FIXED_SIZE: Option<usize> = None;
 
     fn as_bytes(&self) -> Vec<u8> {
-        let mut bytes: Vec<u8> = Vec::with_capacity(usize::from(self.length));
-        bytes.push(self.op_code);
-        bytes.extend_from_slice(&self.length.to_be_bytes());
-        bytes.extend_from_slice(self.string.as_bytes());
-        bytes
+        let mut out: Vec<u8> = Vec::new();
+        out.push(Self::OP_CODE);
+        out.extend_from_slice((self.games.len() as u16).as_bytes().as_slice());
+        out.extend(self.games.iter().map(|game| game.as_bytes()).flatten());
+        out
     }
 }
 
-pub trait Operation {
-    const OP_CODE: OpCode;
-    /// None iff not fixed size
-    const FIXED_SIZE: Option<usize>;
-
-    fn as_bytes(&self) -> Vec<u8>;
-}
-
-pub async fn send_message<T: Operation>(write_buffer: WriteBufferT, message: T) -> Result<(), AppErrorStatic> {
-    write_buffer
-        .write()
-        .await
-        .push(message.as_bytes().as_slice())?;
+pub async fn enqueue_message<T: Operation>(write_buffer: WriteBufferT, message: T) -> Result<(), AppErrorStatic> {
+    write_buffer.write().await.push(message.as_bytes().as_slice())?;
     Ok(())
 }
 
