@@ -1,15 +1,15 @@
 use crate::button::RectangularButton;
 use crate::input::ScrollResult;
-use crate::player::Player;
 use crate::state::STATE;
 use crate::window;
-use crate::window::Window;
 use crate::window::state::WindowLayer;
+use crate::window::Window;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
 use raylib::text::RaylibFont;
 use raylib::{RaylibHandle, RaylibThread};
 use shared::map::{Hex, RenderCoord, ResourceType};
+use shared::player::Player;
 use std::ops::Add;
 use std::sync::RwLockReadGuard;
 use window::draw::BORDER_GAP;
@@ -119,7 +119,7 @@ impl HexWindow {
 
 mod draw {
     use crate::window::hex::FONT_SPACING;
-    use crate::window::{BORDER_GAP, HexWindow, Window};
+    use crate::window::{HexWindow, Window, BORDER_GAP};
     use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
     use raylib::math::Vector2;
     use raylib::prelude::{RaylibFont, WeakFont};

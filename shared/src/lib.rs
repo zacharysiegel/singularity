@@ -7,3 +7,4 @@ pub mod network;
 pub mod random;
 pub mod sync;
 pub mod facility;
+pub mod player;

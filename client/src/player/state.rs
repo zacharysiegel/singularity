@@ -1,5 +1,4 @@
-use shared::facility::FacilityCollection;
-use shared::map::HexCoord;
+use shared::player::Player;
 use std::sync::RwLock;
 
 #[derive(Debug)]
@@ -13,29 +12,4 @@ impl PlayerState {
         players: RwLock::new(Vec::new()),
         selected: RwLock::new(1),
     };
-}
-
-#[derive(Debug, Default)]
-pub struct Player {
-    pub id: u8,
-    pub facilities: FacilityCollection,
-}
-
-impl Player {
-    pub fn new(id: u8) -> Self {
-        Player {
-            id,
-            facilities: FacilityCollection::default(),
-        }
-    }
-
-    pub fn within_influence(&self, hex_coord: HexCoord) -> bool {
-        for facility in &self.facilities.control_center_vec {
-            match facility.within_influence(hex_coord) {
-                true => return true,
-                false => continue,
-            }
-        }
-        false
-    }
 }
