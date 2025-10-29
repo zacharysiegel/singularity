@@ -5,7 +5,7 @@ use std::time::Duration;
 
 use crate::route;
 use shared::error::AppError;
-use shared::network::connection::{Connection, ConnectionReader, ConnectionWriter, WriteBufferT};
+use shared::network::connection::{Connection, ConnectionReader, ConnectionWriter, WriteBufferT, BUFFER_SIZE};
 use shared::network::protocol::{Operation, Register};
 use shared::network::ring_buffer::RingBuffer;
 use shared::network::{protocol, socket};
@@ -13,6 +13,8 @@ use shared::{network, random};
 use socket2::{SockAddr, Socket};
 use tokio::net::TcpStream;
 use tokio::sync::RwLock;
+
+// todo: close connection during engine::destroy
 
 pub fn connect() -> Result<WriteBufferT, AppError> {
     let sock_addr: SockAddr = socket::get_sock_addr()?;
@@ -25,7 +27,7 @@ pub fn connect() -> Result<WriteBufferT, AppError> {
     let tcp_stream: TcpStream = TcpStream::from_std(std_tcp_stream)?;
     let peer_addr: SocketAddr = tcp_stream.peer_addr()?;
     let connection: Connection = Connection::new(tcp_stream, peer_addr);
-    let write_buffer: Arc<RwLock<RingBuffer<u8, 4096>>> = connection.writer.buffer.clone();
+    let write_buffer: Arc<RwLock<RingBuffer<u8, { BUFFER_SIZE }>>> = connection.writer.buffer.clone();
 
     send_register(write_buffer.clone());
     spawn_reader(connection.reader);

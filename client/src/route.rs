@@ -18,7 +18,8 @@ fn all_games(write_buffer: WriteBufferT, frame: Frame) {
     log::debug!("parsed frame; [{:?}]", all_games);
 
     let mut hexes = STATE.stage.game.map.hexes.write().unwrap();
-    *hexes = <[Hex; HEX_COUNT as usize]>::try_from(all_games.games[0].map.hexes.clone()).unwrap();
+    let vec = all_games.games[0].map.hexes.clone();
+    *hexes = <[Hex; HEX_COUNT as usize]>::try_from(vec).unwrap();
     drop(hexes);
 
     let mut players: RwLockWriteGuard<Vec<Player>> = STATE.stage.game.player.players.write().unwrap();

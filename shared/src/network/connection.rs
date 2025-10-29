@@ -7,11 +7,11 @@ use std::io::IoSliceMut;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::io::AsyncWriteExt;
-use tokio::net::TcpStream;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
+use tokio::net::TcpStream;
 use tokio::sync::RwLock;
 
-pub const BUFFER_SIZE: usize = 4096;
+pub const BUFFER_SIZE: usize = 4096 * 8;
 
 pub type ReadBufferT = RingBuffer<u8, { BUFFER_SIZE }>;
 pub type WriteBufferT = Arc<RwLock<RingBuffer<u8, { BUFFER_SIZE }>>>;
@@ -32,7 +32,7 @@ impl Connection {
     pub fn new(tcp_stream: TcpStream, socket_addr: SocketAddr) -> Self {
         let socket_addr: Arc<SocketAddr> = Arc::new(socket_addr);
         let (reader, writer): (OwnedReadHalf, OwnedWriteHalf) = tcp_stream.into_split();
-        let write_buffer: Arc<RwLock<RingBuffer<u8, 4096>>> = Arc::new(RwLock::new(RingBuffer::new()));
+        let write_buffer: Arc<RwLock<RingBuffer<u8, { BUFFER_SIZE }>>> = Arc::new(RwLock::new(RingBuffer::new()));
         Connection {
             socket_addr: socket_addr.clone(),
             reader: ConnectionReader {

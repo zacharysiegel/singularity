@@ -1,5 +1,5 @@
 use crate::error::AppErrorStatic;
-use crate::network::connection::{ConnectionReader, ConnectionWriter, WriteBufferT};
+use crate::network::connection::{ConnectionReader, ConnectionWriter, WriteBufferT, BUFFER_SIZE};
 use crate::network::frame_buffer::FrameBuffer;
 use crate::network::protocol::Frame;
 use crate::network::ring_buffer::RingBuffer;
@@ -34,14 +34,14 @@ where
 
 pub async fn monitor_outgoing_frames(mut writer: ConnectionWriter) -> Result<(), AppErrorStatic> {
     loop {
-        let buffer_g: RwLockReadGuard<RingBuffer<u8, 4096>> = writer.buffer.read().await;
+        let buffer_g: RwLockReadGuard<RingBuffer<u8, { BUFFER_SIZE }>> = writer.buffer.read().await;
         if buffer_g.used_space() == 0 {
             time::sleep(Duration::from_millis(50)).await;
             continue;
         }
         drop(buffer_g);
 
-        let mut buffer_g: RwLockWriteGuard<RingBuffer<u8, 4096>> = writer.buffer.write().await;
+        let mut buffer_g: RwLockWriteGuard<RingBuffer<u8, { BUFFER_SIZE }>> = writer.buffer.write().await;
         let frames: Vec<Frame> = buffer_g.pop_frames()?;
         drop(buffer_g);
 

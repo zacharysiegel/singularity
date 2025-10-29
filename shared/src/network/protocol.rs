@@ -50,12 +50,24 @@ impl TryFrom<&[u8]> for Frame {
 
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
         let op_code: &u8 = value.get(0).ok_or_else(|| AppErrorStatic::new("invalid size"))?;
-        let data: &[u8] = value.get(1..).ok_or_else(|| AppErrorStatic::new("invalid size"))?;
+        let op_type: OperationType = OperationType::from_op_code(*op_code)?;
+        let data_length: usize = match op_type.fixed_size() {
+            Some(size) => size,
+            None => {
+                let start: usize = size_of::<OpCode>();
+                let end: usize = start + size_of::<u16>(); // todo: change to u32
+                let bytes: &[u8] = value.get(start..end).ok_or_else(|| AppErrorStatic::new("invalid size"))?;
+                let array: [u8; 2] = <[u8; 2]>::try_from(bytes)?;
+                usize::from(u16::from_be_bytes(array))
+            }
+        };
+
+        let head = Head { op_type, data_length };
+        let start: usize = head.head_length();
+        let end: usize = start + data_length;
+        let data: &[u8] = value.get(start..end).ok_or_else(|| AppErrorStatic::new("invalid size"))?;
         Ok(Frame {
-            head: Head {
-                op_type: OperationType::from_op_code(*op_code)?,
-                data_length: data.len(),
-            },
+            head,
             data: data.to_vec(),
         })
     }
@@ -67,7 +79,7 @@ impl Frame {
 
         out.extend(self.head.op_type.op_code().to_be_bytes());
         if let None = self.head.op_type.fixed_size() {
-            out.extend_from_slice((self.head.data_length as u16).to_be_bytes().as_slice());
+            out.extend_from_slice((self.head.data_length as u16).to_be_bytes().as_slice()); // todo: change to u32
         }
         out.extend_from_slice(self.data.as_slice());
         out
@@ -87,6 +99,13 @@ impl Display for Head {
 }
 
 impl Head {
+    pub fn head_length(&self) -> usize {
+        match self.op_type.fixed_size() {
+            Some(_) => size_of::<OpCode>(),
+            None => size_of::<OpCode>() + size_of::<u16>(), // todo: change to u32
+        }
+    }
+
     pub fn total_length(&self) -> usize {
         size_of::<OpCode>() + self.data_length
     }

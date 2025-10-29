@@ -22,7 +22,7 @@ impl<const N: usize> FrameBuffer for RingBuffer<u8, N> {
             }
 
             let frame_data: Vec<u8> = self.pop_frame_data(&head)?;
-            let frame: Frame = Frame::try_from(frame_data.as_slice())?;
+            let frame: Frame = Frame::try_from(frame_data.as_slice())?; // todo: TryFrom<&[u8]> for Frame
             frames.push(frame);
         }
         Ok(frames)
@@ -53,7 +53,7 @@ impl<const N: usize> FrameBuffer for RingBuffer<u8, N> {
     }
 
     fn pop_frame_data(&mut self, head: &Head) -> Result<Vec<u8>, AppError> {
-        let view: RingBufferView<u8> = self.pop(size_of::<OpCode>() + head.data_length)?;
+        let view: RingBufferView<u8> = self.pop(head.head_length() + head.data_length)?;
         let frame_vec: Vec<u8> = view.into();
         Ok(frame_vec)
     }

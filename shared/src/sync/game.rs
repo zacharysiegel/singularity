@@ -39,9 +39,7 @@ impl SyncTrait for SyncMap {
     fn to_bytes(&self) -> Vec<u8> {
         let size: usize = Hex::SYNC_FIXED_SIZE.unwrap() * self.hexes.len();
         let mut out: Vec<u8> = Vec::with_capacity(size);
-
-        out.extend((self.hexes.len() as u16).to_bytes());
-        out.extend(self.hexes.iter().map(|hex| hex.to_bytes()).flatten());
+        out.extend(self.hexes.to_bytes());
         out
     }
 

@@ -58,10 +58,12 @@ impl<T: SyncTrait> SyncTrait for Vec<T> {
     }
 
     fn try_deserialize(bytes: &[u8]) -> Result<(usize, Self), AppErrorStatic> {
-        let length_bytes: [u8; 2] = bytes.get(0..2).ok_or_else(|| AppErrorStatic::new("invalid size"))?.try_into()?;
+        const LENGTH_SIZE: usize = size_of::<u16>();
+        let length_bytes: [u8; LENGTH_SIZE] =
+            bytes.get(0..LENGTH_SIZE).ok_or_else(|| AppErrorStatic::new("invalid size"))?.try_into()?;
         let length: usize = usize::from(u16::from_be_bytes(length_bytes));
 
-        let mut offset: usize = 0;
+        let mut offset: usize = length_bytes.len();
         let mut out: Vec<T> = Vec::with_capacity(length);
         for _ in 0..length {
             let slice: &[u8] = &bytes.get(offset..).ok_or_else(|| AppErrorStatic::new("invalid size"))?;

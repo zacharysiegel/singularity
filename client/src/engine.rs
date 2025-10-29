@@ -10,6 +10,7 @@ use raylib::{RaylibHandle, RaylibThread};
 use shared::color::{MAP_BACKGROUND_COLOR, TEXT_COLOR};
 use shared::environment::RuntimeEnvironment;
 use shared::error::AppError;
+use shared::network::connection::BUFFER_SIZE;
 use shared::network::ring_buffer::RingBuffer;
 use std::sync::{Arc, RwLockReadGuard, RwLockWriteGuard};
 use std::time;
@@ -37,7 +38,7 @@ fn draw(rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
 }
 
 pub fn init() -> Result<(RaylibHandle, RaylibThread), AppError> {
-    let _: Arc<RwLock<RingBuffer<u8, 4096>>> = connect::connect()?;
+    let _: Arc<RwLock<RingBuffer<u8, { BUFFER_SIZE }>>> = connect::connect()?;
 
     unsafe {
         log::info!("OpenGL version: {}", rlGetVersion());

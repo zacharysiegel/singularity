@@ -42,6 +42,4 @@ fn register(write_buffer: WriteBufferT, frame: Frame) {
 fn acknowledgement(frame: Frame) {
     let acknowledgement: Acknowledgement = Acknowledgement::try_from(&frame).unwrap();
     log::debug!("parsed frame; [{:?}]", acknowledgement);
-
-    todo!();
 }
