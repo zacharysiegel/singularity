@@ -26,6 +26,16 @@ impl FacilityTrait for OilExtractor {
 impl SyncTrait for OilExtractor {
     const SYNC_FIXED_SIZE: Option<usize> =
         Some(HexCoord::SYNC_FIXED_SIZE.unwrap() + FacilityState::SYNC_FIXED_SIZE.unwrap());
+
+    fn try_deserialize(bytes: &[u8]) -> Result<(usize, Self), AppErrorStatic> {
+        check_sync_fixed_size!(bytes);
+
+        let pivot: usize = HexCoord::SYNC_FIXED_SIZE.unwrap();
+        let (_, location): (usize, HexCoord) = HexCoord::try_deserialize(&bytes[0..pivot])?;
+        let state: FacilityState = FacilityState::try_from(bytes[pivot])?;
+
+        Ok((Self::SYNC_FIXED_SIZE.unwrap(), Self { location, state }))
+    }
 }
 
 impl From<OilExtractor> for SyncBytes {
@@ -34,20 +44,6 @@ impl From<OilExtractor> for SyncBytes {
         out.extend_from_slice(SyncBytes::from(value.location).as_slice());
         out.extend_from_slice(SyncBytes::from(value.state).as_slice());
         SyncBytes::new(out)
-    }
-}
-
-impl TryFrom<SyncBytes> for OilExtractor {
-    type Error = AppErrorStatic;
-
-    fn try_from(value: SyncBytes) -> Result<Self, Self::Error> {
-        check_sync_fixed_size!(value);
-
-        let pivot: usize = HexCoord::SYNC_FIXED_SIZE.unwrap();
-        let location: HexCoord = HexCoord::try_from(SyncBytes::from(&value[0..pivot]))?;
-        let state: FacilityState = FacilityState::try_from(value[pivot])?;
-
-        Ok(Self { location, state })
     }
 }
 

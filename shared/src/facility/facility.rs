@@ -2,7 +2,7 @@ use crate::error::AppErrorStatic;
 use crate::facility::{ControlCenter, MetalExtractor, OilExtractor};
 use crate::map::HexCoord;
 use crate::sync::{SyncBytes, SyncTrait};
-use crate::{sync, try_from_repr};
+use crate::try_from_repr;
 use strum::FromRepr;
 
 #[derive(Debug, Copy, Clone)]
@@ -51,21 +51,21 @@ try_from_repr!(FacilityState<u8>);
 
 impl SyncTrait for FacilityState {
     const SYNC_FIXED_SIZE: Option<usize> = Some(u8::SYNC_FIXED_SIZE.unwrap());
+
+    fn try_deserialize(value: &[u8]) -> Result<(usize, Self), AppErrorStatic> {
+        check_sync_fixed_size!(value);
+
+        let (size, byte): (usize, u8) = u8::try_deserialize(value)?;
+        assert_eq!(size_of::<u8>(), size);
+
+        let state: FacilityState = Self::try_from(byte)?;
+        Ok((size, state))
+    }
 }
 
 impl From<FacilityState> for SyncBytes {
     fn from(value: FacilityState) -> Self {
         SyncBytes::from(value as u8)
-    }
-}
-
-impl TryFrom<SyncBytes> for FacilityState {
-    type Error = AppErrorStatic;
-
-    fn try_from(value: SyncBytes) -> Result<Self, Self::Error> {
-        check_sync_fixed_size!(value);
-
-        Self::try_from(value[0])
     }
 }
 
@@ -82,7 +82,29 @@ pub struct FacilityCollection {
     pub oil_extractor_vec: Vec<OilExtractor>,
 }
 
-impl SyncTrait for FacilityCollection {}
+impl SyncTrait for FacilityCollection {
+    fn try_deserialize(value: &[u8]) -> Result<(usize, Self), AppErrorStatic> {
+        let mut offset: usize = 0;
+        let (increment, control_center_vec): (usize, Vec<ControlCenter>) =
+            Vec::<ControlCenter>::try_deserialize(&value[offset..])?;
+        offset += increment;
+        let (increment, metal_extractor_vec): (usize, Vec<MetalExtractor>) =
+            Vec::<MetalExtractor>::try_deserialize(&value[offset..])?;
+        offset += increment;
+        let (increment, oil_extractor_vec): (usize, Vec<OilExtractor>) =
+            Vec::<OilExtractor>::try_deserialize(&value[offset..])?;
+        offset += increment;
+
+        Ok((
+            offset,
+            FacilityCollection {
+                control_center_vec,
+                metal_extractor_vec,
+                oil_extractor_vec,
+            },
+        ))
+    }
+}
 
 impl From<FacilityCollection> for SyncBytes {
     fn from(value: FacilityCollection) -> Self {
@@ -94,25 +116,6 @@ impl From<FacilityCollection> for SyncBytes {
         out.extend(SyncBytes::from(value.metal_extractor_vec.len() as u16));
         out.extend(value.oil_extractor_vec.iter().map(|facility| SyncBytes::from(facility.clone())).flatten());
         out
-    }
-}
-
-impl TryFrom<SyncBytes> for FacilityCollection {
-    type Error = AppErrorStatic;
-
-    fn try_from(value: SyncBytes) -> Result<Self, Self::Error> {
-        let mut start: usize = 0;
-        let (increment, control_center_vec): (usize, Vec<ControlCenter>) = sync::parse_vec(&value[start..])?;
-        start += increment;
-        let (increment, metal_extractor_vec): (usize, Vec<MetalExtractor>) = sync::parse_vec(&value[start..])?;
-        start += increment;
-        let (_increment, oil_extractor_vec): (usize, Vec<OilExtractor>) = sync::parse_vec(&value[start..])?;
-
-        Ok(FacilityCollection {
-            control_center_vec,
-            metal_extractor_vec,
-            oil_extractor_vec,
-        })
     }
 }
 

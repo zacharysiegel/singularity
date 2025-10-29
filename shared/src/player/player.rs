@@ -9,7 +9,18 @@ pub struct Player {
     pub facilities: FacilityCollection,
 }
 
-impl SyncTrait for Player {}
+impl SyncTrait for Player {
+    fn try_deserialize(value: &[u8]) -> Result<(usize, Self), AppErrorStatic> {
+        let mut offset: usize = 0;
+        let id: u8 = value[offset];
+        offset += size_of::<u8>();
+
+        let (size, facilities): (usize, FacilityCollection) = FacilityCollection::try_deserialize(&value[offset..])?;
+        offset += size;
+
+        Ok((offset, Self { id, facilities }))
+    }
+}
 
 impl From<Player> for SyncBytes {
     fn from(value: Player) -> Self {
@@ -17,19 +28,6 @@ impl From<Player> for SyncBytes {
         out.push(value.id);
         out.extend_from_slice(SyncBytes::from(value.facilities).as_slice());
         out
-    }
-}
-
-impl TryFrom<SyncBytes> for Player {
-    type Error = AppErrorStatic;
-
-    fn try_from(value: SyncBytes) -> Result<Self, Self::Error> {
-        let mut start: usize = 0;
-        let id: u8 = value[start];
-        start += size_of::<u8>();
-
-        let facilities: FacilityCollection = FacilityCollection::try_from(SyncBytes::from(&value[start..]))?;
-        Ok(Self { id, facilities })
     }
 }
 

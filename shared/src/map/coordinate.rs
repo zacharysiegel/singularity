@@ -237,6 +237,21 @@ impl Sub for HexCoord {
 
 impl SyncTrait for HexCoord {
     const SYNC_FIXED_SIZE: Option<usize> = Some(4);
+
+    fn try_deserialize(bytes: &[u8]) -> Result<(usize, Self), AppErrorStatic> {
+        check_sync_fixed_size!(bytes);
+
+        let i_bytes: [u8; 2] = bytes[0..2].try_into()?;
+        let j_bytes: [u8; 2] = bytes[2..4].try_into()?;
+
+        Ok((
+            Self::SYNC_FIXED_SIZE.unwrap(),
+            HexCoord {
+                i: i16::from_be_bytes(i_bytes),
+                j: i16::from_be_bytes(j_bytes),
+            },
+        ))
+    }
 }
 
 impl From<HexCoord> for SyncBytes {
@@ -245,24 +260,6 @@ impl From<HexCoord> for SyncBytes {
         out.extend_from_slice(&value.i.to_be_bytes());
         out.extend_from_slice(&value.j.to_be_bytes());
         SyncBytes::new(out)
-    }
-}
-
-impl TryFrom<SyncBytes> for HexCoord {
-    type Error = AppErrorStatic;
-
-    fn try_from(value: SyncBytes) -> Result<Self, Self::Error> {
-        if value.len() != HexCoord::SYNC_FIXED_SIZE.unwrap() {
-            return Err(AppErrorStatic::new("invalid size"));
-        }
-
-        let i_bytes: [u8; 2] = value[0..2].try_into()?;
-        let j_bytes: [u8; 2] = value[2..4].try_into()?;
-
-        Ok(HexCoord {
-            i: i16::from_be_bytes(i_bytes),
-            j: i16::from_be_bytes(j_bytes),
-        })
     }
 }
 

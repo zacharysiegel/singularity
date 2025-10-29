@@ -23,23 +23,18 @@ impl Default for ResourceType {
 
 impl SyncTrait for ResourceType {
     const SYNC_FIXED_SIZE: Option<usize> = Some(1);
+
+    fn try_deserialize(bytes: &[u8]) -> Result<(usize, Self), AppErrorStatic> {
+        check_sync_fixed_size!(bytes);
+
+        let resource_type: ResourceType = ResourceType::try_from(bytes[0])?;
+        Ok((Self::SYNC_FIXED_SIZE.unwrap(), resource_type))
+    }
 }
 
 impl From<ResourceType> for SyncBytes {
     fn from(value: ResourceType) -> Self {
         SyncBytes::new(vec![value as u8])
-    }
-}
-
-impl TryFrom<SyncBytes> for ResourceType {
-    type Error = AppErrorStatic;
-
-    fn try_from(value: SyncBytes) -> Result<Self, Self::Error> {
-        if value.len() != ResourceType::SYNC_FIXED_SIZE.unwrap() {
-            return Err(AppErrorStatic::new("invalid size"));
-        }
-
-        ResourceType::try_from(value[0])
     }
 }
 

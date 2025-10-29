@@ -1,7 +1,6 @@
 use crate::error::AppErrorStatic;
 use crate::map::Hex;
 use crate::player::Player;
-use crate::sync;
 use crate::sync::{SyncBytes, SyncTrait};
 
 #[derive(Clone)]
@@ -10,7 +9,18 @@ pub struct SyncGame {
     pub players: Vec<Player>,
 }
 
-impl SyncTrait for SyncGame {}
+impl SyncTrait for SyncGame {
+    fn try_deserialize(value: &[u8]) -> Result<(usize, Self), AppErrorStatic> {
+        let mut offset: usize = 0;
+        let map: (usize, SyncMap) = SyncMap::try_deserialize(&value[offset..])?;
+        offset += map.0;
+
+        let (increment, players): (usize, Vec<Player>) = Vec::<Player>::try_deserialize(&value[offset..])?;
+        offset += increment;
+
+        Ok((offset, SyncGame { map: map.1, players }))
+    }
+}
 
 impl From<SyncGame> for SyncBytes {
     fn from(value: SyncGame) -> Self {
@@ -22,25 +32,20 @@ impl From<SyncGame> for SyncBytes {
     }
 }
 
-impl TryFrom<SyncBytes> for SyncGame {
-    type Error = AppErrorStatic;
-
-    fn try_from(value: SyncBytes) -> Result<Self, Self::Error> {
-        let mut start: usize = 0;
-        let map: SyncMap = SyncMap::try_from(SyncBytes::from(&value[start..]))?;
-        start += map.serial_size();
-
-        let (_increment, players): (usize, Vec<Player>) = sync::parse_vec(&value[start..])?;
-        Ok(SyncGame { map, players })
-    }
-}
-
 #[derive(Clone)]
 pub struct SyncMap {
     pub hexes: Vec<Hex>,
 }
 
-impl SyncTrait for SyncMap {}
+impl SyncTrait for SyncMap {
+    fn try_deserialize(value: &[u8]) -> Result<(usize, Self), AppErrorStatic> {
+        let mut offset: usize = 0;
+        let (increment, hexes): (usize, Vec<Hex>) = Vec::<Hex>::try_deserialize(&value[offset..])?;
+        offset += increment;
+
+        Ok((offset, SyncMap { hexes }))
+    }
+}
 
 impl From<SyncMap> for SyncBytes {
     fn from(value: SyncMap) -> Self {
@@ -50,16 +55,6 @@ impl From<SyncMap> for SyncBytes {
         out.extend_from_slice(SyncBytes::from(value.hexes.len() as u16).as_slice());
         out.extend(value.hexes.iter().map(|hex| SyncBytes::from(hex.clone())).flatten());
         SyncBytes::new(out)
-    }
-}
-
-impl TryFrom<SyncBytes> for SyncMap {
-    type Error = AppErrorStatic;
-
-    fn try_from(value: SyncBytes) -> Result<Self, Self::Error> {
-        let start: usize = 0;
-        let (_increment, hexes): (usize, Vec<Hex>) = sync::parse_vec(&value[start..])?;
-        Ok(SyncMap { hexes })
     }
 }
 
