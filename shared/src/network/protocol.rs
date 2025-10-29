@@ -17,7 +17,7 @@ macro_rules! fixed_size_impl {
     () => {
         const FIXED_SIZE: ::std::option::Option<usize> = ::std::option::Option::Some(::std::mem::size_of::<Self>());
 
-        fn as_bytes(&self) -> ::std::vec::Vec<u8> {
+        fn to_bytes(&self) -> ::std::vec::Vec<u8> {
             ::std::vec::Vec::from(unsafe { mem::transmute_copy::<Self, [u8; Self::FIXED_SIZE.unwrap()]>(self) })
         }
     };
@@ -59,13 +59,13 @@ impl Display for Head {
     }
 }
 
-// todo: + Into<Vec<u8>> ----- SyncTrait?
-pub trait Operation: for<'a> From<&'a Frame> {
+// todo: + Into<Vec<u8>>
+pub trait Operation: for<'a> TryFrom<&'a Frame> {
     const OP_CODE: OpCode;
     /// None iff not fixed size
-    const FIXED_SIZE: Option<usize>;
+    const FIXED_SIZE: Option<usize> = None;
 
-    fn as_bytes(&self) -> Vec<u8>;
+    fn to_bytes(&self) -> Vec<u8>;
 }
 
 #[derive(Debug)]
@@ -158,17 +158,19 @@ pub struct AllGames {
     pub games: Vec<SyncGame>,
 }
 
-impl<'a> From<&'a Frame> for AllGames {
-    fn from(value: &'a Frame) -> Self {
-        todo!()
+impl<'a> TryFrom<&'a Frame> for AllGames {
+    type Error = AppErrorStatic;
+
+    fn try_from(value: &'a Frame) -> Result<Self, Self::Error> {
+        let (_, games): (usize, Vec<SyncGame>) = Vec::<SyncGame>::try_deserialize(value.data.as_slice())?;
+        Ok(Self { games })
     }
 }
 
 impl Operation for AllGames {
-    const OP_CODE: OpCode = 5;
-    const FIXED_SIZE: Option<usize> = None;
+    const OP_CODE: OpCode = 4;
 
-    fn as_bytes(&self) -> Vec<u8> {
+    fn to_bytes(&self) -> Vec<u8> {
         let mut out: Vec<u8> = Vec::new();
         out.push(Self::OP_CODE);
         out.extend(self.games.to_bytes());
@@ -177,7 +179,7 @@ impl Operation for AllGames {
 }
 
 pub async fn enqueue_message<T: Operation>(write_buffer: WriteBufferT, message: T) -> Result<(), AppErrorStatic> {
-    write_buffer.write().await.push(message.as_bytes().as_slice())?;
+    write_buffer.write().await.push(message.to_bytes().as_slice())?;
     Ok(())
 }
 
