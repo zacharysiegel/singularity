@@ -1,5 +1,3 @@
-extern crate core; // todo: remove?
-
 #[macro_use]
 pub mod sync;
 pub mod color;
