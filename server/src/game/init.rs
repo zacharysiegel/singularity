@@ -1,11 +1,11 @@
 use shared::facility::{ControlCenter, FacilityCollection, FacilityState};
-use shared::map::{HEX_COUNT_SQRT, Hex, HexCoord, ResourceType};
+use shared::map::{Hex, HexCoord, ResourceType, HEX_COUNT, HEX_COUNT_SQRT};
 use shared::player::Player;
 use shared::sync::{SyncGame, SyncMap};
 
 pub fn init_game() -> SyncGame {
     let hexes: Vec<Hex> = {
-        let mut hexes = Vec::new();
+        let mut hexes: Vec<Hex> = Vec::with_capacity(usize::from(HEX_COUNT.unsigned_abs()));
         init_map(&mut hexes);
         hexes
     };
@@ -30,8 +30,7 @@ fn init_map(hexes: &mut Vec<Hex>) {
                 hex_coord,
                 resource_type,
             };
-            let i: usize = hex.hex_coord.map_index();
-            hexes[i] = hex;
+            hexes.push(hex);
         }
     }
 }
