@@ -1,4 +1,4 @@
-use crate::error::AppError;
+use crate::error::{AppError, AppErrorStatic};
 use crate::map::{HEX_COUNT_SQRT, HEX_HEIGHT, HEX_RADIUS, HEX_SIDE_LENGTH};
 use crate::math::{SIN_FRAC_PI_3, SIN_FRAC_PI_6, TAN_FRAC_PI_6};
 use crate::sync::{SyncBytes, SyncTrait};
@@ -236,17 +236,33 @@ impl Sub for HexCoord {
 }
 
 impl SyncTrait for HexCoord {
-    fn fixed_size(&self) -> Option<usize> {
-        Some(4)
-    }
+    const SYNC_FIXED_SIZE: Option<usize> = Some(4);
 }
 
 impl From<HexCoord> for SyncBytes {
     fn from(value: HexCoord) -> Self {
-        let mut out: Vec<u8> = Vec::with_capacity(value.fixed_size().unwrap());
+        let mut out: Vec<u8> = Vec::with_capacity(HexCoord::SYNC_FIXED_SIZE.unwrap());
         out.extend_from_slice(&value.i.to_be_bytes());
         out.extend_from_slice(&value.j.to_be_bytes());
         SyncBytes::new(out)
+    }
+}
+
+impl TryFrom<SyncBytes> for HexCoord {
+    type Error = AppErrorStatic;
+
+    fn try_from(value: SyncBytes) -> Result<Self, Self::Error> {
+        if value.len() != HexCoord::SYNC_FIXED_SIZE.unwrap() {
+            return Err(AppErrorStatic::new("invalid size"));
+        }
+
+        let i_bytes: [u8; 2] = value[0..2].try_into()?;
+        let j_bytes: [u8; 2] = value[2..4].try_into()?;
+
+        Ok(HexCoord {
+            i: i16::from_be_bytes(i_bytes),
+            j: i16::from_be_bytes(j_bytes),
+        })
     }
 }
 
@@ -476,7 +492,7 @@ mod test {
     #[test]
     fn hex_coord_correct_size() {
         assert_eq!(
-            HexCoord::default().fixed_size().unwrap(),
+            HexCoord::SYNC_FIXED_SIZE.unwrap(),
             SyncBytes::from(HexCoord::default()).len()
         )
     }

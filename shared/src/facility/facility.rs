@@ -1,6 +1,9 @@
+use crate::error::AppErrorStatic;
 use crate::facility::{ControlCenter, MetalExtractor, OilExtractor};
 use crate::map::HexCoord;
 use crate::sync::{SyncBytes, SyncTrait};
+use crate::{sync, try_from_repr};
+use strum::FromRepr;
 
 #[derive(Debug, Copy, Clone)]
 pub enum Facility<'a> {
@@ -36,7 +39,7 @@ impl<'a> Facility<'a> {
 }
 
 #[repr(u8)]
-#[derive(Debug, Default, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone, FromRepr)]
 pub enum FacilityState {
     #[default]
     Operating = 0,
@@ -44,15 +47,25 @@ pub enum FacilityState {
     Destroyed,
 }
 
+try_from_repr!(FacilityState<u8>);
+
 impl SyncTrait for FacilityState {
-    fn fixed_size(&self) -> Option<usize> {
-        (*self as u8).fixed_size()
-    }
+    const SYNC_FIXED_SIZE: Option<usize> = Some(u8::SYNC_FIXED_SIZE.unwrap());
 }
 
 impl From<FacilityState> for SyncBytes {
     fn from(value: FacilityState) -> Self {
         SyncBytes::from(value as u8)
+    }
+}
+
+impl TryFrom<SyncBytes> for FacilityState {
+    type Error = AppErrorStatic;
+
+    fn try_from(value: SyncBytes) -> Result<Self, Self::Error> {
+        check_sync_fixed_size!(value);
+
+        Self::try_from(value[0])
     }
 }
 
@@ -81,6 +94,25 @@ impl From<FacilityCollection> for SyncBytes {
         out.extend(SyncBytes::from(value.metal_extractor_vec.len() as u16));
         out.extend(value.oil_extractor_vec.iter().map(|facility| SyncBytes::from(facility.clone())).flatten());
         out
+    }
+}
+
+impl TryFrom<SyncBytes> for FacilityCollection {
+    type Error = AppErrorStatic;
+
+    fn try_from(value: SyncBytes) -> Result<Self, Self::Error> {
+        let mut start: usize = 0;
+        let (increment, control_center_vec): (usize, Vec<ControlCenter>) = sync::parse_vec(&value[start..])?;
+        start += increment;
+        let (increment, metal_extractor_vec): (usize, Vec<MetalExtractor>) = sync::parse_vec(&value[start..])?;
+        start += increment;
+        let (_increment, oil_extractor_vec): (usize, Vec<OilExtractor>) = sync::parse_vec(&value[start..])?;
+
+        Ok(FacilityCollection {
+            control_center_vec,
+            metal_extractor_vec,
+            oil_extractor_vec,
+        })
     }
 }
 
@@ -115,7 +147,7 @@ mod test {
         #[test]
         fn facility_state() {
             assert_eq!(
-                FacilityState::default().fixed_size().unwrap(),
+                FacilityState::SYNC_FIXED_SIZE.unwrap(),
                 SyncBytes::from(FacilityState::default()).len()
             )
         }

@@ -1,3 +1,4 @@
+use std::array::TryFromSliceError;
 use std::backtrace::{Backtrace, BacktraceStatus};
 use std::error::Error;
 use std::fmt;
@@ -59,6 +60,16 @@ impl Default for AppError {
     }
 }
 
+impl From<AppErrorStatic> for AppError {
+    fn from(value: AppErrorStatic) -> Self {
+        AppError {
+            message: value.message,
+            sub_error: None,
+            backtrace: value.backtrace,
+        }
+    }
+}
+
 impl From<std::io::Error> for AppError {
     fn from(err: std::io::Error) -> Self {
         AppError::from_error(&err.to_string(), Box::new(err))
@@ -76,7 +87,7 @@ pub struct AppErrorStatic {
 impl AppErrorStatic {
     const DEFAULT_MESSAGE: &'static str = "unspecified";
 
-    fn new(message: &str) -> AppErrorStatic {
+    pub fn new(message: &str) -> AppErrorStatic {
         let backtrace: Backtrace = Backtrace::force_capture();
         let app_error = AppErrorStatic {
             message: format!("Error: {}", message),
@@ -117,5 +128,11 @@ impl From<AppError> for AppErrorStatic {
 impl From<std::io::Error> for AppErrorStatic {
     fn from(err: std::io::Error) -> Self {
         AppErrorStatic::new(&err.to_string())
+    }
+}
+
+impl From<TryFromSliceError> for AppErrorStatic {
+    fn from(value: TryFromSliceError) -> Self {
+        AppErrorStatic::new(&value.to_string())
     }
 }

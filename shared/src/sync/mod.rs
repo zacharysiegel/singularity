@@ -1,3 +1,4 @@
+#[macro_use]
 mod sync;
 pub use sync::*;
 

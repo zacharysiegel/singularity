@@ -1,5 +1,7 @@
-extern crate core;
+extern crate core; // todo: remove?
 
+#[macro_use]
+pub mod sync;
 pub mod color;
 pub mod environment;
 pub mod error;
@@ -9,4 +11,4 @@ pub mod math;
 pub mod network;
 pub mod player;
 pub mod random;
-pub mod sync;
+pub mod enums;

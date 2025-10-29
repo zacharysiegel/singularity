@@ -1,3 +1,4 @@
+use crate::error::AppErrorStatic;
 use crate::facility::{Facility, FacilityState, FacilityTrait};
 use crate::map::HexCoord;
 use crate::sync::{SyncBytes, SyncTrait};
@@ -9,17 +10,30 @@ pub struct MetalExtractor {
 }
 
 impl SyncTrait for MetalExtractor {
-    fn fixed_size(&self) -> Option<usize> {
-        Some(self.location.fixed_size()? + self.state.fixed_size()?)
-    }
+    const SYNC_FIXED_SIZE: Option<usize> =
+        Some(HexCoord::SYNC_FIXED_SIZE.unwrap() + FacilityState::SYNC_FIXED_SIZE.unwrap());
 }
 
 impl From<MetalExtractor> for SyncBytes {
     fn from(value: MetalExtractor) -> Self {
-        let mut out: Vec<u8> = Vec::with_capacity(value.fixed_size().unwrap());
+        let mut out: Vec<u8> = Vec::with_capacity(MetalExtractor::SYNC_FIXED_SIZE.unwrap());
         out.extend_from_slice(SyncBytes::from(value.location).as_slice());
         out.extend_from_slice(SyncBytes::from(value.state).as_slice());
         SyncBytes::new(out)
+    }
+}
+
+impl TryFrom<SyncBytes> for MetalExtractor {
+    type Error = AppErrorStatic;
+
+    fn try_from(value: SyncBytes) -> Result<Self, Self::Error> {
+        check_sync_fixed_size!(value);
+
+        let pivot: usize = HexCoord::SYNC_FIXED_SIZE.unwrap();
+        let location: HexCoord = HexCoord::try_from(SyncBytes::from(&value[0..pivot]))?;
+        let state: FacilityState = FacilityState::try_from(value[pivot])?;
+
+        Ok(Self { location, state })
     }
 }
 
@@ -44,7 +58,7 @@ mod test {
     #[test]
     fn correct_size() {
         assert_eq!(
-            MetalExtractor::default().fixed_size().unwrap(),
+            MetalExtractor::SYNC_FIXED_SIZE.unwrap(),
             SyncBytes::from(MetalExtractor::default()).len()
         )
     }
