@@ -1,7 +1,7 @@
 use crate::error::AppErrorStatic;
 use crate::facility::FacilityCollection;
 use crate::map::HexCoord;
-use crate::sync::{SyncBytes, SyncTrait};
+use crate::sync::SyncTrait;
 
 #[derive(Debug, Default, Clone)]
 pub struct Player {
@@ -10,6 +10,13 @@ pub struct Player {
 }
 
 impl SyncTrait for Player {
+    fn to_bytes(&self) -> Vec<u8> {
+        let mut out: Vec<u8> = Vec::new();
+        out.push(self.id);
+        out.extend(self.facilities.to_bytes());
+        out
+    }
+
     fn try_deserialize(value: &[u8]) -> Result<(usize, Self), AppErrorStatic> {
         let mut offset: usize = 0;
         let id: u8 = value[offset];
@@ -19,15 +26,6 @@ impl SyncTrait for Player {
         offset += size;
 
         Ok((offset, Self { id, facilities }))
-    }
-}
-
-impl From<Player> for SyncBytes {
-    fn from(value: Player) -> Self {
-        let mut out: SyncBytes = SyncBytes::new(Vec::new());
-        out.push(value.id);
-        out.extend_from_slice(SyncBytes::from(value.facilities).as_slice());
-        out
     }
 }
 

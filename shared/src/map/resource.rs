@@ -1,6 +1,6 @@
 use crate::color::{MAP_BACKGROUND_COLOR, METAL_BACKGROUND_COLOR, OIL_BACKGROUND_COLOR};
 use crate::error::AppErrorStatic;
-use crate::sync::{SyncBytes, SyncTrait};
+use crate::sync::SyncTrait;
 use crate::try_from_repr;
 use raylib::color::Color;
 use strum::FromRepr;
@@ -24,17 +24,15 @@ impl Default for ResourceType {
 impl SyncTrait for ResourceType {
     const SYNC_FIXED_SIZE: Option<usize> = Some(1);
 
+    fn to_bytes(&self) -> Vec<u8> {
+        [self.clone() as u8].to_vec()
+    }
+
     fn try_deserialize(bytes: &[u8]) -> Result<(usize, Self), AppErrorStatic> {
         check_sync_fixed_size!(bytes);
 
         let resource_type: ResourceType = ResourceType::try_from(bytes[0])?;
         Ok((Self::SYNC_FIXED_SIZE.unwrap(), resource_type))
-    }
-}
-
-impl From<ResourceType> for SyncBytes {
-    fn from(value: ResourceType) -> Self {
-        SyncBytes::new(vec![value as u8])
     }
 }
 
@@ -58,7 +56,7 @@ mod test {
     fn correct_size() {
         assert_eq!(
             ResourceType::SYNC_FIXED_SIZE.unwrap(),
-            SyncBytes::from(ResourceType::default()).len()
-        )
+            ResourceType::default().to_bytes().len()
+        );
     }
 }

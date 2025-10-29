@@ -8,7 +8,7 @@
 
 use crate::error::{AppError, AppErrorStatic};
 use crate::network::connection::WriteBufferT;
-use crate::sync::{SyncBytes, SyncGame};
+use crate::sync::{SyncGame, SyncTrait};
 use std::fmt::{self, Display};
 use std::mem;
 use uuid::Uuid;
@@ -59,7 +59,7 @@ impl Display for Head {
     }
 }
 
-// todo: + Into<Vec<u8>>
+// todo: + Into<Vec<u8>> ----- SyncTrait?
 pub trait Operation: for<'a> From<&'a Frame> {
     const OP_CODE: OpCode;
     /// None iff not fixed size
@@ -171,8 +171,7 @@ impl Operation for AllGames {
     fn as_bytes(&self) -> Vec<u8> {
         let mut out: Vec<u8> = Vec::new();
         out.push(Self::OP_CODE);
-        out.extend_from_slice(SyncBytes::from(self.games.len() as u16).as_slice());
-        out.extend(self.games.iter().map(|game| SyncBytes::from(game.clone())).flatten());
+        out.extend(self.games.to_bytes());
         out
     }
 }

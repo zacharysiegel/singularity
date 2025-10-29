@@ -1,7 +1,7 @@
 use crate::error::AppErrorStatic;
 use crate::facility::{ControlCenter, MetalExtractor, OilExtractor};
 use crate::map::HexCoord;
-use crate::sync::{SyncBytes, SyncTrait};
+use crate::sync::SyncTrait;
 use crate::try_from_repr;
 use strum::FromRepr;
 
@@ -52,6 +52,10 @@ try_from_repr!(FacilityState<u8>);
 impl SyncTrait for FacilityState {
     const SYNC_FIXED_SIZE: Option<usize> = Some(u8::SYNC_FIXED_SIZE.unwrap());
 
+    fn to_bytes(&self) -> Vec<u8> {
+        [self.clone() as u8].to_vec()
+    }
+
     fn try_deserialize(value: &[u8]) -> Result<(usize, Self), AppErrorStatic> {
         check_sync_fixed_size!(value);
 
@@ -60,12 +64,6 @@ impl SyncTrait for FacilityState {
 
         let state: FacilityState = Self::try_from(byte)?;
         Ok((size, state))
-    }
-}
-
-impl From<FacilityState> for SyncBytes {
-    fn from(value: FacilityState) -> Self {
-        SyncBytes::from(value as u8)
     }
 }
 
@@ -83,6 +81,14 @@ pub struct FacilityCollection {
 }
 
 impl SyncTrait for FacilityCollection {
+    fn to_bytes(&self) -> Vec<u8> {
+        let mut out: Vec<u8> = Vec::new();
+        out.extend(self.control_center_vec.to_bytes());
+        out.extend(self.metal_extractor_vec.to_bytes());
+        out.extend(self.oil_extractor_vec.to_bytes());
+        out
+    }
+
     fn try_deserialize(value: &[u8]) -> Result<(usize, Self), AppErrorStatic> {
         let mut offset: usize = 0;
         let (increment, control_center_vec): (usize, Vec<ControlCenter>) =
@@ -103,19 +109,6 @@ impl SyncTrait for FacilityCollection {
                 oil_extractor_vec,
             },
         ))
-    }
-}
-
-impl From<FacilityCollection> for SyncBytes {
-    fn from(value: FacilityCollection) -> Self {
-        let mut out: SyncBytes = SyncBytes::new(Vec::new());
-        out.extend(SyncBytes::from(value.control_center_vec.len() as u16));
-        out.extend(value.control_center_vec.iter().map(|facility| SyncBytes::from(facility.clone())).flatten());
-        out.extend(SyncBytes::from(value.metal_extractor_vec.len() as u16));
-        out.extend(value.metal_extractor_vec.iter().map(|facility| SyncBytes::from(facility.clone())).flatten());
-        out.extend(SyncBytes::from(value.metal_extractor_vec.len() as u16));
-        out.extend(value.oil_extractor_vec.iter().map(|facility| SyncBytes::from(facility.clone())).flatten());
-        out
     }
 }
 
@@ -151,8 +144,13 @@ mod test {
         fn facility_state() {
             assert_eq!(
                 FacilityState::SYNC_FIXED_SIZE.unwrap(),
-                SyncBytes::from(FacilityState::default()).len()
+                FacilityState::default().to_bytes().len()
             )
+        }
+
+        #[test]
+        fn facility_collection() {
+            assert_eq!(6, FacilityCollection::default().to_bytes().len());
         }
     }
 }
