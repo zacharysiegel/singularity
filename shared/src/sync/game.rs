@@ -3,7 +3,7 @@ use crate::map::Hex;
 use crate::player::Player;
 use crate::sync::SyncTrait;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct SyncGame {
     pub map: SyncMap,
     pub players: Vec<Player>,
@@ -30,7 +30,7 @@ impl SyncTrait for SyncGame {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct SyncMap {
     pub hexes: Vec<Hex>,
 }

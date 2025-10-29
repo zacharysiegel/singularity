@@ -27,17 +27,7 @@ macro_rules! fixed_size_impl {
 
             $crate::network::protocol::Frame {
                 head,
-                data: all[size_of::<$crate::network::protocol::Head>()..].to_vec(),
-            }
-        }
-    };
-}
-
-macro_rules! from_frame_fixed {
-    ($id:ident) => {
-        impl<'a> ::std::convert::From<&'a $crate::network::protocol::Frame> for $id {
-            fn from(frame: &'a $crate::network::protocol::Frame) -> Self {
-                unsafe { *(frame.data.as_ptr() as *const $id) }
+                data: all[size_of::<u16>()..].to_vec(),
             }
         }
     };
@@ -59,10 +49,12 @@ impl Display for Frame {
 
 impl Frame {
     pub fn to_bytes(&self) -> Vec<u8> {
-        let mut out: Vec<u8> = Vec::with_capacity(size_of::<Head>() + self.data.len());
-        let head_bytes = unsafe { mem::transmute_copy::<Head, [u8; size_of::<Head>()]>(&self.head) };
+        let mut out: Vec<u8> = Vec::new();
 
-        out.extend_from_slice(&head_bytes);
+        out.extend(self.head.op_type.op_code().to_bytes());
+        if let None = self.head.op_type.fixed_size() {
+            out.extend_from_slice((self.head.length as u16).to_be_bytes().as_slice());
+        }
         out.extend_from_slice(self.data.as_slice());
         out
     }
@@ -119,6 +111,15 @@ impl OperationType {
         }
     }
 
+    pub const fn op_code(&self) -> OpCode {
+        match self {
+            OperationType::Heartbeat => Heartbeat::OP_CODE,
+            OperationType::Register => Register::OP_CODE,
+            OperationType::Acknowledgement => Acknowledgement::OP_CODE,
+            OperationType::AllGames => AllGames::OP_CODE,
+        }
+    }
+
     pub const fn fixed_size(&self) -> Option<usize> {
         match self {
             OperationType::Heartbeat => Heartbeat::FIXED_SIZE,
@@ -135,12 +136,18 @@ pub struct Heartbeat {
     pub op_code: OpCode,
 }
 
-from_frame_fixed!(Heartbeat);
-
-impl<'a> Operation for Heartbeat {
+impl Operation for Heartbeat {
     const OP_CODE: OpCode = 1;
 
     fixed_size_impl!();
+}
+
+impl<'a> From<&'a Frame> for Heartbeat {
+    fn from(value: &'a Frame) -> Self {
+        Self {
+            op_code: value.head.op_type.op_code(),
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -150,12 +157,23 @@ pub struct Register {
     pub user_id: Uuid,
 }
 
-from_frame_fixed!(Register);
-
-impl<'a> Operation for Register {
+impl Operation for Register {
     const OP_CODE: OpCode = 2;
 
     fixed_size_impl!();
+}
+
+impl<'a> TryFrom<&'a Frame> for Register {
+    type Error = AppErrorStatic;
+
+    fn try_from(value: &'a Frame) -> Result<Self, Self::Error> {
+        let uuid: Uuid =
+            Uuid::from_slice(value.data.as_slice()).map_err(|e| AppError::from_error_default(Box::new(e)))?;
+        Ok(Self {
+            op_code: value.head.op_type.op_code(),
+            user_id: uuid,
+        })
+    }
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -165,15 +183,25 @@ pub struct Acknowledgement {
     pub op_code_acknowledged: OpCode,
 }
 
-from_frame_fixed!(Acknowledgement);
-
-impl<'a> Operation for Acknowledgement {
+impl Operation for Acknowledgement {
     const OP_CODE: OpCode = 3;
 
     fixed_size_impl!();
 }
 
+impl<'a> TryFrom<&'a Frame> for Acknowledgement {
+    type Error = AppErrorStatic;
+
+    fn try_from(value: &'a Frame) -> Result<Self, Self::Error> {
+        Ok(Self {
+            op_code: value.head.op_type.op_code(),
+            op_code_acknowledged: *value.data.get(0).ok_or_else(|| AppErrorStatic::new("invalid size"))?,
+        })
+    }
+}
+
 // Dynamically-sized frames cannot be directly transmuted from bits, since their size is not statically known
+#[derive(Debug)]
 pub struct AllGames {
     pub games: Vec<SyncGame>,
 }
@@ -203,7 +231,8 @@ impl Operation for AllGames {
 }
 
 pub async fn enqueue_message<T: Operation>(write_buffer: WriteBufferT, message: T) -> Result<(), AppErrorStatic> {
-    write_buffer.write().await.push(message.to_frame().to_bytes().as_slice())?;
+    let x = message.to_frame().to_bytes();
+    write_buffer.write().await.push(x.as_slice())?;
     Ok(())
 }
 

@@ -72,8 +72,6 @@ pub fn init() -> Result<(RaylibHandle, RaylibThread), AppError> {
     texture::init(&mut rl, &rl_thread);
     shader::init(&mut rl, &rl_thread);
     title::init_title(&mut rl);
-    map::init_map();
-    player::init_players(4);
 
     Ok((rl, rl_thread))
 }

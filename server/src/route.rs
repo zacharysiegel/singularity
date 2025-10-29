@@ -18,7 +18,7 @@ pub async fn route_frame(write_buffer: WriteBufferT, frame: Frame) {
             log::trace!("Acknowledgement received; [{}]", frame);
             acknowledgement(frame);
         }
-        OperationType::AllGames => todo!(),
+        _ => {},
     }
 }
 
@@ -28,7 +28,7 @@ fn heartbeat(frame: Frame) {
 }
 
 fn register(write_buffer: WriteBufferT, frame: Frame) {
-    let register: Register = Register::from(&frame);
+    let register: Register = Register::try_from(&frame).unwrap();
     log::debug!("parsed frame; [{:?}]", register);
 
     // todo: fetch game collection from database
@@ -40,7 +40,7 @@ fn register(write_buffer: WriteBufferT, frame: Frame) {
 }
 
 fn acknowledgement(frame: Frame) {
-    let acknowledgement: Acknowledgement = Acknowledgement::from(&frame);
+    let acknowledgement: Acknowledgement = Acknowledgement::try_from(&frame).unwrap();
     log::debug!("parsed frame; [{:?}]", acknowledgement);
 
     todo!();

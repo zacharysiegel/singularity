@@ -3,6 +3,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
+use crate::route;
 use shared::error::AppError;
 use shared::network::connection::{Connection, ConnectionReader, ConnectionWriter, WriteBufferT};
 use shared::network::protocol::{Operation, Register};
@@ -34,9 +35,9 @@ pub fn connect() -> Result<WriteBufferT, AppError> {
 }
 
 fn spawn_reader(reader: ConnectionReader) {
-    tokio::spawn(async move {
-        network::monitor::monitor_incoming_frames(reader, |_w, _frame| async move {
-            // todo: route frames
+    tokio::spawn(async {
+        network::monitor::monitor_incoming_frames(reader, |write_buffer, frame| async {
+            route::route_frame(write_buffer, frame).await;
         })
         .await;
     });
