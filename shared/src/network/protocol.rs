@@ -17,16 +17,26 @@ macro_rules! fixed_size_impl {
     () => {
         const FIXED_SIZE: ::std::option::Option<usize> = ::std::option::Option::Some(::std::mem::size_of::<Self>());
 
-        fn to_bytes(&self) -> ::std::vec::Vec<u8> {
-            ::std::vec::Vec::from(unsafe { mem::transmute_copy::<Self, [u8; Self::FIXED_SIZE.unwrap()]>(self) })
+        fn to_frame(&self) -> $crate::network::protocol::Frame {
+            let head = $crate::network::protocol::Head {
+                op_type: $crate::network::protocol::OperationType::from_op_code(Self::OP_CODE).unwrap(),
+                length: Self::FIXED_SIZE.unwrap(),
+            };
+            let all =
+                ::std::vec::Vec::from(unsafe { mem::transmute_copy::<Self, [u8; Self::FIXED_SIZE.unwrap()]>(self) });
+
+            $crate::network::protocol::Frame {
+                head,
+                data: all[size_of::<$crate::network::protocol::Head>()..].to_vec(),
+            }
         }
     };
 }
 
 macro_rules! from_frame_fixed {
     ($id:ident) => {
-        impl<'a> ::std::convert::From<&'a Frame> for $id {
-            fn from(frame: &'a Frame) -> Self {
+        impl<'a> ::std::convert::From<&'a $crate::network::protocol::Frame> for $id {
+            fn from(frame: &'a $crate::network::protocol::Frame) -> Self {
                 unsafe { *(frame.data.as_ptr() as *const $id) }
             }
         }
@@ -47,6 +57,17 @@ impl Display for Frame {
     }
 }
 
+impl Frame {
+    pub fn to_bytes(&self) -> Vec<u8> {
+        let mut out: Vec<u8> = Vec::with_capacity(size_of::<Head>() + self.data.len());
+        let head_bytes = unsafe { mem::transmute_copy::<Head, [u8; size_of::<Head>()]>(&self.head) };
+
+        out.extend_from_slice(&head_bytes);
+        out.extend_from_slice(self.data.as_slice());
+        out
+    }
+}
+
 #[derive(Debug)]
 pub struct Head {
     pub op_type: OperationType,
@@ -59,13 +80,12 @@ impl Display for Head {
     }
 }
 
-// todo: + Into<Vec<u8>>
 pub trait Operation: for<'a> TryFrom<&'a Frame> {
     const OP_CODE: OpCode;
     /// None iff not fixed size
     const FIXED_SIZE: Option<usize> = None;
 
-    fn to_bytes(&self) -> Vec<u8>;
+    fn to_frame(&self) -> Frame;
 }
 
 #[derive(Debug)]
@@ -153,7 +173,7 @@ impl<'a> Operation for Acknowledgement {
     fixed_size_impl!();
 }
 
-// Dynamically-sized frames cannot be directly interpreted from bits, since their size is not statically known
+// Dynamically-sized frames cannot be directly transmuted from bits, since their size is not statically known
 pub struct AllGames {
     pub games: Vec<SyncGame>,
 }
@@ -170,16 +190,20 @@ impl<'a> TryFrom<&'a Frame> for AllGames {
 impl Operation for AllGames {
     const OP_CODE: OpCode = 4;
 
-    fn to_bytes(&self) -> Vec<u8> {
-        let mut out: Vec<u8> = Vec::new();
-        out.push(Self::OP_CODE);
-        out.extend(self.games.to_bytes());
-        out
+    fn to_frame(&self) -> Frame {
+        let data: Vec<u8> = self.games.to_bytes();
+        Frame {
+            head: Head {
+                op_type: OperationType::AllGames,
+                length: data.len(),
+            },
+            data,
+        }
     }
 }
 
 pub async fn enqueue_message<T: Operation>(write_buffer: WriteBufferT, message: T) -> Result<(), AppErrorStatic> {
-    write_buffer.write().await.push(message.to_bytes().as_slice())?;
+    write_buffer.write().await.push(message.to_frame().to_bytes().as_slice())?;
     Ok(())
 }
 
