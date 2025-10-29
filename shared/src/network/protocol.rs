@@ -20,15 +20,13 @@ macro_rules! fixed_size_impl {
         fn to_frame(&self) -> $crate::network::protocol::Frame {
             let head = $crate::network::protocol::Head {
                 op_type: $crate::network::protocol::OperationType::from_op_code(Self::OP_CODE).unwrap(),
-                length: Self::FIXED_SIZE.unwrap(),
+                data_length: ::std::mem::size_of::<Self>(),
             };
-            let all =
-                ::std::vec::Vec::from(unsafe { mem::transmute_copy::<Self, [u8; Self::FIXED_SIZE.unwrap()]>(self) });
+            let data = ::std::vec::Vec::from(unsafe {
+                mem::transmute_copy::<Self, [u8; ::std::mem::size_of::<Self>()]>(self)
+            });
 
-            $crate::network::protocol::Frame {
-                head,
-                data: all[size_of::<u16>()..].to_vec(),
-            }
+            $crate::network::protocol::Frame { head, data }
         }
     };
 }
@@ -38,7 +36,7 @@ pub type OpCode = u8;
 #[derive(Debug)]
 pub struct Frame {
     pub head: Head,
-    pub data: Vec<u8>,
+    data: Vec<u8>,
 }
 
 impl Display for Frame {
@@ -47,13 +45,29 @@ impl Display for Frame {
     }
 }
 
+impl TryFrom<&[u8]> for Frame {
+    type Error = AppErrorStatic;
+
+    fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
+        let op_code: &u8 = value.get(0).ok_or_else(|| AppErrorStatic::new("invalid size"))?;
+        let data: &[u8] = value.get(1..).ok_or_else(|| AppErrorStatic::new("invalid size"))?;
+        Ok(Frame {
+            head: Head {
+                op_type: OperationType::from_op_code(*op_code)?,
+                data_length: data.len(),
+            },
+            data: data.to_vec(),
+        })
+    }
+}
+
 impl Frame {
     pub fn to_bytes(&self) -> Vec<u8> {
-        let mut out: Vec<u8> = Vec::new();
+        let mut out: Vec<u8> = Vec::with_capacity(size_of::<OpCode>() + self.head.data_length);
 
-        out.extend(self.head.op_type.op_code().to_bytes());
+        out.extend(self.head.op_type.op_code().to_be_bytes());
         if let None = self.head.op_type.fixed_size() {
-            out.extend_from_slice((self.head.length as u16).to_be_bytes().as_slice());
+            out.extend_from_slice((self.head.data_length as u16).to_be_bytes().as_slice());
         }
         out.extend_from_slice(self.data.as_slice());
         out
@@ -63,12 +77,18 @@ impl Frame {
 #[derive(Debug)]
 pub struct Head {
     pub op_type: OperationType,
-    pub length: usize,
+    pub data_length: usize,
 }
 
 impl Display for Head {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Head; [op_type: {}] [length: {}]", self.op_type, self.length)
+        write!(f, "Head; [op_type: {}] [length: {}]", self.op_type, self.data_length)
+    }
+}
+
+impl Head {
+    pub fn total_length(&self) -> usize {
+        size_of::<OpCode>() + self.data_length
     }
 }
 
@@ -132,9 +152,7 @@ impl OperationType {
 
 #[derive(Debug, Copy, Clone)]
 #[repr(C, packed(1))]
-pub struct Heartbeat {
-    pub op_code: OpCode,
-}
+pub struct Heartbeat {}
 
 impl Operation for Heartbeat {
     const OP_CODE: OpCode = 1;
@@ -144,16 +162,13 @@ impl Operation for Heartbeat {
 
 impl<'a> From<&'a Frame> for Heartbeat {
     fn from(value: &'a Frame) -> Self {
-        Self {
-            op_code: value.head.op_type.op_code(),
-        }
+        Self {}
     }
 }
 
 #[derive(Debug, Copy, Clone)]
 #[repr(C, packed(1))]
 pub struct Register {
-    pub op_code: OpCode,
     pub user_id: Uuid,
 }
 
@@ -164,22 +179,18 @@ impl Operation for Register {
 }
 
 impl<'a> TryFrom<&'a Frame> for Register {
-    type Error = AppErrorStatic;
+    type Error = AppError;
 
     fn try_from(value: &'a Frame) -> Result<Self, Self::Error> {
         let uuid: Uuid =
             Uuid::from_slice(value.data.as_slice()).map_err(|e| AppError::from_error_default(Box::new(e)))?;
-        Ok(Self {
-            op_code: value.head.op_type.op_code(),
-            user_id: uuid,
-        })
+        Ok(Self { user_id: uuid })
     }
 }
 
 #[derive(Debug, Copy, Clone)]
 #[repr(C, packed(1))]
 pub struct Acknowledgement {
-    pub op_code: OpCode,
     pub op_code_acknowledged: OpCode,
 }
 
@@ -194,7 +205,6 @@ impl<'a> TryFrom<&'a Frame> for Acknowledgement {
 
     fn try_from(value: &'a Frame) -> Result<Self, Self::Error> {
         Ok(Self {
-            op_code: value.head.op_type.op_code(),
             op_code_acknowledged: *value.data.get(0).ok_or_else(|| AppErrorStatic::new("invalid size"))?,
         })
     }
@@ -223,7 +233,7 @@ impl Operation for AllGames {
         Frame {
             head: Head {
                 op_type: OperationType::AllGames,
-                length: data.len(),
+                data_length: data.len(),
             },
             data,
         }
@@ -244,8 +254,8 @@ mod tests {
     #[test]
     fn size_snapshots() {
         assert_eq!(1, size_of::<OpCode>());
-        assert_eq!(1, size_of::<Heartbeat>());
-        assert_eq!(17, size_of::<Register>());
-        assert_eq!(2, size_of::<Acknowledgement>());
+        assert_eq!(0, size_of::<Heartbeat>());
+        assert_eq!(16, size_of::<Register>());
+        assert_eq!(1, size_of::<Acknowledgement>());
     }
 }

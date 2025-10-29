@@ -59,7 +59,7 @@ pub struct ConnectionWriter {
 
 impl ConnectionWriter {
     pub async fn write_frame(&mut self, frame: &Frame) -> Result<(), AppError> {
-        self.tcp_stream_write.write_all(frame.data.as_slice()).await?;
+        self.tcp_stream_write.write_all(frame.to_bytes().as_slice()).await?;
         Ok(())
     }
 }

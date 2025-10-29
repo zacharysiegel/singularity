@@ -56,7 +56,6 @@ fn spawn_writer(writer: ConnectionWriter) {
 
 fn send_register(write_buffer: WriteBufferT) {
     let message = Register {
-        op_code: Register::OP_CODE,
         user_id: random::random_uuid(),
     };
     tokio::spawn(async move { protocol::enqueue_message(write_buffer, message).await });

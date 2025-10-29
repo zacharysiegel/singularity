@@ -27,7 +27,6 @@ fn all_games(write_buffer: WriteBufferT, frame: Frame) {
 
     tokio::spawn(async {
         protocol::enqueue_message(write_buffer, Acknowledgement {
-            op_code: Acknowledgement::OP_CODE,
             op_code_acknowledged: AllGames::OP_CODE,
         }).await.unwrap();
     });

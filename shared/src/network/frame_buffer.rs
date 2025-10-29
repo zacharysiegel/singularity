@@ -1,5 +1,5 @@
 use crate::error::{AppError, AppErrorStatic};
-use crate::network::protocol::{Frame, Head, OperationType};
+use crate::network::protocol::{Frame, Head, OpCode, OperationType};
 use crate::network::ring_buffer::{RingBuffer, RingBufferView};
 
 pub trait FrameBuffer {
@@ -16,12 +16,13 @@ impl<const N: usize> FrameBuffer for RingBuffer<u8, N> {
             let Some(head) = self.peek_frame_head()? else {
                 break;
             };
-            if head.length > bytes_remaining {
+
+            if head.total_length() > bytes_remaining {
                 break;
             }
 
             let frame_data: Vec<u8> = self.pop_frame_data(&head)?;
-            let frame: Frame = Frame { head, data: frame_data };
+            let frame: Frame = Frame::try_from(frame_data.as_slice())?;
             frames.push(frame);
         }
         Ok(frames)
@@ -31,8 +32,8 @@ impl<const N: usize> FrameBuffer for RingBuffer<u8, N> {
         if self.used_space() < 1 {
             return Ok(None);
         }
-        let op_code_view: RingBufferView<u8> = self.peek(1)?; // Must be modified if OpCode changes size
-        let op_type: OperationType = OperationType::from_op_code(op_code_view[0])?;
+        let op_code_view: RingBufferView<u8> = self.peek(1)?;
+        let op_type: OperationType = OperationType::from_op_code(op_code_view[0])?; // Must be modified if OpCode changes size
 
         let frame_size: usize = match op_type.fixed_size() {
             None => {
@@ -47,12 +48,12 @@ impl<const N: usize> FrameBuffer for RingBuffer<u8, N> {
 
         Ok(Some(Head {
             op_type,
-            length: frame_size,
+            data_length: frame_size,
         }))
     }
 
     fn pop_frame_data(&mut self, head: &Head) -> Result<Vec<u8>, AppError> {
-        let view: RingBufferView<u8> = self.pop(head.length)?;
+        let view: RingBufferView<u8> = self.pop(size_of::<OpCode>() + head.data_length)?;
         let frame_vec: Vec<u8> = view.into();
         Ok(frame_vec)
     }
