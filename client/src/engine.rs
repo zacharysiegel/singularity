@@ -1,7 +1,7 @@
 use crate::config::APPLICATION_NAME;
 use crate::stage::StageType;
 use crate::state::STATE;
-use crate::{connect, input, map, player, shader, stage, texture, title};
+use crate::{connect, input, shader, stage, texture, title};
 use raylib::callbacks::TraceLogLevel;
 use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};

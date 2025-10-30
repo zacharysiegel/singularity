@@ -1,10 +1,10 @@
 use crate::input;
 use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
-use raylib::RaylibHandle;
 use raylib::math::Rectangle;
+use raylib::RaylibHandle;
 use shared::map::RenderCoord;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RectangularButton {
     pub rectangle: Rectangle,
     pub text: Option<String>,

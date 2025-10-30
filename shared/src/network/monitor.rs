@@ -1,5 +1,5 @@
 use crate::error::AppErrorStatic;
-use crate::network::connection::{ConnectionReader, ConnectionWriter, WriteBufferT, BUFFER_SIZE};
+use crate::network::connection::{BUFFER_SIZE, ConnectionReader, ConnectionWriter, WriteBufferT};
 use crate::network::frame_buffer::FrameBuffer;
 use crate::network::protocol::Frame;
 use crate::network::ring_buffer::RingBuffer;

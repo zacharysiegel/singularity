@@ -8,11 +8,11 @@ use crate::title::{
     BUTTON_FONT_SIZE, BUTTON_INTERNAL_MARGIN, BUTTON_TEXT_ARRAY, BUTTON_VERTICAL_MARGIN, SCREEN_MARGIN,
     TITLE_VERTICAL_MARGIN,
 };
-use raylib::RaylibHandle;
 use raylib::ffi::GetFontDefault;
 use raylib::math::{Rectangle, Vector2};
 use raylib::prelude::WeakFont;
 use raylib::text::RaylibFont;
+use raylib::RaylibHandle;
 use shared::environment::RuntimeEnvironment;
 use shared::map::RenderCoord;
 use std::sync::{LazyLock, RwLockWriteGuard};
@@ -39,7 +39,8 @@ const BUTTON_DIMENSIONS: LazyLock<Vector2> = LazyLock::new(|| {
 
 pub fn init_title(rl: &mut RaylibHandle) {
     if RuntimeEnvironment::default().is_debug() {
-        let mut debug_button = STATE.stage.title.debug_button.write().unwrap();
+        let mut debug_button: RwLockWriteGuard<Option<RectangularButton>> =
+            STATE.stage.title.debug_button.button.write().unwrap();
         *debug_button = Some(create_debug_button(rl));
     }
 

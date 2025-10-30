@@ -189,6 +189,7 @@ impl<'a> From<&'a Frame> for Heartbeat {
 #[repr(C, packed(1))]
 pub struct Register {
     pub user_id: Uuid,
+    // todo: add debug flag. only send default game setup if debug = true
 }
 
 impl Operation for Register {

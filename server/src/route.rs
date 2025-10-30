@@ -18,7 +18,7 @@ pub async fn route_frame(write_buffer: WriteBufferT, frame: Frame) {
             log::trace!("Acknowledgement received; [{}]", frame);
             acknowledgement(frame);
         }
-        _ => {},
+        _ => {}
     }
 }
 

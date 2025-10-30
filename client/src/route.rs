@@ -1,10 +1,11 @@
 use crate::state::STATE;
+use crate::title;
 use shared::map::{Hex, HEX_COUNT};
 use shared::network::connection::WriteBufferT;
+use shared::network::protocol;
 use shared::network::protocol::{Acknowledgement, AllGames, Frame, Heartbeat, Operation, OperationType, Register};
 use shared::player::Player;
 use std::sync::RwLockWriteGuard;
-use shared::network::protocol;
 
 pub async fn route_frame(write_buffer: WriteBufferT, frame: Frame) {
     match frame.head.op_type {
@@ -27,8 +28,15 @@ fn all_games(write_buffer: WriteBufferT, frame: Frame) {
     drop(players);
 
     tokio::spawn(async {
-        protocol::enqueue_message(write_buffer, Acknowledgement {
-            op_code_acknowledged: AllGames::OP_CODE,
-        }).await.unwrap();
+        protocol::enqueue_message(
+            write_buffer,
+            Acknowledgement {
+                op_code_acknowledged: AllGames::OP_CODE,
+            },
+        )
+        .await
+        .unwrap();
     });
+
+    title::enable_debug();
 }

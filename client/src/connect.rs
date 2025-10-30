@@ -6,7 +6,7 @@ use std::time::Duration;
 use crate::route;
 use shared::error::AppError;
 use shared::network::connection::{Connection, ConnectionReader, ConnectionWriter, WriteBufferT, BUFFER_SIZE};
-use shared::network::protocol::{Operation, Register};
+use shared::network::protocol::Register;
 use shared::network::ring_buffer::RingBuffer;
 use shared::network::{protocol, socket};
 use shared::{network, random};

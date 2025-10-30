@@ -1,7 +1,7 @@
 use crate::button::RectangularButton;
 use crate::config::APPLICATION_NAME;
 use crate::font::DEFAULT_FONT_SPACING;
-use crate::state::STATE;
+use crate::state::{Loading, STATE};
 use crate::title::{BUTTON_FONT_SIZE, TITLE_VERTICAL_MARGIN};
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
@@ -48,13 +48,19 @@ fn draw_title_text(rl_draw: &mut RaylibDrawHandle) {
 }
 
 fn draw_debug_button(rl_draw: &mut RaylibDrawHandle) {
-    let debug_button_l: RwLockReadGuard<Option<RectangularButton>> = STATE.stage.title.debug_button.read().unwrap();
-    if (&debug_button_l).is_none() {
+    let debug_button_g: RwLockReadGuard<Option<RectangularButton>> =
+        STATE.stage.title.debug_button.button.read().unwrap();
+    if (&debug_button_g).is_none() {
         return;
     }
 
-    let debug_button: &RectangularButton = (*debug_button_l).as_ref().unwrap();
-    draw_button(rl_draw, debug_button);
+    let mut debug_button: RectangularButton = debug_button_g.as_ref().unwrap().clone();
+    let debug_ready: RwLockReadGuard<Loading> = STATE.stage.title.debug_button.loading.read().unwrap();
+    if *debug_ready == Loading::Incomplete {
+        debug_button.text = Some("Loading...".to_string());
+    }
+
+    draw_button(rl_draw, &debug_button);
 }
 
 fn draw_main_buttons(rl_draw: &mut RaylibDrawHandle) {

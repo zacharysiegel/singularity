@@ -15,3 +15,9 @@ pub struct State {
     pub frame_counter: RwLock<u64>,
     pub screen_texture: RwLock<ScreenRenderTexture>,
 }
+
+#[derive(Debug, PartialEq)]
+pub enum Loading {
+    Incomplete,
+    Complete,
+}

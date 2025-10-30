@@ -1,5 +1,5 @@
 use shared::facility::{ControlCenter, FacilityCollection, FacilityState};
-use shared::map::{Hex, HexCoord, ResourceType, HEX_COUNT, HEX_COUNT_SQRT};
+use shared::map::{HEX_COUNT, HEX_COUNT_SQRT, Hex, HexCoord, ResourceType};
 use shared::player::Player;
 use shared::sync::{SyncGame, SyncMap};
 

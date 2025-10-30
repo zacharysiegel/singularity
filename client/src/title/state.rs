@@ -1,18 +1,38 @@
 use crate::button::RectangularButton;
-use std::sync::RwLock;
+use crate::state::{Loading, STATE};
+use std::sync::{RwLock, RwLockWriteGuard};
 
 #[derive(Debug)]
 pub struct TitleState {
-    pub debug_button: RwLock<Option<RectangularButton>>,
+    pub debug_button: DebugButton,
     pub main_buttons: [RwLock<RectangularButton>; 2],
 }
 
 impl TitleState {
     pub const DEFAULT: TitleState = TitleState {
-        debug_button: RwLock::new(None),
+        debug_button: DebugButton::DEFAULT,
         main_buttons: [
             RwLock::new(RectangularButton::DEFAULT),
             RwLock::new(RectangularButton::DEFAULT),
         ],
     };
+}
+
+#[derive(Debug)]
+pub struct DebugButton {
+    pub button: RwLock<Option<RectangularButton>>,
+    pub loading: RwLock<Loading>,
+}
+
+impl DebugButton {
+    pub const DEFAULT: DebugButton = DebugButton {
+        button: RwLock::new(None),
+        loading: RwLock::new(Loading::Incomplete),
+    };
+}
+
+pub fn enable_debug() {
+    let mut debug_ready: RwLockWriteGuard<Loading> = STATE.stage.title.debug_button.loading.write().unwrap();
+    *debug_ready = Loading::Complete;
+    drop(debug_ready);
 }
