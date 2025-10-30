@@ -4,6 +4,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use crate::route;
+use shared::environment::RuntimeEnvironment;
 use shared::error::AppError;
 use shared::network::connection::{Connection, ConnectionReader, ConnectionWriter, WriteBufferT, BUFFER_SIZE};
 use shared::network::protocol::Register;
@@ -13,7 +14,6 @@ use shared::{network, random};
 use socket2::{SockAddr, Socket};
 use tokio::net::TcpStream;
 use tokio::sync::RwLock;
-
 // todo: close connection during engine::destroy
 
 pub fn connect() -> Result<WriteBufferT, AppError> {
@@ -59,6 +59,7 @@ fn spawn_writer(writer: ConnectionWriter) {
 fn send_register(write_buffer: WriteBufferT) {
     let message = Register {
         user_id: random::random_uuid(),
+        client_debug: RuntimeEnvironment::default().is_debug(),
     };
     tokio::spawn(async move { protocol::enqueue_message(write_buffer, message).await });
 }

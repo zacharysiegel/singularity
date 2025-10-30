@@ -9,8 +9,9 @@
 use crate::error::{AppError, AppErrorStatic};
 use crate::network::connection::WriteBufferT;
 use crate::sync::{SyncGame, SyncTrait};
-use std::fmt::{self, Display};
+use std::fmt::{self, Debug, Display};
 use std::mem;
+use std::ops::Range;
 use uuid::Uuid;
 
 macro_rules! fixed_size_impl {
@@ -125,6 +126,7 @@ pub enum OperationType {
     Register,
     Acknowledgement,
     AllGames,
+    DebugGame,
 }
 
 impl Display for OperationType {
@@ -134,6 +136,7 @@ impl Display for OperationType {
             OperationType::Register => "Register",
             OperationType::Acknowledgement => "Acknowledgement",
             OperationType::AllGames => "AllGames",
+            OperationType::DebugGame => "DebugGame",
         };
         write!(f, "OperationType({})", string)
     }
@@ -146,6 +149,7 @@ impl OperationType {
             Register::OP_CODE => Ok(OperationType::Register),
             Acknowledgement::OP_CODE => Ok(OperationType::Acknowledgement),
             AllGames::OP_CODE => Ok(OperationType::AllGames),
+            DebugGame::OP_CODE => Ok(OperationType::DebugGame),
             _ => Err(AppError::new(&format!("Invalid op code; [{}]", op_code))),
         }
     }
@@ -156,6 +160,7 @@ impl OperationType {
             OperationType::Register => Register::OP_CODE,
             OperationType::Acknowledgement => Acknowledgement::OP_CODE,
             OperationType::AllGames => AllGames::OP_CODE,
+            OperationType::DebugGame => DebugGame::OP_CODE,
         }
     }
 
@@ -165,6 +170,7 @@ impl OperationType {
             OperationType::Register => Register::FIXED_SIZE,
             OperationType::Acknowledgement => Acknowledgement::FIXED_SIZE,
             OperationType::AllGames => AllGames::FIXED_SIZE,
+            OperationType::DebugGame => DebugGame::FIXED_SIZE,
         }
     }
 }
@@ -180,7 +186,7 @@ impl Operation for Heartbeat {
 }
 
 impl<'a> From<&'a Frame> for Heartbeat {
-    fn from(value: &'a Frame) -> Self {
+    fn from(_value: &'a Frame) -> Self {
         Self {}
     }
 }
@@ -189,7 +195,7 @@ impl<'a> From<&'a Frame> for Heartbeat {
 #[repr(C, packed(1))]
 pub struct Register {
     pub user_id: Uuid,
-    // todo: add debug flag. only send default game setup if debug = true
+    pub client_debug: bool,
 }
 
 impl Operation for Register {
@@ -202,9 +208,15 @@ impl<'a> TryFrom<&'a Frame> for Register {
     type Error = AppError;
 
     fn try_from(value: &'a Frame) -> Result<Self, Self::Error> {
-        let uuid: Uuid =
-            Uuid::from_slice(value.data.as_slice()).map_err(|e| AppError::from_error_default(Box::new(e)))?;
-        Ok(Self { user_id: uuid })
+        let mut range: Range<usize> = 0..size_of::<Uuid>();
+        let user_id_bytes: &[u8] = &value.data.get(range.clone()).ok_or_else(|| AppErrorStatic::invalid_size())?;
+        let user_id: Uuid = Uuid::from_slice(user_id_bytes).map_err(|e| AppError::from_error_default(Box::new(e)))?;
+
+        range = range.end..(range.end + size_of::<bool>());
+        let client_debug_bytes: &[u8] = &value.data.get(range).ok_or_else(|| AppErrorStatic::invalid_size())?;
+        let client_debug: bool = 1 == u8::from_be_bytes(<[u8; 1]>::try_from(client_debug_bytes)?);
+
+        Ok(Self { user_id, client_debug })
     }
 }
 
@@ -260,9 +272,37 @@ impl Operation for AllGames {
     }
 }
 
+pub struct DebugGame {
+    pub game: SyncGame,
+}
+
+impl<'a> TryFrom<&'a Frame> for DebugGame {
+    type Error = AppErrorStatic;
+
+    fn try_from(value: &'a Frame) -> Result<Self, Self::Error> {
+        let (_, game) = SyncGame::try_deserialize(value.data.as_slice())?;
+        Ok(Self { game })
+    }
+}
+
+impl Operation for DebugGame {
+    const OP_CODE: OpCode = 5;
+
+    fn to_frame(&self) -> Frame {
+        let data: Vec<u8> = self.game.to_bytes();
+        Frame {
+            head: Head {
+                op_type: OperationType::DebugGame,
+                data_length: data.len(),
+            },
+            data,
+        }
+    }
+}
+
 pub async fn enqueue_message<T: Operation>(write_buffer: WriteBufferT, message: T) -> Result<(), AppErrorStatic> {
-    let x = message.to_frame().to_bytes();
-    write_buffer.write().await.push(x.as_slice())?;
+    let bytes: Vec<u8> = message.to_frame().to_bytes();
+    write_buffer.write().await.push(bytes.as_slice())?;
     Ok(())
 }
 

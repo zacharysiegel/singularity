@@ -76,6 +76,12 @@ impl From<std::io::Error> for AppError {
     }
 }
 
+impl From<TryFromSliceError> for AppError {
+    fn from(value: TryFromSliceError) -> Self {
+        AppError::from_error("invalid size", Box::new(value))
+    }
+}
+
 /// Like [AppError], but cannot include a sub error (in order to be dyn-compatible)
 /// Should be initialized lazily (e.g. [Option::ok_or_else]) for captured backtraces to make sense.
 #[derive(Debug)]
@@ -94,6 +100,10 @@ impl AppErrorStatic {
             backtrace,
         };
         app_error
+    }
+
+    pub fn invalid_size() -> AppErrorStatic {
+        Self::new("invalid size") // todo: refactor usages to use this
     }
 }
 

@@ -1,7 +1,7 @@
 use crate::game;
 use shared::network::connection::WriteBufferT;
 use shared::network::protocol;
-use shared::network::protocol::{Acknowledgement, AllGames, Frame, Heartbeat, OperationType, Register};
+use shared::network::protocol::{Acknowledgement, DebugGame, Frame, Heartbeat, OperationType, Register};
 use shared::sync::SyncGame;
 
 pub async fn route_frame(write_buffer: WriteBufferT, frame: Frame) {
@@ -35,7 +35,7 @@ fn register(write_buffer: WriteBufferT, frame: Frame) {
 
     tokio::spawn(async {
         let game: SyncGame = game::init_game();
-        protocol::enqueue_message(write_buffer, AllGames { games: vec![game] }).await.unwrap();
+        protocol::enqueue_message(write_buffer, DebugGame { game }).await.unwrap();
     });
 }
 
