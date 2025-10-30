@@ -15,7 +15,7 @@ pub async fn route_frame(write_buffer: WriteBufferT, frame: Frame) {
 
 fn all_games(write_buffer: WriteBufferT, frame: Frame) {
     let all_games: AllGames = AllGames::try_from(&frame).unwrap();
-    log::debug!("parsed frame; [{:?}]", all_games);
+    log::debug!("parsed frame; [AllGames]");
 
     let mut hexes = STATE.stage.game.map.hexes.write().unwrap();
     let vec = all_games.games[0].map.hexes.clone();

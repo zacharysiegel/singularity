@@ -22,8 +22,8 @@ pub fn init_game() -> SyncGame {
 }
 
 fn init_map(hexes: &mut Vec<Hex>) {
-    for i in 0..HEX_COUNT_SQRT {
-        for j in 0..HEX_COUNT_SQRT {
+    for j in 0..HEX_COUNT_SQRT {
+        for i in 0..HEX_COUNT_SQRT {
             let hex_coord: HexCoord = HexCoord { i, j };
             let resource_type: ResourceType = init_resource_type_from_hex_coord(&hex_coord);
             let hex: Hex = Hex {
