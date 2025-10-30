@@ -32,7 +32,6 @@ Menus
    	Debug
 Networking
     TLS (low)
-	Initialize game data from server [in progress]
 	Real-time upload
 	Data consistency
 	Real-time download
