@@ -1,5 +1,5 @@
 use crate::error::{AppError, AppErrorStatic};
-use crate::network::protocol::{Frame, Head, OperationType};
+use crate::network::protocol::{Frame, Head, OpCode, OperationType};
 use crate::network::ring_buffer::{RingBuffer, RingBufferView};
 
 pub trait FrameBuffer {
@@ -29,26 +29,26 @@ impl<const N: usize> FrameBuffer for RingBuffer<u8, N> {
     }
 
     fn peek_frame_head(&self) -> Result<Option<Head>, AppError> {
-        if self.used_space() < 1 {
+        if self.used_space() < size_of::<OpCode>() {
             return Ok(None);
         }
-        let op_code_view: RingBufferView<u8> = self.peek(1)?;
+        let op_code_view: RingBufferView<u8> = self.peek(size_of::<OpCode>())?;
         let op_type: OperationType = OperationType::from_op_code(op_code_view[0])?; // Must be modified if OpCode changes size
 
-        let frame_size: usize = match op_type.fixed_size() {
+        let data_length: usize = match op_type.fixed_size() {
             Some(size) => size,
             None => {
                 if self.used_space() < op_type.head_length() {
                     return Ok(None);
                 }
                 let length_view: RingBufferView<u8> = self.peek(op_type.head_length())?;
-                u32::from_be_bytes([length_view[1], length_view[2], length_view[3], length_view[4]]) as usize
+                u32::from_be_bytes([length_view[1], length_view[2], length_view[3], length_view[4]]) as usize // Must be modified if OpCode or Head.data_length changes size
             }
         };
 
         Ok(Some(Head {
             op_type,
-            data_length: frame_size,
+            data_length,
         }))
     }
 
