@@ -1,8 +1,25 @@
 use std::array::TryFromSliceError;
 use std::backtrace::{Backtrace, BacktraceStatus};
 use std::error::Error;
-use std::fmt;
 use std::fmt::{Display, Formatter};
+use std::num::TryFromIntError;
+use std::{fmt, io};
+
+macro_rules! impl_from_error {
+    ($error_type:ty) => {
+        impl From<$error_type> for $crate::error::AppError {
+            fn from(value: $error_type) -> Self {
+                Self::from_error_default(::std::boxed::Box::new(value))
+            }
+        }
+
+        impl From<$error_type> for $crate::error::AppErrorStatic {
+            fn from(value: $error_type) -> Self {
+                Self::new(&value.to_string())
+            }
+        }
+    };
+}
 
 /// Should be initialized lazily (e.g. [Option::ok_or_else]) for captured backtraces to make sense.
 #[derive(Debug)]
@@ -24,7 +41,7 @@ impl AppError {
     }
 
     pub fn from_error_default(error: Box<dyn Error>) -> AppError {
-        Self::_new(Self::DEFAULT_MESSAGE, Some(error))
+        Self::_new(&error.to_string(), Some(error))
     }
 
     fn _new(message: &str, error: Option<Box<dyn Error>>) -> AppError {
@@ -67,18 +84,6 @@ impl From<AppErrorStatic> for AppError {
             sub_error: None,
             backtrace: value.backtrace,
         }
-    }
-}
-
-impl From<std::io::Error> for AppError {
-    fn from(err: std::io::Error) -> Self {
-        AppError::from_error(&err.to_string(), Box::new(err))
-    }
-}
-
-impl From<TryFromSliceError> for AppError {
-    fn from(value: TryFromSliceError) -> Self {
-        AppError::from_error("invalid size", Box::new(value))
     }
 }
 
@@ -135,14 +140,6 @@ impl From<AppError> for AppErrorStatic {
     }
 }
 
-impl From<std::io::Error> for AppErrorStatic {
-    fn from(err: std::io::Error) -> Self {
-        AppErrorStatic::new(&err.to_string())
-    }
-}
-
-impl From<TryFromSliceError> for AppErrorStatic {
-    fn from(value: TryFromSliceError) -> Self {
-        AppErrorStatic::new(&value.to_string())
-    }
-}
+impl_from_error!(io::Error);
+impl_from_error!(TryFromSliceError);
+impl_from_error!(TryFromIntError);
