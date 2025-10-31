@@ -20,19 +20,16 @@ Player interactions
 		Repair
 	Attack facility (opposed facility spaces)
 	Chat
-	Time machine
+	Time scrubber
 Menus
-   	Account setup
+   	Initial account setup
    	Games
    	   Active
    	   Past
    	   Current
    		  Create
    	Account
-   	Debug
 Networking
     TLS (low)
-	Real-time upload
 	Data consistency
-	Real-time download
 Proper map generation (see plan.md)
