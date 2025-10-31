@@ -17,7 +17,7 @@ impl<const N: usize> FrameBuffer for RingBuffer<u8, N> {
                 break;
             };
 
-            if head.total_length() > bytes_remaining {
+            if head.frame_length() > bytes_remaining {
                 break;
             }
 
@@ -36,14 +36,14 @@ impl<const N: usize> FrameBuffer for RingBuffer<u8, N> {
         let op_type: OperationType = OperationType::from_op_code(op_code_view[0])?; // Must be modified if OpCode changes size
 
         let frame_size: usize = match op_type.fixed_size() {
+            Some(size) => size,
             None => {
-                if self.used_space() < 3 {
+                if self.used_space() < op_type.head_length() {
                     return Ok(None);
                 }
-                let length_view: RingBufferView<u8> = self.peek(3)?;
-                u16::from_be_bytes([length_view[1], length_view[2]]) as usize
+                let length_view: RingBufferView<u8> = self.peek(op_type.head_length())?;
+                u32::from_be_bytes([length_view[1], length_view[2], length_view[3], length_view[4]]) as usize
             }
-            Some(size) => size,
         };
 
         Ok(Some(Head {

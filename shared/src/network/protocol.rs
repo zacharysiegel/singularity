@@ -56,10 +56,10 @@ impl TryFrom<&[u8]> for Frame {
             Some(size) => size,
             None => {
                 let start: usize = size_of::<OpCode>();
-                let end: usize = start + size_of::<u16>(); // todo: change to u32
+                let end: usize = start + size_of::<u32>();
                 let bytes: &[u8] = value.get(start..end).ok_or_else(|| AppErrorStatic::new("invalid size"))?;
-                let array: [u8; 2] = <[u8; 2]>::try_from(bytes)?;
-                usize::from(u16::from_be_bytes(array))
+                let array: [u8; 4] = <[u8; 4]>::try_from(bytes)?;
+                usize::try_from(u32::from_be_bytes(array))?
             }
         };
 
@@ -80,7 +80,8 @@ impl Frame {
 
         out.extend(self.head.op_type.op_code().to_be_bytes());
         if let None = self.head.op_type.fixed_size() {
-            out.extend_from_slice((self.head.data_length as u16).to_be_bytes().as_slice()); // todo: change to u32
+            let length: u32 = u32::try_from(self.head.data_length).unwrap();
+            out.extend_from_slice(length.to_be_bytes().as_slice());
         }
         out.extend_from_slice(self.data.as_slice());
         out
@@ -101,13 +102,10 @@ impl Display for Head {
 
 impl Head {
     pub fn head_length(&self) -> usize {
-        match self.op_type.fixed_size() {
-            Some(_) => size_of::<OpCode>(),
-            None => size_of::<OpCode>() + size_of::<u16>(), // todo: change to u32
-        }
+        self.op_type.head_length()
     }
 
-    pub fn total_length(&self) -> usize {
+    pub fn frame_length(&self) -> usize {
         size_of::<OpCode>() + self.data_length
     }
 }
@@ -171,6 +169,13 @@ impl OperationType {
             OperationType::Acknowledgement => Acknowledgement::FIXED_SIZE,
             OperationType::AllGames => AllGames::FIXED_SIZE,
             OperationType::DebugGame => DebugGame::FIXED_SIZE,
+        }
+    }
+
+    pub const fn head_length(&self) -> usize {
+        match self.fixed_size() {
+            Some(_) => size_of::<OpCode>(),
+            None => size_of::<OpCode>() + size_of::<u32>(),
         }
     }
 }
