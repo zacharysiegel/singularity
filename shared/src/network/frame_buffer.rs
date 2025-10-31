@@ -22,7 +22,7 @@ impl<const N: usize> FrameBuffer for RingBuffer<u8, N> {
             }
 
             let frame_data: Vec<u8> = self.pop_frame_data(&head)?;
-            let frame: Frame = Frame::try_from(frame_data.as_slice())?; // todo: TryFrom<&[u8]> for Frame
+            let frame: Frame = Frame::try_from(frame_data.as_slice())?;
             frames.push(frame);
         }
         Ok(frames)
