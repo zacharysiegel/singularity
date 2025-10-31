@@ -1,5 +1,5 @@
 use crate::error::{AppError, AppErrorStatic};
-use crate::network::protocol::{Frame, Head, OpCode, OperationType};
+use crate::network::protocol::{Frame, Head, OperationType};
 use crate::network::ring_buffer::{RingBuffer, RingBufferView};
 
 pub trait FrameBuffer {

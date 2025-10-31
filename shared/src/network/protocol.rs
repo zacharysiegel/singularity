@@ -315,7 +315,11 @@ mod tests {
     fn size_snapshots() {
         assert_eq!(1, size_of::<OpCode>());
         assert_eq!(0, size_of::<Heartbeat>());
-        assert_eq!(16, size_of::<Register>());
+        assert_eq!(17, size_of::<Register>());
         assert_eq!(1, size_of::<Acknowledgement>());
+
+        assert_eq!(Heartbeat::FIXED_SIZE.unwrap(), size_of::<Heartbeat>());
+        assert_eq!(Register::FIXED_SIZE.unwrap(), size_of::<Register>());
+        assert_eq!(Acknowledgement::FIXED_SIZE.unwrap(), size_of::<Acknowledgement>());
     }
 }

@@ -4,7 +4,7 @@ use shared::environment::RuntimeEnvironment;
 use shared::map::{Hex, HEX_COUNT};
 use shared::network::connection::WriteBufferT;
 use shared::network::protocol;
-use shared::network::protocol::{Acknowledgement, AllGames, DebugGame, Frame, Operation, OperationType};
+use shared::network::protocol::{Acknowledgement, DebugGame, Frame, Operation, OperationType};
 use shared::player::Player;
 use std::sync::RwLockWriteGuard;
 
