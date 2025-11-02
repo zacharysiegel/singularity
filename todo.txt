@@ -24,7 +24,7 @@ Player interactions
 Menus
    	Initial account setup
    	Games
-   	   Active
+   	   Active [in progress]
    	   Past
    	   Current
    		  Create
@@ -33,3 +33,9 @@ Networking
     TLS (low)
 	Data consistency
 Proper map generation (see plan.md)
+
+Current
+	Set up game browser
+	Associate client with game (session)
+	Associate user with game (persistent) (database)
+	Associate client with user (session)
