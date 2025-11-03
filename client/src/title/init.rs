@@ -77,7 +77,7 @@ fn create_games_button(rl: &mut RaylibHandle) -> RectangularButton {
         y: rl.get_screen_height() as f32 / 2. - BUTTON_DIMENSIONS.y / 2. + TITLE_VERTICAL_MARGIN / 2.,
     };
 
-    let button: RectangularButton = RectangularButton::new_with_text(
+    let mut button: RectangularButton = RectangularButton::new_with_text(
         BUTTON_TEXT_ARRAY[0],
         Rectangle {
             x: position.x,
@@ -86,6 +86,11 @@ fn create_games_button(rl: &mut RaylibHandle) -> RectangularButton {
             height: BUTTON_DIMENSIONS.y,
         },
     );
+    button.on_click = on_click;
+    fn on_click(_rl: &mut RaylibHandle, _render_coord: RenderCoord) -> ClickResult {
+        stage::register_next(StageType::Browser);
+        ClickResult::Consume
+    }
     button
 }
 

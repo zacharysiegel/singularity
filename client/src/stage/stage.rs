@@ -1,8 +1,9 @@
+use crate::browser::BrowserState;
 use crate::game::GameState;
 use crate::input::{ClickResult, HoverResult, KeyPressResult, ScrollResult};
 use crate::state::STATE;
 use crate::title::TitleState;
-use crate::{game, title};
+use crate::{browser, game, input, title};
 use raylib::consts::KeyboardKey;
 use raylib::drawing::RaylibDrawHandle;
 use raylib::math::Vector2;
@@ -16,6 +17,7 @@ pub struct StageState {
     pub next: RwLock<Option<StageType>>,
     pub title: TitleState,
     pub game: GameState,
+    pub browser: BrowserState,
 }
 
 impl StageState {
@@ -24,6 +26,7 @@ impl StageState {
         next: RwLock::new(None),
         title: TitleState::DEFAULT,
         game: GameState::DEFAULT,
+        browser: BrowserState::DEFAULT,
     };
 }
 
@@ -31,6 +34,7 @@ impl StageState {
 pub enum StageType {
     Title,
     Game,
+    Browser,
 }
 
 impl StageType {
@@ -45,6 +49,7 @@ impl StageType {
         match self {
             StageType::Title => title::click(rl, mouse_position),
             StageType::Game => game::click(rl, mouse_position),
+            StageType::Browser => input::noop_on_click(rl, mouse_position), // todo
         }
     }
 
@@ -52,12 +57,14 @@ impl StageType {
         match self {
             StageType::Title => title::hover(rl, mouse_position),
             StageType::Game => game::hover(rl, mouse_position),
+            StageType::Browser => input::noop_on_hover(rl, mouse_position), // todo
         }
     }
 
     pub fn key_press(&self, rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
         match self {
             StageType::Game => game::key_press(rl, key),
+            StageType::Browser => input::noop_on_key_press(rl, key), // todo
             _ => KeyPressResult::Pass,
         }
     }
@@ -66,6 +73,7 @@ impl StageType {
         match self {
             StageType::Title => title::draw(rl_draw),
             StageType::Game => game::draw(rl_draw, rl_thread),
+            StageType::Browser => browser::draw(rl_draw),
         }
     }
 }
