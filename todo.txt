@@ -36,6 +36,6 @@ Proper map generation (see plan.md)
 
 Current
 	Set up game browser
-	Associate client with game (session)
-	Associate user with game (persistent) (database)
+	Associate client with game (session) ("launch")
+	Associate user with game (persistent) (database) ("join")
 	Associate client with user (session)

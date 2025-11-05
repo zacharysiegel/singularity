@@ -79,22 +79,22 @@ pub fn handle_user_input(rl: &mut RaylibHandle) {
 }
 
 fn scroll(rl: &mut RaylibHandle, scroll_v: Vector2) {
-    let current_stage: RwLockReadGuard<StageType> = STATE.stage.current.read().unwrap();
+    let current_stage: RwLockReadGuard<StageType> = STATE.stage.switch.current.read().unwrap();
     current_stage.scroll(rl, scroll_v);
 }
 
 fn click(rl: &mut RaylibHandle, mouse_position: RenderCoord) {
-    let current_stage: RwLockReadGuard<StageType> = STATE.stage.current.read().unwrap();
+    let current_stage: RwLockReadGuard<StageType> = STATE.stage.switch.current.read().unwrap();
     current_stage.click(rl, mouse_position);
 }
 
 fn hover(rl: &mut RaylibHandle, mouse_position: RenderCoord) {
-    let current_stage: RwLockReadGuard<StageType> = STATE.stage.current.read().unwrap();
+    let current_stage: RwLockReadGuard<StageType> = STATE.stage.switch.current.read().unwrap();
     current_stage.hover(rl, mouse_position);
 }
 
 fn key_press(rl: &mut RaylibHandle, key: KeyboardKey) {
-    let current_stage: RwLockReadGuard<StageType> = STATE.stage.current.read().unwrap();
+    let current_stage: RwLockReadGuard<StageType> = STATE.stage.switch.current.read().unwrap();
     current_stage.key_press(rl, key);
 }
 

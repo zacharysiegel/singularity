@@ -1,7 +1,7 @@
 use crate::browser::BrowserState;
 use crate::game::GameState;
 use crate::input::{ClickResult, HoverResult, KeyPressResult, ScrollResult};
-use crate::state::STATE;
+use crate::locked_switch::LockedSwitch;
 use crate::title::TitleState;
 use crate::{browser, game, input, title};
 use raylib::consts::KeyboardKey;
@@ -9,12 +9,10 @@ use raylib::drawing::RaylibDrawHandle;
 use raylib::math::Vector2;
 use raylib::{RaylibHandle, RaylibThread};
 use shared::map::RenderCoord;
-use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 #[derive(Debug)]
 pub struct StageState {
-    pub current: RwLock<StageType>,
-    pub next: RwLock<Option<StageType>>,
+    pub switch: LockedSwitch<StageType>,
     pub title: TitleState,
     pub game: GameState,
     pub browser: BrowserState,
@@ -22,8 +20,7 @@ pub struct StageState {
 
 impl StageState {
     pub const DEFAULT: StageState = StageState {
-        current: RwLock::new(StageType::Title),
-        next: RwLock::new(None),
+        switch: LockedSwitch::new(StageType::Title),
         title: TitleState::DEFAULT,
         game: GameState::DEFAULT,
         browser: BrowserState::DEFAULT,
@@ -76,23 +73,4 @@ impl StageType {
             StageType::Browser => browser::draw(rl_draw),
         }
     }
-}
-
-pub fn register_next(stage_type: StageType) {
-    let mut next: RwLockWriteGuard<Option<StageType>> = STATE.stage.next.write().unwrap();
-    *next = Some(stage_type);
-}
-
-pub fn update() {
-    let next: RwLockReadGuard<Option<StageType>> = STATE.stage.next.read().unwrap();
-    if next.is_none() {
-        return;
-    }
-    drop(next);
-
-    let mut current: RwLockWriteGuard<StageType> = STATE.stage.current.write().unwrap();
-    let mut next: RwLockWriteGuard<Option<StageType>> = STATE.stage.next.write().unwrap();
-
-    *current = next.unwrap();
-    *next = None;
 }

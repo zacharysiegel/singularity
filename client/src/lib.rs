@@ -16,3 +16,4 @@ pub mod texture;
 pub mod title;
 pub mod window;
 pub mod browser;
+pub mod locked_switch;

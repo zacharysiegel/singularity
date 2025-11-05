@@ -4,7 +4,7 @@ use crate::stage::StageType;
 use crate::state::STATE;
 use crate::window;
 use crate::window::state::WindowLayer;
-use crate::window::{BORDER_GAP, Window};
+use crate::window::{Window, BORDER_GAP};
 use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
@@ -98,7 +98,7 @@ impl PauseWindow {
 }
 
 fn on_click(_rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> ClickResult {
-    let mut next: RwLockWriteGuard<Option<StageType>> = STATE.stage.next.write().unwrap();
+    let mut next: RwLockWriteGuard<Option<StageType>> = STATE.stage.switch.next.write().unwrap();
     *next = Some(StageType::Title);
 
     ClickResult::Consume
@@ -111,11 +111,11 @@ mod draw {
     use crate::texture::ScreenRenderTexture;
     use crate::window;
     use crate::window::pause::PAUSE_INTERNAL_MARGIN;
-    use crate::window::{BORDER_GAP, BUTTON_INTERNAL_MARGIN, PauseWindow};
-    use raylib::RaylibThread;
+    use crate::window::{PauseWindow, BORDER_GAP, BUTTON_INTERNAL_MARGIN};
     use raylib::drawing::{RaylibDraw, RaylibDrawHandle, RaylibShaderModeExt, RaylibTextureModeExt};
     use raylib::math::{Rectangle, Vector2};
     use raylib::texture::RaylibTexture2D;
+    use raylib::RaylibThread;
     use shared::color::{DIFF_HOVER_BUTTON, RED, TEXT_COLOR, WINDOW_BACKGROUND_COLOR};
     use shared::math;
     use std::rc::Rc;

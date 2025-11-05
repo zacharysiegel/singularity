@@ -23,12 +23,13 @@ pub const DISPLAY_HEIGHT: u16 = 900;
 
 fn update(rl: &mut RaylibHandle, rl_thread: &RaylibThread) {
     texture::update(rl, rl_thread);
-    stage::update();
+    STATE.stage.switch.update();
+    // todo: update per stage
     input::handle_user_input(rl);
 }
 
 fn draw(rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
-    let current_stage: RwLockReadGuard<StageType> = STATE.stage.current.read().unwrap();
+    let current_stage: RwLockReadGuard<StageType> = STATE.stage.switch.current.read().unwrap();
     current_stage.draw(rl_draw, rl_thread);
     drop(current_stage);
 

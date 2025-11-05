@@ -1,7 +1,6 @@
 use crate::button::RectangularButton;
 use crate::font::DEFAULT_FONT_SPACING;
 use crate::input::ClickResult;
-use crate::stage;
 use crate::stage::StageType;
 use crate::state::STATE;
 use crate::title::{
@@ -63,7 +62,7 @@ fn create_debug_button(rl: &mut RaylibHandle) -> RectangularButton {
     );
 
     fn on_click(_rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> ClickResult {
-        stage::register_next(StageType::Game);
+        STATE.stage.switch.register_next(StageType::Game);
         ClickResult::Consume
     }
     button.on_click = on_click;
@@ -88,7 +87,7 @@ fn create_games_button(rl: &mut RaylibHandle) -> RectangularButton {
     );
     button.on_click = on_click;
     fn on_click(_rl: &mut RaylibHandle, _render_coord: RenderCoord) -> ClickResult {
-        stage::register_next(StageType::Browser);
+        STATE.stage.switch.register_next(StageType::Browser);
         ClickResult::Consume
     }
     button
