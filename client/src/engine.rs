@@ -1,7 +1,7 @@
 use crate::config::APPLICATION_NAME;
 use crate::stage::StageType;
 use crate::state::STATE;
-use crate::{connect, input, shader, stage, texture, title};
+use crate::{connect, input, shader, texture, title};
 use raylib::callbacks::TraceLogLevel;
 use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
@@ -24,7 +24,11 @@ pub const DISPLAY_HEIGHT: u16 = 900;
 fn update(rl: &mut RaylibHandle, rl_thread: &RaylibThread) {
     texture::update(rl, rl_thread);
     STATE.stage.switch.update();
-    // todo: update per stage
+
+    let mut current_stage_g: RwLockWriteGuard<StageType> = STATE.stage.switch.current.write().unwrap();
+    current_stage_g.update(rl);
+    drop(current_stage_g);
+
     input::handle_user_input(rl);
 }
 

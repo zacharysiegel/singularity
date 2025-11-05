@@ -35,6 +35,12 @@ pub enum StageType {
 }
 
 impl StageType {
+    pub fn update(&mut self, _rl: &mut RaylibHandle) {
+        match self {
+            _ => {}
+        }
+    }
+
     pub fn scroll(&self, rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult {
         match self {
             StageType::Game => game::scroll(rl, scroll_v),
