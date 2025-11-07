@@ -3,7 +3,7 @@ use crate::game::GameState;
 use crate::input::{ClickResult, HoverResult, KeyPressResult, ScrollResult};
 use crate::locked_switch::LockedSwitch;
 use crate::title::TitleState;
-use crate::{browser, game, input, title};
+use crate::{browser, game, title};
 use raylib::consts::KeyboardKey;
 use raylib::drawing::RaylibDrawHandle;
 use raylib::math::Vector2;
@@ -52,7 +52,7 @@ impl StageType {
         match self {
             StageType::Title => title::click(rl, mouse_position),
             StageType::Game => game::click(rl, mouse_position),
-            StageType::Browser => input::noop_on_click(rl, mouse_position), // todo
+            StageType::Browser => browser::click(rl, mouse_position),
         }
     }
 
@@ -60,7 +60,7 @@ impl StageType {
         match self {
             StageType::Title => title::hover(rl, mouse_position),
             StageType::Game => game::hover(rl, mouse_position),
-            StageType::Browser => input::noop_on_hover(rl, mouse_position), // todo
+            StageType::Browser => browser::hover(rl, mouse_position),
         }
     }
 
