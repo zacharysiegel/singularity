@@ -35,6 +35,13 @@ Networking
 Proper map generation (see plan.md)
 
 Current
-	Associate client with game (session) ("launch")
-	Associate user with game (persistent) (database) ("join")
+	Copy `crypt` crate into this project
+		Move `crypt` to standalone package
+		Host on GitHub or crates.io
+	Save Postgres password to crypt instance
+	Connect to Postgres from `lobby`
+	Set up DBMate and initial database state
+
 	Associate client with user (session)
+	Associate user with game (persistent) (database) ("join")
+	Associate client with game (session) ("launch")
