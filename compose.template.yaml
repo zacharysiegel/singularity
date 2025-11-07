@@ -1,0 +1,24 @@
+name: singularity
+
+services:
+  postgres-local:
+    image: postgres:18.0-alpine
+    hostname: postgres
+    ports:
+      - '127.0.0.1:5432:5432/tcp'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - lobby
+    environment:
+      POSTGRES_USER: singularity
+      POSTGRES_DB: lobby
+      POSTGRES_PASSWORD: postgres__user.singularity.password.local # Replaced by setup script
+
+volumes:
+  postgres-data:
+
+networks:
+  lobby:
+    driver: bridge

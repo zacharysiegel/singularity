@@ -8,6 +8,11 @@ This game is designed to facilitate organic, complex social interactions between
 
 You must have Rust and Cargo installed on your machine.
 
+Run the setup script:
+```shell
+./setup.sh
+```
+
 Start the server:
 ```shell
 cargo run -p server

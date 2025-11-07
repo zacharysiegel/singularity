@@ -8,6 +8,8 @@ st
 **/*.dSYM/
 compile_commands.json
 target/
+compose.yaml
+.env
 
 # Clangd
 **/.cache/
