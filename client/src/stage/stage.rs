@@ -67,7 +67,7 @@ impl StageType {
     pub fn key_press(&self, rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
         match self {
             StageType::Game => game::key_press(rl, key),
-            StageType::Browser => input::noop_on_key_press(rl, key), // todo
+            StageType::Browser => browser::key_press(rl, key),
             _ => KeyPressResult::Pass,
         }
     }

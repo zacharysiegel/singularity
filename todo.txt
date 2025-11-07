@@ -36,6 +36,7 @@ Proper map generation (see plan.md)
 
 Current
 	Set up game browser
+		Esc goes back (to browser menu and also to main menu)
 	Associate client with game (session) ("launch")
 	Associate user with game (persistent) (database) ("join")
 	Associate client with user (session)

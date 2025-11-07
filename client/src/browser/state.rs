@@ -1,6 +1,11 @@
-use crate::browser::draw;
+use crate::browser::available::Available;
+use crate::browser::former::Former;
+use crate::browser::participating::Participating;
+use crate::input::KeyPressResult;
 use crate::locked_switch::LockedSwitch;
+use raylib::consts::KeyboardKey;
 use raylib::drawing::RaylibDrawHandle;
+use raylib::RaylibHandle;
 
 #[derive(Debug)]
 pub struct BrowserState {
@@ -9,31 +14,22 @@ pub struct BrowserState {
 
 impl BrowserState {
     pub const DEFAULT: BrowserState = BrowserState {
-        domain_switch: LockedSwitch::new(BrowserDomain::Participating),
+        domain_switch: LockedSwitch::new(BrowserDomain::DEFAULT),
     };
+}
+
+pub trait BrowserDomainTrait {
+    fn draw(&self, rl_draw: &mut RaylibDrawHandle);
+    fn key_press(&self, rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult;
 }
 
 #[derive(Debug, Copy, Clone)]
 pub enum BrowserDomain {
-    Former,
-    Participating,
-    Available,
-}
-
-impl Default for BrowserDomain {
-    fn default() -> Self {
-        Self::DEFAULT
-    }
+    Former(Former),
+    Participating(Participating),
+    Available(Available),
 }
 
 impl BrowserDomain {
-    pub const DEFAULT: BrowserDomain = BrowserDomain::Participating;
-
-    pub fn draw(&self, rl_draw: &mut RaylibDrawHandle) {
-        match self {
-            BrowserDomain::Former => draw::draw_former(rl_draw),
-            BrowserDomain::Participating => draw::draw_former(rl_draw),
-            BrowserDomain::Available => draw::draw_former(rl_draw),
-        }
-    }
+    pub const DEFAULT: BrowserDomain = BrowserDomain::Participating(Participating);
 }
