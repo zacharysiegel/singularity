@@ -6,9 +6,6 @@ master_secret="${1?"Argument 1 required: master_secret"}" # todo: pull master ke
 environments=("local" "stage" "production")
 repo_dir=$(git rev-parse --show-toplevel)
 
-echo "Initializing submodules"
-git submodule update --init --recursive
-
 cd "${repo_dir}"
 
 if ! which cargo 1> /dev/null 2>&1; then
@@ -17,10 +14,18 @@ if ! which cargo 1> /dev/null 2>&1; then
 	exit 1
 fi
 
-if ! which podman 1> /dev/null 2>&1; then
-	echo 'The `podman` program is required'
-	exit 1
-fi
+function required_program_simple {
+	local program_name="$1"
+	if ! which "$program_name" 1> /dev/null 2>&1; then
+		echo "The \`${program_name}\` program is required"
+		exit 1
+	fi
+}
+required_program_simple "podman"
+required_program_simple "dbmate"
+
+echo "Initializing submodules"
+git submodule update --init --recursive
 
 function sqlx_setup {
 	echo 'Installing the SQLx CLI onto the system (used for caching database state for query validations)'
@@ -65,5 +70,3 @@ generate_compose_from_template
 
 # All setup scripts should be idempotent and callable from the repo root directory
 # 	Include any subdirectory setup scripts below:
-
-}
