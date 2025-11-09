@@ -1,35 +1,64 @@
 #!/bin/zsh
 
-set -eo pipefail
+set -euo pipefail
 
-master_secret="${1?"Argument 1 required: master_secret"}" # todo: pull master key from .env file if exists
-environments=("local") # todo: other environments
 repo_dir=$(git rev-parse --show-toplevel)
+cd "${repo_dir}" || exit 1
+
 secrets_path="./secrets.yaml"
+env_path="./.env"
+environments=("local") # todo: other environments
 
-cd "${repo_dir}"
+master_secret=
+{ # Get master secret
+	search_regex="MASTER_SECRET=(.+)"
+	if test -z "${1+any}"; then
+		if ! test -f "$env_path"; then
+			echo "Master secret is required either via argument 1 or via .env"
+			exit 1
+		fi
+		if ! grep -E "$search_regex" "$env_path" >/dev/null; then
+			echo "Master secret is required either via argument 1 or via .env"
+			exit 1
+		fi
 
-if ! which cargo 1> /dev/null 2>&1; then
-	echo 'The `cargo` program is required'
-	echo "Install rustc/cargo/rustup: \`curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh\`"
-	exit 1
-fi
-
-function required_program_simple {
-	local program_name="$1"
-	if ! which "$program_name" 1> /dev/null 2>&1; then
-		echo "The \`${program_name}\` program is required"
-		exit 1
+		master_secret="$(
+			grep -E "$search_regex" "$env_path" \
+				| sed -E -e "s/${search_regex}/\1/g" \
+		)"
+	else
+		master_secret="${1}"
 	fi
 }
-required_program_simple "podman"
-required_program_simple "dbmate"
-required_program_simple "secr"
+
+function check_prerequisites {
+	if ! which cargo 1> /dev/null 2>&1; then
+		echo 'The `cargo` program is required'
+		echo "Install rustc/cargo/rustup: \`curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh\`"
+		exit 1
+	fi
+
+	function required_program_simple {
+		local program_name="$1"
+		if ! which "$program_name" 1> /dev/null 2>&1; then
+			echo "The \`${program_name}\` program is required"
+			exit 1
+		fi
+	}
+	required_program_simple "podman"
+	required_program_simple "dbmate"
+	required_program_simple "secr"
+}
+check_prerequisites
 
 echo "Initializing submodules"
 git submodule update --init --recursive
 
 function sqlx_setup {
+	if which sqlx 1> /dev/null 2>&1; then
+		return 0
+	fi
+
 	echo 'Installing the SQLx CLI onto the system (used for caching database state for query validations)'
 	echo 'You can run this command to check the status of ./.sqlx: `cargo sqlx prepare --workspace --check -- --all-targets --all-features`'
 	echo '...or to regenerate ./.sqlx: `cargo sqlx prepare --workspace -- --all-targets --all-features`'
