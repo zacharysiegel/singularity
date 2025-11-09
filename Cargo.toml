@@ -14,7 +14,7 @@ rand = { version = "0.9" }
 futures = { version = "0.3" }
 raylib = { version = "5.5" }
 strum = { version = "0.27", features = ["derive"] }
-secr = { version = "1.1" }
+secr = { version = "1.2" }
 
 # todo: check usage in lobby
 actix-web = { version = "4.11" }
