@@ -4,3 +4,4 @@ create table users(
 );
 
 -- migrate:down
+drop table users;
