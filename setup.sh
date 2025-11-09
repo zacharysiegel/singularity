@@ -3,8 +3,9 @@
 set -eo pipefail
 
 master_secret="${1?"Argument 1 required: master_secret"}" # todo: pull master key from .env file if exists
-environments=("local" "stage" "production")
+environments=("local") # todo: other environments
 repo_dir=$(git rev-parse --show-toplevel)
+secrets_path="./secrets.yaml"
 
 cd "${repo_dir}"
 
@@ -23,6 +24,7 @@ function required_program_simple {
 }
 required_program_simple "podman"
 required_program_simple "dbmate"
+required_program_simple "secr"
 
 echo "Initializing submodules"
 git submodule update --init --recursive
@@ -38,9 +40,9 @@ sqlx_setup
 function generate_env_from_template {
 	echo "Generating .env"
 	local master_secret_key="master_secret"
-	local postgres__user_singularity_password_local_key="postgres__user\.singularity\.password\.local"
+	local postgres__user_singularity_password_local_key="postgres__user.singularity.password.local"
 	local postgres__user_singularity_password_local=$(
-		cargo run -p crypt -- decrypt --utf8 --key "$master_secret" "$postgres__user_singularity_password_local_key"
+		secr decrypt --utf8 --file "$secrets_path" --key "$master_secret" "$postgres__user_singularity_password_local_key"
 	)
 
 	sed > ./.env \
@@ -58,9 +60,8 @@ function generate_compose_from_template {
 	for environment in "${environments[@]}"; do
 		local postgres__user_singularity_password_env_key="postgres__user.singularity.password.${environment}"
 		local postgres__user_singularity_password_env=$(
-			cargo run -p crypt -- decrypt --utf8 --key "$master_secret" "$postgres__user_singularity_password_env_key"
+			secr decrypt --utf8 --file "$secrets_path" --key "$master_secret" "$postgres__user_singularity_password_env_key"
 		)
-		echo "s/${postgres__user_singularity_password_env_key}/${postgres__user_singularity_password_env}/g"
 		sed -E -I "" \
 			-e "s/${postgres__user_singularity_password_env_key}/${postgres__user_singularity_password_env}/g" \
 			./compose.yaml
