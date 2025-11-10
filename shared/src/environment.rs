@@ -52,7 +52,7 @@ impl Display for RuntimeEnvironment {
 
 impl RuntimeEnvironment {
     pub fn from_env() -> Result<RuntimeEnvironment, AppError> {
-        RuntimeEnvironment::try_from(env::var("RUNTIME_ENVIRONMENT").unwrap_or(String::from("local")))
+        RuntimeEnvironment::try_from(dotenvy::var("RUNTIME_ENVIRONMENT").unwrap_or(String::from("local")))
     }
 
     pub fn get_address(&self) -> &'static str {
