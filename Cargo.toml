@@ -15,12 +15,12 @@ futures = { version = "0.3" }
 raylib = { version = "5.5" }
 strum = { version = "0.27", features = ["derive"] }
 secr = { version = "1.2" }
-
-# todo: check usage in lobby
 actix-web = { version = "4.11" }
 sqlx = { version = "0.8", features = ["postgres", "macros", "uuid", "chrono", "runtime-tokio", "tls-native-tls"] }
+base64 = { version = "0.22" }
+
+# todo: check usage in lobby
 serde = { version = "1.0" }
 serde_json = { version = "1.0", features = ["preserve_order"] }
 chrono = { version = "0.4", features = ["serde", "now"] }
 reqwest = { version = "0.12", features = ["json", "native-tls-vendored", "multipart", "stream"] }
-base64 = { version = "0.22" }

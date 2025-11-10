@@ -155,3 +155,13 @@ impl AppErrorStatic {
 impl_from_error!(io::Error);
 impl_from_error!(TryFromSliceError);
 impl_from_error!(TryFromIntError);
+impl_from_error!(dotenvy::Error);
+
+#[cfg(feature = "sqlx")]
+impl_from_error!(sqlx::Error);
+
+#[cfg(feature = "secr")]
+impl_from_error!(secr::error::Error);
+
+#[cfg(feature = "base64")]
+impl_from_error!(base64::DecodeError);

@@ -4,9 +4,12 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-# todo: crypt standalone package
-shared = { path = "../shared" }
+shared = { path = "../shared", features = ["sqlx", "secr", "base64"] }
 
 log = { workspace = true }
 env_logger = { workspace = true }
 actix-web = { workspace = true }
+sqlx = { workspace = true }
+base64 = { workspace = true }
+secr = { workspace = true }
+dotenvy = { workspace = true }
