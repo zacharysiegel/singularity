@@ -1,10 +1,13 @@
 use actix_web;
 use actix_web::{middleware, web, App, HttpResponse, HttpServer};
 use environment::RuntimeEnvironment;
+use lobby::db;
 use log::LevelFilter;
 use shared::environment;
 use shared::error::AppError;
+use sqlx::{PgPool, Pool, Postgres};
 use std::error::Error;
+use web::Data;
 
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -13,20 +16,17 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     log::info!("Runtime environment: {:?}", RuntimeEnvironment::default());
 
-    // todo: initialize database connection
-    // let pgpool: Pool<Postgres> = inventory::db::sqlx_connect().await
-    //     .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?;
-
-    open_server().await?;
+    let pgpool: Pool<Postgres> = db::sqlx_connect().await?;
+    open_server(pgpool).await?;
     Ok(())
 }
 
-pub async fn open_server(/*pgpool: Pool<Postgres>*/) -> Result<(), AppError> {
+pub async fn open_server(pgpool: PgPool) -> Result<(), AppError> {
     HttpServer::new(move || {
         App::new()
             .wrap(middleware::Logger::default())
             .wrap(middleware::NormalizePath::trim())
-            // .app_data(web::Data::new(pgpool.clone()))
+            .app_data(Data::new(pgpool.clone()))
             .default_service(web::route().to(HttpResponse::NotFound))
         // example routing extension: .configure(crate::public_api::configurer)
     })

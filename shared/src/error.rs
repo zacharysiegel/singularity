@@ -3,7 +3,7 @@ use std::backtrace::{Backtrace, BacktraceStatus};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::num::TryFromIntError;
-use std::{fmt, io};
+use std::{fmt, io, string};
 
 macro_rules! impl_from_error {
     ($error_type:ty) => {
@@ -156,6 +156,7 @@ impl_from_error!(io::Error);
 impl_from_error!(TryFromSliceError);
 impl_from_error!(TryFromIntError);
 impl_from_error!(dotenvy::Error);
+impl_from_error!(string::FromUtf8Error);
 
 #[cfg(feature = "sqlx")]
 impl_from_error!(sqlx::Error);

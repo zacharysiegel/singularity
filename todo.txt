@@ -35,9 +35,6 @@ Networking
 Proper map generation (see plan.md)
 
 Current
-	Connect to Postgres from `lobby`
-	Set up DBMate and initial database state
-
 	Associate client with user (session)
 	Associate user with game (persistent) (database) ("join")
 	Associate client with game (session) ("launch")
