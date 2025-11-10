@@ -1,7 +1,7 @@
+use crate::error::AppError;
 use base64::Engine;
 use secr::store::SecretStore;
 use secr::{cryptography, load, BASE64};
-use shared::error::AppError;
 use std::path::Path;
 use std::sync::LazyLock;
 
