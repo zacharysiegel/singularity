@@ -6,13 +6,16 @@ use log::LevelFilter;
 use shared::environment;
 use shared::error::AppError;
 use sqlx::{PgPool, Pool, Postgres};
-use std::error::Error;
 use web::Data;
 
 #[actix_web::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn main() -> Result<(), AppError> {
     environment::load_env()?;
-    env_logger::builder().filter_level(LevelFilter::Debug).format_source_path(true).try_init()?;
+    env_logger::builder()
+        .filter_level(LevelFilter::Debug)
+        .format_source_path(true)
+        .try_init()
+        .map_err(|e| AppError::from_error(&e.to_string(), Box::new(e)))?;
 
     log::info!("Runtime environment: {:?}", RuntimeEnvironment::default());
 

@@ -72,7 +72,7 @@ impl RuntimeEnvironment {
     }
 }
 
-pub fn load_env() -> Result<(), Box<dyn std::error::Error>> {
+pub fn load_env() -> Result<(), AppError> {
     dotenvy::dotenv()?;
     Ok(())
 }
