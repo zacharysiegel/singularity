@@ -24,7 +24,7 @@ async fn main() -> Result<(), AppError> {
     Ok(())
 }
 
-pub async fn open_server(pgpool: PgPool) -> Result<(), AppError> {
+async fn open_server(pgpool: PgPool) -> Result<(), AppError> {
     HttpServer::new(move || {
         App::new()
             .wrap(middleware::Logger::default())
