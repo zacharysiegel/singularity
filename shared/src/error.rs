@@ -157,12 +157,8 @@ impl_from_error!(TryFromSliceError);
 impl_from_error!(TryFromIntError);
 impl_from_error!(dotenvy::Error);
 impl_from_error!(string::FromUtf8Error);
+impl_from_error!(secr::error::Error);
+impl_from_error!(base64::DecodeError);
 
 #[cfg(feature = "sqlx")]
 impl_from_error!(sqlx::Error);
-
-#[cfg(feature = "secr")]
-impl_from_error!(secr::error::Error);
-
-#[cfg(feature = "base64")]
-impl_from_error!(base64::DecodeError);

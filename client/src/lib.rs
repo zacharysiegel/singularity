@@ -17,3 +17,4 @@ pub mod title;
 pub mod window;
 pub mod browser;
 pub mod locked_switch;
+pub mod text_box;
