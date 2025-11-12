@@ -1,5 +1,7 @@
 #[macro_use]
 pub mod sync;
+#[macro_use]
+pub mod defaults;
 pub mod color;
 pub mod enums;
 pub mod environment;

@@ -2,6 +2,7 @@ use crate::input;
 use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
 use raylib::math::Rectangle;
 use raylib::RaylibHandle;
+use shared::defaults::DEFAULT_RECTANGLE;
 use shared::map::RenderCoord;
 
 #[derive(Debug, Clone)]
@@ -36,20 +37,11 @@ impl HoverHandler for RectangularButton {
     }
 }
 
-impl Default for RectangularButton {
-    fn default() -> RectangularButton {
-        RectangularButton::DEFAULT
-    }
-}
+shared::default_const_impl!(RectangularButton);
 
 impl RectangularButton {
     pub const DEFAULT: RectangularButton = RectangularButton {
-        rectangle: Rectangle {
-            x: 0.0,
-            y: 0.0,
-            width: 0.0,
-            height: 0.0,
-        },
+        rectangle: DEFAULT_RECTANGLE,
         text: None,
         on_click: input::noop_on_click,
         on_hover: input::noop_on_hover,
