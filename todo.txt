@@ -36,5 +36,7 @@ Proper map generation (see plan.md)
 
 Current
 	Associate client with user (session)
+		Sign-in stage before title
+		Clipboard past button for user id (UUID) input
 	Associate user with game (persistent) (database) ("join")
 	Associate client with game (session) ("launch")
