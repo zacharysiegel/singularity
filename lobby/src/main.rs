@@ -30,8 +30,8 @@ async fn open_server(pgpool: PgPool) -> Result<(), AppError> {
             .wrap(middleware::Logger::default())
             .wrap(middleware::NormalizePath::trim())
             .app_data(Data::new(pgpool.clone()))
+            .configure(lobby::account::account_api::configurer)
             .default_service(web::route().to(HttpResponse::NotFound))
-        // example routing extension: .configure(crate::public_api::configurer)
     })
     .bind("127.0.0.1:10000")?
     .run()
