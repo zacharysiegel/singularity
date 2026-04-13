@@ -18,6 +18,7 @@ pub fn configurer(config: &mut web::ServiceConfig) {
             .route("", web::get().to(get_own_account))
             .route("", web::post().to(create_account))
             .route("", web::patch().to(update_account))
+            .route("", web::delete().to(delete_account))
             .route("/password", web::patch().to(change_password))
             .route("/{account_id}", web::get().to(get_account_public)),
     );
@@ -117,6 +118,15 @@ async fn change_password(
     let new_password_hash: String = unwrap_or_500!(hash_password(&payload.new_password));
     unwrap_or_500!(account_db::update_password_hash(pool.get_ref(), auth.account_id, &new_password_hash).await);
 
+    HttpResponse::Ok().finish()
+}
+
+async fn delete_account(
+    _request: HttpRequest,
+    pool: web::Data<PgPool>,
+    auth: AuthenticatedAccount,
+) -> HttpResponse {
+    unwrap_or_500!(account_db::soft_delete_account(pool.get_ref(), auth.account_id).await);
     HttpResponse::Ok().finish()
 }
 

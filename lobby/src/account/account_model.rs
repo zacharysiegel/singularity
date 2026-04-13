@@ -10,6 +10,7 @@ pub struct Account {
     pub password_hash: String,
     pub created: DateTime<Utc>,
     pub updated: DateTime<Utc>,
+    pub deleted_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Clone, sqlx::FromRow)]
@@ -20,6 +21,7 @@ pub struct AccountEntity {
     pub password_hash: String,
     pub created: DateTime<Utc>,
     pub updated: DateTime<Utc>,
+    pub deleted_at: Option<DateTime<Utc>>,
 }
 
 impl From<AccountEntity> for Account {
@@ -31,6 +33,7 @@ impl From<AccountEntity> for Account {
             password_hash: entity.password_hash,
             created: entity.created,
             updated: entity.updated,
+            deleted_at: entity.deleted_at,
         }
     }
 }

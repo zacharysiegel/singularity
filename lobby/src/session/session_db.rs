@@ -30,8 +30,10 @@ pub async fn get_session_by_token(pool: &PgPool, token: &str) -> Result<Option<S
     let record = sqlx::query_as::<_, SessionEntity>(
         "select s.id, s.account_id, s.token, s.created, s.expires \
          from session s \
+         inner join account a on a.id = s.account_id \
          where s.token = $1 \
-           and s.expires > now()",
+           and s.expires > now() \
+           and a.deleted_at is null",
     )
     .bind(token)
     .fetch_optional(pool)
