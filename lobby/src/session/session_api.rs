@@ -1,0 +1,55 @@
+use actix_web::{web, HttpRequest, HttpResponse};
+use shared::error::AppError;
+use shared::schema::session::{LoginRequest, LoginResponse};
+use sqlx::PgPool;
+
+use crate::account::account_db;
+use crate::http;
+use super::session_db;
+use super::session_extractor::AuthenticatedAccount;
+
+const SESSION_DURATION_DAYS: i64 = 14;
+
+pub fn configurer(config: &mut web::ServiceConfig) {
+    config.service(
+        web::scope("/session")
+            .route("", web::post().to(login))
+            .route("", web::delete().to(logout)),
+    );
+}
+
+async fn login(request: HttpRequest, pool: web::Data<PgPool>, body: web::Bytes) -> HttpResponse {
+    let payload: LoginRequest = unwrap_or_400!(http::deserialize_request(&request, &body));
+
+    if payload.email.is_empty() || payload.password.is_empty() {
+        return HttpResponse::BadRequest().finish();
+    }
+
+    let account_entity = unwrap_or_500!(account_db::get_account_by_email(pool.get_ref(), &payload.email).await);
+    let account_entity = unwrap_or_404!(account_entity);
+
+    let password_valid = unwrap_or_500!(verify_password(&payload.password, &account_entity.password_hash));
+    if !password_valid {
+        return HttpResponse::Unauthorized().finish();
+    }
+
+    let session_id = uuid::Uuid::now_v7();
+    let token = format!("{}", uuid::Uuid::now_v7().as_simple());
+    let expires = chrono::Utc::now() + chrono::Duration::days(SESSION_DURATION_DAYS);
+
+    unwrap_or_500!(
+        session_db::create_session(pool.get_ref(), session_id, account_entity.id, &token, expires).await
+    );
+
+    let response = LoginResponse { token };
+    http::serialize_response(&request, &response)
+}
+
+async fn logout(_request: HttpRequest, pool: web::Data<PgPool>, auth: AuthenticatedAccount) -> HttpResponse {
+    unwrap_or_500!(session_db::delete_session_by_token(pool.get_ref(), &auth.token).await);
+    HttpResponse::Ok().finish()
+}
+
+fn verify_password(password: &str, password_hash: &str) -> Result<bool, AppError> {
+    bcrypt::verify(password, password_hash).map_err(|error| AppError::from_error_default(Box::new(error)))
+}
