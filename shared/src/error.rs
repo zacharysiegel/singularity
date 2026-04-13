@@ -5,6 +5,7 @@ use std::fmt::{Debug, Display, Formatter};
 use std::num::TryFromIntError;
 use std::{fmt, io, string};
 
+#[macro_export]
 macro_rules! impl_from_error {
     ($error_type:ty) => {
         impl From<$error_type> for $crate::error::AppError {
