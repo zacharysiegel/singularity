@@ -1,0 +1,46 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select gr.game_id, gr.account_id, gr.placement, gr.accolades, gr.stats from game_result gr where gr.game_id = $1 order by gr.placement asc",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "game_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "account_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "placement",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "accolades",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 4,
+        "name": "stats",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "b41006b996001f3306ff55c824b022ae679fe43ffee2f1a2822e4a7c77cb0613"
+}

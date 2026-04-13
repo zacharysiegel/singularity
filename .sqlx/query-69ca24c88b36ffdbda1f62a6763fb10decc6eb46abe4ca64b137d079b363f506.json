@@ -1,0 +1,53 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select gs.id, gs.game_id, gs.account_id, gs.session_id, gs.entered, gs.exited from game_session gs where gs.game_id = $1 and gs.account_id = $2 and gs.exited is null",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "game_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "account_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "session_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 4,
+        "name": "entered",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 5,
+        "name": "exited",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "69ca24c88b36ffdbda1f62a6763fb10decc6eb46abe4ca64b137d079b363f506"
+}

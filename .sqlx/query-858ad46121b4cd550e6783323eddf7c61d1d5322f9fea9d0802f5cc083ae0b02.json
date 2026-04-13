@@ -1,0 +1,35 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select gm.game_id, gm.account_id, gm.joined from game_membership gm where gm.game_id = $1 and gm.account_id = $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "game_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "account_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "joined",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "858ad46121b4cd550e6783323eddf7c61d1d5322f9fea9d0802f5cc083ae0b02"
+}

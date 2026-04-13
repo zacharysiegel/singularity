@@ -34,6 +34,8 @@ cargo fmt                        # uses rustfmt.toml (edition 2024, max_width 12
 
 The server must be running before the client connects. The local Postgres database (via Podman compose) must be running before starting the lobby.
 
+The lobby uses `sqlx::query_as!` macros for compile-time query checking. The `.sqlx/` directory contains an offline query cache. When the Claude Code sandbox blocks database connections at compile time, prefix build/test commands with `SQLX_OFFLINE=true`. After changing any SQL queries, regenerate the cache with a live database: `cargo sqlx prepare --workspace`.
+
 ## Architecture
 
 Four workspace crates:

@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "update account set password_hash = $2, updated = now() where id = $1 and deleted_at is null",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "1c8129a720016445a583826ff7624b47cdc6b86551e795536135434568294c7a"
+}

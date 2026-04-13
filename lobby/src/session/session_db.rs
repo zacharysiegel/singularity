@@ -12,30 +12,32 @@ pub async fn create_session(
     token: &str,
     expires: DateTime<Utc>,
 ) -> Result<SessionEntity, AppError> {
-    let record = sqlx::query_as::<_, SessionEntity>(
+    let record = sqlx::query_as!(
+        SessionEntity,
         "insert into session (id, account_id, token, expires) \
          values ($1, $2, $3, $4) \
          returning *",
+        id,
+        account_id,
+        token,
+        expires,
     )
-    .bind(id)
-    .bind(account_id)
-    .bind(token)
-    .bind(expires)
     .fetch_one(pool)
     .await?;
     Ok(record)
 }
 
 pub async fn get_session_by_token(pool: &PgPool, token: &str) -> Result<Option<SessionEntity>, AppError> {
-    let record = sqlx::query_as::<_, SessionEntity>(
+    let record = sqlx::query_as!(
+        SessionEntity,
         "select s.id, s.account_id, s.token, s.created, s.expires \
          from session s \
          inner join account a on a.id = s.account_id \
          where s.token = $1 \
            and s.expires > now() \
            and a.deleted_at is null",
+        token,
     )
-    .bind(token)
     .fetch_optional(pool)
     .await?;
     Ok(record)
@@ -46,25 +48,25 @@ pub async fn refresh_session(
     token: &str,
     new_expires: DateTime<Utc>,
 ) -> Result<(), AppError> {
-    sqlx::query("update session set expires = $1 where token = $2")
-        .bind(new_expires)
-        .bind(token)
-        .execute(pool)
-        .await?;
+    sqlx::query!(
+        "update session set expires = $1 where token = $2",
+        new_expires,
+        token,
+    )
+    .execute(pool)
+    .await?;
     Ok(())
 }
 
 pub async fn delete_session_by_token(pool: &PgPool, token: &str) -> Result<(), AppError> {
-    sqlx::query("delete from session where token = $1")
-        .bind(token)
+    sqlx::query!("delete from session where token = $1", token)
         .execute(pool)
         .await?;
     Ok(())
 }
 
 pub async fn delete_sessions_by_account(pool: &PgPool, account_id: Uuid) -> Result<(), AppError> {
-    sqlx::query("delete from session where account_id = $1")
-        .bind(account_id)
+    sqlx::query!("delete from session where account_id = $1", account_id)
         .execute(pool)
         .await?;
     Ok(())

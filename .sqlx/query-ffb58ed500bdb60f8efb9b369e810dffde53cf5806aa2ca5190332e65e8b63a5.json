@@ -1,0 +1,53 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "update game_session set exited = now() where game_id = $1 and account_id = $2 and exited is null returning *",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "game_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "account_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "session_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 4,
+        "name": "entered",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 5,
+        "name": "exited",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "ffb58ed500bdb60f8efb9b369e810dffde53cf5806aa2ca5190332e65e8b63a5"
+}
