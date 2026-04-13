@@ -1,16 +1,14 @@
 use actix_web::{web, HttpRequest, HttpResponse};
-use shared::error::AppError;
 use shared::schema::account::{
     AccountPublicSerial, AccountSerial, ChangePasswordRequest, CreateAccountRequest, UpdateAccountRequest,
 };
 use sqlx::PgPool;
 
 use crate::http;
+use crate::password;
 use crate::session::session_extractor::AuthenticatedAccount;
 use super::account_db;
 use super::account_model::Account;
-
-const BCRYPT_COST: u32 = 10;
 
 pub fn configurer(config: &mut web::ServiceConfig) {
     config.service(
@@ -55,7 +53,7 @@ async fn create_account(request: HttpRequest, pool: web::Data<PgPool>, body: web
         return HttpResponse::BadRequest().finish();
     }
 
-    let password_hash: String = unwrap_or_500!(hash_password(&payload.password));
+    let password_hash: String = unwrap_or_500!(password::hash(&payload.password));
     let id = uuid::Uuid::now_v7();
 
     let entity = unwrap_or_500!(
@@ -95,27 +93,26 @@ async fn update_account(
 }
 
 async fn change_password(
-    _request: HttpRequest,
+    request: HttpRequest,
     pool: web::Data<PgPool>,
     body: web::Bytes,
     auth: AuthenticatedAccount,
 ) -> HttpResponse {
-    let payload: ChangePasswordRequest = unwrap_or_400!(http::deserialize_request(&_request, &body));
+    let payload: ChangePasswordRequest = unwrap_or_400!(http::deserialize_request(&request, &body));
 
     if payload.new_password.is_empty() {
         return HttpResponse::BadRequest().finish();
     }
 
-    // Verify old password
     let entity = unwrap_or_500!(account_db::get_account_by_id(pool.get_ref(), auth.account_id).await);
     let entity = unwrap_or_404!(entity);
 
-    let old_password_valid = unwrap_or_500!(verify_password(&payload.old_password, &entity.password_hash));
+    let old_password_valid = unwrap_or_500!(password::verify(&payload.old_password, &entity.password_hash));
     if !old_password_valid {
         return HttpResponse::Unauthorized().finish();
     }
 
-    let new_password_hash: String = unwrap_or_500!(hash_password(&payload.new_password));
+    let new_password_hash: String = unwrap_or_500!(password::hash(&payload.new_password));
     unwrap_or_500!(account_db::update_password_hash(pool.get_ref(), auth.account_id, &new_password_hash).await);
 
     HttpResponse::Ok().finish()
@@ -128,12 +125,4 @@ async fn delete_account(
 ) -> HttpResponse {
     unwrap_or_500!(account_db::soft_delete_account(pool.get_ref(), auth.account_id).await);
     HttpResponse::Ok().finish()
-}
-
-fn hash_password(password: &str) -> Result<String, AppError> {
-    bcrypt::hash(password, BCRYPT_COST).map_err(|error| AppError::from_error_default(Box::new(error)))
-}
-
-fn verify_password(password: &str, password_hash: &str) -> Result<bool, AppError> {
-    bcrypt::verify(password, password_hash).map_err(|error| AppError::from_error_default(Box::new(error)))
 }
