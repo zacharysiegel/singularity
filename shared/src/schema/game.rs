@@ -29,3 +29,19 @@ pub struct CreateGameRequest {
     pub name: String,
     pub max_players: Option<i32>,
 }
+
+#[derive(Debug, Clone, Serialize)]
+pub struct GameBrowserEntry {
+    pub id: Uuid,
+    pub name: String,
+    pub creator_id: Uuid,
+    pub status: GameStatus,
+    pub max_players: i32,
+    pub member_count: i64,
+    pub created: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct GameBrowserQuery {
+    pub status: Option<i32>,
+}

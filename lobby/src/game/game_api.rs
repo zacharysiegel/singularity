@@ -1,5 +1,5 @@
 use actix_web::{web, HttpRequest, HttpResponse};
-use shared::schema::game::{CreateGameRequest, GameSerial};
+use shared::schema::game::{CreateGameRequest, GameBrowserEntry, GameBrowserQuery, GameSerial};
 use sqlx::PgPool;
 
 use crate::http;
@@ -12,9 +12,25 @@ const DEFAULT_MAX_PLAYERS: i32 = 8;
 pub fn configurer(config: &mut web::ServiceConfig) {
     config.service(
         web::scope("/game")
+            .route("", web::get().to(list_games))
             .route("", web::post().to(create_game))
             .route("/{game_id}", web::get().to(get_game)),
     );
+}
+
+async fn list_games(
+    request: HttpRequest,
+    pool: web::Data<PgPool>,
+    query: web::Query<GameBrowserQuery>,
+) -> HttpResponse {
+    let rows = unwrap_or_500!(game_db::list_games(pool.get_ref(), query.status).await);
+
+    let entries: Vec<GameBrowserEntry> = unwrap_or_500!(rows
+        .into_iter()
+        .map(GameBrowserEntry::try_from)
+        .collect::<Result<Vec<_>, _>>());
+
+    http::serialize_response(&request, &entries)
 }
 
 async fn create_game(

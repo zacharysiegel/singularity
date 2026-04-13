@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use shared::schema::game::{GameSerial, GameStatus};
+use shared::schema::game::{GameBrowserEntry, GameSerial, GameStatus};
 use uuid::Uuid;
 
 #[derive(Debug, Clone)]
@@ -24,6 +24,17 @@ pub struct GameEntity {
     pub updated: DateTime<Utc>,
 }
 
+#[derive(Debug, Clone, sqlx::FromRow)]
+pub struct GameBrowserRow {
+    pub id: Uuid,
+    pub name: String,
+    pub creator_id: Uuid,
+    pub status: i32,
+    pub max_players: i32,
+    pub member_count: i64,
+    pub created: DateTime<Utc>,
+}
+
 impl TryFrom<GameEntity> for Game {
     type Error = shared::error::AppErrorStatic;
 
@@ -36,6 +47,22 @@ impl TryFrom<GameEntity> for Game {
             max_players: entity.max_players,
             created: entity.created,
             updated: entity.updated,
+        })
+    }
+}
+
+impl TryFrom<GameBrowserRow> for GameBrowserEntry {
+    type Error = shared::error::AppErrorStatic;
+
+    fn try_from(row: GameBrowserRow) -> Result<Self, Self::Error> {
+        Ok(GameBrowserEntry {
+            id: row.id,
+            name: row.name,
+            creator_id: row.creator_id,
+            status: GameStatus::try_from(row.status)?,
+            max_players: row.max_players,
+            member_count: row.member_count,
+            created: row.created,
         })
     }
 }
