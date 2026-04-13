@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use shared::schema::account::AccountSerial;
+use shared::schema::account::{AccountPublicSerial, AccountSerial};
 use uuid::Uuid;
 
 #[derive(Debug, Clone)]
@@ -43,6 +43,15 @@ impl From<&Account> for AccountSerial {
             username: model.username.clone(),
             created: model.created,
             updated: model.updated,
+        }
+    }
+}
+
+impl From<&Account> for AccountPublicSerial {
+    fn from(model: &Account) -> Self {
+        AccountPublicSerial {
+            id: model.id,
+            username: model.username.clone(),
         }
     }
 }
