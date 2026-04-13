@@ -1,0 +1,58 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "with membership_counts as ( select game_membership.game_id, count(*) as member_count from game_membership group by game_membership.game_id ) select g.id, g.name, g.creator_id, g.status, g.max_players, coalesce(membership_counts.member_count, 0) as \"member_count!\", g.created from game g left join membership_counts on membership_counts.game_id = g.id where ($1::int is null or g.status = $1) order by g.created desc",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "creator_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "status",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "max_players",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "member_count!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 6,
+        "name": "created",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      null,
+      false
+    ]
+  },
+  "hash": "e6c18bdf7b4a4c71e55e830cc29cc2c389c459bd09ec8615b845d01a5a5b50ac"
+}

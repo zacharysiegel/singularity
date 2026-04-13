@@ -1,0 +1,58 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select g.id, g.name, g.creator_id, g.status, g.max_players, g.created, g.updated from game g where g.id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "creator_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "status",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "max_players",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "created",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 6,
+        "name": "updated",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "150c7fc5f53fd677fc422b06b76e131f41acc1383ebda3406e7214fd1882d591"
+}

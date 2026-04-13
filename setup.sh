@@ -63,6 +63,7 @@ function sqlx_setup {
 	echo 'You can run this command to check the status of ./.sqlx: `cargo sqlx prepare --workspace --check -- --all-targets --all-features`'
 	echo '...or to regenerate ./.sqlx: `cargo sqlx prepare --workspace -- --all-targets --all-features`'
 	cargo install sqlx-cli
+    cargo sqlx prepare --workspace -- --all-targets --all-features
 }
 sqlx_setup
 
