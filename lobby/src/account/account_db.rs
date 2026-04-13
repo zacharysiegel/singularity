@@ -48,3 +48,38 @@ pub async fn get_account_by_email(pool: &PgPool, email: &str) -> Result<Option<A
     .await?;
     Ok(record)
 }
+
+pub async fn update_account(
+    pool: &PgPool,
+    id: Uuid,
+    username: Option<&str>,
+    email: Option<&str>,
+) -> Result<AccountEntity, AppError> {
+    let record = sqlx::query_as::<_, AccountEntity>(
+        "update account \
+         set username = coalesce($2, username), \
+             email = coalesce($3, email), \
+             updated = now() \
+         where id = $1 \
+         returning *",
+    )
+    .bind(id)
+    .bind(username)
+    .bind(email)
+    .fetch_one(pool)
+    .await?;
+    Ok(record)
+}
+
+pub async fn update_password_hash(pool: &PgPool, id: Uuid, password_hash: &str) -> Result<(), AppError> {
+    sqlx::query(
+        "update account \
+         set password_hash = $2, updated = now() \
+         where id = $1",
+    )
+    .bind(id)
+    .bind(password_hash)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
