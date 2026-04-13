@@ -1,14 +1,14 @@
 use actix_web::{web, HttpRequest, HttpResponse};
-use shared::error::AppError;
 use shared::schema::session::{LoginRequest, LoginResponse};
 use sqlx::PgPool;
 
 use crate::account::account_db;
 use crate::http;
+use crate::password;
 use super::session_db;
 use super::session_extractor::AuthenticatedAccount;
 
-const SESSION_DURATION_DAYS: i64 = 14;
+use super::SESSION_DURATION_DAYS;
 
 pub fn configurer(config: &mut web::ServiceConfig) {
     config.service(
@@ -28,7 +28,7 @@ async fn login(request: HttpRequest, pool: web::Data<PgPool>, body: web::Bytes) 
     let account_entity = unwrap_or_500!(account_db::get_account_by_email(pool.get_ref(), &payload.email).await);
     let account_entity = unwrap_or_404!(account_entity);
 
-    let password_valid = unwrap_or_500!(verify_password(&payload.password, &account_entity.password_hash));
+    let password_valid = unwrap_or_500!(password::verify(&payload.password, &account_entity.password_hash));
     if !password_valid {
         return HttpResponse::Unauthorized().finish();
     }
@@ -48,8 +48,4 @@ async fn login(request: HttpRequest, pool: web::Data<PgPool>, body: web::Bytes) 
 async fn logout(_request: HttpRequest, pool: web::Data<PgPool>, auth: AuthenticatedAccount) -> HttpResponse {
     unwrap_or_500!(session_db::delete_session_by_token(pool.get_ref(), &auth.token).await);
     HttpResponse::Ok().finish()
-}
-
-fn verify_password(password: &str, password_hash: &str) -> Result<bool, AppError> {
-    bcrypt::verify(password, password_hash).map_err(|error| AppError::from_error_default(Box::new(error)))
 }

@@ -40,10 +40,10 @@ impl FromRequest for AuthenticatedAccount {
                 .map_err(|_| actix_web::error::ErrorInternalServerError("db error"))?
                 .ok_or_else(|| actix_web::error::ErrorUnauthorized("invalid or expired session"))?;
 
-            // Debounced sliding window: refresh if less than 13 days remaining
-            let refresh_threshold = chrono::Duration::days(13);
+            // Debounced sliding window: refresh when near expiry
+            let refresh_threshold = chrono::Duration::days(super::SESSION_REFRESH_THRESHOLD_DAYS);
             if session.expires - chrono::Utc::now() < refresh_threshold {
-                let new_expires = chrono::Utc::now() + chrono::Duration::days(14);
+                let new_expires = chrono::Utc::now() + chrono::Duration::days(super::SESSION_DURATION_DAYS);
                 let _ = super::session_db::refresh_session(pool.get_ref(), token, new_expires).await;
             }
 
