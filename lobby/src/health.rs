@@ -1,5 +1,5 @@
 use actix_web::{web, HttpRequest, HttpResponse};
-use shared::schema::health::{DatabaseStatus, HealthResponse, HealthStatus};
+use shared::schema::health::{DatabaseStatusSerial, HealthResponseSerial, HealthStatusSerial};
 use sqlx::PgPool;
 
 use crate::http;
@@ -18,14 +18,14 @@ async fn health_check(request: HttpRequest, pool: web::Data<PgPool>) -> HttpResp
         .is_ok();
 
     let response = if database_healthy {
-        HealthResponse {
-            status: HealthStatus::Ok,
-            database: DatabaseStatus::Connected,
+        HealthResponseSerial {
+            status: HealthStatusSerial::Ok,
+            database: DatabaseStatusSerial::Connected,
         }
     } else {
-        HealthResponse {
-            status: HealthStatus::Degraded,
-            database: DatabaseStatus::Unreachable,
+        HealthResponseSerial {
+            status: HealthStatusSerial::Degraded,
+            database: DatabaseStatusSerial::Unreachable,
         }
     };
 
