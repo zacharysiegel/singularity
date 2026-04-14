@@ -30,6 +30,7 @@ async fn open_server(pgpool: PgPool) -> Result<(), AppError> {
             .wrap(middleware::Logger::default())
             .wrap(middleware::NormalizePath::trim())
             .app_data(Data::new(pgpool.clone()))
+            .configure(lobby::health::configurer)
             .configure(lobby::account::account_api::configurer)
             .configure(lobby::session::session_api::configurer)
             .configure(lobby::game::game_api::configurer)
