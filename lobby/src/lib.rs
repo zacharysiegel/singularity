@@ -1,6 +1,7 @@
 pub mod db;
 #[macro_use]
 pub mod http;
+pub mod health;
 pub mod password;
 pub mod account;
 pub mod game;
