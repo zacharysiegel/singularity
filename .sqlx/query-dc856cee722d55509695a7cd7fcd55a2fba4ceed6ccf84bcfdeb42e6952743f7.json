@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select game_result.game_id, game_result.account_id, game_result.placement from game_result where game_result.account_id = $1 order by game_result.game_id desc",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "game_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "account_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "placement",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "dc856cee722d55509695a7cd7fcd55a2fba4ceed6ccf84bcfdeb42e6952743f7"
+}
