@@ -25,13 +25,13 @@ async fn get_account_accolades(
 ) -> HttpResponse {
     let account_id = unwrap_or_400!(uuid::Uuid::parse_str(&path.into_inner()));
 
-    let entities = unwrap_or_500!(accolade_db::get_accolades_by_account(pool.get_ref(), account_id).await);
-    let serials: Vec<AccoladeSerial> = unwrap_or_500!(entities
+    let accolade_entities = unwrap_or_500!(accolade_db::get_accolades_by_account(pool.get_ref(), account_id).await);
+    let accolade_serials: Vec<AccoladeSerial> = unwrap_or_500!(accolade_entities
         .into_iter()
         .map(|entity| Accolade::try_from(entity).map(|accolade| AccoladeSerial::from(&accolade)))
         .collect::<Result<Vec<_>, _>>());
 
-    http::serialize_response(&request, &serials)
+    http::serialize_response(&request, &accolade_serials)
 }
 
 async fn get_game_accolades(
@@ -41,11 +41,11 @@ async fn get_game_accolades(
 ) -> HttpResponse {
     let game_id = unwrap_or_400!(uuid::Uuid::parse_str(&path.into_inner()));
 
-    let entities = unwrap_or_500!(accolade_db::get_accolades_by_game(pool.get_ref(), game_id).await);
-    let serials: Vec<AccoladeSerial> = unwrap_or_500!(entities
+    let accolade_entities = unwrap_or_500!(accolade_db::get_accolades_by_game(pool.get_ref(), game_id).await);
+    let accolade_serials: Vec<AccoladeSerial> = unwrap_or_500!(accolade_entities
         .into_iter()
         .map(|entity| Accolade::try_from(entity).map(|accolade| AccoladeSerial::from(&accolade)))
         .collect::<Result<Vec<_>, _>>());
 
-    http::serialize_response(&request, &serials)
+    http::serialize_response(&request, &accolade_serials)
 }

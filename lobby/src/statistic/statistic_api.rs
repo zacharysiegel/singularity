@@ -25,13 +25,13 @@ async fn get_account_statistics(
 ) -> HttpResponse {
     let account_id = unwrap_or_400!(uuid::Uuid::parse_str(&path.into_inner()));
 
-    let entities = unwrap_or_500!(statistic_db::get_statistics_by_account(pool.get_ref(), account_id).await);
-    let serials: Vec<StatisticSerial> = unwrap_or_500!(entities
+    let statistic_entities = unwrap_or_500!(statistic_db::get_statistics_by_account(pool.get_ref(), account_id).await);
+    let statistic_serials: Vec<StatisticSerial> = unwrap_or_500!(statistic_entities
         .into_iter()
         .map(|entity| Statistic::try_from(entity).map(|statistic| StatisticSerial::from(&statistic)))
         .collect::<Result<Vec<_>, _>>());
 
-    http::serialize_response(&request, &serials)
+    http::serialize_response(&request, &statistic_serials)
 }
 
 async fn get_game_statistics(
@@ -41,11 +41,11 @@ async fn get_game_statistics(
 ) -> HttpResponse {
     let game_id = unwrap_or_400!(uuid::Uuid::parse_str(&path.into_inner()));
 
-    let entities = unwrap_or_500!(statistic_db::get_statistics_by_game(pool.get_ref(), game_id).await);
-    let serials: Vec<StatisticSerial> = unwrap_or_500!(entities
+    let statistic_entities = unwrap_or_500!(statistic_db::get_statistics_by_game(pool.get_ref(), game_id).await);
+    let statistic_serials: Vec<StatisticSerial> = unwrap_or_500!(statistic_entities
         .into_iter()
         .map(|entity| Statistic::try_from(entity).map(|statistic| StatisticSerial::from(&statistic)))
         .collect::<Result<Vec<_>, _>>());
 
-    http::serialize_response(&request, &serials)
+    http::serialize_response(&request, &statistic_serials)
 }

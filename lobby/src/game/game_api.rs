@@ -23,14 +23,14 @@ async fn list_games(
     pool: web::Data<PgPool>,
     query: web::Query<GameBrowserQuery>,
 ) -> HttpResponse {
-    let rows = unwrap_or_500!(game_db::list_games(pool.get_ref(), query.status).await);
+    let game_browser_rows = unwrap_or_500!(game_db::list_games(pool.get_ref(), query.status).await);
 
-    let entries: Vec<GameBrowserEntry> = unwrap_or_500!(rows
+    let game_browser_entries: Vec<GameBrowserEntry> = unwrap_or_500!(game_browser_rows
         .into_iter()
         .map(GameBrowserEntry::try_from)
         .collect::<Result<Vec<_>, _>>());
 
-    http::serialize_response(&request, &entries)
+    http::serialize_response(&request, &game_browser_entries)
 }
 
 async fn create_game(
