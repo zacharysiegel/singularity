@@ -7,10 +7,10 @@ use super::game_result_model::GameResultEntity;
 pub async fn get_results_by_game(pool: &PgPool, game_id: Uuid) -> Result<Vec<GameResultEntity>, AppError> {
     let records = sqlx::query_as!(
         GameResultEntity,
-        "select gr.game_id, gr.account_id, gr.placement, gr.accolades, gr.stats \
-         from game_result gr \
-         where gr.game_id = $1 \
-         order by gr.placement asc",
+        "select game_result.game_id, game_result.account_id, game_result.placement \
+         from game_result \
+         where game_result.game_id = $1 \
+         order by game_result.placement asc",
         game_id,
     )
     .fetch_all(pool)
@@ -21,10 +21,10 @@ pub async fn get_results_by_game(pool: &PgPool, game_id: Uuid) -> Result<Vec<Gam
 pub async fn get_results_by_account(pool: &PgPool, account_id: Uuid) -> Result<Vec<GameResultEntity>, AppError> {
     let records = sqlx::query_as!(
         GameResultEntity,
-        "select gr.game_id, gr.account_id, gr.placement, gr.accolades, gr.stats \
-         from game_result gr \
-         where gr.account_id = $1 \
-         order by gr.game_id desc",
+        "select game_result.game_id, game_result.account_id, game_result.placement \
+         from game_result \
+         where game_result.account_id = $1 \
+         order by game_result.game_id desc",
         account_id,
     )
     .fetch_all(pool)
