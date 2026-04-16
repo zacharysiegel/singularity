@@ -19,13 +19,13 @@ async fn get_game_results(
 ) -> HttpResponse {
     let game_id = unwrap_or_400!(uuid::Uuid::parse_str(&path.into_inner()));
 
-    let entities = unwrap_or_500!(game_result_db::get_results_by_game(pool.get_ref(), game_id).await);
-    let serials: Vec<GameResultSerial> = entities
+    let result_entities = unwrap_or_500!(game_result_db::get_results_by_game(pool.get_ref(), game_id).await);
+    let result_serials: Vec<GameResultSerial> = result_entities
         .into_iter()
         .map(|entity| GameResultSerial::from(&GameResult::from(entity)))
         .collect();
 
-    http::serialize_response(&request, &serials)
+    http::serialize_response(&request, &result_serials)
 }
 
 async fn get_account_history(
@@ -35,11 +35,11 @@ async fn get_account_history(
 ) -> HttpResponse {
     let account_id = unwrap_or_400!(uuid::Uuid::parse_str(&path.into_inner()));
 
-    let entities = unwrap_or_500!(game_result_db::get_results_by_account(pool.get_ref(), account_id).await);
-    let serials: Vec<GameResultSerial> = entities
+    let result_entities = unwrap_or_500!(game_result_db::get_results_by_account(pool.get_ref(), account_id).await);
+    let result_serials: Vec<GameResultSerial> = result_entities
         .into_iter()
         .map(|entity| GameResultSerial::from(&GameResult::from(entity)))
         .collect();
 
-    http::serialize_response(&request, &serials)
+    http::serialize_response(&request, &result_serials)
 }
