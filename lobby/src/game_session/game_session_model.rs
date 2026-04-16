@@ -22,6 +22,12 @@ pub struct GameSessionEntity {
     pub exited: Option<DateTime<Utc>>,
 }
 
+impl GameSession {
+    pub fn is_active(&self) -> bool {
+        self.exited.is_none()
+    }
+}
+
 impl From<GameSessionEntity> for GameSession {
     fn from(entity: GameSessionEntity) -> Self {
         GameSession {
