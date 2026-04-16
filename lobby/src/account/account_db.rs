@@ -99,9 +99,7 @@ pub async fn soft_delete_account(pool: &PgPool, id: Uuid) -> Result<(), AppError
     .execute(pool)
     .await?;
 
-    sqlx::query!("delete from session where account_id = $1", id)
-        .execute(pool)
-        .await?;
+    crate::session::session_db::delete_sessions_by_account(pool, id).await?;
 
     Ok(())
 }
