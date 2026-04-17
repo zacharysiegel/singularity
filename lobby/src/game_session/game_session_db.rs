@@ -13,8 +13,8 @@ pub async fn create_game_session(
 ) -> Result<GameSessionEntity, AppError> {
     let record: GameSessionEntity = sqlx::query_as!(
         GameSessionEntity,
-        "insert into game_session (id, game_id, account_id, session_id) \
-         values ($1, $2, $3, $4) \
+        "insert into game_session (id, game_id, account_id, session_id)
+         values ($1, $2, $3, $4)
          returning *",
         id,
         game_id,
@@ -33,8 +33,8 @@ pub async fn get_active_game_session(
 ) -> Result<Option<GameSessionEntity>, AppError> {
     let record: Option<GameSessionEntity> = sqlx::query_as!(
         GameSessionEntity,
-        "select gs.id, gs.game_id, gs.account_id, gs.session_id, gs.entered, gs.exited \
-         from game_session gs \
+        "select gs.id, gs.game_id, gs.account_id, gs.session_id, gs.entered, gs.exited
+         from game_session gs
          where gs.game_id = $1 and gs.account_id = $2 and gs.exited is null",
         game_id,
         account_id,
@@ -51,9 +51,9 @@ pub async fn exit_game_session(
 ) -> Result<Option<GameSessionEntity>, AppError> {
     let record: Option<GameSessionEntity> = sqlx::query_as!(
         GameSessionEntity,
-        "update game_session \
-         set exited = now() \
-         where game_id = $1 and account_id = $2 and exited is null \
+        "update game_session
+         set exited = now()
+         where game_id = $1 and account_id = $2 and exited is null
          returning *",
         game_id,
         account_id,

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "update game_session set exited = now() where game_id = $1 and account_id = $2 and exited is null returning *",
+  "query": "select statistic.id, statistic.account_id, statistic.game_id,\n                statistic.statistic_type, statistic.value, statistic.updated\n         from statistic\n         where statistic.account_id = $1\n         order by statistic.statistic_type asc",
   "describe": {
     "columns": [
       {
@@ -10,44 +10,43 @@
       },
       {
         "ordinal": 1,
-        "name": "game_id",
-        "type_info": "Uuid"
-      },
-      {
-        "ordinal": 2,
         "name": "account_id",
         "type_info": "Uuid"
       },
       {
-        "ordinal": 3,
-        "name": "session_id",
+        "ordinal": 2,
+        "name": "game_id",
         "type_info": "Uuid"
       },
       {
+        "ordinal": 3,
+        "name": "statistic_type",
+        "type_info": "Text"
+      },
+      {
         "ordinal": 4,
-        "name": "entered",
-        "type_info": "Timestamptz"
+        "name": "value",
+        "type_info": "Float8"
       },
       {
         "ordinal": 5,
-        "name": "exited",
+        "name": "updated",
         "type_info": "Timestamptz"
       }
     ],
     "parameters": {
       "Left": [
-        "Uuid",
         "Uuid"
       ]
     },
     "nullable": [
       false,
       false,
+      true,
       false,
       false,
-      false,
-      true
+      false
     ]
   },
-  "hash": "ffb58ed500bdb60f8efb9b369e810dffde53cf5806aa2ca5190332e65e8b63a5"
+  "hash": "2bedaa920b74a8b908153d8de65a95bb2597ab47fb5d10ceee03cd2a74f6e55e"
 }

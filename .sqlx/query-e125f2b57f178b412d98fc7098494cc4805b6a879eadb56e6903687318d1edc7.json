@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "insert into game_session (id, game_id, account_id, session_id) values ($1, $2, $3, $4) returning *",
+  "query": "insert into game (id, name, creator_id, max_players)\n         values ($1, $2, $3, $4)\n         returning *",
   "describe": {
     "columns": [
       {
@@ -10,36 +10,41 @@
       },
       {
         "ordinal": 1,
-        "name": "game_id",
-        "type_info": "Uuid"
+        "name": "name",
+        "type_info": "Text"
       },
       {
         "ordinal": 2,
-        "name": "account_id",
+        "name": "creator_id",
         "type_info": "Uuid"
       },
       {
         "ordinal": 3,
-        "name": "session_id",
-        "type_info": "Uuid"
+        "name": "status",
+        "type_info": "Int4"
       },
       {
         "ordinal": 4,
-        "name": "entered",
-        "type_info": "Timestamptz"
+        "name": "max_players",
+        "type_info": "Int4"
       },
       {
         "ordinal": 5,
-        "name": "exited",
+        "name": "created",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 6,
+        "name": "updated",
         "type_info": "Timestamptz"
       }
     ],
     "parameters": {
       "Left": [
         "Uuid",
+        "Text",
         "Uuid",
-        "Uuid",
-        "Uuid"
+        "Int4"
       ]
     },
     "nullable": [
@@ -48,8 +53,9 @@
       false,
       false,
       false,
-      true
+      false,
+      false
     ]
   },
-  "hash": "cb56bd87e2fb7eea5d04e94d5238a41da3a0e00e6b8be29e0c32af246e38f19d"
+  "hash": "e125f2b57f178b412d98fc7098494cc4805b6a879eadb56e6903687318d1edc7"
 }

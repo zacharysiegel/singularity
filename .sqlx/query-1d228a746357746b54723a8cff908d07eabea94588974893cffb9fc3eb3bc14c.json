@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "select accolade.id, accolade.account_id, accolade.game_id, accolade.accolade_type, accolade.awarded from accolade where accolade.game_id = $1 order by accolade.awarded desc",
+  "query": "select accolade.id, accolade.account_id, accolade.game_id, accolade.accolade_type, accolade.awarded\n         from accolade\n         where accolade.game_id = $1\n         order by accolade.awarded desc",
   "describe": {
     "columns": [
       {
@@ -42,5 +42,5 @@
       false
     ]
   },
-  "hash": "b44a44b5b87d8672b1e4941664d38d21bc166a6d3a1ce2687ac7abd19a56fb89"
+  "hash": "1d228a746357746b54723a8cff908d07eabea94588974893cffb9fc3eb3bc14c"
 }

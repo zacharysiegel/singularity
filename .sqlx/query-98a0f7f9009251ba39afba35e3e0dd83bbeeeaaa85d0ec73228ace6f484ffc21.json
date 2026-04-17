@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "select accolade.id, accolade.account_id, accolade.game_id, accolade.accolade_type, accolade.awarded from accolade where accolade.account_id = $1 order by accolade.awarded desc",
+  "query": "update game_session\n         set exited = now()\n         where game_id = $1 and account_id = $2 and exited is null\n         returning *",
   "describe": {
     "columns": [
       {
@@ -10,27 +10,33 @@
       },
       {
         "ordinal": 1,
-        "name": "account_id",
-        "type_info": "Uuid"
-      },
-      {
-        "ordinal": 2,
         "name": "game_id",
         "type_info": "Uuid"
       },
       {
+        "ordinal": 2,
+        "name": "account_id",
+        "type_info": "Uuid"
+      },
+      {
         "ordinal": 3,
-        "name": "accolade_type",
-        "type_info": "Text"
+        "name": "session_id",
+        "type_info": "Uuid"
       },
       {
         "ordinal": 4,
-        "name": "awarded",
+        "name": "entered",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 5,
+        "name": "exited",
         "type_info": "Timestamptz"
       }
     ],
     "parameters": {
       "Left": [
+        "Uuid",
         "Uuid"
       ]
     },
@@ -39,8 +45,9 @@
       false,
       false,
       false,
-      false
+      false,
+      true
     ]
   },
-  "hash": "1773a152e66d1afb5ab65983d9c8167948c9c52a0b11372c285febb7ebb9a5fd"
+  "hash": "98a0f7f9009251ba39afba35e3e0dd83bbeeeaaa85d0ec73228ace6f484ffc21"
 }

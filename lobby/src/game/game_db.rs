@@ -13,8 +13,8 @@ pub async fn create_game(
 ) -> Result<GameEntity, AppError> {
     let record: GameEntity = sqlx::query_as!(
         GameEntity,
-        "insert into game (id, name, creator_id, max_players) \
-         values ($1, $2, $3, $4) \
+        "insert into game (id, name, creator_id, max_players)
+         values ($1, $2, $3, $4)
          returning *",
         id,
         name,
@@ -29,8 +29,8 @@ pub async fn create_game(
 pub async fn get_game_by_id(pool: &PgPool, id: Uuid) -> Result<Option<GameEntity>, AppError> {
     let record: Option<GameEntity> = sqlx::query_as!(
         GameEntity,
-        "select g.id, g.name, g.creator_id, g.status, g.max_players, g.created, g.updated \
-         from game g \
+        "select g.id, g.name, g.creator_id, g.status, g.max_players, g.created, g.updated
+         from game g
          where g.id = $1",
         id,
     )
@@ -42,12 +42,12 @@ pub async fn get_game_by_id(pool: &PgPool, id: Uuid) -> Result<Option<GameEntity
 pub async fn list_games(pool: &PgPool, status: Option<i32>) -> Result<Vec<GameBrowserRow>, AppError> {
     let records: Vec<GameBrowserRow> = sqlx::query_as!(
         GameBrowserRow,
-        "select g.id, g.name, g.creator_id, g.status, g.max_players, \
-                coalesce(mcv.member_count, 0) as \"member_count!\", \
-                g.created \
-         from game g \
-         left join game_member_count_view mcv on mcv.game_id = g.id \
-         where ($1::int is null or g.status = $1) \
+        "select g.id, g.name, g.creator_id, g.status, g.max_players,
+                coalesce(mcv.member_count, 0) as \"member_count!\",
+                g.created
+         from game g
+         left join game_member_count_view mcv on mcv.game_id = g.id
+         where ($1::int is null or g.status = $1)
          order by g.created desc",
         status,
     )

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "select gm.game_id, gm.account_id, gm.joined from game_membership gm where gm.game_id = $1 and gm.account_id = $2",
+  "query": "select game_result.game_id, game_result.account_id, game_result.placement\n         from game_result\n         where game_result.account_id = $1\n         order by game_result.game_id desc",
   "describe": {
     "columns": [
       {
@@ -15,13 +15,12 @@
       },
       {
         "ordinal": 2,
-        "name": "joined",
-        "type_info": "Timestamptz"
+        "name": "placement",
+        "type_info": "Int4"
       }
     ],
     "parameters": {
       "Left": [
-        "Uuid",
         "Uuid"
       ]
     },
@@ -31,5 +30,5 @@
       false
     ]
   },
-  "hash": "858ad46121b4cd550e6783323eddf7c61d1d5322f9fea9d0802f5cc083ae0b02"
+  "hash": "371abe449b3a685171676fc8b491be98d6ed6cb8a911284a8d64c54b73a7eb80"
 }
