@@ -3,6 +3,7 @@ use shared::schema::session::{LoginRequest, LoginResponse};
 use sqlx::PgPool;
 
 use crate::account::account_db;
+use crate::account::account_model::AccountEntity;
 use crate::http;
 use crate::password;
 use super::session_db;
@@ -25,23 +26,23 @@ async fn login(request: HttpRequest, pool: web::Data<PgPool>, body: web::Bytes) 
         return HttpResponse::BadRequest().finish();
     }
 
-    let account_entity = unwrap_or_500!(account_db::get_account_by_email(pool.get_ref(), &payload.email).await);
-    let account_entity = unwrap_or_404!(account_entity);
+    let account_entity: Option<AccountEntity> = unwrap_or_500!(account_db::get_account_by_email(pool.get_ref(), &payload.email).await);
+    let account_entity: AccountEntity = unwrap_or_404!(account_entity);
 
-    let password_valid = unwrap_or_500!(password::verify(&payload.password, &account_entity.password_hash));
+    let password_valid: bool = unwrap_or_500!(password::verify(&payload.password, &account_entity.password_hash));
     if !password_valid {
         return HttpResponse::Unauthorized().finish();
     }
 
-    let session_id = uuid::Uuid::now_v7();
-    let token = format!("{}", uuid::Uuid::now_v7().as_simple());
-    let expires = chrono::Utc::now() + chrono::Duration::days(SESSION_DURATION_DAYS);
+    let session_id: uuid::Uuid = uuid::Uuid::now_v7();
+    let token: String = format!("{}", uuid::Uuid::now_v7().as_simple());
+    let expires: chrono::DateTime<chrono::Utc> = chrono::Utc::now() + chrono::Duration::days(SESSION_DURATION_DAYS);
 
     unwrap_or_500!(
         session_db::create_session(pool.get_ref(), session_id, account_entity.id, &token, expires).await
     );
 
-    let response = LoginResponse { token };
+    let response: LoginResponse = LoginResponse { token };
     http::serialize_response(&request, &response)
 }
 

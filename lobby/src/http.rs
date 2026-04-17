@@ -3,7 +3,7 @@ use serde::Serialize;
 use shared::error::AppError;
 
 pub fn serialize_response<T: Serialize>(request: &HttpRequest, body: &T) -> HttpResponse {
-    let accept = request
+    let accept: &str = request
         .headers()
         .get("accept")
         .and_then(|value| value.to_str().ok())
@@ -32,7 +32,7 @@ pub fn deserialize_request<T: serde::de::DeserializeOwned>(
     request: &HttpRequest,
     bytes: &[u8],
 ) -> Result<T, AppError> {
-    let content_type = request
+    let content_type: &str = request
         .headers()
         .get("content-type")
         .and_then(|value| value.to_str().ok())

@@ -4,7 +4,7 @@ use sqlx::PgPool;
 
 use crate::http;
 use super::accolade_db;
-use super::accolade_model::Accolade;
+use super::accolade_model::{Accolade, AccoladeEntity};
 
 pub fn configurer(config: &mut web::ServiceConfig) {
     config
@@ -23,10 +23,10 @@ async fn get_account_accolades(
     pool: web::Data<PgPool>,
     path: web::Path<(String,)>,
 ) -> HttpResponse {
-    let (account_id_string,) = path.into_inner();
-    let account_id = unwrap_or_400!(uuid::Uuid::parse_str(&account_id_string));
+    let (account_id_string,): (String,) = path.into_inner();
+    let account_id: uuid::Uuid = unwrap_or_400!(uuid::Uuid::parse_str(&account_id_string));
 
-    let accolade_entities = unwrap_or_500!(accolade_db::get_accolades_by_account(pool.get_ref(), account_id).await);
+    let accolade_entities: Vec<AccoladeEntity> = unwrap_or_500!(accolade_db::get_accolades_by_account(pool.get_ref(), account_id).await);
     let accolade_serials: Vec<AccoladeSerial> = unwrap_or_500!(accolade_entities
         .into_iter()
         .map(|entity| Accolade::try_from(entity).map(|accolade| AccoladeSerial::from(&accolade)))
@@ -40,10 +40,10 @@ async fn get_game_accolades(
     pool: web::Data<PgPool>,
     path: web::Path<(String,)>,
 ) -> HttpResponse {
-    let (game_id_string,) = path.into_inner();
-    let game_id = unwrap_or_400!(uuid::Uuid::parse_str(&game_id_string));
+    let (game_id_string,): (String,) = path.into_inner();
+    let game_id: uuid::Uuid = unwrap_or_400!(uuid::Uuid::parse_str(&game_id_string));
 
-    let accolade_entities = unwrap_or_500!(accolade_db::get_accolades_by_game(pool.get_ref(), game_id).await);
+    let accolade_entities: Vec<AccoladeEntity> = unwrap_or_500!(accolade_db::get_accolades_by_game(pool.get_ref(), game_id).await);
     let accolade_serials: Vec<AccoladeSerial> = unwrap_or_500!(accolade_entities
         .into_iter()
         .map(|entity| Accolade::try_from(entity).map(|accolade| AccoladeSerial::from(&accolade)))

@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 use strum::FromRepr;
 use uuid::Uuid;
 
@@ -9,6 +10,17 @@ pub enum GameStatus {
     Pending = 0,
     Active = 1,
     Completed = 2,
+}
+
+impl Display for GameStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let display_string: &'static str = match self {
+            GameStatus::Pending => "pending",
+            GameStatus::Active => "active",
+            GameStatus::Completed => "completed",
+        };
+        write!(f, "{:?}", display_string)
+    }
 }
 
 crate::try_from_repr!(GameStatus<i32>);
