@@ -17,10 +17,11 @@ pub fn configurer(config: &mut web::ServiceConfig) {
 async fn enter_game(
     request: HttpRequest,
     pool: web::Data<PgPool>,
-    path: web::Path<String>,
+    path: web::Path<(String,)>,
     auth: AuthenticatedAccount,
 ) -> HttpResponse {
-    let game_id = unwrap_or_400!(uuid::Uuid::parse_str(&path.into_inner()));
+    let (game_id_string,) = path.into_inner();
+    let game_id = unwrap_or_400!(uuid::Uuid::parse_str(&game_id_string));
 
     // Verify user is a member of this game
     let membership = unwrap_or_500!(
@@ -51,10 +52,11 @@ async fn enter_game(
 async fn exit_game(
     request: HttpRequest,
     pool: web::Data<PgPool>,
-    path: web::Path<String>,
+    path: web::Path<(String,)>,
     auth: AuthenticatedAccount,
 ) -> HttpResponse {
-    let game_id = unwrap_or_400!(uuid::Uuid::parse_str(&path.into_inner()));
+    let (game_id_string,) = path.into_inner();
+    let game_id = unwrap_or_400!(uuid::Uuid::parse_str(&game_id_string));
 
     let entity = unwrap_or_500!(
         game_session_db::exit_game_session(pool.get_ref(), game_id, auth.account_id).await

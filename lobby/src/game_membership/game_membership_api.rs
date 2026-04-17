@@ -18,10 +18,11 @@ pub fn configurer(config: &mut web::ServiceConfig) {
 async fn join_game(
     request: HttpRequest,
     pool: web::Data<PgPool>,
-    path: web::Path<String>,
+    path: web::Path<(String,)>,
     auth: AuthenticatedAccount,
 ) -> HttpResponse {
-    let game_id = unwrap_or_400!(uuid::Uuid::parse_str(&path.into_inner()));
+    let (game_id_string,) = path.into_inner();
+    let game_id = unwrap_or_400!(uuid::Uuid::parse_str(&game_id_string));
 
     let game_entity = unwrap_or_500!(game_db::get_game_by_id(pool.get_ref(), game_id).await);
     let game_entity = unwrap_or_404!(game_entity);

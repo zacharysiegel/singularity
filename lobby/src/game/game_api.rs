@@ -57,8 +57,9 @@ async fn create_game(
     http::serialize_response(&request, &serial)
 }
 
-async fn get_game(request: HttpRequest, pool: web::Data<PgPool>, path: web::Path<String>) -> HttpResponse {
-    let game_id = unwrap_or_400!(uuid::Uuid::parse_str(&path.into_inner()));
+async fn get_game(request: HttpRequest, pool: web::Data<PgPool>, path: web::Path<(String,)>) -> HttpResponse {
+    let (game_id_string,) = path.into_inner();
+    let game_id = unwrap_or_400!(uuid::Uuid::parse_str(&game_id_string));
 
     let entity = unwrap_or_500!(game_db::get_game_by_id(pool.get_ref(), game_id).await);
     let entity = unwrap_or_404!(entity);
