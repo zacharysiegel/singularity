@@ -8,7 +8,7 @@ use crate::http;
 use crate::password;
 use crate::session::session_extractor::AuthenticatedAccount;
 use super::account_db;
-use super::account_model::Account;
+use super::account_model::{Account, AccountEntity};
 
 pub fn configurer(config: &mut web::ServiceConfig) {
     config.service(
@@ -23,11 +23,11 @@ pub fn configurer(config: &mut web::ServiceConfig) {
 }
 
 async fn get_own_account(request: HttpRequest, pool: web::Data<PgPool>, auth: AuthenticatedAccount) -> HttpResponse {
-    let entity = unwrap_or_500!(account_db::get_account_by_id(pool.get_ref(), auth.account_id).await);
-    let entity = unwrap_or_404!(entity);
+    let entity: Option<AccountEntity> = unwrap_or_500!(account_db::get_account_by_id(pool.get_ref(), auth.account_id).await);
+    let entity: AccountEntity = unwrap_or_404!(entity);
 
-    let account = Account::from(entity);
-    let serial = AccountSerial::from(&account);
+    let account: Account = Account::from(entity);
+    let serial: AccountSerial = AccountSerial::from(&account);
     http::serialize_response(&request, &serial)
 }
 
@@ -36,14 +36,14 @@ async fn get_account_public(
     pool: web::Data<PgPool>,
     path: web::Path<(String,)>,
 ) -> HttpResponse {
-    let (account_id_string,) = path.into_inner();
-    let account_id = unwrap_or_400!(uuid::Uuid::parse_str(&account_id_string));
+    let (account_id_string,): (String,) = path.into_inner();
+    let account_id: uuid::Uuid = unwrap_or_400!(uuid::Uuid::parse_str(&account_id_string));
 
-    let entity = unwrap_or_500!(account_db::get_account_by_id(pool.get_ref(), account_id).await);
-    let entity = unwrap_or_404!(entity);
+    let entity: Option<AccountEntity> = unwrap_or_500!(account_db::get_account_by_id(pool.get_ref(), account_id).await);
+    let entity: AccountEntity = unwrap_or_404!(entity);
 
-    let account = Account::from(entity);
-    let serial = AccountPublicSerial::from(&account);
+    let account: Account = Account::from(entity);
+    let serial: AccountPublicSerial = AccountPublicSerial::from(&account);
     http::serialize_response(&request, &serial)
 }
 
@@ -55,14 +55,14 @@ async fn create_account(request: HttpRequest, pool: web::Data<PgPool>, body: web
     }
 
     let password_hash: String = unwrap_or_500!(password::hash(&payload.password));
-    let id = uuid::Uuid::now_v7();
+    let id: uuid::Uuid = uuid::Uuid::now_v7();
 
-    let entity = unwrap_or_500!(
+    let entity: AccountEntity = unwrap_or_500!(
         account_db::create_account(pool.get_ref(), id, &payload.email, &payload.username, &password_hash).await
     );
 
-    let account = Account::from(entity);
-    let serial = AccountSerial::from(&account);
+    let account: Account = Account::from(entity);
+    let serial: AccountSerial = AccountSerial::from(&account);
     http::serialize_response(&request, &serial)
 }
 
@@ -78,7 +78,7 @@ async fn update_account(
         return HttpResponse::BadRequest().finish();
     }
 
-    let entity = unwrap_or_500!(
+    let entity: AccountEntity = unwrap_or_500!(
         account_db::update_account(
             pool.get_ref(),
             auth.account_id,
@@ -88,8 +88,8 @@ async fn update_account(
         .await
     );
 
-    let account = Account::from(entity);
-    let serial = AccountSerial::from(&account);
+    let account: Account = Account::from(entity);
+    let serial: AccountSerial = AccountSerial::from(&account);
     http::serialize_response(&request, &serial)
 }
 
@@ -105,10 +105,10 @@ async fn change_password(
         return HttpResponse::BadRequest().finish();
     }
 
-    let entity = unwrap_or_500!(account_db::get_account_by_id(pool.get_ref(), auth.account_id).await);
-    let entity = unwrap_or_404!(entity);
+    let entity: Option<AccountEntity> = unwrap_or_500!(account_db::get_account_by_id(pool.get_ref(), auth.account_id).await);
+    let entity: AccountEntity = unwrap_or_404!(entity);
 
-    let old_password_valid = unwrap_or_500!(password::verify(&payload.old_password, &entity.password_hash));
+    let old_password_valid: bool = unwrap_or_500!(password::verify(&payload.old_password, &entity.password_hash));
     if !old_password_valid {
         return HttpResponse::Unauthorized().finish();
     }

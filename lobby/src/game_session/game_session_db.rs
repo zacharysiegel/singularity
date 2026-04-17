@@ -49,7 +49,7 @@ pub async fn exit_game_session(
     game_id: Uuid,
     account_id: Uuid,
 ) -> Result<Option<GameSessionEntity>, AppError> {
-    let record = sqlx::query_as!(
+    let record: Option<GameSessionEntity> = sqlx::query_as!(
         GameSessionEntity,
         "update game_session \
          set exited = now() \

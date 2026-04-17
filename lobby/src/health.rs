@@ -12,12 +12,12 @@ pub fn configurer(config: &mut web::ServiceConfig) {
 }
 
 async fn health_check(request: HttpRequest, pool: web::Data<PgPool>) -> HttpResponse {
-    let database_healthy = sqlx::query_scalar::<_, i32>("select 1")
+    let database_healthy: bool = sqlx::query_scalar::<_, i32>("select 1")
         .fetch_one(pool.get_ref())
         .await
         .is_ok();
 
-    let response = if database_healthy {
+    let response: HealthResponseSerial = if database_healthy {
         HealthResponseSerial {
             status: HealthStatusSerial::Ok,
             database: DatabaseStatusSerial::Connected,
