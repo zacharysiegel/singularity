@@ -6,17 +6,15 @@ use super::account_model::AccountEntity;
 
 pub async fn create_account(
     pool: &PgPool,
-    id: Uuid,
     email: &str,
     username: &str,
     password_hash: &str,
 ) -> Result<AccountEntity, AppError> {
     let record: AccountEntity = sqlx::query_as!(
         AccountEntity,
-        "insert into account (id, email, username, password_hash)
-         values ($1, $2, $3, $4)
+        "insert into account (email, username, password_hash)
+         values ($1, $2, $3)
          returning *",
-        id,
         email,
         username,
         password_hash,

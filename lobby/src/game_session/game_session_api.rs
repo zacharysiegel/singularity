@@ -1,7 +1,7 @@
 use actix_web::{web, HttpRequest, HttpResponse};
 use shared::schema::game_session::GameSessionSerial;
 use sqlx::PgPool;
-
+use uuid::Uuid;
 use crate::game_membership::game_membership_db;
 use crate::game_membership::game_membership_model::GameMembershipEntity;
 use crate::http;
@@ -22,27 +22,24 @@ async fn enter_game(
     auth: AuthenticatedAccount,
 ) -> HttpResponse {
     let (game_id_string,): (String,) = path.into_inner();
-    let game_id: uuid::Uuid = unwrap_or_400!(uuid::Uuid::parse_str(&game_id_string));
+    let game_id: Uuid = unwrap_or_400!(Uuid::parse_str(&game_id_string));
 
-    // Verify user is a member of this game
     let membership: Option<GameMembershipEntity> = unwrap_or_500!(
         game_membership_db::get_membership(pool.get_ref(), game_id, auth.account_id).await
     );
     if membership.is_none() {
-        return HttpResponse::Forbidden().finish();
+        return HttpResponse::Forbidden().body("User must be a member of the game to enter it");
     }
 
-    // Check for existing active game session (duplicate prevention)
     let existing: Option<GameSessionEntity> = unwrap_or_500!(
         game_session_db::get_active_game_session(pool.get_ref(), game_id, auth.account_id).await
     );
     if existing.is_some() {
-        return HttpResponse::Conflict().finish();
+        return HttpResponse::Conflict().body("User has already entered the game");
     }
 
-    let id: uuid::Uuid = uuid::Uuid::now_v7();
     let entity: GameSessionEntity = unwrap_or_500!(
-        game_session_db::create_game_session(pool.get_ref(), id, game_id, auth.account_id, auth.session_id).await
+        game_session_db::create_game_session(pool.get_ref(), game_id, auth.account_id, auth.session_id).await
     );
 
     let game_session: GameSession = GameSession::from(entity);
@@ -57,7 +54,7 @@ async fn exit_game(
     auth: AuthenticatedAccount,
 ) -> HttpResponse {
     let (game_id_string,): (String,) = path.into_inner();
-    let game_id: uuid::Uuid = unwrap_or_400!(uuid::Uuid::parse_str(&game_id_string));
+    let game_id: Uuid = unwrap_or_400!(Uuid::parse_str(&game_id_string));
 
     let entity: Option<GameSessionEntity> = unwrap_or_500!(
         game_session_db::exit_game_session(pool.get_ref(), game_id, auth.account_id).await

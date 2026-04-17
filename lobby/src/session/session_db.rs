@@ -7,17 +7,15 @@ use super::session_model::SessionEntity;
 
 pub async fn create_session(
     pool: &PgPool,
-    id: Uuid,
     account_id: Uuid,
     token: &str,
     expires: DateTime<Utc>,
 ) -> Result<SessionEntity, AppError> {
     let record: SessionEntity = sqlx::query_as!(
         SessionEntity,
-        "insert into session (id, account_id, token, expires)
-         values ($1, $2, $3, $4)
+        "insert into session (account_id, token, expires)
+         values ($1, $2, $3)
          returning *",
-        id,
         account_id,
         token,
         expires,
