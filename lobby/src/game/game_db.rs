@@ -42,16 +42,11 @@ pub async fn get_game_by_id(pool: &PgPool, id: Uuid) -> Result<Option<GameEntity
 pub async fn list_games(pool: &PgPool, status: Option<i32>) -> Result<Vec<GameBrowserRow>, AppError> {
     let records = sqlx::query_as!(
         GameBrowserRow,
-        "with membership_counts as ( \
-             select game_membership.game_id, count(*) as member_count \
-             from game_membership \
-             group by game_membership.game_id \
-         ) \
-         select g.id, g.name, g.creator_id, g.status, g.max_players, \
-                coalesce(membership_counts.member_count, 0) as \"member_count!\", \
+        "select g.id, g.name, g.creator_id, g.status, g.max_players, \
+                coalesce(mcv.member_count, 0) as \"member_count!\", \
                 g.created \
          from game g \
-         left join membership_counts on membership_counts.game_id = g.id \
+         left join member_count_view mcv on mcv.game_id = g.id \
          where ($1::int is null or g.status = $1) \
          order by g.created desc",
         status,
