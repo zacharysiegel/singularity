@@ -2,6 +2,7 @@ use actix_web::{web, HttpRequest, HttpResponse};
 use shared::schema::game::{CreateGameRequest, GameBrowserEntry, GameBrowserQuery, GameSerial};
 use sqlx::PgPool;
 
+use crate::game_membership::game_membership_db;
 use crate::http;
 use crate::session::session_extractor::AuthenticatedAccount;
 use super::game_db;
@@ -50,6 +51,10 @@ async fn create_game(
 
     let entity: GameEntity = unwrap_or_500!(
         game_db::create_game(pool.get_ref(), id, &payload.name, auth.account_id, max_players).await
+    );
+
+    unwrap_or_500!(
+        game_membership_db::create_membership_if_available(pool.get_ref(), id, auth.account_id).await
     );
 
     let game: Game = unwrap_or_500!(Game::try_from(entity));
