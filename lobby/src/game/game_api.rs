@@ -1,7 +1,7 @@
 use actix_web::{web, HttpRequest, HttpResponse};
 use shared::schema::game::{CreateGameRequest, GameBrowserEntry, GameBrowserQuery, GameSerial};
 use sqlx::PgPool;
-
+use uuid::Uuid;
 use crate::game_membership::game_membership_db;
 use crate::http;
 use crate::session::session_extractor::AuthenticatedAccount;
@@ -46,7 +46,7 @@ async fn create_game(
         return HttpResponse::BadRequest().finish();
     }
 
-    let id: uuid::Uuid = uuid::Uuid::now_v7();
+    let id: Uuid = Uuid::now_v7();
     let max_players: i32 = payload.max_players.unwrap_or(DEFAULT_MAX_PLAYERS);
 
     let entity: GameEntity = unwrap_or_500!(
@@ -62,9 +62,13 @@ async fn create_game(
     http::serialize_response(&request, &serial)
 }
 
-async fn get_game(request: HttpRequest, pool: web::Data<PgPool>, path: web::Path<(String,)>) -> HttpResponse {
+async fn get_game(
+    request: HttpRequest,
+    pool: web::Data<PgPool>,
+    path: web::Path<(String,)>
+) -> HttpResponse {
     let (game_id_string,): (String,) = path.into_inner();
-    let game_id: uuid::Uuid = unwrap_or_400!(uuid::Uuid::parse_str(&game_id_string));
+    let game_id: Uuid = unwrap_or_400!(Uuid::parse_str(&game_id_string));
 
     let entity: Option<GameEntity> = unwrap_or_500!(game_db::get_game_by_id(pool.get_ref(), game_id).await);
     let entity: GameEntity = unwrap_or_404!(entity);

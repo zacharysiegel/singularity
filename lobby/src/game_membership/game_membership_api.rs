@@ -31,12 +31,12 @@ async fn join_game(
         return HttpResponse::Conflict().body(format!("Only {} games may be joined", GameStatus::Pending));
     }
 
-    let entity: Option<GameMembershipEntity> =
+    let entity_opt: Option<GameMembershipEntity> =
         unwrap_or_500!(game_membership_db::create_membership_if_available(pool.get_ref(), game_id, auth.account_id).await);
 
-    let entity: GameMembershipEntity = match entity {
+    let entity: GameMembershipEntity = match entity_opt {
         Some(entity) => entity,
-        None => return HttpResponse::Conflict().finish(),
+        None => return HttpResponse::Conflict().body("Game cannot be joined. (The game may be full or the account may already be a member.)"),
     };
 
     let membership: GameMembership = GameMembership::from(entity);
