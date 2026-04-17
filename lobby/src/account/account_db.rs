@@ -11,7 +11,7 @@ pub async fn create_account(
     username: &str,
     password_hash: &str,
 ) -> Result<AccountEntity, AppError> {
-    let record = sqlx::query_as!(
+    let record: AccountEntity = sqlx::query_as!(
         AccountEntity,
         "insert into account (id, email, username, password_hash) \
          values ($1, $2, $3, $4) \
@@ -27,7 +27,7 @@ pub async fn create_account(
 }
 
 pub async fn get_account_by_id(pool: &PgPool, id: Uuid) -> Result<Option<AccountEntity>, AppError> {
-    let record = sqlx::query_as!(
+    let record: Option<AccountEntity> = sqlx::query_as!(
         AccountEntity,
         "select * from account where id = $1",
         id,
@@ -38,7 +38,7 @@ pub async fn get_account_by_id(pool: &PgPool, id: Uuid) -> Result<Option<Account
 }
 
 pub async fn get_account_by_email(pool: &PgPool, email: &str) -> Result<Option<AccountEntity>, AppError> {
-    let record = sqlx::query_as!(
+    let record: Option<AccountEntity> = sqlx::query_as!(
         AccountEntity,
         "select * from account \
          where email = $1 and deleted_at is null",
@@ -55,7 +55,7 @@ pub async fn update_account(
     username: Option<&str>,
     email: Option<&str>,
 ) -> Result<AccountEntity, AppError> {
-    let record = sqlx::query_as!(
+    let record: AccountEntity = sqlx::query_as!(
         AccountEntity,
         "update account \
          set username = coalesce($2, username), \

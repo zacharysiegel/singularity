@@ -5,7 +5,7 @@ use uuid::Uuid;
 use super::game_result_model::GameResultEntity;
 
 pub async fn get_results_by_game(pool: &PgPool, game_id: Uuid) -> Result<Vec<GameResultEntity>, AppError> {
-    let records = sqlx::query_as!(
+    let records: Vec<GameResultEntity> = sqlx::query_as!(
         GameResultEntity,
         "select game_result.game_id, game_result.account_id, game_result.placement \
          from game_result \
@@ -19,7 +19,7 @@ pub async fn get_results_by_game(pool: &PgPool, game_id: Uuid) -> Result<Vec<Gam
 }
 
 pub async fn get_results_by_account(pool: &PgPool, account_id: Uuid) -> Result<Vec<GameResultEntity>, AppError> {
-    let records = sqlx::query_as!(
+    let records: Vec<GameResultEntity> = sqlx::query_as!(
         GameResultEntity,
         "select game_result.game_id, game_result.account_id, game_result.placement \
          from game_result \

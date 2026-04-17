@@ -12,7 +12,7 @@ pub async fn create_session(
     token: &str,
     expires: DateTime<Utc>,
 ) -> Result<SessionEntity, AppError> {
-    let record = sqlx::query_as!(
+    let record: SessionEntity = sqlx::query_as!(
         SessionEntity,
         "insert into session (id, account_id, token, expires) \
          values ($1, $2, $3, $4) \
@@ -28,7 +28,7 @@ pub async fn create_session(
 }
 
 pub async fn get_session_by_token(pool: &PgPool, token: &str) -> Result<Option<SessionEntity>, AppError> {
-    let record = sqlx::query_as!(
+    let record: Option<SessionEntity> = sqlx::query_as!(
         SessionEntity,
         "select s.id, s.account_id, s.token, s.created, s.expires \
          from session s \

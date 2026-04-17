@@ -5,7 +5,7 @@ use uuid::Uuid;
 use super::statistic_model::StatisticEntity;
 
 pub async fn get_statistics_by_account(pool: &PgPool, account_id: Uuid) -> Result<Vec<StatisticEntity>, AppError> {
-    let records = sqlx::query_as!(
+    let records: Vec<StatisticEntity> = sqlx::query_as!(
         StatisticEntity,
         "select statistic.id, statistic.account_id, statistic.game_id, \
                 statistic.statistic_type, statistic.value, statistic.updated \
@@ -20,7 +20,7 @@ pub async fn get_statistics_by_account(pool: &PgPool, account_id: Uuid) -> Resul
 }
 
 pub async fn get_statistics_by_game(pool: &PgPool, game_id: Uuid) -> Result<Vec<StatisticEntity>, AppError> {
-    let records = sqlx::query_as!(
+    let records: Vec<StatisticEntity> = sqlx::query_as!(
         StatisticEntity,
         "select statistic.id, statistic.account_id, statistic.game_id, \
                 statistic.statistic_type, statistic.value, statistic.updated \
