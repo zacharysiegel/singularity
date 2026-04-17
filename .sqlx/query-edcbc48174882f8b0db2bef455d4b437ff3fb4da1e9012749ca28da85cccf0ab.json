@@ -1,0 +1,46 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select s.id, s.account_id, s.token, s.created, s.expires\n         from session s\n         inner join account a on a.id = s.account_id\n         where s.token = $1\n           and s.expires > now()\n           and a.deleted_at is null",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "account_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "token",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "created",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 4,
+        "name": "expires",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "edcbc48174882f8b0db2bef455d4b437ff3fb4da1e9012749ca28da85cccf0ab"
+}

@@ -14,8 +14,8 @@ pub async fn create_session(
 ) -> Result<SessionEntity, AppError> {
     let record: SessionEntity = sqlx::query_as!(
         SessionEntity,
-        "insert into session (id, account_id, token, expires) \
-         values ($1, $2, $3, $4) \
+        "insert into session (id, account_id, token, expires)
+         values ($1, $2, $3, $4)
          returning *",
         id,
         account_id,
@@ -30,11 +30,11 @@ pub async fn create_session(
 pub async fn get_session_by_token(pool: &PgPool, token: &str) -> Result<Option<SessionEntity>, AppError> {
     let record: Option<SessionEntity> = sqlx::query_as!(
         SessionEntity,
-        "select s.id, s.account_id, s.token, s.created, s.expires \
-         from session s \
-         inner join account a on a.id = s.account_id \
-         where s.token = $1 \
-           and s.expires > now() \
+        "select s.id, s.account_id, s.token, s.created, s.expires
+         from session s
+         inner join account a on a.id = s.account_id
+         where s.token = $1
+           and s.expires > now()
            and a.deleted_at is null",
         token,
     )

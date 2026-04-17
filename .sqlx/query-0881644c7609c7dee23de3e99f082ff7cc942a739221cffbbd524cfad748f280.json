@@ -1,0 +1,35 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "insert into game_membership (game_id, account_id)\n         select $1, $2\n         where not exists (\n             select 1 from game_membership where game_id = $1 and account_id = $2\n         )\n         and (\n             select count(*) from game_membership where game_id = $1\n         ) < (\n             select max_players from game where id = $1\n         )\n         returning *",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "game_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "account_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "joined",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "0881644c7609c7dee23de3e99f082ff7cc942a739221cffbbd524cfad748f280"
+}

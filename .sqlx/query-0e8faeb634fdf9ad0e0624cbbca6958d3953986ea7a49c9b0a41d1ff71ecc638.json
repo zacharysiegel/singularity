@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "insert into session (id, account_id, token, expires) values ($1, $2, $3, $4) returning *",
+  "query": "select accolade.id, accolade.account_id, accolade.game_id, accolade.accolade_type, accolade.awarded\n         from accolade\n         where accolade.account_id = $1\n         order by accolade.awarded desc",
   "describe": {
     "columns": [
       {
@@ -15,26 +15,23 @@
       },
       {
         "ordinal": 2,
-        "name": "token",
-        "type_info": "Text"
+        "name": "game_id",
+        "type_info": "Uuid"
       },
       {
         "ordinal": 3,
-        "name": "created",
-        "type_info": "Timestamptz"
+        "name": "accolade_type",
+        "type_info": "Text"
       },
       {
         "ordinal": 4,
-        "name": "expires",
+        "name": "awarded",
         "type_info": "Timestamptz"
       }
     ],
     "parameters": {
       "Left": [
-        "Uuid",
-        "Uuid",
-        "Text",
-        "Timestamptz"
+        "Uuid"
       ]
     },
     "nullable": [
@@ -45,5 +42,5 @@
       false
     ]
   },
-  "hash": "6eebf07296752f2f40caad2f3a0aec3626f33a84385ac7381591c82b119801f5"
+  "hash": "0e8faeb634fdf9ad0e0624cbbca6958d3953986ea7a49c9b0a41d1ff71ecc638"
 }

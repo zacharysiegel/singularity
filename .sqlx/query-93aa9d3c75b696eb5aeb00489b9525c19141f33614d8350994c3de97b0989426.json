@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "select statistic.id, statistic.account_id, statistic.game_id, statistic.statistic_type, statistic.value, statistic.updated from statistic where statistic.account_id = $1 order by statistic.statistic_type asc",
+  "query": "select statistic.id, statistic.account_id, statistic.game_id,\n                statistic.statistic_type, statistic.value, statistic.updated\n         from statistic\n         where statistic.game_id = $1\n         order by statistic.statistic_type asc",
   "describe": {
     "columns": [
       {
@@ -48,5 +48,5 @@
       false
     ]
   },
-  "hash": "51b5799b465d8c1df96b88c1d63d7d4b09f3286934fece91323f30d9d682accb"
+  "hash": "93aa9d3c75b696eb5aeb00489b9525c19141f33614d8350994c3de97b0989426"
 }

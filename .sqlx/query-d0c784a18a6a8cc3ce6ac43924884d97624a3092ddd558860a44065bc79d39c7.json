@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "select * from account where email = $1 and deleted_at is null",
+  "query": "insert into session (id, account_id, token, expires)\n         values ($1, $2, $3, $4)\n         returning *",
   "describe": {
     "columns": [
       {
@@ -10,38 +10,31 @@
       },
       {
         "ordinal": 1,
-        "name": "email",
-        "type_info": "Text"
+        "name": "account_id",
+        "type_info": "Uuid"
       },
       {
         "ordinal": 2,
-        "name": "username",
+        "name": "token",
         "type_info": "Text"
       },
       {
         "ordinal": 3,
-        "name": "password_hash",
-        "type_info": "Text"
-      },
-      {
-        "ordinal": 4,
         "name": "created",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 5,
-        "name": "updated",
-        "type_info": "Timestamptz"
-      },
-      {
-        "ordinal": 6,
-        "name": "deleted_at",
+        "ordinal": 4,
+        "name": "expires",
         "type_info": "Timestamptz"
       }
     ],
     "parameters": {
       "Left": [
-        "Text"
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Timestamptz"
       ]
     },
     "nullable": [
@@ -49,10 +42,8 @@
       false,
       false,
       false,
-      false,
-      false,
-      true
+      false
     ]
   },
-  "hash": "9dce7f4886f06f75fc113789114b43935c6dac284a284b955924e92652345fa9"
+  "hash": "d0c784a18a6a8cc3ce6ac43924884d97624a3092ddd558860a44065bc79d39c7"
 }

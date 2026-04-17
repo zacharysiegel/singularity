@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "update account\n         set email = 'deleted-' || id::text || '@anonymized',\n             username = 'deleted-' || id::text,\n             password_hash = '',\n             deleted_at = now(),\n             updated = now()\n         where id = $1 and deleted_at is null",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "11ad08063858e64b85d3d01bf00a18638858bcc032d25abb9cd219bf71a837d6"
+}

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "update account set username = coalesce($2, username), email = coalesce($3, email), updated = now() where id = $1 and deleted_at is null returning *",
+  "query": "update account\n         set username = coalesce($2, username),\n             email = coalesce($3, email),\n             updated = now()\n         where id = $1 and deleted_at is null\n         returning *",
   "describe": {
     "columns": [
       {
@@ -56,5 +56,5 @@
       true
     ]
   },
-  "hash": "fa47f41a2fb722745cdc11a02ca5495719d7a60e07488430f16de568b51fabe6"
+  "hash": "888941e5d758f3c695d60872f43e8473c31bbe345f7845f98c1560b48da5c96a"
 }

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "select g.id, g.name, g.creator_id, g.status, g.max_players, g.created, g.updated from game g where g.id = $1",
+  "query": "select g.id, g.name, g.creator_id, g.status, g.max_players, g.created, g.updated\n         from game g\n         where g.id = $1",
   "describe": {
     "columns": [
       {
@@ -54,5 +54,5 @@
       false
     ]
   },
-  "hash": "150c7fc5f53fd677fc422b06b76e131f41acc1383ebda3406e7214fd1882d591"
+  "hash": "32fc02ad2588e66ac1104d72aba6c34a71f1c2a11caf06df2f37c72dd928ad13"
 }
