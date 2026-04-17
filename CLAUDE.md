@@ -36,6 +36,8 @@ The server must be running before the client connects. The local Postgres databa
 
 The lobby uses `sqlx::query_as!` macros for compile-time query checking. The `.sqlx/` directory contains an offline query cache. When the Claude Code sandbox blocks database connections at compile time, prefix build/test commands with `SQLX_OFFLINE=true`. After changing any SQL queries, regenerate the cache with a live database: `cargo sqlx prepare --workspace`.
 
+Database migrations use dbmate. Run via the wrapper script which auto-configures the migrations directory and database URL: `./lobby/db/dbmate.sh up`, `./lobby/db/dbmate.sh rollback`, `./lobby/db/dbmate.sh status`, etc.
+
 ## Architecture
 
 Four workspace crates:
