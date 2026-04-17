@@ -7,5 +7,5 @@ cd "${repo_dir}"
 
 source ./.env
 
-DBMATE_GLOBAL_OPTIONS=(--migrations-dir './lobby/db/migrations' --wait --url "$DATABASE_URL/lobby?sslmode=disable")
+DBMATE_GLOBAL_OPTIONS=(--migrations-dir './lobby/db/migrations' --wait --url "$DATABASE_URL?sslmode=disable")
 dbmate "${DBMATE_GLOBAL_OPTIONS[@]}" "${@}"
