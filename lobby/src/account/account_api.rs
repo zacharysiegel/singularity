@@ -34,9 +34,10 @@ async fn get_own_account(request: HttpRequest, pool: web::Data<PgPool>, auth: Au
 async fn get_account_public(
     request: HttpRequest,
     pool: web::Data<PgPool>,
-    path: web::Path<String>,
+    path: web::Path<(String,)>,
 ) -> HttpResponse {
-    let account_id = unwrap_or_400!(uuid::Uuid::parse_str(&path.into_inner()));
+    let (account_id_string,) = path.into_inner();
+    let account_id = unwrap_or_400!(uuid::Uuid::parse_str(&account_id_string));
 
     let entity = unwrap_or_500!(account_db::get_account_by_id(pool.get_ref(), account_id).await);
     let entity = unwrap_or_404!(entity);
