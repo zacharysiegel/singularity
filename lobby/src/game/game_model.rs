@@ -13,7 +13,7 @@ pub struct Game {
     pub updated: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, sqlx::FromRow)]
+#[derive(Debug, Clone)]
 pub struct GameEntity {
     pub id: Uuid,
     pub name: String,
@@ -24,7 +24,7 @@ pub struct GameEntity {
     pub updated: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, sqlx::FromRow)]
+#[derive(Debug, Clone)]
 pub struct GameBrowserRow {
     pub id: Uuid,
     pub name: String,

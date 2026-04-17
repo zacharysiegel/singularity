@@ -13,7 +13,7 @@ pub struct Account {
     pub deleted_at: Option<DateTime<Utc>>,
 }
 
-#[derive(Debug, Clone, sqlx::FromRow)]
+#[derive(Debug, Clone)]
 pub struct AccountEntity {
     pub id: Uuid,
     pub email: String,

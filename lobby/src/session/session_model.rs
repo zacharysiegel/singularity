@@ -10,7 +10,7 @@ pub struct Session {
     pub expires: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, sqlx::FromRow)]
+#[derive(Debug, Clone)]
 pub struct SessionEntity {
     pub id: Uuid,
     pub account_id: Uuid,
