@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "insert into game_membership (game_id, account_id) values ($1, $2) returning *",
+  "query": "insert into game_membership (game_id, account_id) select $1, $2 where not exists ( select 1 from game_membership where game_id = $1 and account_id = $2 ) and ( select count(*) from game_membership where game_id = $1 ) < ( select max_players from game where id = $1 ) returning *",
   "describe": {
     "columns": [
       {
@@ -31,5 +31,5 @@
       false
     ]
   },
-  "hash": "78cd0ac454a0de70c1043d3303d80dac1369a14565a734db15b2e47ad1a4edd1"
+  "hash": "42ee78dff5f0ea5528b7cfc2fd898790ef06fae7c99ce39b0cedebd47a746e53"
 }
