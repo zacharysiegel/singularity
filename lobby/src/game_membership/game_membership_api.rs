@@ -28,24 +28,16 @@ async fn join_game(
     let game: Game = unwrap_or_500!(Game::try_from(game_entity));
 
     if game.status != GameStatus::Pending {
-        return HttpResponse::BadRequest().body(format!("Only {} games may be joined", GameStatus::Pending));
+        return HttpResponse::Conflict().body(format!("Only {} games may be joined", GameStatus::Pending));
     }
 
-    let member_count: i64 =
-        unwrap_or_500!(game_membership_db::count_memberships_by_game(pool.get_ref(), game_id).await);
-    if member_count >= i64::from(game.max_players) {
-        return HttpResponse::Conflict().finish();
-    }
+    let entity: Option<GameMembershipEntity> =
+        unwrap_or_500!(game_membership_db::create_membership_if_available(pool.get_ref(), game_id, auth.account_id).await);
 
-    // Check not already a member
-    let existing: Option<GameMembershipEntity> =
-        unwrap_or_500!(game_membership_db::get_membership(pool.get_ref(), game_id, auth.account_id).await);
-    if existing.is_some() {
-        return HttpResponse::Conflict().finish();
-    }
-
-    let entity: GameMembershipEntity =
-        unwrap_or_500!(game_membership_db::create_membership(pool.get_ref(), game_id, auth.account_id).await);
+    let entity: GameMembershipEntity = match entity {
+        Some(entity) => entity,
+        None => return HttpResponse::Conflict().finish(),
+    };
 
     let membership: GameMembership = GameMembership::from(entity);
     let serial: GameMembershipSerial = GameMembershipSerial::from(&membership);
