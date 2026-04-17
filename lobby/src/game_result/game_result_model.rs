@@ -8,7 +8,7 @@ pub struct GameResult {
     pub placement: i32,
 }
 
-#[derive(Debug, Clone, sqlx::FromRow)]
+#[derive(Debug, Clone)]
 pub struct GameResultEntity {
     pub game_id: Uuid,
     pub account_id: Uuid,

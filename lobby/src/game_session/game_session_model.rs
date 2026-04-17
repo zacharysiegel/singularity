@@ -12,7 +12,7 @@ pub struct GameSession {
     pub exited: Option<DateTime<Utc>>,
 }
 
-#[derive(Debug, Clone, sqlx::FromRow)]
+#[derive(Debug, Clone)]
 pub struct GameSessionEntity {
     pub id: Uuid,
     pub game_id: Uuid,

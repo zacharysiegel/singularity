@@ -12,7 +12,7 @@ pub struct Statistic {
     pub updated: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, sqlx::FromRow)]
+#[derive(Debug, Clone)]
 pub struct StatisticEntity {
     pub id: Uuid,
     pub account_id: Uuid,

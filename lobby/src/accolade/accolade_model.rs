@@ -11,7 +11,7 @@ pub struct Accolade {
     pub awarded: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, sqlx::FromRow)]
+#[derive(Debug, Clone)]
 pub struct AccoladeEntity {
     pub id: Uuid,
     pub account_id: Uuid,

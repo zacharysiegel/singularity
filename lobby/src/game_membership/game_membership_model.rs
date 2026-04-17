@@ -9,7 +9,7 @@ pub struct GameMembership {
     pub joined: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, sqlx::FromRow)]
+#[derive(Debug, Clone)]
 pub struct GameMembershipEntity {
     pub game_id: Uuid,
     pub account_id: Uuid,
