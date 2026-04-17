@@ -7,5 +7,10 @@ cd "${repo_dir}"
 
 source ./.env
 
+echo "Executing dbmate"
 DBMATE_GLOBAL_OPTIONS=(--migrations-dir './lobby/db/migrations' --wait --url "$DATABASE_URL?sslmode=disable")
 dbmate "${DBMATE_GLOBAL_OPTIONS[@]}" "${@}"
+
+echo "Regenerating sqlx caches"
+cargo sqlx prepare --workspace
+
