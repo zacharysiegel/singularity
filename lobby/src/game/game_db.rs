@@ -46,7 +46,7 @@ pub async fn list_games(pool: &PgPool, status: Option<i32>) -> Result<Vec<GameBr
                 coalesce(mcv.member_count, 0) as \"member_count!\", \
                 g.created \
          from game g \
-         left join member_count_view mcv on mcv.game_id = g.id \
+         left join game_member_count_view mcv on mcv.game_id = g.id \
          where ($1::int is null or g.status = $1) \
          order by g.created desc",
         status,
