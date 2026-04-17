@@ -11,7 +11,7 @@ pub async fn create_game_session(
     account_id: Uuid,
     session_id: Uuid,
 ) -> Result<GameSessionEntity, AppError> {
-    let record = sqlx::query_as!(
+    let record: GameSessionEntity = sqlx::query_as!(
         GameSessionEntity,
         "insert into game_session (id, game_id, account_id, session_id) \
          values ($1, $2, $3, $4) \
@@ -31,7 +31,7 @@ pub async fn get_active_game_session(
     game_id: Uuid,
     account_id: Uuid,
 ) -> Result<Option<GameSessionEntity>, AppError> {
-    let record = sqlx::query_as!(
+    let record: Option<GameSessionEntity> = sqlx::query_as!(
         GameSessionEntity,
         "select gs.id, gs.game_id, gs.account_id, gs.session_id, gs.entered, gs.exited \
          from game_session gs \

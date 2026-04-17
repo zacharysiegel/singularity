@@ -5,7 +5,7 @@ use uuid::Uuid;
 use super::accolade_model::AccoladeEntity;
 
 pub async fn get_accolades_by_account(pool: &PgPool, account_id: Uuid) -> Result<Vec<AccoladeEntity>, AppError> {
-    let records = sqlx::query_as!(
+    let records: Vec<AccoladeEntity> = sqlx::query_as!(
         AccoladeEntity,
         "select accolade.id, accolade.account_id, accolade.game_id, accolade.accolade_type, accolade.awarded \
          from accolade \
@@ -19,7 +19,7 @@ pub async fn get_accolades_by_account(pool: &PgPool, account_id: Uuid) -> Result
 }
 
 pub async fn get_accolades_by_game(pool: &PgPool, game_id: Uuid) -> Result<Vec<AccoladeEntity>, AppError> {
-    let records = sqlx::query_as!(
+    let records: Vec<AccoladeEntity> = sqlx::query_as!(
         AccoladeEntity,
         "select accolade.id, accolade.account_id, accolade.game_id, accolade.accolade_type, accolade.awarded \
          from accolade \
