@@ -6,17 +6,15 @@ use super::game_session_model::GameSessionEntity;
 
 pub async fn create_game_session(
     pool: &PgPool,
-    id: Uuid,
     game_id: Uuid,
     account_id: Uuid,
     session_id: Uuid,
 ) -> Result<GameSessionEntity, AppError> {
     let record: GameSessionEntity = sqlx::query_as!(
         GameSessionEntity,
-        "insert into game_session (id, game_id, account_id, session_id)
-         values ($1, $2, $3, $4)
+        "insert into game_session (game_id, account_id, session_id)
+         values ($1, $2, $3)
          returning *",
-        id,
         game_id,
         account_id,
         session_id,

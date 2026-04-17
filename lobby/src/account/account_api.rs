@@ -55,10 +55,9 @@ async fn create_account(request: HttpRequest, pool: web::Data<PgPool>, body: web
     }
 
     let password_hash: String = unwrap_or_500!(password::hash(&payload.password));
-    let id: uuid::Uuid = uuid::Uuid::now_v7();
 
     let entity: AccountEntity = unwrap_or_500!(
-        account_db::create_account(pool.get_ref(), id, &payload.email, &payload.username, &password_hash).await
+        account_db::create_account(pool.get_ref(), &payload.email, &payload.username, &password_hash).await
     );
 
     let account: Account = Account::from(entity);

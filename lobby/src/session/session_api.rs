@@ -34,12 +34,11 @@ async fn login(request: HttpRequest, pool: web::Data<PgPool>, body: web::Bytes) 
         return HttpResponse::Unauthorized().finish();
     }
 
-    let session_id: uuid::Uuid = uuid::Uuid::now_v7();
     let token: String = format!("{}", uuid::Uuid::now_v7().as_simple());
     let expires: chrono::DateTime<chrono::Utc> = chrono::Utc::now() + chrono::Duration::days(SESSION_DURATION_DAYS);
 
     unwrap_or_500!(
-        session_db::create_session(pool.get_ref(), session_id, account_entity.id, &token, expires).await
+        session_db::create_session(pool.get_ref(), account_entity.id, &token, expires).await
     );
 
     let response: LoginResponse = LoginResponse { token };
