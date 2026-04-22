@@ -9,7 +9,7 @@ use crate::password;
 use super::session_db;
 use super::session_extractor::AuthenticatedAccount;
 
-use super::SESSION_DURATION_DAYS;
+use super::SESSION_DURATION;
 
 pub fn configurer(config: &mut web::ServiceConfig) {
     config.service(
@@ -35,7 +35,7 @@ async fn login(request: HttpRequest, pool: web::Data<PgPool>, body: web::Bytes) 
     }
 
     let token: String = format!("{}", uuid::Uuid::now_v7().as_simple());
-    let expires: chrono::DateTime<chrono::Utc> = chrono::Utc::now() + chrono::Duration::days(SESSION_DURATION_DAYS);
+    let expires: chrono::DateTime<chrono::Utc> = chrono::Utc::now() + SESSION_DURATION;
 
     unwrap_or_500!(
         session_db::create_session(pool.get_ref(), account_entity.id, &token, expires).await

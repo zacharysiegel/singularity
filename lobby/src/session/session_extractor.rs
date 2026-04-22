@@ -1,7 +1,11 @@
+use super::session_db;
+use super::session_model::SessionEntity;
+use crate::http;
 use actix_web::{FromRequest, HttpRequest, dev::Payload, web};
 use sqlx::PgPool;
 use std::future::Future;
 use std::pin::Pin;
+use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 /// Actix-web extractor which validates the Authorization header and resolves to an authenticated account.
@@ -19,29 +23,36 @@ impl FromRequest for AuthenticatedAccount {
     fn from_request(request: &HttpRequest, _payload: &mut Payload) -> Self::Future {
         let pool: web::Data<PgPool> = match request.app_data::<web::Data<PgPool>>().cloned() {
             Some(pool) => pool,
-            None => return Box::pin(async { Err(actix_web::error::ErrorInternalServerError("missing pool")) }),
+            None => {
+                return Box::pin(async {
+                    Err(actix_web::error::ErrorInternalServerError(
+                        "missing database connection pool",
+                    ))
+                });
+            }
         };
 
-        let token: String = match crate::http::extract_bearer_token(request) {
+        let token: String = match http::extract_bearer_token(request) {
             Some(token) => token.to_string(),
             None => {
-                return Box::pin(async { Err(actix_web::error::ErrorUnauthorized("missing or invalid authorization header")) });
+                return Box::pin(async {
+                    Err(actix_web::error::ErrorUnauthorized(
+                        "missing or invalid authorization header",
+                    ))
+                });
             }
         };
 
         Box::pin(async move {
-            let session: super::session_model::SessionEntity =
-                super::session_db::get_session_by_token(pool.get_ref(), &token)
-                    .await
-                    .map_err(|_| actix_web::error::ErrorInternalServerError("db error"))?
-                    .ok_or_else(|| actix_web::error::ErrorUnauthorized("invalid or expired session"))?;
+            let session: SessionEntity = session_db::get_session_by_token(pool.get_ref(), &token)
+                .await
+                .map_err(|_| actix_web::error::ErrorInternalServerError(format!("database error fetching session [{}]", token)))?
+                .ok_or_else(|| actix_web::error::ErrorUnauthorized(format!("invalid or expired session [{}]", token)))?;
 
             // Debounced sliding window: refresh when near expiry
-            let refresh_threshold: chrono::Duration = chrono::Duration::days(super::SESSION_REFRESH_THRESHOLD_DAYS);
-            if session.expires - chrono::Utc::now() < refresh_threshold {
-                let new_expires: chrono::DateTime<chrono::Utc> =
-                    chrono::Utc::now() + chrono::Duration::days(super::SESSION_DURATION_DAYS);
-                let _ = super::session_db::refresh_session(pool.get_ref(), &token, new_expires).await;
+            if (session.expires - Utc::now()) < super::SESSION_REFRESH_THRESHOLD {
+                let new_expires: DateTime<Utc> = Utc::now() + super::SESSION_DURATION;
+                let _ = session_db::refresh_session(pool.get_ref(), &token, new_expires).await;
             }
 
             Ok(AuthenticatedAccount {
