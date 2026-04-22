@@ -23,7 +23,7 @@ impl FromRequest for AuthenticatedAccount {
         };
 
         let token: String = match crate::http::extract_bearer_token(request) {
-            Some(token) => token,
+            Some(token) => token.to_string(),
             None => {
                 return Box::pin(async { Err(actix_web::error::ErrorUnauthorized("missing or invalid authorization header")) });
             }
