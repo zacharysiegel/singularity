@@ -1,6 +1,17 @@
+use actix_web::http::header;
 use actix_web::{HttpRequest, HttpResponse};
 use serde::Serialize;
 use shared::error::AppError;
+
+pub fn extract_bearer_token(request: &HttpRequest) -> Option<String> {
+    let header_value: &str = request
+        .headers()
+        .get(header::AUTHORIZATION)?
+        .to_str()
+        .ok()?;
+    let token: &str = header_value.strip_prefix("Bearer ")?;
+    Some(token.to_string())
+}
 
 pub fn serialize_response<T: Serialize>(request: &HttpRequest, body: &T) -> HttpResponse {
     let accept: &str = request
