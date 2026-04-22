@@ -4,5 +4,5 @@ pub mod session_api;
 pub mod session_extractor;
 pub mod session_model;
 
-pub const SESSION_DURATION_DAYS: i64 = 14;
-pub const SESSION_REFRESH_THRESHOLD_DAYS: i64 = SESSION_DURATION_DAYS - 1;
+pub const SESSION_DURATION: chrono::Duration = chrono::Duration::days(14);
+pub const SESSION_REFRESH_THRESHOLD: chrono::Duration = chrono::Duration::days(13);
