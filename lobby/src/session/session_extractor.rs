@@ -1,4 +1,3 @@
-use actix_web::http::header;
 use actix_web::{FromRequest, HttpRequest, dev::Payload, web};
 use sqlx::PgPool;
 use std::future::Future;
@@ -23,19 +22,11 @@ impl FromRequest for AuthenticatedAccount {
             None => return Box::pin(async { Err(actix_web::error::ErrorInternalServerError("missing pool")) }),
         };
 
-        let auth_header: String = match request
-            .headers()
-            .get(header::AUTHORIZATION)
-            .and_then(|value| value.to_str().ok())
-            .map(|string| string.to_string())
-        {
-            Some(header) => header,
-            None => return Box::pin(async { Err(actix_web::error::ErrorUnauthorized("missing authorization header")) }),
-        };
-
-        let token: String = match auth_header.strip_prefix("Bearer ") {
-            Some(token) => token.to_string(),
-            None => return Box::pin(async { Err(actix_web::error::ErrorUnauthorized("invalid authorization format")) }),
+        let token: String = match crate::http::extract_bearer_token(request) {
+            Some(token) => token,
+            None => {
+                return Box::pin(async { Err(actix_web::error::ErrorUnauthorized("missing or invalid authorization header")) });
+            }
         };
 
         Box::pin(async move {
