@@ -3,14 +3,13 @@ use actix_web::{HttpRequest, HttpResponse};
 use serde::Serialize;
 use shared::error::AppError;
 
-pub fn extract_bearer_token(request: &HttpRequest) -> Option<String> {
+pub fn extract_bearer_token<'a>(request: &'a HttpRequest) -> Option<&'a str> {
     let header_value: &str = request
         .headers()
         .get(header::AUTHORIZATION)?
         .to_str()
         .ok()?;
-    let token: &str = header_value.strip_prefix("Bearer ")?;
-    Some(token.to_string())
+    header_value.strip_prefix("Bearer ")
 }
 
 pub fn serialize_response<T: Serialize>(request: &HttpRequest, body: &T) -> HttpResponse {
