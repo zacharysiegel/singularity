@@ -5,6 +5,7 @@ use sqlx::PgPool;
 use uuid::Uuid;
 use crate::account::account_db;
 use crate::account::account_model::AccountEntity;
+use crate::error::{LobbyError, OptionExt, ResultExt};
 use crate::http;
 use crate::password;
 use super::session_db;
@@ -19,38 +20,41 @@ pub fn configurer(config: &mut web::ServiceConfig) {
     );
 }
 
-async fn login(request: HttpRequest, pool: web::Data<PgPool>, body: web::Bytes) -> HttpResponse {
-    let payload: LoginRequest = unwrap_or_400!(http::deserialize_request(&request, &body));
+async fn login(
+    request: HttpRequest,
+    pool: web::Data<PgPool>,
+    body: web::Bytes,
+) -> Result<HttpResponse, LobbyError> {
+    let payload: LoginRequest = http::deserialize_request(&request, &body).or_bad_request()?;
 
     if !payload.is_valid() {
-        return HttpResponse::BadRequest().finish();
+        return Err(LobbyError::bad_request("invalid login request"));
     }
 
-    let account_entity: Option<AccountEntity> = unwrap_or_500!(account_db::get_account_by_email(pool.get_ref(), &payload.email).await);
-    let account_entity: AccountEntity = unwrap_or_404!(account_entity);
+    let account_entity: Option<AccountEntity> =
+        account_db::get_account_by_email(pool.get_ref(), &payload.email).await?;
+    let account_entity: AccountEntity = account_entity.or_not_found()?;
 
-    let password_valid: bool = unwrap_or_500!(password::verify(&payload.password, &account_entity.password_hash));
+    let password_valid: bool = password::verify(&payload.password, &account_entity.password_hash)?;
     if !password_valid {
-        return HttpResponse::Unauthorized().finish();
+        return Err(LobbyError::unauthorized("incorrect password"));
     }
 
     let token: String = format!("{}", Uuid::now_v7().as_simple());
     let expiry: DateTime<Utc> = Utc::now() + SESSION_DURATION;
 
-    unwrap_or_500!(
-        session_db::create_session(pool.get_ref(), account_entity.id, &token, expiry).await
-    );
+    session_db::create_session(pool.get_ref(), account_entity.id, &token, expiry).await?;
 
     let response: LoginResponse = LoginResponse { token };
-    http::serialize_response(&request, &response)
+    Ok(http::serialize_response(&request, &response))
 }
 
-async fn logout(request: HttpRequest, pool: web::Data<PgPool>) -> HttpResponse {
+async fn logout(request: HttpRequest, pool: web::Data<PgPool>) -> Result<HttpResponse, LobbyError> {
     let token: &str = match http::extract_bearer_token(&request) {
         Some(token) => token,
-        None => return HttpResponse::BadRequest().finish(),
+        None => return Err(LobbyError::bad_request("missing authorization header")),
     };
 
-    unwrap_or_500!(session_db::delete_session_by_token(pool.get_ref(), token).await);
-    HttpResponse::Ok().finish()
+    session_db::delete_session_by_token(pool.get_ref(), token).await?;
+    Ok(HttpResponse::Ok().finish())
 }

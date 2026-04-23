@@ -1,5 +1,6 @@
 use super::session_db;
 use super::session_model::SessionEntity;
+use crate::error::LobbyError;
 use crate::http;
 use actix_web::{FromRequest, HttpRequest, dev::Payload, web};
 use chrono::{DateTime, Utc};
@@ -25,9 +26,10 @@ impl FromRequest for AuthenticatedAccount {
             Some(pool) => pool,
             None => {
                 return Box::pin(async {
-                    Err(actix_web::error::ErrorInternalServerError(
-                        "missing database connection pool",
-                    ))
+                    let error: LobbyError = LobbyError::Internal(
+                        shared::error::AppError::new("missing database connection pool"),
+                    );
+                    Err(error.into())
                 });
             }
         };
@@ -36,9 +38,9 @@ impl FromRequest for AuthenticatedAccount {
             Some(token) => token.to_string(),
             None => {
                 return Box::pin(async {
-                    Err(actix_web::error::ErrorUnauthorized(
-                        "missing or invalid authorization header",
-                    ))
+                    let error: LobbyError =
+                        LobbyError::unauthorized("missing or invalid authorization header");
+                    Err(error.into())
                 });
             }
         };
@@ -46,11 +48,14 @@ impl FromRequest for AuthenticatedAccount {
         Box::pin(async move {
             let session: SessionEntity = session_db::get_session_by_token(pool.get_ref(), &token)
                 .await
-                .map_err(|_| {
-                    actix_web::error::ErrorInternalServerError(format!("database error fetching session [{}]", token))
+                .map_err(|error| {
+                    let lobby_error: LobbyError = LobbyError::Internal(error);
+                    actix_web::Error::from(lobby_error)
                 })?
                 .ok_or_else(|| {
-                    actix_web::error::ErrorUnauthorized(format!("invalid or expired session [{}]", token))
+                    let lobby_error: LobbyError =
+                        LobbyError::unauthorized(&format!("invalid or expired session [{}]", token));
+                    actix_web::Error::from(lobby_error)
                 })?;
 
             // Debounced sliding window: refresh when near expiry
