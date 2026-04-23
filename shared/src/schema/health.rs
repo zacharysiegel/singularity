@@ -6,6 +6,22 @@ pub struct HealthResponseSerial {
     pub database: DatabaseStatusSerial,
 }
 
+impl HealthResponseSerial {
+    pub fn nominal() -> Self {
+        Self {
+            status: HealthStatusSerial::Ok,
+            database: DatabaseStatusSerial::Connected,
+        }
+    }
+
+    pub fn database_unreachable() -> Self {
+        Self {
+            status: HealthStatusSerial::Degraded,
+            database: DatabaseStatusSerial::Unreachable,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum HealthStatusSerial {

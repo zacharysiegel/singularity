@@ -54,12 +54,14 @@ pub fn deserialize_request<T: serde::de::DeserializeOwned>(
         .headers()
         .get("content-type")
         .and_then(|value| value.to_str().ok())
-        .unwrap_or("");
+        .ok_or_else(|| AppError::new("missing or invalid content-type header"))?;
 
     if content_type.contains("application/msgpack") {
         rmp_serde::from_slice(bytes).map_err(|error| AppError::from_error_default(Box::new(error)))
-    } else {
+    } else if content_type.contains("application/json") {
         serde_json::from_slice(bytes).map_err(|error| AppError::from_error_default(Box::new(error)))
+    } else {
+        Err(AppError::new(&format!("unsupported content-type [{}]", content_type)))
     }
 }
 
