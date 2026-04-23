@@ -23,7 +23,12 @@ Run the database migrations:
 ./dbmate.sh up
 ```
 
-Start the server:
+Start the lobby server:
+```shell
+cargo run -p lobby
+```
+
+Start the game server:
 ```shell
 cargo run -p server
 ```
