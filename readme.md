@@ -13,6 +13,16 @@ Run the setup script:
 ./setup.sh
 ```
 
+Start the database:
+```shell
+podman compose up -d
+```
+
+Run the database migrations:
+```shell
+./dbmate.sh up
+```
+
 Start the server:
 ```shell
 cargo run -p server
