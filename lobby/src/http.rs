@@ -6,15 +6,6 @@ use shared::error::AppError;
 const CONTENT_TYPE_JSON: &str = "application/json";
 const CONTENT_TYPE_MSGPACK: &str = "application/msgpack";
 
-pub fn extract_bearer_token<'a>(request: &'a HttpRequest) -> Option<&'a str> {
-    let header_value: &str = request
-        .headers()
-        .get(header::AUTHORIZATION)?
-        .to_str()
-        .ok()?;
-    header_value.strip_prefix("Bearer ")
-}
-
 pub fn serialize_response<T: Serialize>(request: &HttpRequest, body: &T) -> HttpResponse {
     serialize_response_with_status(request, body, StatusCode::OK)
 }
@@ -68,13 +59,22 @@ pub fn deserialize_request<T: serde::de::DeserializeOwned>(
     }
 }
 
+pub fn extract_bearer_token<'a>(request: &'a HttpRequest) -> Option<&'a str> {
+    let header_value: &str = request
+        .headers()
+        .get(header::AUTHORIZATION)?
+        .to_str()
+        .ok()?;
+    header_value.strip_prefix("Bearer ")
+}
+
 macro_rules! unwrap_or_400 {
     ($expr:expr) => {
         match $expr {
             Ok(value) => value,
             Err(error) => {
                 log::warn!("400 Bad Request: {}", error);
-                return actix_web::HttpResponse::BadRequest().finish();
+                return HttpResponse::BadRequest().finish();
             }
         }
     };
@@ -85,7 +85,7 @@ macro_rules! unwrap_or_404 {
         match $expr {
             Some(value) => value,
             None => {
-                return actix_web::HttpResponse::NotFound().finish();
+                return HttpResponse::NotFound().finish();
             }
         }
     };
@@ -97,7 +97,7 @@ macro_rules! unwrap_or_500 {
             Ok(value) => value,
             Err(error) => {
                 log::error!("500 Internal Server Error: {}", error);
-                return actix_web::HttpResponse::InternalServerError().finish();
+                return HttpResponse::InternalServerError().finish();
             }
         }
     };
