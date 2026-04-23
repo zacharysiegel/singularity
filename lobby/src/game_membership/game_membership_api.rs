@@ -1,5 +1,6 @@
 use super::game_membership_db;
 use super::game_membership_model::{GameMembership, GameMembershipEntity};
+use crate::error::{LobbyError, OptionExt, ResultExt};
 use crate::game::game_db;
 use crate::game::game_model::{Game, GameEntity};
 use crate::http;
@@ -19,27 +20,31 @@ async fn join_game(
     pool: web::Data<PgPool>,
     path: web::Path<(String,)>,
     auth: AuthenticatedAccount,
-) -> HttpResponse {
+) -> Result<HttpResponse, LobbyError> {
     let (game_id_string,): (String,) = path.into_inner();
-    let game_id: Uuid = unwrap_or_400!(Uuid::parse_str(&game_id_string));
+    let game_id: Uuid = Uuid::parse_str(&game_id_string).or_bad_request()?;
 
-    let game_entity: Option<GameEntity> = unwrap_or_500!(game_db::get_game_by_id(pool.get_ref(), game_id).await);
-    let game_entity: GameEntity = unwrap_or_404!(game_entity);
-    let game: Game = unwrap_or_500!(Game::try_from(game_entity));
+    let game_entity: Option<GameEntity> = game_db::get_game_by_id(pool.get_ref(), game_id).await?;
+    let game_entity: GameEntity = game_entity.or_not_found()?;
+    let game: Game = Game::try_from(game_entity)?;
 
     if game.status != GameStatus::Pending {
-        return HttpResponse::Conflict().body(format!("Only {} games may be joined", GameStatus::Pending));
+        return Err(LobbyError::conflict(&format!("Only {} games may be joined", GameStatus::Pending)));
     }
 
     let entity_opt: Option<GameMembershipEntity> =
-        unwrap_or_500!(game_membership_db::create_membership_if_available(pool.get_ref(), game_id, auth.account_id).await);
+        game_membership_db::create_membership_if_available(pool.get_ref(), game_id, auth.account_id).await?;
 
     let entity: GameMembershipEntity = match entity_opt {
         Some(entity) => entity,
-        None => return HttpResponse::Conflict().body("Game cannot be joined. (The game may be full or the account may already be a member.)"),
+        None => {
+            return Err(LobbyError::conflict(
+                "Game cannot be joined. (The game may be full or the account may already be a member.)",
+            ))
+        }
     };
 
     let membership: GameMembership = GameMembership::from(entity);
     let serial: GameMembershipSerial = GameMembershipSerial::from(&membership);
-    http::serialize_response(&request, &serial)
+    Ok(http::serialize_response(&request, &serial))
 }

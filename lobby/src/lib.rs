@@ -1,5 +1,5 @@
 pub mod db;
-#[macro_use]
+pub mod error;
 pub mod http;
 pub mod health;
 pub mod password;

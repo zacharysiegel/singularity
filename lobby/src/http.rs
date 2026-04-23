@@ -67,38 +67,3 @@ pub fn extract_bearer_token<'a>(request: &'a HttpRequest) -> Option<&'a str> {
         .ok()?;
     header_value.strip_prefix("Bearer ")
 }
-
-macro_rules! unwrap_or_400 {
-    ($expr:expr) => {
-        match $expr {
-            Ok(value) => value,
-            Err(error) => {
-                log::warn!("400 Bad Request: {}", error);
-                return HttpResponse::BadRequest().finish();
-            }
-        }
-    };
-}
-
-macro_rules! unwrap_or_404 {
-    ($expr:expr) => {
-        match $expr {
-            Some(value) => value,
-            None => {
-                return HttpResponse::NotFound().finish();
-            }
-        }
-    };
-}
-
-macro_rules! unwrap_or_500 {
-    ($expr:expr) => {
-        match $expr {
-            Ok(value) => value,
-            Err(error) => {
-                log::error!("500 Internal Server Error: {}", error);
-                return HttpResponse::InternalServerError().finish();
-            }
-        }
-    };
-}

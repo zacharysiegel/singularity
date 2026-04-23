@@ -2,6 +2,7 @@ use actix_web::{web, HttpRequest, HttpResponse};
 use shared::schema::game_session::GameSessionSerial;
 use sqlx::PgPool;
 use uuid::Uuid;
+use crate::error::{LobbyError, OptionExt, ResultExt};
 use crate::game_membership::game_membership_db;
 use crate::game_membership::game_membership_model::GameMembershipEntity;
 use crate::http;
@@ -20,31 +21,28 @@ async fn enter_game(
     pool: web::Data<PgPool>,
     path: web::Path<(String,)>,
     auth: AuthenticatedAccount,
-) -> HttpResponse {
+) -> Result<HttpResponse, LobbyError> {
     let (game_id_string,): (String,) = path.into_inner();
-    let game_id: Uuid = unwrap_or_400!(Uuid::parse_str(&game_id_string));
+    let game_id: Uuid = Uuid::parse_str(&game_id_string).or_bad_request()?;
 
-    let membership: Option<GameMembershipEntity> = unwrap_or_500!(
-        game_membership_db::get_membership(pool.get_ref(), game_id, auth.account_id).await
-    );
+    let membership: Option<GameMembershipEntity> =
+        game_membership_db::get_membership(pool.get_ref(), game_id, auth.account_id).await?;
     if membership.is_none() {
-        return HttpResponse::Forbidden().body("User must be a member of the game to enter it");
+        return Err(LobbyError::forbidden("User must be a member of the game to enter it"));
     }
 
-    let existing: Option<GameSessionEntity> = unwrap_or_500!(
-        game_session_db::get_active_game_session(pool.get_ref(), game_id, auth.account_id).await
-    );
+    let existing: Option<GameSessionEntity> =
+        game_session_db::get_active_game_session(pool.get_ref(), game_id, auth.account_id).await?;
     if existing.is_some() {
-        return HttpResponse::Conflict().body("User has already entered the game");
+        return Err(LobbyError::conflict("User has already entered the game"));
     }
 
-    let entity: GameSessionEntity = unwrap_or_500!(
-        game_session_db::create_game_session(pool.get_ref(), game_id, auth.account_id, auth.session_id).await
-    );
+    let entity: GameSessionEntity =
+        game_session_db::create_game_session(pool.get_ref(), game_id, auth.account_id, auth.session_id).await?;
 
     let game_session: GameSession = GameSession::from(entity);
     let serial: GameSessionSerial = GameSessionSerial::from(&game_session);
-    http::serialize_response(&request, &serial)
+    Ok(http::serialize_response(&request, &serial))
 }
 
 async fn exit_game(
@@ -52,16 +50,15 @@ async fn exit_game(
     pool: web::Data<PgPool>,
     path: web::Path<(String,)>,
     auth: AuthenticatedAccount,
-) -> HttpResponse {
+) -> Result<HttpResponse, LobbyError> {
     let (game_id_string,): (String,) = path.into_inner();
-    let game_id: Uuid = unwrap_or_400!(Uuid::parse_str(&game_id_string));
+    let game_id: Uuid = Uuid::parse_str(&game_id_string).or_bad_request()?;
 
-    let entity: Option<GameSessionEntity> = unwrap_or_500!(
-        game_session_db::exit_game_session(pool.get_ref(), game_id, auth.account_id).await
-    );
-    let entity: GameSessionEntity = unwrap_or_404!(entity);
+    let entity: Option<GameSessionEntity> =
+        game_session_db::exit_game_session(pool.get_ref(), game_id, auth.account_id).await?;
+    let entity: GameSessionEntity = entity.or_not_found()?;
 
     let game_session: GameSession = GameSession::from(entity);
     let serial: GameSessionSerial = GameSessionSerial::from(&game_session);
-    http::serialize_response(&request, &serial)
+    Ok(http::serialize_response(&request, &serial))
 }

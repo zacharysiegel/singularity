@@ -18,7 +18,7 @@ async fn health_check(request: HttpRequest, pool: web::Data<PgPool>) -> HttpResp
     let (response, status_code): (HealthResponseSerial, StatusCode) = if database_healthy {
         (
             HealthResponseSerial::nominal(),
-            StatusCode::OK
+            StatusCode::OK,
         )
     } else {
         (

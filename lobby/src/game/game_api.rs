@@ -2,6 +2,7 @@ use actix_web::{web, HttpRequest, HttpResponse};
 use shared::schema::game::{CreateGameRequest, GameBrowserEntry, GameBrowserQuery, GameSerial};
 use sqlx::PgPool;
 use uuid::Uuid;
+use crate::error::{LobbyError, OptionExt, ResultExt};
 use crate::game_membership::game_membership_db;
 use crate::http;
 use crate::session::session_extractor::AuthenticatedAccount;
@@ -23,15 +24,15 @@ async fn list_games(
     request: HttpRequest,
     pool: web::Data<PgPool>,
     query: web::Query<GameBrowserQuery>,
-) -> HttpResponse {
-    let game_browser_rows: Vec<GameBrowserRow> = unwrap_or_500!(game_db::list_games(pool.get_ref(), query.status).await);
+) -> Result<HttpResponse, LobbyError> {
+    let game_browser_rows: Vec<GameBrowserRow> = game_db::list_games(pool.get_ref(), query.status).await?;
 
-    let game_browser_entries: Vec<GameBrowserEntry> = unwrap_or_500!(game_browser_rows
+    let game_browser_entries: Vec<GameBrowserEntry> = game_browser_rows
         .into_iter()
         .map(GameBrowserEntry::try_from)
-        .collect::<Result<Vec<_>, _>>());
+        .collect::<Result<Vec<_>, _>>()?;
 
-    http::serialize_response(&request, &game_browser_entries)
+    Ok(http::serialize_response(&request, &game_browser_entries))
 }
 
 async fn create_game(
@@ -39,41 +40,38 @@ async fn create_game(
     pool: web::Data<PgPool>,
     body: web::Bytes,
     auth: AuthenticatedAccount,
-) -> HttpResponse {
-    let payload: CreateGameRequest = unwrap_or_400!(http::deserialize_request(&request, &body));
+) -> Result<HttpResponse, LobbyError> {
+    let payload: CreateGameRequest = http::deserialize_request(&request, &body).or_bad_request()?;
 
     if !payload.is_valid() {
-        return HttpResponse::BadRequest().finish();
+        return Err(LobbyError::bad_request("invalid create game request"));
     }
 
     let id: Uuid = Uuid::now_v7();
     let max_players: i32 = payload.max_players.unwrap_or(DEFAULT_MAX_PLAYERS);
 
-    let entity: GameEntity = unwrap_or_500!(
-        game_db::create_game(pool.get_ref(), id, &payload.name, auth.account_id, max_players).await
-    );
+    let entity: GameEntity =
+        game_db::create_game(pool.get_ref(), id, &payload.name, auth.account_id, max_players).await?;
 
-    unwrap_or_500!(
-        game_membership_db::create_membership_if_available(pool.get_ref(), id, auth.account_id).await
-    );
+    game_membership_db::create_membership_if_available(pool.get_ref(), id, auth.account_id).await?;
 
-    let game: Game = unwrap_or_500!(Game::try_from(entity));
+    let game: Game = Game::try_from(entity)?;
     let serial: GameSerial = GameSerial::from(&game);
-    http::serialize_response(&request, &serial)
+    Ok(http::serialize_response(&request, &serial))
 }
 
 async fn get_game(
     request: HttpRequest,
     pool: web::Data<PgPool>,
-    path: web::Path<(String,)>
-) -> HttpResponse {
+    path: web::Path<(String,)>,
+) -> Result<HttpResponse, LobbyError> {
     let (game_id_string,): (String,) = path.into_inner();
-    let game_id: Uuid = unwrap_or_400!(Uuid::parse_str(&game_id_string));
+    let game_id: Uuid = Uuid::parse_str(&game_id_string).or_bad_request()?;
 
-    let entity: Option<GameEntity> = unwrap_or_500!(game_db::get_game_by_id(pool.get_ref(), game_id).await);
-    let entity: GameEntity = unwrap_or_404!(entity);
+    let entity: Option<GameEntity> = game_db::get_game_by_id(pool.get_ref(), game_id).await?;
+    let entity: GameEntity = entity.or_not_found()?;
 
-    let game: Game = unwrap_or_500!(Game::try_from(entity));
+    let game: Game = Game::try_from(entity)?;
     let serial: GameSerial = GameSerial::from(&game);
-    http::serialize_response(&request, &serial)
+    Ok(http::serialize_response(&request, &serial))
 }
