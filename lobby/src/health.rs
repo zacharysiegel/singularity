@@ -1,3 +1,4 @@
+use actix_web::http::StatusCode;
 use actix_web::{web, HttpRequest, HttpResponse};
 use shared::schema::health::{DatabaseStatusSerial, HealthResponseSerial, HealthStatusSerial};
 use sqlx::PgPool;
@@ -17,26 +18,23 @@ async fn health_check(request: HttpRequest, pool: web::Data<PgPool>) -> HttpResp
         .await
         .is_ok();
 
-    let response: HealthResponseSerial = if database_healthy {
-        HealthResponseSerial {
-            status: HealthStatusSerial::Ok,
-            database: DatabaseStatusSerial::Connected,
-        }
+    let (response, status_code): (HealthResponseSerial, StatusCode) = if database_healthy {
+        (
+            HealthResponseSerial {
+                status: HealthStatusSerial::Ok,
+                database: DatabaseStatusSerial::Connected,
+            },
+            StatusCode::OK,
+        )
     } else {
-        HealthResponseSerial {
-            status: HealthStatusSerial::Degraded,
-            database: DatabaseStatusSerial::Unreachable,
-        }
+        (
+            HealthResponseSerial {
+                status: HealthStatusSerial::Degraded,
+                database: DatabaseStatusSerial::Unreachable,
+            },
+            StatusCode::SERVICE_UNAVAILABLE,
+        )
     };
 
-    if database_healthy {
-        http::serialize_response(&request, &response)
-    } else {
-        match serde_json::to_vec(&response) {
-            Ok(bytes) => HttpResponse::ServiceUnavailable()
-                .content_type("application/json")
-                .body(bytes),
-            Err(_) => HttpResponse::ServiceUnavailable().finish(),
-        }
-    }
+    http::serialize_response_with_status(&request, &response, status_code)
 }
