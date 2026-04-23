@@ -9,3 +9,4 @@ pub mod game_session;
 pub mod health;
 pub mod session;
 pub mod statistic;
+pub mod ws_message;
