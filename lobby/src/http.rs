@@ -1,4 +1,4 @@
-use actix_web::http::header;
+use actix_web::http::{StatusCode, header};
 use actix_web::{HttpRequest, HttpResponse};
 use serde::Serialize;
 use shared::error::AppError;
@@ -13,6 +13,14 @@ pub fn extract_bearer_token<'a>(request: &'a HttpRequest) -> Option<&'a str> {
 }
 
 pub fn serialize_response<T: Serialize>(request: &HttpRequest, body: &T) -> HttpResponse {
+    serialize_response_with_status(request, body, StatusCode::OK)
+}
+
+pub fn serialize_response_with_status<T: Serialize>(
+    request: &HttpRequest,
+    body: &T,
+    status: StatusCode,
+) -> HttpResponse {
     let accept: &str = request
         .headers()
         .get("accept")
@@ -21,7 +29,7 @@ pub fn serialize_response<T: Serialize>(request: &HttpRequest, body: &T) -> Http
 
     if accept.contains("application/msgpack") {
         match rmp_serde::to_vec_named(body) {
-            Ok(bytes) => HttpResponse::Ok().content_type("application/msgpack").body(bytes),
+            Ok(bytes) => HttpResponse::build(status).content_type("application/msgpack").body(bytes),
             Err(error) => {
                 log::error!("MessagePack serialization error: {}", error);
                 HttpResponse::InternalServerError().finish()
@@ -29,7 +37,7 @@ pub fn serialize_response<T: Serialize>(request: &HttpRequest, body: &T) -> Http
         }
     } else {
         match serde_json::to_vec(body) {
-            Ok(bytes) => HttpResponse::Ok().content_type("application/json").body(bytes),
+            Ok(bytes) => HttpResponse::build(status).content_type("application/json").body(bytes),
             Err(error) => {
                 log::error!("JSON serialization error: {}", error);
                 HttpResponse::InternalServerError().finish()
