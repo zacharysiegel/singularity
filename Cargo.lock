@@ -2202,7 +2202,6 @@ dependencies = [
  "raylib",
  "secr",
  "serde",
- "serde_json",
  "socket2 0.6.1",
  "sqlx",
  "strum",
