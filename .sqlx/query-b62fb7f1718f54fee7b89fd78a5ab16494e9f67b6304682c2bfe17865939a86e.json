@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "select s.id, s.account_id, s.token, s.created, s.expires\n         from session s\n         where s.token = $1\n           and s.expires > now()",
+  "query": "select s.id, s.account_id, s.token, s.created, s.expiry\n         from session s\n         where s.token = $1\n           and s.expiry > now()",
   "describe": {
     "columns": [
       {
@@ -25,7 +25,7 @@
       },
       {
         "ordinal": 4,
-        "name": "expires",
+        "name": "expiry",
         "type_info": "Timestamptz"
       }
     ],
@@ -42,5 +42,5 @@
       false
     ]
   },
-  "hash": "7d94f3e51a86eb26b07ad0c47d522935dd756bfe21b1569ce2926533c04c5fcd"
+  "hash": "b62fb7f1718f54fee7b89fd78a5ab16494e9f67b6304682c2bfe17865939a86e"
 }

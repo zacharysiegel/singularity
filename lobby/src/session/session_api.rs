@@ -35,10 +35,10 @@ async fn login(request: HttpRequest, pool: web::Data<PgPool>, body: web::Bytes) 
     }
 
     let token: String = format!("{}", uuid::Uuid::now_v7().as_simple());
-    let expires: chrono::DateTime<chrono::Utc> = chrono::Utc::now() + SESSION_DURATION;
+    let expiry: chrono::DateTime<chrono::Utc> = chrono::Utc::now() + SESSION_DURATION;
 
     unwrap_or_500!(
-        session_db::create_session(pool.get_ref(), account_entity.id, &token, expires).await
+        session_db::create_session(pool.get_ref(), account_entity.id, &token, expiry).await
     );
 
     let response: LoginResponse = LoginResponse { token };

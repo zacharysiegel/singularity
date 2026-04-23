@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "insert into session (account_id, token, expires)\n         values ($1, $2, $3)\n         returning *",
+  "query": "insert into session (account_id, token, expiry)\n         values ($1, $2, $3)\n         returning *",
   "describe": {
     "columns": [
       {
@@ -25,7 +25,7 @@
       },
       {
         "ordinal": 4,
-        "name": "expires",
+        "name": "expiry",
         "type_info": "Timestamptz"
       }
     ],
@@ -44,5 +44,5 @@
       false
     ]
   },
-  "hash": "b6ac1000f2ff6f181491c2816035be66c955a6cf18ea41dc8cb3c32fa6eeb78c"
+  "hash": "311c0cb661cdb5923a1a08363aa35ced81a28650f72aa8fed6189053005ea71e"
 }
