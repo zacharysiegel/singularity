@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select count(*) as \"count!\"\n         from conversation_member\n         where conversation_member.conversation_id = $1\n           and conversation_member.exited is null",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "count!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "333f9b42aaa46d8b5f6259cf69a706078cf7c6a2b1cff64f2138cf6a8997bacc"
+}

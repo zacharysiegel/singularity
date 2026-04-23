@@ -102,5 +102,16 @@ pub async fn soft_delete_account(pool: &PgPool, id: Uuid) -> Result<(), AppError
     session_db::delete_sessions_by_account(pool, id).await?;
     follow_db::delete_follows_by_account(pool, id).await?;
 
+    let conversation_ids: Vec<Uuid> =
+        crate::conversation::conversation_db::get_active_conversation_ids_by_account(pool, id).await?;
+    for conversation_id in conversation_ids {
+        crate::conversation::conversation_db::leave_conversation(pool, conversation_id, id).await?;
+        let active_member_count: i64 =
+            crate::conversation::conversation_db::get_active_member_count(pool, conversation_id).await?;
+        if active_member_count == 0 {
+            crate::conversation::conversation_db::delete_conversation(pool, conversation_id).await?;
+        }
+    }
+
     Ok(())
 }
