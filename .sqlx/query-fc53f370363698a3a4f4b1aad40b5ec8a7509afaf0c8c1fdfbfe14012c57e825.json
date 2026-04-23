@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select\n             mutual_follow_view.mutual_account_id as \"account_id!\",\n             account.username as \"username!\",\n             true as \"is_mutual!\"\n         from mutual_follow_view\n         inner join account on account.id = mutual_follow_view.mutual_account_id\n         where mutual_follow_view.account_id = $1\n           and account.deleted_at is null\n         order by account.username asc",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "account_id!",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "username!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "is_mutual!",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      true,
+      false,
+      null
+    ]
+  },
+  "hash": "fc53f370363698a3a4f4b1aad40b5ec8a7509afaf0c8c1fdfbfe14012c57e825"
+}

@@ -34,6 +34,7 @@ async fn open_server(pgpool: PgPool) -> Result<(), AppError> {
             .configure(lobby::account::account_api::configurer)
             .configure(lobby::session::session_api::configurer)
             .configure(lobby::game::game_api::configurer)
+            .configure(lobby::follow::follow_api::configurer)
             .default_service(web::route().to(HttpResponse::NotFound))
     })
     .bind("127.0.0.1:10000")?
