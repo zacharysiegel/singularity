@@ -42,6 +42,12 @@ pub struct CreateGameRequest {
     pub max_players: Option<i32>,
 }
 
+impl CreateGameRequest {
+    pub fn is_valid(&self) -> bool {
+        !self.name.is_empty()
+    }
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub struct GameBrowserEntry {
     pub id: Uuid,

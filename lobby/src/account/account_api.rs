@@ -50,7 +50,7 @@ async fn get_account_public(
 async fn create_account(request: HttpRequest, pool: web::Data<PgPool>, body: web::Bytes) -> HttpResponse {
     let payload: CreateAccountRequest = unwrap_or_400!(http::deserialize_request(&request, &body));
 
-    if payload.email.is_empty() || payload.username.is_empty() || payload.password.is_empty() {
+    if !payload.is_valid() {
         return HttpResponse::BadRequest().finish();
     }
 
@@ -73,7 +73,7 @@ async fn update_account(
 ) -> HttpResponse {
     let payload: UpdateAccountRequest = unwrap_or_400!(http::deserialize_request(&request, &body));
 
-    if payload.username.is_none() && payload.email.is_none() {
+    if !payload.is_valid() {
         return HttpResponse::BadRequest().finish();
     }
 
@@ -100,7 +100,7 @@ async fn change_password(
 ) -> HttpResponse {
     let payload: ChangePasswordRequest = unwrap_or_400!(http::deserialize_request(&request, &body));
 
-    if payload.new_password.is_empty() {
+    if !payload.is_valid() {
         return HttpResponse::BadRequest().finish();
     }
 

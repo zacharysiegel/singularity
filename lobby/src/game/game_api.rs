@@ -42,7 +42,7 @@ async fn create_game(
 ) -> HttpResponse {
     let payload: CreateGameRequest = unwrap_or_400!(http::deserialize_request(&request, &body));
 
-    if payload.name.is_empty() {
+    if !payload.is_valid() {
         return HttpResponse::BadRequest().finish();
     }
 
