@@ -1,7 +1,9 @@
 use actix_web::http::StatusCode;
+use actix_web::mime::APPLICATION_JSON;
 use actix_web::{HttpResponse, ResponseError};
 use serde::Serialize;
 use shared::error::{AppError, AppErrorStatic};
+use std::fmt;
 use std::fmt::{Debug, Display, Formatter};
 
 #[derive(Serialize)]
@@ -41,6 +43,10 @@ impl LobbyError {
         Self::Conflict(AppError::new(message))
     }
 
+    pub fn internal(message: &str) -> Self {
+        Self::Internal(AppError::new(message))
+    }
+
     fn app_error(&self) -> &AppError {
         match self {
             LobbyError::BadRequest(error) => error,
@@ -54,13 +60,13 @@ impl LobbyError {
 }
 
 impl Display for LobbyError {
-    fn fmt(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         Display::fmt(self.app_error(), formatter)
     }
 }
 
 impl Debug for LobbyError {
-    fn fmt(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         Debug::fmt(self.app_error(), formatter)
     }
 }
@@ -92,9 +98,7 @@ impl ResponseError for LobbyError {
             message: self.app_error().message.clone(),
         };
 
-        HttpResponse::build(status)
-            .content_type("application/json")
-            .json(body)
+        HttpResponse::build(status).content_type(APPLICATION_JSON).json(body)
     }
 }
 

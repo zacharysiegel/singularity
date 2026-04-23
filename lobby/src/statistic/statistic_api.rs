@@ -1,22 +1,16 @@
-use actix_web::{web, HttpRequest, HttpResponse};
-use shared::schema::statistic::StatisticSerial;
-use sqlx::PgPool;
-
-use crate::error::{LobbyError, ResultExt};
-use crate::http;
 use super::statistic_db;
 use super::statistic_model::{Statistic, StatisticEntity};
+use crate::lobby_error::{LobbyError, ResultExt};
+use crate::http;
+use actix_web::{HttpRequest, HttpResponse, web};
+use shared::schema::statistic::StatisticSerial;
+use sqlx::PgPool;
+use uuid::Uuid;
 
 pub fn configurer(config: &mut web::ServiceConfig) {
     config
-        .service(
-            web::resource("/account/{account_id}/statistics")
-                .route(web::get().to(get_account_statistics)),
-        )
-        .service(
-            web::resource("/game/{game_id}/statistics")
-                .route(web::get().to(get_game_statistics)),
-        );
+        .service(web::resource("/account/{account_id}/statistics").route(web::get().to(get_account_statistics)))
+        .service(web::resource("/game/{game_id}/statistics").route(web::get().to(get_game_statistics)));
 }
 
 async fn get_account_statistics(
@@ -25,7 +19,7 @@ async fn get_account_statistics(
     path: web::Path<(String,)>,
 ) -> Result<HttpResponse, LobbyError> {
     let (account_id_string,): (String,) = path.into_inner();
-    let account_id: uuid::Uuid = uuid::Uuid::parse_str(&account_id_string).or_bad_request()?;
+    let account_id: Uuid = Uuid::parse_str(&account_id_string).or_bad_request()?;
 
     let statistic_entities: Vec<StatisticEntity> =
         statistic_db::get_statistics_by_account(pool.get_ref(), account_id).await?;
@@ -43,7 +37,7 @@ async fn get_game_statistics(
     path: web::Path<(String,)>,
 ) -> Result<HttpResponse, LobbyError> {
     let (game_id_string,): (String,) = path.into_inner();
-    let game_id: uuid::Uuid = uuid::Uuid::parse_str(&game_id_string).or_bad_request()?;
+    let game_id: Uuid = Uuid::parse_str(&game_id_string).or_bad_request()?;
 
     let statistic_entities: Vec<StatisticEntity> =
         statistic_db::get_statistics_by_game(pool.get_ref(), game_id).await?;

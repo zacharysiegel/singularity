@@ -1,5 +1,5 @@
 pub mod db;
-pub mod error;
+pub mod lobby_error;
 pub mod http;
 pub mod health;
 pub mod password;

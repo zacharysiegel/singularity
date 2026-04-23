@@ -1,9 +1,9 @@
 use super::game_membership_db;
 use super::game_membership_model::{GameMembership, GameMembershipEntity};
-use crate::error::{LobbyError, OptionExt, ResultExt};
 use crate::game::game_db;
 use crate::game::game_model::{Game, GameEntity};
 use crate::http;
+use crate::lobby_error::{LobbyError, OptionExt, ResultExt};
 use crate::session::session_extractor::AuthenticatedAccount;
 use actix_web::{HttpRequest, HttpResponse, web};
 use shared::schema::game::GameStatus;
@@ -29,7 +29,10 @@ async fn join_game(
     let game: Game = Game::try_from(game_entity)?;
 
     if game.status != GameStatus::Pending {
-        return Err(LobbyError::conflict(&format!("Only {} games may be joined", GameStatus::Pending)));
+        return Err(LobbyError::conflict(&format!(
+            "Only {} games may be joined",
+            GameStatus::Pending
+        )));
     }
 
     let entity_opt: Option<GameMembershipEntity> =
@@ -40,7 +43,7 @@ async fn join_game(
         None => {
             return Err(LobbyError::conflict(
                 "Game cannot be joined. (The game may be full or the account may already be a member.)",
-            ))
+            ));
         }
     };
 
