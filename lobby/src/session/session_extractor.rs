@@ -4,7 +4,6 @@ use crate::lobby_error::LobbyError;
 use crate::http;
 use actix_web::{FromRequest, HttpRequest, dev::Payload, web};
 use chrono::{DateTime, Utc};
-use shared::error::AppError;
 use sqlx::PgPool;
 use std::future::Future;
 use std::pin::Pin;
