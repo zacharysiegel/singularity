@@ -9,16 +9,16 @@ pub async fn create_session(
     pool: &PgPool,
     account_id: Uuid,
     token: &str,
-    expires: DateTime<Utc>,
+    expiry: DateTime<Utc>,
 ) -> Result<SessionEntity, AppError> {
     let record: SessionEntity = sqlx::query_as!(
         SessionEntity,
-        "insert into session (account_id, token, expires)
+        "insert into session (account_id, token, expiry)
          values ($1, $2, $3)
          returning *",
         account_id,
         token,
-        expires,
+        expiry,
     )
     .fetch_one(pool)
     .await?;
@@ -28,10 +28,10 @@ pub async fn create_session(
 pub async fn get_session_by_token(pool: &PgPool, token: &str) -> Result<Option<SessionEntity>, AppError> {
     let record: Option<SessionEntity> = sqlx::query_as!(
         SessionEntity,
-        "select s.id, s.account_id, s.token, s.created, s.expires
+        "select s.id, s.account_id, s.token, s.created, s.expiry
          from session s
          where s.token = $1
-           and s.expires > now()",
+           and s.expiry > now()",
         token,
     )
     .fetch_optional(pool)
@@ -42,11 +42,11 @@ pub async fn get_session_by_token(pool: &PgPool, token: &str) -> Result<Option<S
 pub async fn refresh_session(
     pool: &PgPool,
     token: &str,
-    new_expires: DateTime<Utc>,
+    new_expiry: DateTime<Utc>,
 ) -> Result<(), AppError> {
     sqlx::query!(
-        "update session set expires = $1 where token = $2",
-        new_expires,
+        "update session set expiry = $1 where token = $2",
+        new_expiry,
         token,
     )
     .execute(pool)

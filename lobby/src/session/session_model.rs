@@ -7,7 +7,7 @@ pub struct Session {
     pub account_id: Uuid,
     pub token: String,
     pub created: DateTime<Utc>,
-    pub expires: DateTime<Utc>,
+    pub expiry: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone)]
@@ -16,7 +16,7 @@ pub struct SessionEntity {
     pub account_id: Uuid,
     pub token: String,
     pub created: DateTime<Utc>,
-    pub expires: DateTime<Utc>,
+    pub expiry: DateTime<Utc>,
 }
 
 impl From<SessionEntity> for Session {
@@ -26,7 +26,7 @@ impl From<SessionEntity> for Session {
             account_id: entity.account_id,
             token: entity.token,
             created: entity.created,
-            expires: entity.expires,
+            expiry: entity.expiry,
         }
     }
 }
