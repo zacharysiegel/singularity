@@ -9,6 +9,7 @@ shared = { path = "../shared", features = ["sqlx"] }
 log = { workspace = true }
 env_logger = { workspace = true }
 actix-web = { workspace = true }
+actix-ws = { workspace = true }
 sqlx = { workspace = true }
 dotenvy = { workspace = true }
 serde = { workspace = true }
