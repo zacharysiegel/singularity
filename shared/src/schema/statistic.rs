@@ -16,6 +16,7 @@ pub struct StatisticSerial {
     pub game_id: Option<Uuid>,
     pub statistic_type: StatisticType,
     pub value: f64,
+    pub created: DateTime<Utc>,
     pub updated: DateTime<Utc>,
 }
 

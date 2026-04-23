@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "select statistic.id, statistic.account_id, statistic.game_id,\n                statistic.statistic_type, statistic.value, statistic.updated\n         from statistic\n         where statistic.account_id = $1\n         order by statistic.statistic_type asc",
+  "query": "select s.id, s.account_id, s.game_id, s.statistic_type, s.value, s.created, s.updated\n         from statistic s\n         where s.account_id = $1\n         order by s.statistic_type asc",
   "describe": {
     "columns": [
       {
@@ -30,6 +30,11 @@
       },
       {
         "ordinal": 5,
+        "name": "created",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 6,
         "name": "updated",
         "type_info": "Timestamptz"
       }
@@ -45,8 +50,9 @@
       true,
       false,
       false,
+      false,
       false
     ]
   },
-  "hash": "2bedaa920b74a8b908153d8de65a95bb2597ab47fb5d10ceee03cd2a74f6e55e"
+  "hash": "803dddf5d78a2ab9fc7ba7f4ea527b556fcf960746d368cf5636fbba0899a2d3"
 }
