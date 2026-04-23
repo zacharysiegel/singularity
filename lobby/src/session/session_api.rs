@@ -47,7 +47,7 @@ async fn login(request: HttpRequest, pool: web::Data<PgPool>, body: web::Bytes) 
 async fn logout(request: HttpRequest, pool: web::Data<PgPool>) -> HttpResponse {
     let token: &str = match http::extract_bearer_token(&request) {
         Some(token) => token,
-        None => return HttpResponse::Ok().finish(),
+        None => return HttpResponse::BadRequest().finish(),
     };
     unwrap_or_500!(session_db::delete_session_by_token(pool.get_ref(), token).await);
     HttpResponse::Ok().finish()
