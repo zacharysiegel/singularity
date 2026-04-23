@@ -1,8 +1,10 @@
 use crate::lobby_error::LobbyError;
 use crate::session::session_extractor::AuthenticatedAccount;
+use crate::ws::connection_registry::ConnectionRegistry;
 use crate::ws::connection_type::ConnectionType;
 use crate::ws::handle;
 use actix_web::{web, HttpRequest, HttpResponse};
+use sqlx::PgPool;
 use std::time::Duration;
 
 const CONNECTION_TYPE: ConnectionType = ConnectionType::Live;
@@ -17,6 +19,8 @@ async fn live_ws_handler(
     request: HttpRequest,
     body: web::Payload,
     auth: AuthenticatedAccount,
+    pg_pool: web::Data<PgPool>,
+    registry: web::Data<ConnectionRegistry>,
 ) -> Result<HttpResponse, LobbyError> {
-    handle::ws_handler(request, body, auth, ConnectionType::Live, Some(RATE_LIMIT_INTERVAL)).await
+    handle::ws_handler(request, body, auth, pg_pool, registry, ConnectionType::Live, Some(RATE_LIMIT_INTERVAL)).await
 }

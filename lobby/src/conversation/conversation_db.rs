@@ -179,3 +179,23 @@ pub async fn get_conversations_by_account(
         .await?;
     Ok(conversation_entities)
 }
+
+pub async fn get_active_member_ids(
+    pool: &PgPool,
+    conversation_id: Uuid,
+) -> Result<Vec<Uuid>, AppError> {
+    let member_id_records = sqlx::query!(
+        "select conversation_member.account_id
+         from conversation_member
+         where conversation_member.conversation_id = $1
+           and conversation_member.exited is null",
+        conversation_id,
+    )
+    .fetch_all(pool)
+    .await?;
+    let member_ids: Vec<Uuid> = member_id_records
+        .into_iter()
+        .map(|record| record.account_id)
+        .collect();
+    Ok(member_ids)
+}

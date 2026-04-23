@@ -2,6 +2,7 @@ use actix_web;
 use actix_web::{middleware, web, App, HttpResponse, HttpServer};
 use environment::RuntimeEnvironment;
 use lobby::db;
+use lobby::ws::connection_registry::ConnectionRegistry;
 use log::LevelFilter;
 use shared::environment;
 use shared::error::AppError;
@@ -20,16 +21,18 @@ async fn main() -> Result<(), AppError> {
     log::info!("Runtime environment: {:?}", RuntimeEnvironment::default());
 
     let pgpool: Pool<Postgres> = db::sqlx_connect().await?;
-    open_server(pgpool).await?;
+    let connection_registry: ConnectionRegistry = ConnectionRegistry::new();
+    open_server(pgpool, connection_registry).await?;
     Ok(())
 }
 
-async fn open_server(pgpool: PgPool) -> Result<(), AppError> {
+async fn open_server(pgpool: PgPool, connection_registry: ConnectionRegistry) -> Result<(), AppError> {
     HttpServer::new(move || {
         App::new()
             .wrap(middleware::Logger::default())
             .wrap(middleware::NormalizePath::trim())
             .app_data(Data::new(pgpool.clone()))
+            .app_data(Data::new(connection_registry.clone()))
             .configure(lobby::health::configurer)
             .configure(lobby::account::account_api::configurer)
             .configure(lobby::session::session_api::configurer)
