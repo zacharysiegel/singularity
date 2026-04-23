@@ -16,6 +16,7 @@ raylib = { version = "5.5" }
 strum = { version = "0.27", features = ["derive"] }
 secr = { version = "1.2" }
 actix-web = { version = "4.11" }
+actix-ws = { version = "0.3" }
 sqlx = { version = "0.8", features = ["postgres", "macros", "uuid", "chrono", "runtime-tokio", "tls-native-tls"] }
 base64 = { version = "0.22" }
 bcrypt = { version = "0.17" }
