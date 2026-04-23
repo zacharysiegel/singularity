@@ -10,6 +10,7 @@ log = { workspace = true }
 env_logger = { workspace = true }
 actix-web = { workspace = true }
 actix-ws = { workspace = true }
+tokio = { workspace = true }
 sqlx = { workspace = true }
 dotenvy = { workspace = true }
 serde = { workspace = true }
