@@ -22,13 +22,15 @@ pub async fn get_statistics_by_game(pool: &PgPool, game_id: Uuid) -> Result<Vec<
     let records: Vec<StatisticEntity> = sqlx::query_as!(
         StatisticEntity,
         "select statistic.id,
-       statistic.account_id,
-       statistic.game_id,
-                statistic.statistic_type, statistic.value,
-                statistic.created, statistic.updated
-         from statistic
-         where statistic.game_id = $1
-         order by statistic.statistic_type asc",
+               statistic.account_id,
+               statistic.game_id,
+               statistic.statistic_type,
+               statistic.value,
+               statistic.created,
+               statistic.updated
+        from statistic
+        where statistic.game_id = $1
+        order by statistic.statistic_type asc",
         game_id,
     )
     .fetch_all(pool)
