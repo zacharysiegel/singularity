@@ -98,6 +98,7 @@ pub async fn soft_delete_account(pool: &PgPool, id: Uuid) -> Result<(), AppError
     .await?;
 
     crate::session::session_db::delete_sessions_by_account(pool, id).await?;
+    crate::follow::follow_db::delete_follows_by_account(pool, id).await?;
 
     Ok(())
 }

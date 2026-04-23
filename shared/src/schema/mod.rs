@@ -1,5 +1,6 @@
 pub mod accolade;
 pub mod account;
+pub mod follow;
 pub mod game;
 pub mod game_membership;
 pub mod game_session;
