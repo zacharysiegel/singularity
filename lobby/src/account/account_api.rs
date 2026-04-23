@@ -4,7 +4,7 @@ use shared::schema::account::{
 };
 use sqlx::PgPool;
 
-use crate::error::{LobbyError, OptionExt, ResultExt};
+use crate::lobby_error::{LobbyError, OptionExt, ResultExt};
 use crate::http;
 use crate::password;
 use crate::session::session_extractor::AuthenticatedAccount;

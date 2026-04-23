@@ -2,7 +2,7 @@ use actix_web::{web, HttpRequest, HttpResponse};
 use shared::schema::game_session::GameSessionSerial;
 use sqlx::PgPool;
 use uuid::Uuid;
-use crate::error::{LobbyError, OptionExt, ResultExt};
+use crate::lobby_error::{LobbyError, OptionExt, ResultExt};
 use crate::game_membership::game_membership_db;
 use crate::game_membership::game_membership_model::GameMembershipEntity;
 use crate::http;
