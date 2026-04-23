@@ -1,10 +1,11 @@
+//! Accolades are the generalized store for discrete game outcome associations.
+//! Each accolade ties an account to a specific game with a typed award (e.g. placement,
+//! achievements). Accolades are always game-scoped.
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-/// Accolades are the generalized store for discrete game outcome associations.
-/// Each accolade ties an account to a specific game with a typed award (e.g. placement,
-/// achievements). Accolades are always game-scoped.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccoladeSerial {
     pub id: Uuid,

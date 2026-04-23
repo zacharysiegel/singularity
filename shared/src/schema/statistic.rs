@@ -1,13 +1,14 @@
+//! Statistics track numeric values over time, either scoped to a specific game
+//! or aggregated across an account's lifetime. Game-scoped statistics (game_id
+//! is Some) record per-game metrics like hours played or GDP produced. Account-scoped
+//! statistics (game_id is None) track cumulative totals like number of first-place
+//! finishes across all games.
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use crate::error::AppErrorStatic;
 
-/// Statistics track numeric values over time, either scoped to a specific game
-/// or aggregated across an account's lifetime. Game-scoped statistics (game_id
-/// is Some) record per-game metrics like hours played or GDP produced. Account-scoped
-/// statistics (game_id is None) track cumulative totals like number of first-place
-/// finishes across all games.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StatisticSerial {
     pub id: Uuid,
