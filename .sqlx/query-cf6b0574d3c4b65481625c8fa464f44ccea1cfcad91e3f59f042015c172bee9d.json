@@ -1,0 +1,41 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select conversation_member.conversation_id, conversation_member.account_id,\n               conversation_member.entered, conversation_member.exited\n         from conversation_member\n         where conversation_member.conversation_id = $1\n           and conversation_member.account_id = $2\n           and conversation_member.exited is null",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "conversation_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "account_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "entered",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 3,
+        "name": "exited",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "cf6b0574d3c4b65481625c8fa464f44ccea1cfcad91e3f59f042015c172bee9d"
+}

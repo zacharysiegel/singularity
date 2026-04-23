@@ -5,6 +5,8 @@ pub mod health;
 pub mod password;
 pub mod accolade;
 pub mod account;
+pub mod conversation;
+pub mod conversation_message;
 pub mod follow;
 pub mod game;
 pub mod game_membership;
