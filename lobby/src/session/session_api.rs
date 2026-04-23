@@ -7,7 +7,6 @@ use crate::account::account_model::AccountEntity;
 use crate::http;
 use crate::password;
 use super::session_db;
-use super::session_extractor::AuthenticatedAccount;
 
 use super::SESSION_DURATION;
 
@@ -45,7 +44,11 @@ async fn login(request: HttpRequest, pool: web::Data<PgPool>, body: web::Bytes) 
     http::serialize_response(&request, &response)
 }
 
-async fn logout(_request: HttpRequest, pool: web::Data<PgPool>, auth: AuthenticatedAccount) -> HttpResponse {
-    unwrap_or_500!(session_db::delete_session_by_token(pool.get_ref(), &auth.token).await);
+async fn logout(request: HttpRequest, pool: web::Data<PgPool>) -> HttpResponse {
+    let token: &str = match http::extract_bearer_token(&request) {
+        Some(token) => token,
+        None => return HttpResponse::Ok().finish(),
+    };
+    unwrap_or_500!(session_db::delete_session_by_token(pool.get_ref(), token).await);
     HttpResponse::Ok().finish()
 }
