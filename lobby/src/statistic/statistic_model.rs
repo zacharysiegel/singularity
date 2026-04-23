@@ -9,6 +9,7 @@ pub struct Statistic {
     pub game_id: Option<Uuid>,
     pub statistic_type: StatisticType,
     pub value: f64,
+    pub created: DateTime<Utc>,
     pub updated: DateTime<Utc>,
 }
 
@@ -19,6 +20,7 @@ pub struct StatisticEntity {
     pub game_id: Option<Uuid>,
     pub statistic_type: String,
     pub value: f64,
+    pub created: DateTime<Utc>,
     pub updated: DateTime<Utc>,
 }
 
@@ -32,6 +34,7 @@ impl TryFrom<StatisticEntity> for Statistic {
             game_id: entity.game_id,
             statistic_type: StatisticType::try_from_str(&entity.statistic_type)?,
             value: entity.value,
+            created: entity.created,
             updated: entity.updated,
         })
     }
@@ -45,6 +48,7 @@ impl From<&Statistic> for StatisticSerial {
             game_id: model.game_id,
             statistic_type: model.statistic_type.clone(),
             value: model.value,
+            created: model.created,
             updated: model.updated,
         }
     }
