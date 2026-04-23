@@ -4,8 +4,7 @@ use uuid::Uuid;
 
 /// Accolades are the generalized store for discrete game outcome associations.
 /// Each accolade ties an account to a specific game with a typed award (e.g. placement,
-/// achievements). This replaces a dedicated game_result table — placement finishes
-/// are accolades, not a separate concept. Accolades are always game-scoped.
+/// achievements). Accolades are always game-scoped.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccoladeSerial {
     pub id: Uuid,
