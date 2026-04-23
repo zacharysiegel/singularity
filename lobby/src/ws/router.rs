@@ -5,24 +5,22 @@ use uuid::Uuid;
 
 use crate::conversation::conversation_db;
 use crate::conversation_message::conversation_message_db;
-use super::connection_registry::ConnectionRegistry;
+use super::connection_registry;
 
 pub async fn handle_inbound_message(
     pool: &PgPool,
-    registry: &ConnectionRegistry,
     sender_account_id: Uuid,
     inbound: InboundMessage,
 ) -> Result<(), AppError> {
     match inbound {
         InboundMessage::SendMessage { conversation_id, content } => {
-            handle_send_message(pool, registry, sender_account_id, conversation_id, &content).await
+            handle_send_message(pool, sender_account_id, conversation_id, &content).await
         }
     }
 }
 
 async fn handle_send_message(
     pool: &PgPool,
-    registry: &ConnectionRegistry,
     sender_account_id: Uuid,
     conversation_id: Uuid,
     content: &str,
@@ -50,7 +48,7 @@ async fn handle_send_message(
 
     let member_ids: Vec<Uuid> =
         conversation_db::get_active_member_ids(pool, conversation_id).await?;
-    registry.send_to_accounts(&member_ids, &outbound);
+    connection_registry::send_to_accounts(&member_ids, &outbound);
 
     Ok(())
 }

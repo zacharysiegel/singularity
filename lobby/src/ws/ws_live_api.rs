@@ -1,6 +1,5 @@
 use crate::lobby_error::LobbyError;
 use crate::session::session_extractor::AuthenticatedAccount;
-use crate::ws::connection_registry::ConnectionRegistry;
 use crate::ws::connection_type::ConnectionType;
 use crate::ws::handle;
 use actix_web::{web, HttpRequest, HttpResponse};
@@ -20,7 +19,6 @@ async fn live_ws_handler(
     body: web::Payload,
     auth: AuthenticatedAccount,
     pg_pool: web::Data<PgPool>,
-    registry: web::Data<ConnectionRegistry>,
 ) -> Result<HttpResponse, LobbyError> {
-    handle::ws_handler(request, body, auth, pg_pool, registry, ConnectionType::Live, Some(RATE_LIMIT_INTERVAL)).await
+    handle::ws_handler(request, body, auth, pg_pool, ConnectionType::Live, Some(RATE_LIMIT_INTERVAL)).await
 }

@@ -1,6 +1,6 @@
 use crate::lobby_error::{LobbyError, ResultExtLobbyError};
 use crate::session::session_extractor::AuthenticatedAccount;
-use crate::ws::connection_registry::ConnectionRegistry;
+use crate::ws::connection_registry;
 use crate::ws::connection_type::ConnectionType;
 use crate::ws::router;
 use actix_web::{rt, web, HttpRequest, HttpResponse};
@@ -15,7 +15,6 @@ pub async fn ws_handler(
     body: web::Payload,
     auth: AuthenticatedAccount,
     pg_pool: web::Data<PgPool>,
-    registry: web::Data<ConnectionRegistry>,
     connection_type: ConnectionType,
     rate_limit_interval: Option<Duration>,
 ) -> Result<HttpResponse, LobbyError> {
@@ -24,9 +23,8 @@ pub async fn ws_handler(
     let (upgrade_response, mut ws_session, mut message_stream): (HttpResponse, Session, MessageStream) =
         actix_ws::handle(&request, body).or_bad_request()?;
 
-    let mut outbound_receiver = registry.register(account_id);
+    let mut outbound_receiver = connection_registry::register(account_id);
     let pg_pool: PgPool = pg_pool.get_ref().clone();
-    let registry: ConnectionRegistry = registry.get_ref().clone();
 
     rt::spawn(async move {
         let mut last_outbound_delivery: Instant = Instant::now();
@@ -36,11 +34,11 @@ pub async fn ws_handler(
                 ws_message = message_stream.recv() => {
                     let should_continue: bool = match ws_message {
                         Some(Ok(Message::Text(text))) => {
-                            handle_text_message(&pg_pool, &registry, connection_type, account_id, &text, &mut ws_session).await;
+                            handle_text_message(&pg_pool, connection_type, account_id, &text, &mut ws_session).await;
                             true
                         }
                         Some(Ok(Message::Binary(bytes))) => {
-                            handle_binary_message(&pg_pool, &registry, connection_type, account_id, &bytes, &mut ws_session).await;
+                            handle_binary_message(&pg_pool, connection_type, account_id, &bytes, &mut ws_session).await;
                             true
                         }
                         Some(Ok(Message::Ping(payload))) =>
@@ -73,7 +71,7 @@ pub async fn ws_handler(
             }
         }
 
-        registry.unregister(account_id);
+        connection_registry::unregister(account_id);
         log::info!("WebSocket connection closed [{connection_type}] [{account_id}]");
     });
 
@@ -101,7 +99,6 @@ async fn throttle(
 
 async fn handle_text_message(
     pool: &PgPool,
-    registry: &ConnectionRegistry,
     connection_type: ConnectionType,
     account_id: Uuid,
     text: &str,
@@ -115,7 +112,7 @@ async fn handle_text_message(
     let parse_result: Result<InboundMessage, _> = serde_json::from_str(text);
     match parse_result {
         Ok(inbound) => {
-            if let Err(error) = router::handle_inbound_message(pool, registry, account_id, inbound).await {
+            if let Err(error) = router::handle_inbound_message(pool, account_id, inbound).await {
                 let _ = send_outbound_json(ws_session, &OutboundMessage::Error { message: error.message.clone() }).await;
             }
         }
@@ -127,7 +124,6 @@ async fn handle_text_message(
 
 async fn handle_binary_message(
     pool: &PgPool,
-    registry: &ConnectionRegistry,
     connection_type: ConnectionType,
     account_id: Uuid,
     bytes: &[u8],
@@ -141,7 +137,7 @@ async fn handle_binary_message(
     let parse_result: Result<InboundMessage, _> = rmp_serde::from_slice(bytes);
     match parse_result {
         Ok(inbound) => {
-            if let Err(error) = router::handle_inbound_message(pool, registry, account_id, inbound).await {
+            if let Err(error) = router::handle_inbound_message(pool, account_id, inbound).await {
                 let _ = send_outbound_msgpack(ws_session, &OutboundMessage::Error { message: error.message.clone() }).await;
             }
         }
