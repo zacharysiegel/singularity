@@ -1,6 +1,6 @@
 #!/bin/zsh
 set -euo pipefail
-source "$(dirname "$0")/harness.sh"
+source "$(dirname "$0")/../harness.sh"
 
 echo "=== Follow E2E Tests ==="
 
