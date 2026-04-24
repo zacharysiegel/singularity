@@ -33,7 +33,17 @@ comment on index idx_conversation_message_conversation_created is 'Messages in a
 create index if not exists idx_conversation_message_sender_account_id
     on conversation_message(sender_account_id);
 
+create or replace view conversation_latest_message_view as
+select
+    conversation_message.conversation_id,
+    max(conversation_message.created) as latest_message_created
+from conversation_message
+group by conversation_message.conversation_id
+;
+comment on view conversation_latest_message_view is 'Most recent message timestamp per conversation, for sorting conversation lists by activity';
+
 -- migrate:down
+drop view if exists conversation_latest_message_view;
 drop index if exists idx_conversation_message_sender_account_id;
 drop index if exists idx_conversation_message_conversation_created;
 drop table if exists conversation_message;
