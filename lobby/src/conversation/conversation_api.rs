@@ -4,7 +4,7 @@ use shared::schema::conversation::{
 };
 use sqlx::PgPool;
 use uuid::Uuid;
-
+use crate::conversation_message::conversation_message_api;
 use crate::http;
 use crate::lobby_error::{LobbyError, OptionExt, ResultExt};
 use crate::session::session_extractor::AuthenticatedAccount;
@@ -19,7 +19,7 @@ pub fn configurer(config: &mut web::ServiceConfig) {
             .route("/{conversation_id}", web::get().to(get_conversation))
             .route("/{conversation_id}/member", web::post().to(add_member))
             .route("/{conversation_id}/leave", web::post().to(leave_conversation))
-            .configure(crate::conversation_message::conversation_message_api::conversation_configurer),
+            .configure(conversation_message_api::conversation_configurer),
     );
 }
 
@@ -30,21 +30,18 @@ async fn create_conversation(
     auth: AuthenticatedAccount,
 ) -> Result<HttpResponse, LobbyError> {
     let payload: CreateConversationRequest = http::deserialize_request(&request, &body).or_bad_request()?;
-
     if !payload.is_valid() {
         return Err(LobbyError::bad_request("invalid create conversation request"));
     }
 
-    let entity: ConversationEntity =
-        conversation_db::create_conversation(pool.get_ref(), payload.name.as_deref(), None).await?;
-
-    conversation_db::add_member(pool.get_ref(), entity.id, auth.account_id).await?;
-
-    for member_account_id in &payload.member_account_ids {
-        if *member_account_id != auth.account_id {
-            conversation_db::add_member(pool.get_ref(), entity.id, *member_account_id).await?;
-        }
-    }
+    let entity: ConversationEntity = conversation_db::create_conversation(
+        pool.get_ref(),
+        payload.name.as_deref(),
+        None,
+        auth.account_id,
+        &payload.member_account_ids,
+    )
+    .await?;
 
     let conversation: Conversation = Conversation::from(entity);
     let serial: ConversationSerial = ConversationSerial::from(&conversation);
