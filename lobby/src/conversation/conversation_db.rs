@@ -133,17 +133,19 @@ pub async fn get_conversations_by_account(
 ) -> Result<Vec<ConversationEntity>, AppError> {
     let conversation_entities: Vec<ConversationEntity> = sqlx::query_as!(
         ConversationEntity,
-        r#"select conversation.id, conversation.game_id, conversation.name, conversation.created
-         from conversation
-         inner join conversation_member on conversation_member.conversation_id = conversation.id
-         left join conversation_latest_message_view on conversation_latest_message_view.conversation_id = conversation.id
-         where conversation_member.account_id = $1
-           and conversation_member.exited is null
-         order by coalesce(conversation_latest_message_view.latest_message_created, conversation.created) desc"#,
+        r#"
+        select conversation.id, conversation.game_id, conversation.name, conversation.created
+        from conversation
+        inner join conversation_member on conversation_member.conversation_id = conversation.id
+        left join conversation_latest_message_view on conversation_latest_message_view.conversation_id = conversation.id
+        where conversation_member.account_id = $1
+            and conversation_member.exited is null
+        order by coalesce(conversation_latest_message_view.latest_message_created, conversation.created) desc
+        "#,
         account_id,
     )
-    .fetch_all(pool)
-    .await?;
+        .fetch_all(pool)
+        .await?;
     Ok(conversation_entities)
 }
 
