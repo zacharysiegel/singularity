@@ -3,6 +3,7 @@
 
 source "$(dirname "$0")/actions.sh"
 
+# shellcheck disable=SC2034 # BASE_URL is used by dependent scripts
 BASE_URL="http://localhost:10000"
 PASS=0
 FAIL=0
