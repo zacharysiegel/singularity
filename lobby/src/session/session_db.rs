@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use shared::error::AppError;
-use sqlx::PgPool;
+use sqlx::{PgPool, Postgres};
 use uuid::Uuid;
 
 use super::session_model::SessionEntity;
@@ -61,9 +61,12 @@ pub async fn delete_session_by_token(pool: &PgPool, token: &str) -> Result<(), A
     Ok(())
 }
 
-pub async fn delete_sessions_by_account(pool: &PgPool, account_id: Uuid) -> Result<(), AppError> {
+pub async fn delete_sessions_by_account<'e, E: sqlx::Executor<'e, Database = Postgres>>(
+    executor: E,
+    account_id: Uuid,
+) -> Result<(), AppError> {
     sqlx::query!("delete from session where account_id = $1", account_id)
-        .execute(pool)
+        .execute(executor)
         .await?;
     Ok(())
 }

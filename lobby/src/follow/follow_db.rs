@@ -1,5 +1,5 @@
 use shared::error::AppError;
-use sqlx::PgPool;
+use sqlx::{PgPool, Postgres};
 use uuid::Uuid;
 
 use super::follow_model::{FollowEntity, FollowSummary};
@@ -130,13 +130,16 @@ pub async fn get_mutuals(
     Ok(records)
 }
 
-pub async fn delete_follows_by_account(pool: &PgPool, account_id: Uuid) -> Result<(), AppError> {
+pub async fn delete_follows_by_account<'e, E: sqlx::Executor<'e, Database = Postgres>>(
+    executor: E,
+    account_id: Uuid,
+) -> Result<(), AppError> {
     sqlx::query!(
         "delete from follow
          where source_account_id = $1 or target_account_id = $1",
         account_id,
     )
-    .execute(pool)
+    .execute(executor)
     .await?;
     Ok(())
 }

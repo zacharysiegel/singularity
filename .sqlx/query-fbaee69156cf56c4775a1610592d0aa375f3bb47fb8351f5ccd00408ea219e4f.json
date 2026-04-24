@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "update conversation_member\n         set exited = now()\n         where account_id = $1 and exited is null",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "fbaee69156cf56c4775a1610592d0aa375f3bb47fb8351f5ccd00408ea219e4f"
+}

@@ -1,10 +1,8 @@
 use shared::error::AppError;
-use sqlx::PgPool;
+use sqlx::{PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
 use super::account_model::AccountEntity;
-use crate::conversation::conversation_db;
-use crate::conversation::conversation_model::ConversationEntity;
 use crate::follow::follow_db;
 use crate::session::session_db;
 
@@ -88,6 +86,8 @@ pub async fn update_password_hash(pool: &PgPool, id: Uuid, password_hash: &str) 
 }
 
 pub async fn soft_delete_account(pool: &PgPool, id: Uuid) -> Result<(), AppError> {
+    let mut transaction: Transaction<Postgres> = pool.begin().await?;
+
     sqlx::query!(
         "update account
          set email = 'deleted-' || id::text || '@anonymized',
@@ -98,16 +98,38 @@ pub async fn soft_delete_account(pool: &PgPool, id: Uuid) -> Result<(), AppError
          where id = $1 and deleted_at is null",
         id,
     )
-    .execute(pool)
+    .execute(&mut *transaction)
     .await?;
 
-    session_db::delete_sessions_by_account(pool, id).await?;
-    follow_db::delete_follows_by_account(pool, id).await?;
+    session_db::delete_sessions_by_account(&mut *transaction, id).await?;
+    follow_db::delete_follows_by_account(&mut *transaction, id).await?;
 
-    let conversation_entities: Vec<ConversationEntity> = conversation_db::get_conversations_by_account_unsorted(pool, id).await?;
-    for conversation_entity in conversation_entities {
-        conversation_db::leave_conversation(pool, conversation_entity.id, id).await?;
-    }
+    // Leave all conversations: set exited, then delete any now-empty conversations
+    sqlx::query!(
+        "update conversation_member
+         set exited = now()
+         where account_id = $1 and exited is null",
+        id,
+    )
+    .execute(&mut *transaction)
+    .await?;
 
+    sqlx::query!(
+        "with empty_conversations as (
+             select conversation.id
+             from conversation
+             where not exists (
+                 select 1 from conversation_member
+                 where conversation_member.conversation_id = conversation.id
+                   and conversation_member.exited is null
+             )
+         )
+         delete from conversation
+         where id in (select id from empty_conversations)",
+    )
+    .execute(&mut *transaction)
+    .await?;
+
+    transaction.commit().await?;
     Ok(())
 }
