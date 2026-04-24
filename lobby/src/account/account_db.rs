@@ -4,6 +4,7 @@ use uuid::Uuid;
 
 use super::account_model::AccountEntity;
 use crate::conversation::conversation_db;
+use crate::conversation::conversation_model::ConversationEntity;
 use crate::follow::follow_db;
 use crate::session::session_db;
 
@@ -103,8 +104,7 @@ pub async fn soft_delete_account(pool: &PgPool, id: Uuid) -> Result<(), AppError
     session_db::delete_sessions_by_account(pool, id).await?;
     follow_db::delete_follows_by_account(pool, id).await?;
 
-    let conversation_entities: Vec<crate::conversation::conversation_model::ConversationEntity> =
-        conversation_db::get_conversations_by_account_unsorted(pool, id).await?;
+    let conversation_entities: Vec<ConversationEntity> = conversation_db::get_conversations_by_account_unsorted(pool, id).await?;
     for conversation_entity in conversation_entities {
         conversation_db::leave_conversation(pool, conversation_entity.id, id).await?;
     }
