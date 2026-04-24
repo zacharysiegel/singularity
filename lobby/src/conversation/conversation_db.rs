@@ -14,7 +14,7 @@ pub async fn create_conversation(
 ) -> Result<ConversationEntity, AppError> {
     let mut transaction: Transaction<Postgres> = pool.begin().await?;
 
-    let record: ConversationEntity = sqlx::query_as!(
+    let conversation: ConversationEntity = sqlx::query_as!(
         ConversationEntity,
         "insert into conversation (name, game_id)
          values ($1, $2)
@@ -28,27 +28,29 @@ pub async fn create_conversation(
     sqlx::query!(
         "insert into conversation_member (conversation_id, account_id)
          values ($1, $2)",
-        record.id,
+        conversation.id,
         creator_account_id,
     )
     .execute(&mut *transaction)
     .await?;
 
     for member_account_id in member_account_ids {
-        if *member_account_id != creator_account_id {
-            sqlx::query!(
-                "insert into conversation_member (conversation_id, account_id)
-                 values ($1, $2)",
-                record.id,
-                *member_account_id,
-            )
-            .execute(&mut *transaction)
-            .await?;
+        if *member_account_id == creator_account_id {
+            continue;
         }
+
+        sqlx::query!(
+            "insert into conversation_member (conversation_id, account_id)
+             values ($1, $2)",
+            conversation.id,
+            *member_account_id,
+        )
+        .execute(&mut *transaction)
+        .await?;
     }
 
     transaction.commit().await?;
-    Ok(record)
+    Ok(conversation)
 }
 
 pub async fn get_conversation_by_id(
@@ -112,7 +114,19 @@ pub async fn leave_conversation(
     account_id: Uuid,
 ) -> Result<bool, AppError> {
     let mut transaction: Transaction<Postgres> = pool.begin().await?;
+    let did_leave: bool = leave_conversation_exec(&mut *transaction, conversation_id, account_id).await?;
+    if did_leave {
+        delete_conversation_if_empty_exec(&mut *transaction, conversation_id).await?;
+    }
+    transaction.commit().await?;
+    Ok(did_leave)
+}
 
+pub async fn leave_conversation_exec<'e, E: sqlx::Executor<'e, Database = Postgres>>(
+    executor: E,
+    conversation_id: Uuid,
+    account_id: Uuid,
+) -> Result<bool, AppError> {
     let leave_result: PgQueryResult = sqlx::query!(
         "update conversation_member
          set exited = now()
@@ -120,28 +134,28 @@ pub async fn leave_conversation(
         conversation_id,
         account_id,
     )
-    .execute(&mut *transaction)
+    .execute(executor)
     .await?;
+    Ok(leave_result.rows_affected() > 0)
+}
 
-    let did_leave: bool = leave_result.rows_affected() > 0;
-
-    if did_leave {
-        sqlx::query!("
-            with active_members as (
-                select 1 from conversation_member
-                where conversation_id = $1 and exited is null
-            )
-            delete from conversation
-            where id = $1
-                and not exists (select 1 from active_members)",
-            conversation_id,
+pub async fn delete_conversation_if_empty_exec<'e, E: sqlx::Executor<'e, Database = Postgres>>(
+    executor: E,
+    conversation_id: Uuid,
+) -> Result<(), AppError> {
+    sqlx::query!("
+        with active_members as (
+            select 1 from conversation_member
+            where conversation_id = $1 and exited is null
         )
-        .execute(&mut *transaction)
-        .await?;
-    }
-
-    transaction.commit().await?;
-    Ok(did_leave)
+        delete from conversation
+        where id = $1
+            and not exists (select 1 from active_members)",
+        conversation_id,
+    )
+    .execute(executor)
+    .await?;
+    Ok(())
 }
 
 pub async fn get_conversations_by_account(
