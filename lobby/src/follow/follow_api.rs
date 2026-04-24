@@ -9,23 +9,23 @@ use crate::session::session_extractor::AuthenticatedAccount;
 use super::follow_db;
 use super::follow_model::{Follow, FollowingSummaryRow};
 
-pub fn configurer(config: &mut web::ServiceConfig) {
+pub fn account_configurer(config: &mut web::ServiceConfig) {
     config
         .service(
-            web::resource("/account/{account_id}/follow")
+            web::resource("/{account_id}/follow")
                 .route(web::post().to(follow_account))
                 .route(web::delete().to(unfollow_account)),
         )
         .service(
-            web::resource("/account/{account_id}/followers")
+            web::resource("/{account_id}/followers")
                 .route(web::get().to(get_followers)),
         )
         .service(
-            web::resource("/account/{account_id}/following")
+            web::resource("/{account_id}/following")
                 .route(web::get().to(get_following)),
         )
         .service(
-            web::resource("/account/{account_id}/mutuals")
+            web::resource("/{account_id}/mutuals")
                 .route(web::get().to(get_mutuals)),
         );
 }
