@@ -114,6 +114,7 @@ impl From<AppErrorStatic> for LobbyError {
     }
 }
 
+// todo: rename LobbyErrorOptionExt
 pub trait ResultExt<T> {
     fn or_bad_request(self) -> Result<T, LobbyError>;
 }
@@ -124,6 +125,7 @@ impl<T, E: Display> ResultExt<T> for Result<T, E> {
     }
 }
 
+// todo: rename LobbyErrorOptionExt
 pub trait OptionExt<T> {
     fn or_not_found(self) -> Result<T, LobbyError>;
     fn or_forbidden(self, message: &str) -> Result<T, LobbyError>;
