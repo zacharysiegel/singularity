@@ -1,5 +1,5 @@
 #!/bin/zsh
-set -euo pipefail
+set -uo pipefail
 source "$(dirname "$0")/../harness.sh"
 
 echo "=== Conversation E2E Tests ==="
