@@ -37,14 +37,14 @@ impl From<&Follow> for FollowSerial {
 }
 
 #[derive(Debug, Clone)]
-pub struct FollowingSummaryRow {
+pub struct FollowSummary {
     pub account_id: Uuid,
     pub username: String,
     pub is_mutual: bool,
 }
 
-impl From<&FollowingSummaryRow> for FollowingSummarySerial {
-    fn from(row: &FollowingSummaryRow) -> Self {
+impl From<&FollowSummary> for FollowingSummarySerial {
+    fn from(row: &FollowSummary) -> Self {
         FollowingSummarySerial {
             account_id: row.account_id,
             username: row.username.clone(),
