@@ -137,21 +137,3 @@ pub async fn get_conversations_by_account(
         .await?;
     Ok(conversation_entities)
 }
-
-pub async fn get_conversations_by_account_unsorted(
-    pool: &PgPool,
-    account_id: Uuid,
-) -> Result<Vec<ConversationEntity>, AppError> {
-    let conversation_entities: Vec<ConversationEntity> = sqlx::query_as!(
-        ConversationEntity,
-        "select conversation.id, conversation.game_id, conversation.name, conversation.created
-         from conversation
-         inner join conversation_member on conversation_member.conversation_id = conversation.id
-         where conversation_member.account_id = $1
-           and conversation_member.exited is null",
-        account_id,
-    )
-    .fetch_all(pool)
-    .await?;
-    Ok(conversation_entities)
-}
