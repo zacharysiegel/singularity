@@ -1,5 +1,6 @@
 use shared::error::AppError;
-use sqlx::PgPool;
+use sqlx::{PgPool, Postgres, Transaction};
+use sqlx::postgres::PgQueryResult;
 use uuid::Uuid;
 
 use super::conversation_model::{ConversationEntity, ConversationMemberEntity};
@@ -82,9 +83,9 @@ pub async fn leave_conversation(
     conversation_id: Uuid,
     account_id: Uuid,
 ) -> Result<bool, AppError> {
-    let mut transaction = pool.begin().await?;
+    let mut transaction: Transaction<Postgres> = pool.begin().await?;
 
-    let leave_result = sqlx::query!(
+    let leave_result: PgQueryResult = sqlx::query!(
         "update conversation_member
          set exited = now()
          where conversation_id = $1 and account_id = $2 and exited is null",
@@ -97,20 +98,18 @@ pub async fn leave_conversation(
     let did_leave: bool = leave_result.rows_affected() > 0;
 
     if did_leave {
-        let active_member_count = sqlx::query!(
-            r#"select count(*) as "count!"
-             from conversation_member
-             where conversation_id = $1 and exited is null"#,
+        sqlx::query!("
+            with active_members as (
+                select 1 from conversation_member
+                where conversation_id = $1 and exited is null
+            )
+            delete from conversation
+            where id = $1
+                and not exists (select 1 from active_members)",
             conversation_id,
         )
-        .fetch_one(&mut *transaction)
+        .execute(&mut *transaction)
         .await?;
-
-        if active_member_count.count == 0 {
-            sqlx::query!("delete from conversation where id = $1", conversation_id)
-                .execute(&mut *transaction)
-                .await?;
-        }
     }
 
     transaction.commit().await?;
