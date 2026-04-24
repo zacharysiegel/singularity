@@ -31,7 +31,7 @@ async fn follow_account(
     let target_account_id: Uuid = Uuid::parse_str(&target_account_id_string).or_bad_request()?;
 
     let existing = follow_db::get_follow(pool.get_ref(), auth.account_id, target_account_id).await?;
-    existing.or_conflict("already following this account")?;
+    existing.then_conflict("already following this account")?;
 
     let entity = follow_db::create_follow(pool.get_ref(), auth.account_id, target_account_id).await?;
     let follow: Follow = Follow::from(entity);
