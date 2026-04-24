@@ -107,11 +107,6 @@ pub async fn soft_delete_account(pool: &PgPool, id: Uuid) -> Result<(), AppError
         conversation_db::get_conversations_by_account_unsorted(pool, id).await?;
     for conversation_entity in conversation_entities {
         conversation_db::leave_conversation(pool, conversation_entity.id, id).await?;
-        let active_member_count: i64 =
-            conversation_db::get_active_member_count(pool, conversation_entity.id).await?;
-        if active_member_count == 0 {
-            conversation_db::delete_conversation(pool, conversation_entity.id).await?;
-        }
     }
 
     Ok(())
