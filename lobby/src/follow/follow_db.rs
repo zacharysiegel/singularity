@@ -2,7 +2,7 @@ use shared::error::AppError;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use super::follow_model::{FollowEntity, FollowingSummaryRow};
+use super::follow_model::{FollowEntity, FollowSummary};
 
 pub async fn create_follow(
     pool: &PgPool,
@@ -59,9 +59,9 @@ pub async fn get_follow(
 pub async fn get_followers(
     pool: &PgPool,
     account_id: Uuid,
-) -> Result<Vec<FollowingSummaryRow>, AppError> {
-    let records: Vec<FollowingSummaryRow> = sqlx::query_as!(
-        FollowingSummaryRow,
+) -> Result<Vec<FollowSummary>, AppError> {
+    let records: Vec<FollowSummary> = sqlx::query_as!(
+        FollowSummary,
         "select
              follow.source_account_id as account_id,
              account.username,
@@ -85,9 +85,9 @@ pub async fn get_followers(
 pub async fn get_following(
     pool: &PgPool,
     account_id: Uuid,
-) -> Result<Vec<FollowingSummaryRow>, AppError> {
-    let records: Vec<FollowingSummaryRow> = sqlx::query_as!(
-        FollowingSummaryRow,
+) -> Result<Vec<FollowSummary>, AppError> {
+    let records: Vec<FollowSummary> = sqlx::query_as!(
+        FollowSummary,
         "select
              follow.target_account_id as account_id,
              account.username,
@@ -111,9 +111,9 @@ pub async fn get_following(
 pub async fn get_mutuals(
     pool: &PgPool,
     account_id: Uuid,
-) -> Result<Vec<FollowingSummaryRow>, AppError> {
-    let records: Vec<FollowingSummaryRow> = sqlx::query_as!(
-        FollowingSummaryRow,
+) -> Result<Vec<FollowSummary>, AppError> {
+    let records: Vec<FollowSummary> = sqlx::query_as!(
+        FollowSummary,
         "select
              mutual_follow_view.mutual_account_id as \"account_id!\",
              account.username as \"username!\",

@@ -1,19 +1,18 @@
-use actix_web::{web, HttpRequest, HttpResponse};
+use actix_web::{HttpRequest, HttpResponse, web};
 use shared::schema::account::{
     AccountPublicSerial, AccountSerial, ChangePasswordRequest, CreateAccountRequest, UpdateAccountRequest,
 };
 use sqlx::PgPool;
 
-use crate::lobby_error::{LobbyError, OptionExt, ResultExt};
-use crate::http;
-use crate::password;
-use crate::session::session_extractor::AuthenticatedAccount;
 use super::account_db;
 use super::account_model::{Account, AccountEntity};
+use crate::http;
+use crate::lobby_error::{LobbyError, OptionExt, ResultExt};
+use crate::password;
+use crate::session::session_extractor::AuthenticatedAccount;
 
 pub fn configurer(config: &mut web::ServiceConfig) {
     config.service(
-        
         web::scope("/account")
             .route("", web::get().to(get_own_account))
             .route("", web::post().to(create_account))
