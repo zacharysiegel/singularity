@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "insert into conversation_member (conversation_id, account_id)\n         values ($1, $2)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "1f5aec6cd03de8105acf9ce364e96f00ef039e6ac90d6ee68c8e040683b26a10"
+}

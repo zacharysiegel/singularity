@@ -9,7 +9,11 @@ pub async fn create_conversation(
     pool: &PgPool,
     name: Option<&str>,
     game_id: Option<Uuid>,
+    creator_account_id: Uuid,
+    member_account_ids: &[Uuid],
 ) -> Result<ConversationEntity, AppError> {
+    let mut transaction: Transaction<Postgres> = pool.begin().await?;
+
     let record: ConversationEntity = sqlx::query_as!(
         ConversationEntity,
         "insert into conversation (name, game_id)
@@ -18,8 +22,32 @@ pub async fn create_conversation(
         name,
         game_id,
     )
-    .fetch_one(pool)
+    .fetch_one(&mut *transaction)
     .await?;
+
+    sqlx::query!(
+        "insert into conversation_member (conversation_id, account_id)
+         values ($1, $2)",
+        record.id,
+        creator_account_id,
+    )
+    .execute(&mut *transaction)
+    .await?;
+
+    for member_account_id in member_account_ids {
+        if *member_account_id != creator_account_id {
+            sqlx::query!(
+                "insert into conversation_member (conversation_id, account_id)
+                 values ($1, $2)",
+                record.id,
+                *member_account_id,
+            )
+            .execute(&mut *transaction)
+            .await?;
+        }
+    }
+
+    transaction.commit().await?;
     Ok(record)
 }
 
