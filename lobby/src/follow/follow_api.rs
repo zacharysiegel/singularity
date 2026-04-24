@@ -10,24 +10,14 @@ use super::follow_db;
 use super::follow_model::{Follow, FollowingSummaryRow};
 
 pub fn account_configurer(config: &mut web::ServiceConfig) {
-    config
-        .service(
-            web::resource("/{account_id}/follow")
-                .route(web::post().to(follow_account))
-                .route(web::delete().to(unfollow_account)),
-        )
-        .service(
-            web::resource("/{account_id}/followers")
-                .route(web::get().to(get_followers)),
-        )
-        .service(
-            web::resource("/{account_id}/following")
-                .route(web::get().to(get_following)),
-        )
-        .service(
-            web::resource("/{account_id}/mutuals")
-                .route(web::get().to(get_mutuals)),
-        );
+    config.service(
+        web::scope("/{account_id}")
+            .route("/follow", web::post().to(follow_account))
+            .route("/follow", web::delete().to(unfollow_account))
+            .route("/followers", web::get().to(get_followers))
+            .route("/following", web::get().to(get_following))
+            .route("/mutuals", web::get().to(get_mutuals)),
+    );
 }
 
 // TODO: prevent the client from issuing a self-follow request for efficiency
