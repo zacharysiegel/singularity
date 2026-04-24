@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use shared::schema::follow::{FollowSerial, FollowingSummarySerial};
+use shared::schema::follow::{FollowSerial, FollowSummarySerial};
 use uuid::Uuid;
 
 #[derive(Debug, Clone)]
@@ -43,9 +43,9 @@ pub struct FollowSummary {
     pub is_mutual: bool,
 }
 
-impl From<&FollowSummary> for FollowingSummarySerial {
+impl From<&FollowSummary> for FollowSummarySerial {
     fn from(row: &FollowSummary) -> Self {
-        FollowingSummarySerial {
+        FollowSummarySerial {
             account_id: row.account_id,
             username: row.username.clone(),
             is_mutual: row.is_mutual,

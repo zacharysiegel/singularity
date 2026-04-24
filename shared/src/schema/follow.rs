@@ -10,7 +10,7 @@ pub struct FollowSerial {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FollowingSummarySerial {
+pub struct FollowSummarySerial {
     pub account_id: Uuid,
     pub username: String,
     pub is_mutual: bool,

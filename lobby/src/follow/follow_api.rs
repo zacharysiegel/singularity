@@ -1,5 +1,5 @@
 use actix_web::{HttpRequest, HttpResponse, web};
-use shared::schema::follow::{FollowSerial, FollowingSummarySerial};
+use shared::schema::follow::{FollowSerial, FollowSummarySerial};
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -65,8 +65,8 @@ async fn get_followers(
     let account_id: Uuid = Uuid::parse_str(&account_id_string).or_bad_request()?;
 
     let follower_rows: Vec<FollowSummary> = follow_db::get_followers(pool.get_ref(), account_id).await?;
-    let follower_serials: Vec<FollowingSummarySerial> =
-        follower_rows.iter().map(FollowingSummarySerial::from).collect();
+    let follower_serials: Vec<FollowSummarySerial> =
+        follower_rows.iter().map(FollowSummarySerial::from).collect();
 
     Ok(http::serialize_response(&request, &follower_serials))
 }
@@ -80,8 +80,8 @@ async fn get_following(
     let account_id: Uuid = Uuid::parse_str(&account_id_string).or_bad_request()?;
 
     let following_rows: Vec<FollowSummary> = follow_db::get_following(pool.get_ref(), account_id).await?;
-    let following_serials: Vec<FollowingSummarySerial> =
-        following_rows.iter().map(FollowingSummarySerial::from).collect();
+    let following_serials: Vec<FollowSummarySerial> =
+        following_rows.iter().map(FollowSummarySerial::from).collect();
 
     Ok(http::serialize_response(&request, &following_serials))
 }
@@ -95,7 +95,7 @@ async fn get_mutuals(
     let account_id: Uuid = Uuid::parse_str(&account_id_string).or_bad_request()?;
 
     let mutual_rows: Vec<FollowSummary> = follow_db::get_mutuals(pool.get_ref(), account_id).await?;
-    let mutual_serials: Vec<FollowingSummarySerial> = mutual_rows.iter().map(FollowingSummarySerial::from).collect();
+    let mutual_serials: Vec<FollowSummarySerial> = mutual_rows.iter().map(FollowSummarySerial::from).collect();
 
     Ok(http::serialize_response(&request, &mutual_serials))
 }
