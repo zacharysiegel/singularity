@@ -33,7 +33,7 @@ async fn get_messages(
 
     let member: Option<ConversationMemberEntity> =
         conversation_db::get_member(pool.get_ref(), conversation_id, auth.account_id).await?;
-    member.or_not_found()?;
+    member.or_forbidden("not a member of this conversation")?;
 
     let limit: i64 = query.limit.unwrap_or(DEFAULT_MESSAGE_LIMIT);
 
@@ -61,7 +61,7 @@ async fn send_message(
 
     let member: Option<ConversationMemberEntity> =
         conversation_db::get_member(pool.get_ref(), conversation_id, auth.account_id).await?;
-    member.or_not_found()?;
+    member.or_forbidden("not a member of this conversation")?;
 
     let payload: SendMessageRequest = http::deserialize_request(&request, &body).or_bad_request()?;
 

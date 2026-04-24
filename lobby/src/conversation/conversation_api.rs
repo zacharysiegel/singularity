@@ -81,7 +81,7 @@ async fn get_conversation(
 
     let member: Option<ConversationMemberEntity> =
         conversation_db::get_member(pool.get_ref(), conversation_id, auth.account_id).await?;
-    member.or_not_found()?;
+    member.or_forbidden("not a member of this conversation")?;
 
     let entity: Option<ConversationEntity> =
         conversation_db::get_conversation_by_id(pool.get_ref(), conversation_id).await?;
@@ -104,7 +104,7 @@ async fn add_member(
 
     let caller_member: Option<ConversationMemberEntity> =
         conversation_db::get_member(pool.get_ref(), conversation_id, auth.account_id).await?;
-    caller_member.or_not_found()?;
+    caller_member.or_forbidden("not a member of this conversation")?;
 
     let payload: AddConversationMemberRequest = http::deserialize_request(&request, &body).or_bad_request()?;
 
