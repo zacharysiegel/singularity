@@ -38,7 +38,6 @@ assert_status "Non-member can't get details" "403" "$STATUS"
 
 # Send message from A
 MSG=$(curl -s -X POST "$BASE_URL/conversation/$CONV_ID/messages" -H "Authorization: Bearer $TOKEN_A" -H 'Content-Type: application/json' -d "{\"conversation_id\":\"$CONV_ID\",\"content\":\"hello from A\"}")
-MSG_ID=$(echo "$MSG" | jq -r '.id')
 assert_equals "Message sender is A" "$ACCOUNT_A_ID" "$(echo "$MSG" | jq -r '.sender_account_id')"
 assert_equals "Message content" "hello from A" "$(echo "$MSG" | jq -r '.content')"
 assert_equals "Message not anonymized" "false" "$(echo "$MSG" | jq -r '.sender_anonymized')"
