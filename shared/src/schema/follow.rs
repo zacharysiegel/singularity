@@ -4,8 +4,8 @@ use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FollowSerial {
-    pub follower_account_id: Uuid,
-    pub followed_account_id: Uuid,
+    pub source_account_id: Uuid,
+    pub target_account_id: Uuid,
     pub created: DateTime<Utc>,
 }
 

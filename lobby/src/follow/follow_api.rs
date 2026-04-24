@@ -27,13 +27,13 @@ async fn follow_account(
     path: web::Path<(String,)>,
     auth: AuthenticatedAccount,
 ) -> Result<HttpResponse, LobbyError> {
-    let (followed_account_id_string,): (String,) = path.into_inner();
-    let followed_account_id: Uuid = Uuid::parse_str(&followed_account_id_string).or_bad_request()?;
+    let (target_account_id_string,): (String,) = path.into_inner();
+    let target_account_id: Uuid = Uuid::parse_str(&target_account_id_string).or_bad_request()?;
 
-    let existing = follow_db::get_follow(pool.get_ref(), auth.account_id, followed_account_id).await?;
+    let existing = follow_db::get_follow(pool.get_ref(), auth.account_id, target_account_id).await?;
     existing.or_conflict("already following this account")?;
 
-    let entity = follow_db::create_follow(pool.get_ref(), auth.account_id, followed_account_id).await?;
+    let entity = follow_db::create_follow(pool.get_ref(), auth.account_id, target_account_id).await?;
     let follow: Follow = Follow::from(entity);
     let serial: FollowSerial = FollowSerial::from(&follow);
     Ok(http::serialize_response(&request, &serial))
@@ -45,10 +45,10 @@ async fn unfollow_account(
     path: web::Path<(String,)>,
     auth: AuthenticatedAccount,
 ) -> Result<HttpResponse, LobbyError> {
-    let (followed_account_id_string,): (String,) = path.into_inner();
-    let followed_account_id: Uuid = Uuid::parse_str(&followed_account_id_string).or_bad_request()?;
+    let (target_account_id_string,): (String,) = path.into_inner();
+    let target_account_id: Uuid = Uuid::parse_str(&target_account_id_string).or_bad_request()?;
 
-    let deleted: bool = follow_db::delete_follow(pool.get_ref(), auth.account_id, followed_account_id).await?;
+    let deleted: bool = follow_db::delete_follow(pool.get_ref(), auth.account_id, target_account_id).await?;
     if !deleted {
         return Err(LobbyError::not_found("follow relationship"));
     }

@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "delete from follow\n         where source_account_id = $1 or target_account_id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "bb2cdd23a5c622f446ba03a09cd30dee45801f84e3e73181fb889c8725092047"
+}
