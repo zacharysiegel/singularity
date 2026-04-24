@@ -18,7 +18,8 @@ pub fn configurer(config: &mut web::ServiceConfig) {
             .route("", web::get().to(list_conversations))
             .route("/{conversation_id}", web::get().to(get_conversation))
             .route("/{conversation_id}/member", web::post().to(add_member))
-            .route("/{conversation_id}/leave", web::post().to(leave_conversation)),
+            .route("/{conversation_id}/leave", web::post().to(leave_conversation))
+            .configure(crate::conversation_message::conversation_message_api::conversation_configurer),
     );
 }
 
@@ -109,7 +110,7 @@ async fn add_member(
 
     let existing_member: Option<ConversationMemberEntity> =
         conversation_db::get_member(pool.get_ref(), conversation_id, payload.account_id).await?;
-    existing_member.or_conflict("account is already an active member")?;
+    existing_member.then_conflict("account is already an active member")?;
 
     let member_entity: ConversationMemberEntity =
         conversation_db::add_member(pool.get_ref(), conversation_id, payload.account_id).await?;
