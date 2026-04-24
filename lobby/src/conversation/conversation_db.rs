@@ -82,58 +82,37 @@ pub async fn leave_conversation(
     conversation_id: Uuid,
     account_id: Uuid,
 ) -> Result<bool, AppError> {
-    let result = sqlx::query!(
-        "update conversation_member
-         set exited = now()
-         where conversation_id = $1
-           and account_id = $2
-           and exited is null",
+    // Atomic leave + auto-delete: the CTE updates the membership, counts remaining
+    // active members, and deletes the conversation if none remain — all in one statement.
+    // Returns the number of rows updated by the leave (0 or 1) so we know if it happened.
+    let record = sqlx::query!(
+        r#"
+        with leave as (
+            update conversation_member
+            set exited = now()
+            where conversation_id = $1 and account_id = $2 and exited is null
+            returning conversation_id
+        ),
+        remaining as (
+            select count(*) as active_count
+            from conversation_member
+            where conversation_id = $1 and exited is null
+        ),
+        cleanup as (
+            delete from conversation
+            where id = $1
+              and exists (select 1 from leave)
+              and (select active_count from remaining) = 0
+        )
+        select count(*) as "did_leave!" from leave
+        "#,
         conversation_id,
         account_id,
     )
-    .execute(pool)
+    .fetch_one(pool)
     .await?;
 
-    let did_leave: bool = result.rows_affected() > 0;
-    if did_leave {
-        let active_member_count: i64 = get_active_member_count(pool, conversation_id).await?;
-        if active_member_count == 0 {
-            delete_conversation(pool, conversation_id).await?;
-        }
-    }
-
-    Ok(did_leave)
-}
-
-pub async fn get_active_member_count(
-    pool: &PgPool,
-    conversation_id: Uuid,
-) -> Result<i64, AppError> {
-    /* count(*) returns a nullable type. Even though count(*) in SQL never actually returns NULL,
-        SQLx's compile-time analysis can't prove that, so it conservatively marks aggregate function
-        results as Option<i64>. */
-    let record = sqlx::query!(r#"
-        select count(*) as "count!"
-        from conversation_member
-        where conversation_member.conversation_id = $1
-            and conversation_member.exited is null
-        "#,
-        conversation_id,
-    )
-        .fetch_one(pool)
-        .await?;
-    Ok(record.count)
-}
-
-pub async fn delete_conversation(pool: &PgPool, conversation_id: Uuid) -> Result<(), AppError> {
-    sqlx::query!(
-        "delete from conversation
-         where id = $1",
-        conversation_id,
-    )
-    .execute(pool)
-    .await?;
-    Ok(())
+    Ok(record.did_leave > 0)
 }
 
 pub async fn get_conversations_by_account(

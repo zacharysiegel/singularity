@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        with leave as (\n            update conversation_member\n            set exited = now()\n            where conversation_id = $1 and account_id = $2 and exited is null\n            returning conversation_id\n        ),\n        remaining as (\n            select count(*) as active_count\n            from conversation_member\n            where conversation_id = $1 and exited is null\n        ),\n        cleanup as (\n            delete from conversation\n            where id = $1\n              and exists (select 1 from leave)\n              and (select active_count from remaining) = 0\n        )\n        select count(*) as \"did_leave!\" from leave\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "did_leave!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "94c1b93a2fefd4f3fa4c678350b0ab833ddc241036b980c9b62e057c7f45c87c"
+}
