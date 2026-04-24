@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select conversation_id from conversation_member\n         where account_id = $1 and exited is null",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "conversation_id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "26a848385e7f9fe1f4befbf4420c74edcb7881bf473bcfef11591cf2b3adcfcf"
+}
