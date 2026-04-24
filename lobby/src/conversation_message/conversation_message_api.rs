@@ -13,9 +13,9 @@ use super::conversation_message_model::ConversationMessageRow;
 
 const DEFAULT_MESSAGE_LIMIT: i64 = 50;
 
-pub fn configurer(config: &mut web::ServiceConfig) {
+pub fn conversation_configurer(config: &mut web::ServiceConfig) {
     config.service(
-        web::resource("/conversation/{conversation_id}/messages")
+        web::resource("/{conversation_id}/messages")
             .route(web::get().to(get_messages))
             .route(web::post().to(send_message)),
     );
