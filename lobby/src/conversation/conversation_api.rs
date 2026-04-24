@@ -133,11 +133,5 @@ async fn leave_conversation(
         return Err(LobbyError::not_found("active membership"));
     }
 
-    let active_member_count: i64 =
-        conversation_db::get_active_member_count(pool.get_ref(), conversation_id).await?;
-    if active_member_count == 0 {
-        conversation_db::delete_conversation(pool.get_ref(), conversation_id).await?;
-    }
-
     Ok(HttpResponse::Ok().finish())
 }
