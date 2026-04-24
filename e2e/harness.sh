@@ -22,7 +22,7 @@ function assert_status {
     local test_name="$1"
     local expected="$2"
     local actual="$3"
-    assert_equals "$test_name (HTTP $expected)" "$expected" "$actual"
+    assert_equals "$test_name" "$expected" "$actual"
 }
 
 function create_account {
