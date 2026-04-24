@@ -1,16 +1,16 @@
 {
   "db_name": "PostgreSQL",
-  "query": "insert into follow (follower_account_id, followed_account_id)\n         values ($1, $2)\n         returning *",
+  "query": "select follow.source_account_id, follow.target_account_id, follow.created\n         from follow\n         where follow.source_account_id = $1 and follow.target_account_id = $2",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "follower_account_id",
+        "name": "source_account_id",
         "type_info": "Uuid"
       },
       {
         "ordinal": 1,
-        "name": "followed_account_id",
+        "name": "target_account_id",
         "type_info": "Uuid"
       },
       {
@@ -31,5 +31,5 @@
       false
     ]
   },
-  "hash": "360fb66d0dd16c868b8727c33b67bec089e4df9145ed5de2d5ec1377de8c9bde"
+  "hash": "5fadcd0523a27a44cc045f3552ec8c0b17ae6b1740c163590f76027120a19f08"
 }

@@ -6,16 +6,16 @@ use super::follow_model::{FollowEntity, FollowingSummaryRow};
 
 pub async fn create_follow(
     pool: &PgPool,
-    follower_account_id: Uuid,
-    followed_account_id: Uuid,
+    source_account_id: Uuid,
+    target_account_id: Uuid,
 ) -> Result<FollowEntity, AppError> {
     let record: FollowEntity = sqlx::query_as!(
         FollowEntity,
-        "insert into follow (follower_account_id, followed_account_id)
+        "insert into follow (source_account_id, target_account_id)
          values ($1, $2)
          returning *",
-        follower_account_id,
-        followed_account_id,
+        source_account_id,
+        target_account_id,
     )
     .fetch_one(pool)
     .await?;
@@ -24,14 +24,14 @@ pub async fn create_follow(
 
 pub async fn delete_follow(
     pool: &PgPool,
-    follower_account_id: Uuid,
-    followed_account_id: Uuid,
+    source_account_id: Uuid,
+    target_account_id: Uuid,
 ) -> Result<bool, AppError> {
     let result = sqlx::query!(
         "delete from follow
-         where follower_account_id = $1 and followed_account_id = $2",
-        follower_account_id,
-        followed_account_id,
+         where source_account_id = $1 and target_account_id = $2",
+        source_account_id,
+        target_account_id,
     )
     .execute(pool)
     .await?;
@@ -40,16 +40,16 @@ pub async fn delete_follow(
 
 pub async fn get_follow(
     pool: &PgPool,
-    follower_account_id: Uuid,
-    followed_account_id: Uuid,
+    source_account_id: Uuid,
+    target_account_id: Uuid,
 ) -> Result<Option<FollowEntity>, AppError> {
     let record: Option<FollowEntity> = sqlx::query_as!(
         FollowEntity,
-        "select follow.follower_account_id, follow.followed_account_id, follow.created
+        "select follow.source_account_id, follow.target_account_id, follow.created
          from follow
-         where follow.follower_account_id = $1 and follow.followed_account_id = $2",
-        follower_account_id,
-        followed_account_id,
+         where follow.source_account_id = $1 and follow.target_account_id = $2",
+        source_account_id,
+        target_account_id,
     )
     .fetch_optional(pool)
     .await?;
@@ -63,16 +63,16 @@ pub async fn get_followers(
     let records: Vec<FollowingSummaryRow> = sqlx::query_as!(
         FollowingSummaryRow,
         "select
-             follow.follower_account_id as account_id,
+             follow.source_account_id as account_id,
              account.username,
              exists(
                  select 1 from mutual_follow_view
                  where mutual_follow_view.account_id = $1
-                   and mutual_follow_view.mutual_account_id = follow.follower_account_id
+                   and mutual_follow_view.mutual_account_id = follow.source_account_id
              ) as \"is_mutual!\"
          from follow
-         inner join account on account.id = follow.follower_account_id
-         where follow.followed_account_id = $1
+         inner join account on account.id = follow.source_account_id
+         where follow.target_account_id = $1
            and account.deleted_at is null
          order by follow.created desc",
         account_id,
@@ -89,16 +89,16 @@ pub async fn get_following(
     let records: Vec<FollowingSummaryRow> = sqlx::query_as!(
         FollowingSummaryRow,
         "select
-             follow.followed_account_id as account_id,
+             follow.target_account_id as account_id,
              account.username,
              exists(
                  select 1 from mutual_follow_view
                  where mutual_follow_view.account_id = $1
-                   and mutual_follow_view.mutual_account_id = follow.followed_account_id
+                   and mutual_follow_view.mutual_account_id = follow.target_account_id
              ) as \"is_mutual!\"
          from follow
-         inner join account on account.id = follow.followed_account_id
-         where follow.follower_account_id = $1
+         inner join account on account.id = follow.target_account_id
+         where follow.source_account_id = $1
            and account.deleted_at is null
          order by follow.created desc",
         account_id,
@@ -133,7 +133,7 @@ pub async fn get_mutuals(
 pub async fn delete_follows_by_account(pool: &PgPool, account_id: Uuid) -> Result<(), AppError> {
     sqlx::query!(
         "delete from follow
-         where follower_account_id = $1 or followed_account_id = $1",
+         where source_account_id = $1 or target_account_id = $1",
         account_id,
     )
     .execute(pool)
