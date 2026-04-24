@@ -109,11 +109,12 @@ async fn add_member(
         conversation_db::get_member(pool.get_ref(), conversation_id, payload.account_id).await?;
     existing_member.then_conflict("account is already an active member")?;
 
-    let member_entity: ConversationMemberEntity =
+    let member: ConversationMemberEntity =
         conversation_db::add_member(pool.get_ref(), conversation_id, payload.account_id).await?;
-    let member: ConversationMember = ConversationMember::from(member_entity);
-    let serial: ConversationMemberSerial = ConversationMemberSerial::from(&member);
-    Ok(http::serialize_response(&request, &serial))
+
+    let member: ConversationMember = ConversationMember::from(member);
+    let member: ConversationMemberSerial = ConversationMemberSerial::from(&member);
+    Ok(http::serialize_response(&request, &member))
 }
 
 async fn leave_conversation(
@@ -126,9 +127,8 @@ async fn leave_conversation(
     let conversation_id: Uuid = Uuid::parse_str(&conversation_id_string).or_bad_request()?;
 
     let did_leave: bool = conversation_db::leave_conversation(pool.get_ref(), conversation_id, auth.account_id).await?;
-    if !did_leave {
-        return Err(LobbyError::not_found("active membership"));
+    match did_leave {
+        true => Err(LobbyError::not_found("active membership")),
+        false => Ok(HttpResponse::Ok().finish()),
     }
-
-    Ok(HttpResponse::Ok().finish())
 }
