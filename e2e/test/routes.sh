@@ -1,6 +1,6 @@
 #!/bin/zsh
 set -euo pipefail
-source "$(dirname "$0")/harness.sh"
+source "$(dirname "$0")/../harness.sh"
 
 echo "=== Route Scoping E2E Tests ==="
 
