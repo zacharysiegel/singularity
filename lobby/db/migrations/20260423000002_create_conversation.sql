@@ -40,7 +40,7 @@ select
 from conversation_message
 group by conversation_message.conversation_id
 ;
-comment on view conversation_latest_message_view is 'Most recent message timestamp per conversation, for sorting conversation lists by activity';
+comment on view conversation_latest_message_view is 'Most recent message timestamp per conversation, for sorting conversation lists';
 
 -- migrate:down
 drop view if exists conversation_latest_message_view;
