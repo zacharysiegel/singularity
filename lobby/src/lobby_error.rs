@@ -126,7 +126,7 @@ impl<T, E: Display> ResultExt<T> for Result<T, E> {
 
 pub trait OptionExt<T> {
     fn or_not_found(self) -> Result<T, LobbyError>;
-    fn or_conflict(self, message: &str) -> Result<(), LobbyError>;
+    fn then_conflict(self, message: &str) -> Result<(), LobbyError>;
 }
 
 impl<T> OptionExt<T> for Option<T> {
@@ -134,7 +134,7 @@ impl<T> OptionExt<T> for Option<T> {
         self.ok_or_else(|| LobbyError::not_found("resource"))
     }
 
-    fn or_conflict(self, message: &str) -> Result<(), LobbyError> {
+    fn then_conflict(self, message: &str) -> Result<(), LobbyError> {
         match self {
             Some(_) => Err(LobbyError::conflict(message)),
             None => Ok(()),
