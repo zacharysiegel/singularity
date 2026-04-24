@@ -13,6 +13,7 @@ use super::account_model::{Account, AccountEntity};
 
 pub fn configurer(config: &mut web::ServiceConfig) {
     config.service(
+        
         web::scope("/account")
             .route("", web::get().to(get_own_account))
             .route("", web::post().to(create_account))
