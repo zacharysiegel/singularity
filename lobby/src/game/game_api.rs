@@ -16,7 +16,11 @@ pub fn configurer(config: &mut web::ServiceConfig) {
         web::scope("/game")
             .route("", web::get().to(list_games))
             .route("", web::post().to(create_game))
-            .route("/{game_id}", web::get().to(get_game)),
+            .route("/{game_id}", web::get().to(get_game))
+            .configure(crate::game_membership::game_membership_api::game_configurer)
+            .configure(crate::game_session::game_session_api::game_configurer)
+            .configure(crate::accolade::accolade_api::game_configurer)
+            .configure(crate::statistic::statistic_api::game_configurer),
     );
 }
 

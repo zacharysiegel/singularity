@@ -11,8 +11,8 @@ use shared::schema::game_membership::GameMembershipSerial;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-pub fn configurer(config: &mut web::ServiceConfig) {
-    config.service(web::resource("/game/{game_id}/member").route(web::post().to(join_game)));
+pub fn game_configurer(config: &mut web::ServiceConfig) {
+    config.service(web::resource("/{game_id}/member").route(web::post().to(join_game)));
 }
 
 async fn join_game(

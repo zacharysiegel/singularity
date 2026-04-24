@@ -10,10 +10,10 @@ use crate::session::session_extractor::AuthenticatedAccount;
 use super::game_session_db;
 use super::game_session_model::{GameSession, GameSessionEntity};
 
-pub fn configurer(config: &mut web::ServiceConfig) {
+pub fn game_configurer(config: &mut web::ServiceConfig) {
     config
-        .service(web::resource("/game/{game_id}/enter").route(web::post().to(enter_game)))
-        .service(web::resource("/game/{game_id}/exit").route(web::post().to(exit_game)));
+        .service(web::resource("/{game_id}/enter").route(web::post().to(enter_game)))
+        .service(web::resource("/{game_id}/exit").route(web::post().to(exit_game)));
 }
 
 async fn enter_game(

@@ -7,10 +7,12 @@ use shared::schema::statistic::StatisticSerial;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-pub fn configurer(config: &mut web::ServiceConfig) {
-    config
-        .service(web::resource("/account/{account_id}/statistics").route(web::get().to(get_account_statistics)))
-        .service(web::resource("/game/{game_id}/statistics").route(web::get().to(get_game_statistics)));
+pub fn account_configurer(config: &mut web::ServiceConfig) {
+    config.service(web::resource("/{account_id}/statistics").route(web::get().to(get_account_statistics)));
+}
+
+pub fn game_configurer(config: &mut web::ServiceConfig) {
+    config.service(web::resource("/{game_id}/statistics").route(web::get().to(get_game_statistics)));
 }
 
 async fn get_account_statistics(

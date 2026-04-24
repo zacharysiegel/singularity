@@ -7,10 +7,12 @@ use shared::schema::accolade::AccoladeSerial;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-pub fn configurer(config: &mut web::ServiceConfig) {
-    config
-        .service(web::resource("/account/{account_id}/accolades").route(web::get().to(get_account_accolades)))
-        .service(web::resource("/game/{game_id}/accolades").route(web::get().to(get_game_accolades)));
+pub fn account_configurer(config: &mut web::ServiceConfig) {
+    config.service(web::resource("/{account_id}/accolades").route(web::get().to(get_account_accolades)));
+}
+
+pub fn game_configurer(config: &mut web::ServiceConfig) {
+    config.service(web::resource("/{game_id}/accolades").route(web::get().to(get_game_accolades)));
 }
 
 async fn get_account_accolades(
