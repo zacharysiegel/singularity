@@ -21,7 +21,8 @@ pub fn configurer(config: &mut web::ServiceConfig) {
             .route("/password", web::patch().to(change_password))
             .route("/{account_id}", web::get().to(get_account_public))
             .configure(crate::accolade::accolade_api::account_configurer)
-            .configure(crate::statistic::statistic_api::account_configurer),
+            .configure(crate::statistic::statistic_api::account_configurer)
+            .configure(crate::follow::follow_api::account_configurer),
     );
 }
 
