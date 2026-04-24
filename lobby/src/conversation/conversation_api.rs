@@ -128,8 +128,8 @@ async fn leave_conversation(
     let (conversation_id_string,): (String,) = path.into_inner();
     let conversation_id: Uuid = Uuid::parse_str(&conversation_id_string).or_bad_request()?;
 
-    let left: bool = conversation_db::leave_conversation(pool.get_ref(), conversation_id, auth.account_id).await?;
-    if !left {
+    let did_leave: bool = conversation_db::leave_conversation(pool.get_ref(), conversation_id, auth.account_id).await?;
+    if !did_leave {
         return Err(LobbyError::not_found("active membership"));
     }
 

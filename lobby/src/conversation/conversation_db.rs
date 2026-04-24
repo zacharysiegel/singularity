@@ -94,15 +94,15 @@ pub async fn leave_conversation(
     .execute(pool)
     .await?;
 
-    let left: bool = result.rows_affected() > 0;
-    if left {
+    let did_leave: bool = result.rows_affected() > 0;
+    if did_leave {
         let active_member_count: i64 = get_active_member_count(pool, conversation_id).await?;
         if active_member_count == 0 {
             delete_conversation(pool, conversation_id).await?;
         }
     }
 
-    Ok(left)
+    Ok(did_leave)
 }
 
 pub async fn get_active_member_count(
