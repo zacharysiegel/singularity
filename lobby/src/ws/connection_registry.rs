@@ -5,12 +5,10 @@ use mpsc::error::TrySendError;
 use shared::schema::ws_message::WsEvent;
 use std::sync::LazyLock;
 use tokio::sync::mpsc;
+use tokio::sync::mpsc::{Receiver, Sender};
 use uuid::Uuid;
 
 use super::connection_type::ConnectionType;
-
-pub type WsSender = mpsc::Sender<WsEvent>;
-pub type WsReceiver = mpsc::Receiver<WsEvent>;
 
 /// Unit: messages
 const OUTBOUND_BUFFER_CAPACITY: usize = 512;
@@ -22,8 +20,8 @@ static CONNECTIONS: LazyLock<DashMap<Uuid, Vec<SessionConnections>>> = LazyLock:
 
 struct SessionConnections {
     session_id: Uuid,
-    lobby: Option<WsSender>,
-    live: Option<WsSender>,
+    lobby: Option<Sender<WsEvent>>,
+    live: Option<Sender<WsEvent>>,
 }
 
 impl SessionConnections {
@@ -35,14 +33,14 @@ impl SessionConnections {
         }
     }
 
-    fn sender(&self, connection_type: ConnectionType) -> &Option<WsSender> {
+    fn sender(&self, connection_type: ConnectionType) -> &Option<Sender<WsEvent>> {
         match connection_type {
             ConnectionType::Lobby => &self.lobby,
             ConnectionType::Live => &self.live,
         }
     }
 
-    fn sender_mut(&mut self, connection_type: ConnectionType) -> &mut Option<WsSender> {
+    fn sender_mut(&mut self, connection_type: ConnectionType) -> &mut Option<Sender<WsEvent>> {
         match connection_type {
             ConnectionType::Lobby => &mut self.lobby,
             ConnectionType::Live => &mut self.live,
@@ -54,8 +52,8 @@ impl SessionConnections {
     }
 }
 
-pub fn register(account_id: Uuid, session_id: Uuid, connection_type: ConnectionType) -> WsReceiver {
-    let (sender, receiver): (WsSender, WsReceiver) = mpsc::channel(OUTBOUND_BUFFER_CAPACITY);
+pub fn register(account_id: Uuid, session_id: Uuid, connection_type: ConnectionType) -> Receiver<WsEvent> {
+    let (sender, receiver): (Sender<WsEvent>, Receiver<WsEvent>) = mpsc::channel(OUTBOUND_BUFFER_CAPACITY);
     let mut sessions: RefMut<Uuid, Vec<SessionConnections>> = CONNECTIONS.entry(account_id)
         .or_insert_with(Vec::new);
 
