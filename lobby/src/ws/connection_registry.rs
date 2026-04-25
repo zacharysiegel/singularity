@@ -55,7 +55,8 @@ impl SessionConnections {
 
 pub fn register(account_id: Uuid, session_id: Uuid, connection_type: ConnectionType) -> WsReceiver {
     let (sender, receiver): (WsSender, WsReceiver) = mpsc::channel(OUTBOUND_BUFFER_CAPACITY);
-    let mut sessions: RefMut<Uuid, Vec<SessionConnections>> = CONNECTIONS.entry(account_id).or_insert_with(Vec::new);
+    let mut sessions: RefMut<Uuid, Vec<SessionConnections>> = CONNECTIONS.entry(account_id)
+        .or_insert_with(Vec::new);
 
     let existing_session: Option<&mut SessionConnections> = sessions.iter_mut()
         .find(|session| session.session_id == session_id);
