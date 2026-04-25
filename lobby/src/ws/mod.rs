@@ -1,5 +1,5 @@
-pub mod live_ws;
-pub mod lobby_ws;
+pub mod ws_live_api;
+pub mod ws_lobby_api;
 
 mod connection_type;
-mod frame;
+mod handle;
