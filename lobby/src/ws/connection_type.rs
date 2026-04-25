@@ -1,5 +1,6 @@
 use std::fmt::{Display, Formatter};
 
+#[derive(Debug, Clone, Copy)]
 pub enum ConnectionType {
     Live,
     Lobby,
