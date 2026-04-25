@@ -193,6 +193,7 @@ pub async fn get_active_member_ids(
     )
     .fetch_all(pool)
     .await?;
+
     let member_ids: Vec<Uuid> = member_id_records
         .into_iter()
         .map(|record| record.account_id)
