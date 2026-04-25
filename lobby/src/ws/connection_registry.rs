@@ -1,6 +1,7 @@
 use dashmap::DashMap;
 use shared::schema::ws_message::WsEvent;
 use std::sync::LazyLock;
+use dashmap::mapref::entry::Entry;
 use dashmap::mapref::one::RefMut;
 use tokio::sync::mpsc;
 use uuid::Uuid;
@@ -12,6 +13,11 @@ pub type WsReceiver = mpsc::Receiver<WsEvent>;
 
 /// Unit: messages
 const OUTBOUND_BUFFER_CAPACITY: usize = 512;
+
+/// Global registry of active WebSocket connections, mapping account_id to per-session connection senders/receivers.
+/// Uses DashMap for per-shard locking so that operations on different accounts don't contend.
+/// Sessions are stored in a Vec (linear scan) rather than a HashMap because the number of concurrent sessions per account is realistically 1-3.
+static CONNECTIONS: LazyLock<DashMap<Uuid, Vec<SessionConnections>>> = LazyLock::new(DashMap::new);
 
 struct SessionConnections {
     session_id: Uuid,
@@ -47,11 +53,6 @@ impl SessionConnections {
     }
 }
 
-/// Global registry of active WebSocket connections, mapping account_id to per-session connection senders/receivers.
-/// Uses DashMap for per-shard locking so that operations on different accounts don't contend.
-/// Sessions are stored in a Vec (linear scan) rather than a HashMap because the number of concurrent sessions per account is realistically 1-3.
-static CONNECTIONS: LazyLock<DashMap<Uuid, Vec<SessionConnections>>> = LazyLock::new(DashMap::new);
-
 pub fn register(account_id: Uuid, session_id: Uuid, connection_type: ConnectionType) -> WsReceiver {
     let (sender, receiver): (WsSender, WsReceiver) = mpsc::channel(OUTBOUND_BUFFER_CAPACITY);
     let mut sessions: RefMut<Uuid, Vec<SessionConnections>> = CONNECTIONS.entry(account_id).or_insert_with(Vec::new);
@@ -72,16 +73,23 @@ pub fn register(account_id: Uuid, session_id: Uuid, connection_type: ConnectionT
 }
 
 pub fn unregister(account_id: Uuid, session_id: Uuid, connection_type: ConnectionType) {
-    let mut should_remove_account: bool = false;
-    if let Some(mut sessions) = CONNECTIONS.get_mut(&account_id) {
-        if let Some(session_connections) = sessions.iter_mut().find(|s| s.session_id == session_id) {
-            *session_connections.sender_mut(connection_type) = None;
-        }
-        sessions.retain(|s| !s.is_empty());
-        should_remove_account = sessions.is_empty();
+    // We need to use the "entry" API here in order to use the same write lock for "get_mut" and "remove"
+    let Entry::Occupied(mut occupied) = CONNECTIONS.entry(account_id) else {
+        return
+    };
+
+    let session_connections: Option<&mut SessionConnections> = occupied.get_mut()
+        .iter_mut()
+        .find(|session| session.session_id == session_id);
+    if let Some(session_connections) = session_connections {
+        *session_connections.sender_mut(connection_type) = None;
     }
-    if should_remove_account {
-        CONNECTIONS.remove(&account_id);
+
+    occupied.get_mut()
+        .retain(|session| !session.is_empty());
+
+    if occupied.get().is_empty() {
+        occupied.remove();
     }
 }
 
