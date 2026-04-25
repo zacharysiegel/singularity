@@ -1,0 +1,48 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select conversation_message.id,\n               conversation_message.conversation_id,\n               conversation_message.sender_account_id,\n               conversation_message.content,\n               conversation_message.created\n         from conversation_message\n         where conversation_message.conversation_id = $1\n           and ($2::timestamptz is null or conversation_message.created < $2)\n         order by conversation_message.created desc\n         limit $3",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "conversation_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "sender_account_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "content",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "created",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamptz",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "655e1210641aaf158b5dd8153f2839fa824cdeb9e79dffa902ad99278feb516b"
+}
