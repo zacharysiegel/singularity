@@ -1,8 +1,9 @@
-use dashmap::DashMap;
-use shared::schema::ws_message::WsEvent;
-use std::sync::LazyLock;
 use dashmap::mapref::entry::Entry;
 use dashmap::mapref::one::RefMut;
+use dashmap::DashMap;
+use mpsc::error::TrySendError;
+use shared::schema::ws_message::WsEvent;
+use std::sync::LazyLock;
 use tokio::sync::mpsc;
 use uuid::Uuid;
 
@@ -95,10 +96,16 @@ pub fn unregister(account_id: Uuid, session_id: Uuid, connection_type: Connectio
 }
 
 pub fn send_to_account(account_id: Uuid, connection_type: ConnectionType, message: &WsEvent) {
-    let Some(sessions) = CONNECTIONS.get(&account_id) else { return };
+    let Some(sessions) = CONNECTIONS.get(&account_id) else {
+        return
+    };
+
     for session_connections in sessions.iter() {
-        let Some(sender) = session_connections.sender(connection_type) else { continue };
-        let send_result: Result<(), mpsc::error::TrySendError<WsEvent>> = sender.try_send(message.clone());
+        let Some(sender) = session_connections.sender(connection_type) else {
+            continue
+        };
+
+        let send_result: Result<(), TrySendError<WsEvent>> = sender.try_send(message.clone());
         if let Err(error) = send_result {
             log::warn!(
                 "Failed to send to [{connection_type}] [{account_id}] [{}]: {error}",
