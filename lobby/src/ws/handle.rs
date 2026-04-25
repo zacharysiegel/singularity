@@ -23,7 +23,7 @@ pub async fn ws_handler(
     let (upgrade_response, mut ws_session, mut message_stream): (HttpResponse, Session, MessageStream) =
         actix_ws::handle(&request, body).or_bad_request()?;
 
-    let mut outbound_receiver = connection_registry::register(account_id);
+    let mut outbound_receiver = connection_registry::register(account_id, connection_type);
     let pg_pool: PgPool = pg_pool.get_ref().clone();
 
     rt::spawn(async move {
@@ -71,7 +71,7 @@ pub async fn ws_handler(
             }
         }
 
-        connection_registry::unregister(account_id);
+        connection_registry::unregister(account_id, connection_type);
         log::info!("WebSocket connection closed [{connection_type}] [{account_id}]");
     });
 
@@ -112,7 +112,7 @@ async fn handle_text_message(
     let parse_result: Result<InboundMessage, _> = serde_json::from_str(text);
     match parse_result {
         Ok(inbound) => {
-            if let Err(error) = router::handle_inbound_message(pool, account_id, inbound).await {
+            if let Err(error) = router::handle_inbound_message(pool, connection_type, account_id, inbound).await {
                 let _ = send_outbound_json(ws_session, &OutboundMessage::Error { message: error.message.clone() }).await;
             }
         }
@@ -137,7 +137,7 @@ async fn handle_binary_message(
     let parse_result: Result<InboundMessage, _> = rmp_serde::from_slice(bytes);
     match parse_result {
         Ok(inbound) => {
-            if let Err(error) = router::handle_inbound_message(pool, account_id, inbound).await {
+            if let Err(error) = router::handle_inbound_message(pool, connection_type, account_id, inbound).await {
                 let _ = send_outbound_msgpack(ws_session, &OutboundMessage::Error { message: error.message.clone() }).await;
             }
         }
