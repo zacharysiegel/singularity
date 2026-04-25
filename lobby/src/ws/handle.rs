@@ -19,11 +19,12 @@ pub async fn ws_handler(
     rate_limit_interval: Option<Duration>,
 ) -> Result<HttpResponse, LobbyError> {
     let account_id: Uuid = auth.account_id;
+    let session_id: Uuid = auth.session_id;
 
     let (upgrade_response, mut ws_session, mut message_stream): (HttpResponse, Session, MessageStream) =
         actix_ws::handle(&request, body).or_bad_request()?;
 
-    let mut outbound_receiver = connection_registry::register(account_id, connection_type);
+    let mut outbound_receiver = connection_registry::register(account_id, session_id, connection_type);
     let pg_pool: PgPool = pg_pool.get_ref().clone();
 
     rt::spawn(async move {
@@ -71,7 +72,7 @@ pub async fn ws_handler(
             }
         }
 
-        connection_registry::unregister(account_id, connection_type);
+        connection_registry::unregister(account_id, session_id, connection_type);
         log::info!("WebSocket connection closed [{connection_type}] [{account_id}]");
     });
 
