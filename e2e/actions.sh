@@ -40,7 +40,7 @@ function ws_send {
     mkfifo "$fifo"
     local outfile=$(mktemp /tmp/e2e_ws_out.XXXXXX)
 
-    websocat "ws://localhost:10000${ws_path}" -H "Authorization: Bearer $token" < "$fifo" > "$outfile" 2>/dev/null &
+    websocat "${WS_BASE_URL}${ws_path}" -H "Authorization: Bearer $token" < "$fifo" > "$outfile" 2>/dev/null &
     local ws_pid=$!
 
     { echo "$message"; sleep 0.5; } > "$fifo"
@@ -52,6 +52,9 @@ function ws_send {
 
 # Open a persistent WebSocket listener that collects all received messages to a file.
 # Returns immediately. Use ws_listener_collect to close and read the output.
+# We hold the FIFO's write end open via a file descriptor rather than writing to the FIFO
+# directly, because each direct write (echo "msg" > fifo) opens and closes the write end,
+# and closing the write end signals EOF to websocat, which disconnects.
 # Usage: ws_listener_open <path> <token> <state_dir_var>
 function ws_listener_open {
     local ws_path="$1"
@@ -61,7 +64,7 @@ function ws_listener_open {
     local state_dir=$(mktemp -d /tmp/e2e_ws_listener.XXXXXX)
     mkfifo "$state_dir/fifo"
 
-    websocat "ws://localhost:10000${ws_path}" -H "Authorization: Bearer $token" < "$state_dir/fifo" > "$state_dir/out" 2>/dev/null &
+    websocat "${WS_BASE_URL}${ws_path}" -H "Authorization: Bearer $token" < "$state_dir/fifo" > "$state_dir/out" 2>/dev/null &
     echo $! > "$state_dir/pid"
 
     local fd
