@@ -9,7 +9,7 @@ use uuid::Uuid;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum WsRequest {
-    ChatMessage {
+    Chat {
         conversation_id: Uuid,
         content: String,
     },
@@ -18,7 +18,7 @@ pub enum WsRequest {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum WsEvent {
-    ChatMessage {
+    Chat {
         id: Uuid,
         conversation_id: Uuid,
         sender_account_id: Uuid,

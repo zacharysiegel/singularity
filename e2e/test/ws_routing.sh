@@ -24,7 +24,7 @@ CONV_ID=$(echo "$CONV" | jq -r '.id')
 # --- Send chat message, verify persisted via REST ---
 
 ws_send "/ws/lobby" "$TOKEN_A" "$(cat <<EOF
-{"type":"ChatMessage","conversation_id":"$CONV_ID","content":"hello from ws"}
+{"type":"Chat","conversation_id":"$CONV_ID","content":"hello from ws"}
 EOF
 )" > /dev/null
 
@@ -37,12 +37,12 @@ assert_equals "Sender is A" "$ACCOUNT_A_ID" "$(echo "$MESSAGES" | jq -r '.[0].se
 ws_listener_open "/ws/lobby" "$TOKEN_B" B_STATE
 
 ws_send "/ws/lobby" "$TOKEN_A" "$(cat <<EOF
-{"type":"ChatMessage","conversation_id":"$CONV_ID","content":"realtime test"}
+{"type":"Chat","conversation_id":"$CONV_ID","content":"realtime test"}
 EOF
 )" > /dev/null
 
 B_EVENT=$(ws_listener_collect "$B_STATE" | head -1)
-assert_equals "B received event type" "ChatMessage" "$(echo "$B_EVENT" | jq -r '.type')"
+assert_equals "B received event type" "Chat" "$(echo "$B_EVENT" | jq -r '.type')"
 assert_equals "B received event content" "realtime test" "$(echo "$B_EVENT" | jq -r '.content')"
 assert_equals "B received event sender" "$ACCOUNT_A_ID" "$(echo "$B_EVENT" | jq -r '.sender_account_id')"
 assert_equals "B received event conversation" "$CONV_ID" "$(echo "$B_EVENT" | jq -r '.conversation_id')"
@@ -50,7 +50,7 @@ assert_equals "B received event conversation" "$CONV_ID" "$(echo "$B_EVENT" | jq
 # --- Sender also receives their own message ---
 
 RESPONSE=$(ws_send "/ws/lobby" "$TOKEN_A" "$(cat <<EOF
-{"type":"ChatMessage","conversation_id":"$CONV_ID","content":"echo to self"}
+{"type":"Chat","conversation_id":"$CONV_ID","content":"echo to self"}
 EOF
 )")
 assert_equals "Sender receives own message" "echo to self" "$(echo "$RESPONSE" | jq -r '.content')"
@@ -61,7 +61,7 @@ ACCOUNT_C=$(create_account "e2e_wsrt_c@test.com" "e2e_wsrt_c" "pass123")
 TOKEN_C=$(login "e2e_wsrt_c@test.com" "pass123")
 
 RESPONSE=$(ws_send "/ws/lobby" "$TOKEN_C" "$(cat <<EOF
-{"type":"ChatMessage","conversation_id":"$CONV_ID","content":"should fail"}
+{"type":"Chat","conversation_id":"$CONV_ID","content":"should fail"}
 EOF
 )")
 assert_equals "Non-member gets error type" "Error" "$(echo "$RESPONSE" | jq -r '.type')"
@@ -76,7 +76,7 @@ assert_equals "Invalid JSON gets error type" "Error" "$(echo "$RESPONSE" | jq -r
 ws_listener_open "/ws/lobby" "$TOKEN_C" C_STATE
 
 ws_send "/ws/lobby" "$TOKEN_A" "$(cat <<EOF
-{"type":"ChatMessage","conversation_id":"$CONV_ID","content":"private msg"}
+{"type":"Chat","conversation_id":"$CONV_ID","content":"private msg"}
 EOF
 )" > /dev/null
 

@@ -15,7 +15,7 @@ pub async fn handle_ws_request(
     ws_request: WsRequest,
 ) -> Result<(), AppError> {
     match ws_request {
-        WsRequest::ChatMessage { conversation_id, content } => {
+        WsRequest::Chat { conversation_id, content } => {
             handle_chat_message(pool, connection_type, sender_account_id, conversation_id, &content).await
         }
     }
@@ -41,7 +41,7 @@ async fn handle_chat_message(
     )
     .await?;
 
-    let ws_event: WsEvent = WsEvent::ChatMessage {
+    let ws_event: WsEvent = WsEvent::Chat {
         id: message_entity.id,
         conversation_id: message_entity.conversation_id,
         sender_account_id: message_entity.sender_account_id,
