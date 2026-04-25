@@ -8,7 +8,6 @@ pub struct ConversationMessageSerial {
     pub conversation_id: Uuid,
     pub sender_account_id: Uuid,
     pub content: String,
-    pub sender_anonymized: bool,
     pub created: DateTime<Utc>,
 }
 

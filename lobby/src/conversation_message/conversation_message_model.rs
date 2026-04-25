@@ -3,34 +3,22 @@ use shared::schema::conversation_message::ConversationMessageSerial;
 use uuid::Uuid;
 
 #[derive(Debug, Clone)]
-pub struct ConversationMessage {
+pub struct ConversationMessageEntity {
     pub id: Uuid,
     pub conversation_id: Uuid,
     pub sender_account_id: Uuid,
     pub content: String,
-    pub sender_anonymized: bool,
     pub created: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone)]
-pub struct ConversationMessageRow {
-    pub id: Uuid,
-    pub conversation_id: Uuid,
-    pub sender_account_id: Uuid,
-    pub content: String,
-    pub sender_anonymized: bool,
-    pub created: DateTime<Utc>,
-}
-
-impl From<&ConversationMessageRow> for ConversationMessageSerial {
-    fn from(row: &ConversationMessageRow) -> Self {
+impl From<&ConversationMessageEntity> for ConversationMessageSerial {
+    fn from(entity: &ConversationMessageEntity) -> Self {
         ConversationMessageSerial {
-            id: row.id,
-            conversation_id: row.conversation_id,
-            sender_account_id: row.sender_account_id,
-            content: row.content.clone(),
-            sender_anonymized: row.sender_anonymized,
-            created: row.created,
+            id: entity.id,
+            conversation_id: entity.conversation_id,
+            sender_account_id: entity.sender_account_id,
+            content: entity.content.clone(),
+            created: entity.created,
         }
     }
 }

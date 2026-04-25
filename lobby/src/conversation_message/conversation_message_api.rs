@@ -9,7 +9,7 @@ use crate::http;
 use crate::lobby_error::{LobbyError, OptionExt, ResultExt};
 use crate::session::session_extractor::AuthenticatedAccount;
 use super::conversation_message_db;
-use super::conversation_message_model::ConversationMessageRow;
+use super::conversation_message_model::ConversationMessageEntity;
 
 const DEFAULT_MESSAGE_LIMIT: i64 = 50;
 
@@ -37,11 +37,11 @@ async fn get_messages(
 
     let limit: i64 = query.limit.unwrap_or(DEFAULT_MESSAGE_LIMIT);
 
-    let message_rows: Vec<ConversationMessageRow> =
+    let message_entities: Vec<ConversationMessageEntity> =
         conversation_message_db::get_messages_by_conversation(pool.get_ref(), conversation_id, limit, query.before)
             .await?;
 
-    let message_serials: Vec<ConversationMessageSerial> = message_rows
+    let message_serials: Vec<ConversationMessageSerial> = message_entities
         .iter()
         .map(ConversationMessageSerial::from)
         .collect();
@@ -69,10 +69,10 @@ async fn send_message(
         return Err(LobbyError::bad_request("invalid send message request"));
     }
 
-    let message_row: ConversationMessageRow =
+    let message_entity: ConversationMessageEntity =
         conversation_message_db::create_message(pool.get_ref(), conversation_id, auth.account_id, &payload.content)
             .await?;
 
-    let serial: ConversationMessageSerial = ConversationMessageSerial::from(&message_row);
+    let serial: ConversationMessageSerial = ConversationMessageSerial::from(&message_entity);
     Ok(http::serialize_response(&request, &serial))
 }

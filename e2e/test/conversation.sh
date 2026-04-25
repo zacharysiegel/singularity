@@ -40,7 +40,6 @@ assert_status "Non-member can't get details" "403" "$STATUS"
 MSG=$(curl -s -X POST "$BASE_URL/conversation/$CONV_ID/messages" -H "Authorization: Bearer $TOKEN_A" -H 'Content-Type: application/json' -d "{\"conversation_id\":\"$CONV_ID\",\"content\":\"hello from A\"}")
 assert_equals "Message sender is A" "$ACCOUNT_A_ID" "$(echo "$MSG" | jq -r '.sender_account_id')"
 assert_equals "Message content" "hello from A" "$(echo "$MSG" | jq -r '.content')"
-assert_equals "Message not anonymized" "false" "$(echo "$MSG" | jq -r '.sender_anonymized')"
 
 # Send message from B
 MSG2=$(curl -s -X POST "$BASE_URL/conversation/$CONV_ID/messages" -H "Authorization: Bearer $TOKEN_B" -H 'Content-Type: application/json' -d "{\"conversation_id\":\"$CONV_ID\",\"content\":\"hello from B\"}")
@@ -81,11 +80,6 @@ assert_status "A leaves conversation" "200" "$STATUS"
 # A can no longer access
 STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/conversation/$CONV_ID" -H "Authorization: Bearer $TOKEN_A")
 assert_status "A can't access after leaving" "403" "$STATUS"
-
-# A's messages are anonymized
-BODY=$(curl -s "$BASE_URL/conversation/$CONV_ID/messages" -H "Authorization: Bearer $TOKEN_B")
-A_MSG_ANONYMIZED=$(echo "$BODY" | jq -r "[.[] | select(.sender_account_id == \"$ACCOUNT_A_ID\")][0].sender_anonymized")
-assert_equals "A's messages anonymized after leaving" "true" "$A_MSG_ANONYMIZED"
 
 # B leaves, C leaves — conversation should be auto-deleted
 STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$BASE_URL/conversation/$CONV_ID/leave" -H "Authorization: Bearer $TOKEN_B")
