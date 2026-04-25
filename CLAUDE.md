@@ -74,3 +74,4 @@ The client has three stages: Title (main menu), Browser (game list), and Game (g
 
 - Always specify explicit types on `let` bindings unless the type annotation would be extremely unwieldy.
 - Use raw strings (`r#"..."#`) for SQL queries that contain SQLx nullability overrides (`"column!"`, `"column?"`), since the double quotes would otherwise need escaping.
+- Do not include test plans in PR descriptions. Keep test plans within the Claude Code session only.
