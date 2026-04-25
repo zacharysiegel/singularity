@@ -48,6 +48,7 @@ function check_prerequisites {
 	required_program_simple "podman"
 	required_program_simple "dbmate"
 	required_program_simple "secr"
+	required_program_simple "websocat"
 }
 check_prerequisites
 
