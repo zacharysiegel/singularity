@@ -1539,6 +1539,8 @@ dependencies = [
  "actix-web",
  "actix-ws",
  "bcrypt",
+ "bytes",
+ "bytestring",
  "chrono",
  "dotenvy",
  "env_logger",
