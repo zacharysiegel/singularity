@@ -57,7 +57,7 @@ assert_equals "Sender receives own message" "echo to self" "$(echo "$RESPONSE" |
 
 # --- Non-member gets error ---
 
-ACCOUNT_C=$(create_account "e2e_wsrt_c@test.com" "e2e_wsrt_c" "pass123")
+_ACCOUNT_C=$(create_account "e2e_wsrt_c@test.com" "e2e_wsrt_c" "pass123")
 TOKEN_C=$(login "e2e_wsrt_c@test.com" "pass123")
 
 RESPONSE=$(ws_send "/ws/lobby" "$TOKEN_C" "$(cat <<EOF
