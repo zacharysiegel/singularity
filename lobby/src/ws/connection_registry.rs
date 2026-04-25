@@ -1,6 +1,7 @@
 use dashmap::DashMap;
 use shared::schema::ws_message::WsEvent;
 use std::sync::LazyLock;
+use dashmap::mapref::one::RefMut;
 use tokio::sync::mpsc;
 use uuid::Uuid;
 
@@ -19,7 +20,7 @@ struct SessionConnections {
 }
 
 impl SessionConnections {
-    fn new(session_id: Uuid) -> Self {
+    fn empty(session_id: Uuid) -> Self {
         SessionConnections {
             session_id,
             lobby: None,
@@ -46,21 +47,23 @@ impl SessionConnections {
     }
 }
 
-/// Global registry of active WebSocket connections, mapping account_id to per-session connection senders.
+/// Global registry of active WebSocket connections, mapping account_id to per-session connection senders/receivers.
 /// Uses DashMap for per-shard locking so that operations on different accounts don't contend.
-/// Sessions are stored in a Vec (linear scan) rather than a HashMap because the number of
-/// concurrent sessions per account is realistically 1-3.
+/// Sessions are stored in a Vec (linear scan) rather than a HashMap because the number of concurrent sessions per account is realistically 1-3.
 static CONNECTIONS: LazyLock<DashMap<Uuid, Vec<SessionConnections>>> = LazyLock::new(DashMap::new);
 
 pub fn register(account_id: Uuid, session_id: Uuid, connection_type: ConnectionType) -> WsReceiver {
     let (sender, receiver): (WsSender, WsReceiver) = mpsc::channel(OUTBOUND_BUFFER_CAPACITY);
-    let mut sessions = CONNECTIONS.entry(account_id).or_insert_with(Vec::new);
+    let mut sessions: RefMut<Uuid, Vec<SessionConnections>> = CONNECTIONS.entry(account_id).or_insert_with(Vec::new);
 
-    let session_connections: &mut SessionConnections = match sessions.iter_mut().find(|s| s.session_id == session_id) {
+    let existing_session: Option<&mut SessionConnections> = sessions.iter_mut()
+        .find(|session| session.session_id == session_id);
+
+    let session_connections: &mut SessionConnections = match existing_session {
         Some(existing) => existing,
         None => {
-            sessions.push(SessionConnections::new(session_id));
-            sessions.last_mut().unwrap()
+            sessions.push(SessionConnections::empty(session_id));
+            sessions.last_mut().expect("session was just pushed into the vector")
         }
     };
     *session_connections.sender_mut(connection_type) = Some(sender);
