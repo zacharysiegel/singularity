@@ -1,6 +1,6 @@
 use super::statistic_db;
 use super::statistic_model::{Statistic, StatisticEntity};
-use crate::lobby_error::{LobbyError, ResultExt};
+use crate::lobby_error::{LobbyError, ResultExtLobbyError};
 use crate::http;
 use actix_web::{HttpRequest, HttpResponse, web};
 use shared::schema::statistic::StatisticSerial;

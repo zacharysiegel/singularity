@@ -6,7 +6,7 @@ use uuid::Uuid;
 use crate::conversation::conversation_db;
 use crate::conversation::conversation_model::ConversationMemberEntity;
 use crate::http;
-use crate::lobby_error::{LobbyError, OptionExt, ResultExt};
+use crate::lobby_error::{LobbyError, OptionExtLobbyError, ResultExtLobbyError};
 use crate::session::session_extractor::AuthenticatedAccount;
 use super::conversation_message_db;
 use super::conversation_message_model::ConversationMessageEntity;

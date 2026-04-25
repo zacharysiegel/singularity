@@ -1,6 +1,6 @@
 use super::accolade_db;
 use super::accolade_model::{Accolade, AccoladeEntity};
-use crate::lobby_error::{LobbyError, ResultExt};
+use crate::lobby_error::{LobbyError, ResultExtLobbyError};
 use crate::http;
 use actix_web::{HttpRequest, HttpResponse, web};
 use shared::schema::accolade::AccoladeSerial;

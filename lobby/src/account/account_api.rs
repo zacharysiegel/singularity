@@ -7,7 +7,7 @@ use sqlx::PgPool;
 use super::account_db;
 use super::account_model::{Account, AccountEntity};
 use crate::http;
-use crate::lobby_error::{LobbyError, OptionExt, ResultExt};
+use crate::lobby_error::{LobbyError, OptionExtLobbyError, ResultExtLobbyError};
 use crate::password;
 use crate::session::session_extractor::AuthenticatedAccount;
 

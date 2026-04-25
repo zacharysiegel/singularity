@@ -6,7 +6,7 @@ use uuid::Uuid;
 use super::follow_db;
 use super::follow_model::{Follow, FollowEntity, FollowSummary};
 use crate::http;
-use crate::lobby_error::{LobbyError, OptionExt, ResultExt};
+use crate::lobby_error::{LobbyError, OptionExtLobbyError, ResultExtLobbyError};
 use crate::session::session_extractor::AuthenticatedAccount;
 
 pub fn account_configurer(config: &mut web::ServiceConfig) {

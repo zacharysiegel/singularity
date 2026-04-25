@@ -3,7 +3,7 @@ use super::game_membership_model::{GameMembership, GameMembershipEntity};
 use crate::game::game_db;
 use crate::game::game_model::{Game, GameEntity};
 use crate::http;
-use crate::lobby_error::{LobbyError, OptionExt, ResultExt};
+use crate::lobby_error::{LobbyError, OptionExtLobbyError, ResultExtLobbyError};
 use crate::session::session_extractor::AuthenticatedAccount;
 use actix_web::{HttpRequest, HttpResponse, web};
 use shared::schema::game::GameStatus;
