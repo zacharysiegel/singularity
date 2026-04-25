@@ -184,11 +184,11 @@ pub async fn get_active_member_ids(
     pool: &PgPool,
     conversation_id: Uuid,
 ) -> Result<Vec<Uuid>, AppError> {
-    let member_id_records = sqlx::query!(
-        "select conversation_member.account_id
-         from conversation_member
-         where conversation_member.conversation_id = $1
-           and conversation_member.exited is null",
+    let member_id_records = sqlx::query!("
+        select conversation_member.account_id
+        from conversation_member
+        where conversation_member.conversation_id = $1
+            and conversation_member.exited is null",
         conversation_id,
     )
     .fetch_all(pool)

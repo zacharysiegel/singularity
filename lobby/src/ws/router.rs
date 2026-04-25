@@ -46,8 +46,7 @@ async fn handle_send_message(
         created: message_row.created,
     };
 
-    let member_ids: Vec<Uuid> =
-        conversation_db::get_active_member_ids(pool, conversation_id).await?;
+    let member_ids: Vec<Uuid> = conversation_db::get_active_member_ids(pool, conversation_id).await?;
     connection_registry::send_to_accounts(&member_ids, &outbound);
 
     Ok(())
