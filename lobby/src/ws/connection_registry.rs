@@ -1,48 +1,84 @@
 use dashmap::DashMap;
 use shared::schema::ws_message::OutboundMessage;
 use std::sync::LazyLock;
+use dashmap::mapref::one::RefMut;
 use tokio::sync::mpsc;
 use uuid::Uuid;
 
-pub type OutboundSender = mpsc::UnboundedSender<OutboundMessage>;
-pub type OutboundReceiver = mpsc::UnboundedReceiver<OutboundMessage>;
+use super::connection_type::ConnectionType;
 
-/// Global registry of active WebSocket connections, mapping account_id to outbound message senders.
-/// Uses DashMap for per-shard locking — reads (broadcasts) and writes (register/unregister)
-/// to different accounts don't contend.
-static CONNECTIONS: LazyLock<DashMap<Uuid, Vec<OutboundSender>>> = LazyLock::new(DashMap::new);
+pub type WsSender = mpsc::Sender<OutboundMessage>;
+pub type WsReceiver = mpsc::Receiver<OutboundMessage>;
 
-pub fn register(account_id: Uuid) -> OutboundReceiver {
-    let (sender, receiver): (OutboundSender, OutboundReceiver) = mpsc::unbounded_channel();
-    CONNECTIONS.entry(account_id).or_insert_with(Vec::new).push(sender);
+/// Unit: messages
+const OUTBOUND_BUFFER_CAPACITY: usize = 512;
+
+struct AccountConnections {
+    lobby: Option<WsSender>,
+    live: Option<WsSender>,
+}
+
+impl AccountConnections {
+    fn empty() -> Self {
+        AccountConnections {
+            lobby: None,
+            live: None,
+        }
+    }
+
+    fn sender(&self, connection_type: ConnectionType) -> &Option<WsSender> {
+        match connection_type {
+            ConnectionType::Lobby => &self.lobby,
+            ConnectionType::Live => &self.live,
+        }
+    }
+
+    fn sender_mut(&mut self, connection_type: ConnectionType) -> &mut Option<WsSender> {
+        match connection_type {
+            ConnectionType::Lobby => &mut self.lobby,
+            ConnectionType::Live => &mut self.live,
+        }
+    }
+
+    fn is_empty(&self) -> bool {
+        self.lobby.is_none() && self.live.is_none()
+    }
+}
+
+/// Global registry of active WebSocket connections, mapping account_id to connection senders.
+/// Uses DashMap for per-shard locking so that operations on different accounts don't contend.
+static CONNECTIONS: LazyLock<DashMap<Uuid, AccountConnections>> = LazyLock::new(DashMap::new);
+
+pub fn register(account_id: Uuid, connection_type: ConnectionType) -> WsReceiver {
+    let (sender, receiver): (WsSender, WsReceiver) = mpsc::channel(OUTBOUND_BUFFER_CAPACITY);
+    let mut entry: RefMut<Uuid, AccountConnections> = CONNECTIONS.entry(account_id).or_insert_with(AccountConnections::empty);
+    *entry.sender_mut(connection_type) = Some(sender);
     receiver
 }
 
-pub fn unregister(account_id: Uuid) {
+pub fn unregister(account_id: Uuid, connection_type: ConnectionType) {
     let mut should_remove: bool = false;
-    if let Some(mut senders) = CONNECTIONS.get_mut(&account_id) {
-        senders.retain(|sender| !sender.is_closed());
-        should_remove = senders.is_empty();
+    if let Some(mut connections) = CONNECTIONS.get_mut(&account_id) {
+        let sender: &mut Option<WsSender> = connections.sender_mut(connection_type);
+        *sender = None;
+        should_remove = connections.is_empty();
     }
     if should_remove {
         CONNECTIONS.remove(&account_id);
     }
 }
 
-pub fn send_to_account(account_id: Uuid, message: &OutboundMessage) {
-    if let Some(senders) = CONNECTIONS.get(&account_id) {
-        for sender in senders.iter() {
-            let _ = sender.send(message.clone());
-        }
+pub fn send_to_account(account_id: Uuid, connection_type: ConnectionType, message: &OutboundMessage) {
+    let Some(connections) = CONNECTIONS.get(&account_id) else { return };
+    let Some(sender) = connections.sender(connection_type) else { return };
+    let send_result: Result<(), mpsc::error::TrySendError<OutboundMessage>> = sender.try_send(message.clone());
+    if let Err(error) = send_result {
+        log::warn!("Failed to send to [{connection_type}] [{account_id}]: {error}");
     }
 }
 
-pub fn send_to_accounts(account_ids: &[Uuid], message: &OutboundMessage) {
+pub fn send_to_accounts(account_ids: &[Uuid], connection_type: ConnectionType, message: &OutboundMessage) {
     for account_id in account_ids {
-        if let Some(senders) = CONNECTIONS.get(account_id) {
-            for sender in senders.iter() {
-                let _ = sender.send(message.clone());
-            }
-        }
+        send_to_account(*account_id, connection_type, message);
     }
 }
