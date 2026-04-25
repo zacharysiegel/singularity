@@ -1,6 +1,6 @@
 //! WebSocket message types for lobby and live connections.
-//! Inbound messages are sent from the client to the server.
-//! Outbound messages are sent from the server to the client.
+//! Requests are sent from the client to the server.
+//! Events are sent from the server to the client.
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -8,8 +8,8 @@ use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
-pub enum InboundMessage {
-    SendMessage {
+pub enum WsRequest {
+    ChatMessage {
         conversation_id: Uuid,
         content: String,
     },
@@ -17,8 +17,8 @@ pub enum InboundMessage {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
-pub enum OutboundMessage {
-    ReceiveMessage {
+pub enum WsEvent {
+    ChatMessage {
         id: Uuid,
         conversation_id: Uuid,
         sender_account_id: Uuid,

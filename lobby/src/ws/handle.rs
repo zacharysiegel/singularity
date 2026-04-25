@@ -5,7 +5,7 @@ use crate::ws::connection_type::ConnectionType;
 use crate::ws::router;
 use actix_web::{rt, web, HttpRequest, HttpResponse};
 use actix_ws::{CloseCode, CloseReason, Message, MessageStream, ProtocolError, Session};
-use shared::schema::ws_message::{InboundMessage, OutboundMessage};
+use shared::schema::ws_message::{WsRequest, WsEvent};
 use sqlx::PgPool;
 use std::time::{Duration, Instant};
 use uuid::Uuid;
@@ -109,15 +109,15 @@ async fn handle_text_message(
         text.len(),
     );
 
-    let parse_result: Result<InboundMessage, _> = serde_json::from_str(text);
+    let parse_result: Result<WsRequest, _> = serde_json::from_str(text);
     match parse_result {
-        Ok(inbound) => {
-            if let Err(error) = router::handle_inbound_message(pool, connection_type, account_id, inbound).await {
-                let _ = send_outbound_json(ws_session, &OutboundMessage::Error { message: error.message.clone() }).await;
+        Ok(ws_request) => {
+            if let Err(error) = router::handle_ws_request(pool, connection_type, account_id, ws_request).await {
+                let _ = send_outbound_json(ws_session, &WsEvent::Error { message: error.message.clone() }).await;
             }
         }
         Err(error) => {
-            let _ = send_outbound_json(ws_session, &OutboundMessage::Error { message: format!("invalid message: {}", error) }).await;
+            let _ = send_outbound_json(ws_session, &WsEvent::Error { message: format!("invalid message: {}", error) }).await;
         }
     }
 }
@@ -134,22 +134,22 @@ async fn handle_binary_message(
         bytes.len(),
     );
 
-    let parse_result: Result<InboundMessage, _> = rmp_serde::from_slice(bytes);
+    let parse_result: Result<WsRequest, _> = rmp_serde::from_slice(bytes);
     match parse_result {
-        Ok(inbound) => {
-            if let Err(error) = router::handle_inbound_message(pool, connection_type, account_id, inbound).await {
-                let _ = send_outbound_msgpack(ws_session, &OutboundMessage::Error { message: error.message.clone() }).await;
+        Ok(ws_request) => {
+            if let Err(error) = router::handle_ws_request(pool, connection_type, account_id, ws_request).await {
+                let _ = send_outbound_msgpack(ws_session, &WsEvent::Error { message: error.message.clone() }).await;
             }
         }
         Err(error) => {
-            let _ = send_outbound_msgpack(ws_session, &OutboundMessage::Error { message: format!("invalid message: {}", error) }).await;
+            let _ = send_outbound_msgpack(ws_session, &WsEvent::Error { message: format!("invalid message: {}", error) }).await;
         }
     }
 }
 
 async fn send_outbound_json(
     ws_session: &mut Session,
-    message: &OutboundMessage,
+    message: &WsEvent,
 ) -> Result<(), ()> {
     let json: String = serde_json::to_string(message).map_err(|_| ())?;
     ws_session.text(json).await.map_err(|_| ())
@@ -157,7 +157,7 @@ async fn send_outbound_json(
 
 async fn send_outbound_msgpack(
     ws_session: &mut Session,
-    message: &OutboundMessage,
+    message: &WsEvent,
 ) -> Result<(), ()> {
     let bytes: Vec<u8> = rmp_serde::to_vec_named(message).map_err(|_| ())?;
     ws_session.binary(bytes).await.map_err(|_| ())

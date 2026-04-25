@@ -1,5 +1,5 @@
 use dashmap::DashMap;
-use shared::schema::ws_message::OutboundMessage;
+use shared::schema::ws_message::WsEvent;
 use std::sync::LazyLock;
 use dashmap::mapref::one::RefMut;
 use tokio::sync::mpsc;
@@ -7,8 +7,8 @@ use uuid::Uuid;
 
 use super::connection_type::ConnectionType;
 
-pub type WsSender = mpsc::Sender<OutboundMessage>;
-pub type WsReceiver = mpsc::Receiver<OutboundMessage>;
+pub type WsSender = mpsc::Sender<WsEvent>;
+pub type WsReceiver = mpsc::Receiver<WsEvent>;
 
 /// Unit: messages
 const OUTBOUND_BUFFER_CAPACITY: usize = 512;
@@ -68,16 +68,16 @@ pub fn unregister(account_id: Uuid, connection_type: ConnectionType) {
     }
 }
 
-pub fn send_to_account(account_id: Uuid, connection_type: ConnectionType, message: &OutboundMessage) {
+pub fn send_to_account(account_id: Uuid, connection_type: ConnectionType, message: &WsEvent) {
     let Some(connections) = CONNECTIONS.get(&account_id) else { return };
     let Some(sender) = connections.sender(connection_type) else { return };
-    let send_result: Result<(), mpsc::error::TrySendError<OutboundMessage>> = sender.try_send(message.clone());
+    let send_result: Result<(), mpsc::error::TrySendError<WsEvent>> = sender.try_send(message.clone());
     if let Err(error) = send_result {
         log::warn!("Failed to send to [{connection_type}] [{account_id}]: {error}");
     }
 }
 
-pub fn send_to_accounts(account_ids: &[Uuid], connection_type: ConnectionType, message: &OutboundMessage) {
+pub fn send_to_accounts(account_ids: &[Uuid], connection_type: ConnectionType, message: &WsEvent) {
     for account_id in account_ids {
         send_to_account(*account_id, connection_type, message);
     }
