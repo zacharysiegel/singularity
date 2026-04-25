@@ -1,6 +1,6 @@
 use crate::lobby_error::{LobbyError, ResultExtLobbyError};
 use crate::session::session_extractor::AuthenticatedAccount;
-use crate::ws::connection_registry;
+use crate::ws::connection_registry::{self, WsReceiver};
 use crate::ws::connection_type::ConnectionType;
 use crate::ws::router;
 use actix_web::{rt, web, HttpRequest, HttpResponse};
@@ -24,7 +24,7 @@ pub async fn ws_handler(
     let (upgrade_response, mut ws_session, mut message_stream): (HttpResponse, Session, MessageStream) =
         actix_ws::handle(&request, body).or_bad_request()?;
 
-    let mut outbound_receiver = connection_registry::register(account_id, session_id, connection_type);
+    let mut ws_receiver: WsReceiver = connection_registry::register(account_id, session_id, connection_type);
     let pg_pool: PgPool = pg_pool.get_ref().clone();
 
     rt::spawn(async move {
@@ -58,7 +58,7 @@ pub async fn ws_handler(
                         break;
                     }
                 }
-                outbound = outbound_receiver.recv() => {
+                outbound = ws_receiver.recv() => {
                     match outbound {
                         Some(outbound_message) => {
                             throttle(rate_limit_interval, &mut last_outbound_delivery).await;
