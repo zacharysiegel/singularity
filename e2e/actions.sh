@@ -4,13 +4,23 @@ function create_account {
     local email="$1"
     local username="$2"
     local password="$3"
-    curl -s -X POST "$BASE_URL/account" -H 'Content-Type: application/json' -d "{\"email\":\"$email\",\"username\":\"$username\",\"password\":\"$password\"}"
+    curl -s -X POST "$BASE_URL/account" \
+        -H 'Content-Type: application/json' \
+        -d "$(cat <<EOF
+{"email":"$email","username":"$username","password":"$password"}
+EOF
+)"
 }
 
 function login {
     local email="$1"
     local password="$2"
-    curl -s -X POST "$BASE_URL/session" -H 'Content-Type: application/json' -d "{\"email\":\"$email\",\"password\":\"$password\"}" | jq -r '.token'
+    curl -s -X POST "$BASE_URL/session" \
+        -H 'Content-Type: application/json' \
+        -d "$(cat <<EOF
+{"email":"$email","password":"$password"}
+EOF
+)" | jq -r '.token'
 }
 
 function delete_account {
