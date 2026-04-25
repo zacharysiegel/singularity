@@ -12,12 +12,21 @@ ACCOUNT_B_ID=$(echo "$ACCOUNT_B" | jq -r '.id')
 TOKEN_A=$(login "e2e_wsrt_a@test.com" "pass123")
 TOKEN_B=$(login "e2e_wsrt_b@test.com" "pass123")
 
-CONV=$(curl -s -X POST "$BASE_URL/conversation" -H "Authorization: Bearer $TOKEN_A" -H 'Content-Type: application/json' -d "{\"member_account_ids\":[\"$ACCOUNT_B_ID\"],\"name\":\"WS Route Test\"}")
+CONV=$(curl -s -X POST "$BASE_URL/conversation" \
+    -H "Authorization: Bearer $TOKEN_A" \
+    -H 'Content-Type: application/json' \
+    -d "$(cat <<EOF
+{"member_account_ids":["$ACCOUNT_B_ID"],"name":"WS Route Test"}
+EOF
+)")
 CONV_ID=$(echo "$CONV" | jq -r '.id')
 
 # --- Send chat message, verify persisted via REST ---
 
-ws_send "/ws/lobby" "$TOKEN_A" "{\"type\":\"ChatMessage\",\"conversation_id\":\"$CONV_ID\",\"content\":\"hello from ws\"}" > /dev/null
+ws_send "/ws/lobby" "$TOKEN_A" "$(cat <<EOF
+{"type":"ChatMessage","conversation_id":"$CONV_ID","content":"hello from ws"}
+EOF
+)" > /dev/null
 
 MESSAGES=$(curl -s "$BASE_URL/conversation/$CONV_ID/messages" -H "Authorization: Bearer $TOKEN_A")
 assert_equals "Message persisted via WS" "hello from ws" "$(echo "$MESSAGES" | jq -r '.[0].content')"
@@ -27,7 +36,10 @@ assert_equals "Sender is A" "$ACCOUNT_A_ID" "$(echo "$MESSAGES" | jq -r '.[0].se
 
 ws_listener_open "/ws/lobby" "$TOKEN_B" B_STATE
 
-ws_send "/ws/lobby" "$TOKEN_A" "{\"type\":\"ChatMessage\",\"conversation_id\":\"$CONV_ID\",\"content\":\"realtime test\"}" > /dev/null
+ws_send "/ws/lobby" "$TOKEN_A" "$(cat <<EOF
+{"type":"ChatMessage","conversation_id":"$CONV_ID","content":"realtime test"}
+EOF
+)" > /dev/null
 
 B_EVENT=$(ws_listener_collect "$B_STATE" | head -1)
 assert_equals "B received event type" "ChatMessage" "$(echo "$B_EVENT" | jq -r '.type')"
@@ -37,7 +49,10 @@ assert_equals "B received event conversation" "$CONV_ID" "$(echo "$B_EVENT" | jq
 
 # --- Sender also receives their own message ---
 
-RESPONSE=$(ws_send "/ws/lobby" "$TOKEN_A" "{\"type\":\"ChatMessage\",\"conversation_id\":\"$CONV_ID\",\"content\":\"echo to self\"}")
+RESPONSE=$(ws_send "/ws/lobby" "$TOKEN_A" "$(cat <<EOF
+{"type":"ChatMessage","conversation_id":"$CONV_ID","content":"echo to self"}
+EOF
+)")
 assert_equals "Sender receives own message" "echo to self" "$(echo "$RESPONSE" | jq -r '.content')"
 
 # --- Non-member gets error ---
@@ -45,7 +60,10 @@ assert_equals "Sender receives own message" "echo to self" "$(echo "$RESPONSE" |
 ACCOUNT_C=$(create_account "e2e_wsrt_c@test.com" "e2e_wsrt_c" "pass123")
 TOKEN_C=$(login "e2e_wsrt_c@test.com" "pass123")
 
-RESPONSE=$(ws_send "/ws/lobby" "$TOKEN_C" "{\"type\":\"ChatMessage\",\"conversation_id\":\"$CONV_ID\",\"content\":\"should fail\"}")
+RESPONSE=$(ws_send "/ws/lobby" "$TOKEN_C" "$(cat <<EOF
+{"type":"ChatMessage","conversation_id":"$CONV_ID","content":"should fail"}
+EOF
+)")
 assert_equals "Non-member gets error type" "Error" "$(echo "$RESPONSE" | jq -r '.type')"
 
 # --- Invalid JSON gets error ---
@@ -57,7 +75,10 @@ assert_equals "Invalid JSON gets error type" "Error" "$(echo "$RESPONSE" | jq -r
 
 ws_listener_open "/ws/lobby" "$TOKEN_C" C_STATE
 
-ws_send "/ws/lobby" "$TOKEN_A" "{\"type\":\"ChatMessage\",\"conversation_id\":\"$CONV_ID\",\"content\":\"private msg\"}" > /dev/null
+ws_send "/ws/lobby" "$TOKEN_A" "$(cat <<EOF
+{"type":"ChatMessage","conversation_id":"$CONV_ID","content":"private msg"}
+EOF
+)" > /dev/null
 
 C_EVENT=$(ws_listener_collect "$C_STATE")
 assert_equals "Non-member receives nothing" "" "$C_EVENT"

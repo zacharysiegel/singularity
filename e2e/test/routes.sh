@@ -9,7 +9,13 @@ ACCOUNT=$(create_account "e2e_routes@test.com" "e2e_routes" "pass123")
 ACCOUNT_ID=$(echo "$ACCOUNT" | jq -r '.id')
 TOKEN=$(login "e2e_routes@test.com" "pass123")
 
-GAME=$(curl -s -X POST "$BASE_URL/game" -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{"name":"E2E Route Test"}')
+GAME=$(curl -s -X POST "$BASE_URL/game" \
+    -H "Authorization: Bearer $TOKEN" \
+    -H 'Content-Type: application/json' \
+    -d "$(cat <<'EOF'
+{"name":"E2E Route Test"}
+EOF
+)")
 GAME_ID=$(echo "$GAME" | jq -r '.id')
 
 # Health
