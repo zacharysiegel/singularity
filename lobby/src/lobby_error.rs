@@ -114,25 +114,23 @@ impl From<AppErrorStatic> for LobbyError {
     }
 }
 
-// todo: rename LobbyErrorOptionExt
-pub trait ResultExt<T> {
+pub trait ResultExtLobbyError<T> {
     fn or_bad_request(self) -> Result<T, LobbyError>;
 }
 
-impl<T, E: Display> ResultExt<T> for Result<T, E> {
+impl<T, E: Display> ResultExtLobbyError<T> for Result<T, E> {
     fn or_bad_request(self) -> Result<T, LobbyError> {
         self.map_err(|error| LobbyError::bad_request(&error.to_string()))
     }
 }
 
-// todo: rename LobbyErrorOptionExt
-pub trait OptionExt<T> {
+pub trait OptionExtLobbyError<T> {
     fn or_not_found(self) -> Result<T, LobbyError>;
     fn or_forbidden(self, message: &str) -> Result<T, LobbyError>;
     fn then_conflict(self, message: &str) -> Result<(), LobbyError>;
 }
 
-impl<T> OptionExt<T> for Option<T> {
+impl<T> OptionExtLobbyError<T> for Option<T> {
     fn or_not_found(self) -> Result<T, LobbyError> {
         self.ok_or_else(|| LobbyError::not_found("resource"))
     }

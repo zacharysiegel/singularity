@@ -5,7 +5,7 @@ use sqlx::PgPool;
 use uuid::Uuid;
 use crate::account::account_db;
 use crate::account::account_model::AccountEntity;
-use crate::lobby_error::{LobbyError, OptionExt, ResultExt};
+use crate::lobby_error::{LobbyError, OptionExtLobbyError, ResultExtLobbyError};
 use crate::http;
 use crate::password;
 use super::session_db;

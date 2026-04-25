@@ -6,7 +6,7 @@ use sqlx::PgPool;
 use uuid::Uuid;
 use crate::conversation_message::conversation_message_api;
 use crate::http;
-use crate::lobby_error::{LobbyError, OptionExt, ResultExt};
+use crate::lobby_error::{LobbyError, OptionExtLobbyError, ResultExtLobbyError};
 use crate::session::session_extractor::AuthenticatedAccount;
 use super::conversation_db;
 use super::conversation_model::{Conversation, ConversationEntity, ConversationMember, ConversationMemberEntity};
