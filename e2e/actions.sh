@@ -64,7 +64,9 @@ function ws_listener_open {
     websocat "ws://localhost:10000${ws_path}" -H "Authorization: Bearer $token" < "$state_dir/fifo" > "$state_dir/out" 2>/dev/null &
     echo $! > "$state_dir/pid"
 
-    eval "exec 8>$state_dir/fifo"
+    local fd
+    exec {fd}>"$state_dir/fifo"
+    echo $fd > "$state_dir/fd"
     sleep 0.3
 
     eval "$state_dir_var='$state_dir'"
@@ -75,8 +77,9 @@ function ws_listener_open {
 function ws_listener_collect {
     local state_dir="$1"
     local pid=$(cat "$state_dir/pid")
+    local fd=$(cat "$state_dir/fd")
 
-    eval "exec 8>&-"
+    exec {fd}>&-
     kill $pid 2>/dev/null; wait $pid 2>/dev/null
     cat "$state_dir/out"
     rm -rf "$state_dir"
