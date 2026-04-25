@@ -42,6 +42,7 @@ async fn create_conversation(
         &payload.member_account_ids,
     )
     .await?;
+    // todo: should this push to new conversation member websockets? or should we require an http fetch?
 
     let conversation: Conversation = Conversation::from(entity);
     let serial: ConversationSerial = ConversationSerial::from(&conversation);
@@ -109,8 +110,12 @@ async fn add_member(
         conversation_db::get_member(pool.get_ref(), conversation_id, payload.account_id).await?;
     existing_member.then_conflict("account is already an active member")?;
 
-    let member: ConversationMemberEntity =
-        conversation_db::add_member(pool.get_ref(), conversation_id, payload.account_id).await?;
+    let member: ConversationMemberEntity = conversation_db::add_member(
+        pool.get_ref(),
+        conversation_id,
+        payload.account_id
+    ).await?;
+    // todo: push to websockets for conversation members
 
     let member: ConversationMember = ConversationMember::from(member);
     let member: ConversationMemberSerial = ConversationMemberSerial::from(&member);
@@ -127,6 +132,8 @@ async fn leave_conversation(
     let conversation_id: Uuid = Uuid::parse_str(&conversation_id_string).or_bad_request()?;
 
     let did_leave: bool = conversation_db::leave_conversation(pool.get_ref(), conversation_id, auth.account_id).await?;
+    // todo: push to websockets for conversation members
+
     match did_leave {
         true => Ok(HttpResponse::Ok().finish()),
         false => Err(LobbyError::not_found("active membership")),

@@ -11,7 +11,7 @@ use crate::session::session_extractor::AuthenticatedAccount;
 use super::conversation_message_db;
 use super::conversation_message_model::ConversationMessageEntity;
 
-const DEFAULT_MESSAGE_LIMIT: i64 = 50;
+const DEFAULT_MESSAGE_LIMIT: i64 = 64;
 
 pub fn conversation_configurer(config: &mut web::ServiceConfig) {
     config.service(
@@ -30,23 +30,23 @@ async fn get_messages(
 ) -> Result<HttpResponse, LobbyError> {
     let (conversation_id_string,): (String,) = path.into_inner();
     let conversation_id: Uuid = Uuid::parse_str(&conversation_id_string).or_bad_request()?;
+    let limit: i64 = query.limit.unwrap_or(DEFAULT_MESSAGE_LIMIT);
 
     let member: Option<ConversationMemberEntity> =
         conversation_db::get_member(pool.get_ref(), conversation_id, auth.account_id).await?;
     member.or_forbidden("not a member of this conversation")?;
 
-    let limit: i64 = query.limit.unwrap_or(DEFAULT_MESSAGE_LIMIT);
+    let messages: Vec<ConversationMessageEntity> = conversation_message_db::get_messages_by_conversation(
+        pool.get_ref(),
+        conversation_id,
+        limit, query.before,
+    ).await?;
 
-    let message_entities: Vec<ConversationMessageEntity> =
-        conversation_message_db::get_messages_by_conversation(pool.get_ref(), conversation_id, limit, query.before)
-            .await?;
-
-    let message_serials: Vec<ConversationMessageSerial> = message_entities
+    let messages: Vec<ConversationMessageSerial> = messages
         .iter()
         .map(ConversationMessageSerial::from)
         .collect();
-
-    Ok(http::serialize_response(&request, &message_serials))
+    Ok(http::serialize_response(&request, &messages))
 }
 
 async fn send_message(
@@ -64,15 +64,19 @@ async fn send_message(
     member.or_forbidden("not a member of this conversation")?;
 
     let payload: SendMessageRequest = http::deserialize_request(&request, &body).or_bad_request()?;
-
     if !payload.is_valid() {
         return Err(LobbyError::bad_request("invalid send message request"));
     }
 
-    let message_entity: ConversationMessageEntity =
-        conversation_message_db::create_message(pool.get_ref(), conversation_id, auth.account_id, &payload.content)
-            .await?;
+    let message: ConversationMessageEntity = conversation_message_db::create_message(
+        pool.get_ref(),
+        conversation_id,
+        auth.account_id,
+        &payload.content
+    ).await?;
 
-    let serial: ConversationMessageSerial = ConversationMessageSerial::from(&message_entity);
-    Ok(http::serialize_response(&request, &serial))
+    // todo: push to websockets
+
+    let message: ConversationMessageSerial = ConversationMessageSerial::from(&message);
+    Ok(http::serialize_response(&request, &message))
 }
