@@ -1,9 +1,8 @@
-use actix_web::{rt, web, HttpRequest, HttpResponse};
-use actix_ws::Message;
-use sqlx::PgPool;
+use actix_web::{HttpRequest, HttpResponse, rt, web};
+use actix_ws::{Message, MessageStream, Session};
 
-use crate::http;
-use crate::session::session_db;
+use crate::lobby_error::LobbyError;
+use crate::session::session_extractor::AuthenticatedAccount;
 
 pub fn configurer(config: &mut web::ServiceConfig) {
     config.service(web::resource("/ws/lobby").route(web::get().to(lobby_ws_handler)));
@@ -12,19 +11,13 @@ pub fn configurer(config: &mut web::ServiceConfig) {
 async fn lobby_ws_handler(
     request: HttpRequest,
     body: web::Payload,
-    pool: web::Data<PgPool>,
-) -> Result<HttpResponse, actix_web::Error> {
-    let token: &str = http::extract_bearer_token(&request)
-        .ok_or_else(|| actix_web::error::ErrorUnauthorized("missing or invalid authorization header"))?;
+    auth: AuthenticatedAccount,
+) -> Result<HttpResponse, LobbyError> {
+    let account_id: uuid::Uuid = auth.account_id;
 
-    let session_entity = session_db::get_session_by_token(pool.get_ref(), token)
-        .await
-        .map_err(|_| actix_web::error::ErrorInternalServerError("db error"))?
-        .ok_or_else(|| actix_web::error::ErrorUnauthorized("invalid or expired session"))?;
-
-    let account_id: uuid::Uuid = session_entity.account_id;
-
-    let (response, mut ws_session, mut message_stream) = actix_ws::handle(&request, body)?;
+    let (upgrade_response, mut ws_session, mut message_stream): (HttpResponse, Session, MessageStream) =
+        actix_ws::handle(&request, body)
+            .map_err(|error| LobbyError::bad_request(&error.to_string()))?;
 
     log::info!("WebSocket lobby connection opened for account [{}]", account_id);
 
@@ -71,5 +64,5 @@ async fn lobby_ws_handler(
         log::info!("WebSocket lobby task ended for account [{}]", account_id);
     });
 
-    Ok(response)
+    Ok(upgrade_response)
 }
