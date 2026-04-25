@@ -22,10 +22,10 @@ pub async fn ws_handler(
     let account_id: Uuid = auth.account_id;
     let session_id: Uuid = auth.session_id;
 
-    let (upgrade_response, mut ws_session, mut message_stream): (HttpResponse, Session, MessageStream) =
+    let (upgrade_response, mut ws_session, mut request_stream): (HttpResponse, Session, MessageStream) =
         actix_ws::handle(&request, body).or_bad_request()?;
 
-    let mut ws_receiver: Receiver<WsEvent> = connection_registry::register(account_id, session_id, connection_type);
+    let mut event_receiver: Receiver<WsEvent> = connection_registry::register(account_id, session_id, connection_type);
     let pg_pool: PgPool = pg_pool.get_ref().clone();
 
     rt::spawn(async move {
@@ -33,10 +33,10 @@ pub async fn ws_handler(
 
         loop {
             let should_continue: bool = tokio::select! {
-                ws_message = message_stream.recv() =>
-                    handle_inbound_frame(&pg_pool, connection_type, account_id, ws_message, &mut ws_session).await,
-                outbound = ws_receiver.recv() =>
-                    handle_outbound_event(rate_limit_interval, &mut last_outbound_delivery, outbound, &mut ws_session).await,
+                request = request_stream.recv() =>
+                    handle_inbound_frame(&pg_pool, connection_type, account_id, request, &mut ws_session).await,
+                event = event_receiver.recv() =>
+                    handle_outbound_event(rate_limit_interval, &mut last_outbound_delivery, event, &mut ws_session).await,
             };
 
             if !should_continue {
