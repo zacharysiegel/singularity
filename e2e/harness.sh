@@ -3,8 +3,13 @@
 
 source "$(dirname "$0")/actions.sh"
 
-# shellcheck disable=SC2034 # BASE_URL is used by dependent scripts
-BASE_URL="http://localhost:10000"
+LOBBY_HOST="${LOBBY_HOST:-localhost}"
+LOBBY_PORT="${LOBBY_PORT:-10000}"
+
+# shellcheck disable=SC2034 # used by dependent scripts
+BASE_URL="http://${LOBBY_HOST}:${LOBBY_PORT}"
+# shellcheck disable=SC2034 # used by dependent scripts
+WS_BASE_URL="ws://${LOBBY_HOST}:${LOBBY_PORT}"
 PASS=0
 FAIL=0
 
