@@ -46,7 +46,7 @@ function ws_send {
     { echo "$message"; sleep 0.5; } > "$fifo"
 
     kill $ws_pid 2>/dev/null; wait $ws_pid 2>/dev/null
-    head -1 "$outfile"
+    cat "$outfile"
     rm -f "$fifo" "$outfile"
 }
 
@@ -72,6 +72,7 @@ function ws_listener_open {
     echo $fd > "$state_dir/fd"
     sleep 0.3
 
+    # Set the caller's variable by name
     eval "$state_dir_var='$state_dir'"
 }
 
@@ -83,7 +84,7 @@ function ws_listener_collect {
     local fd=$(cat "$state_dir/fd")
 
     exec {fd}>&-
-    kill $pid 2>/dev/null; wait $pid 2>/dev/null
+    kill "$pid" 2>/dev/null; wait "$pid" 2>/dev/null
     cat "$state_dir/out"
     rm -rf "$state_dir"
 }
