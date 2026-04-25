@@ -1,7 +1,7 @@
 use actix_web::{HttpRequest, HttpResponse, rt, web};
 use actix_ws::{Message, MessageStream, Session};
 
-use crate::lobby_error::LobbyError;
+use crate::lobby_error::{LobbyError, ResultExtLobbyError};
 use crate::session::session_extractor::AuthenticatedAccount;
 
 pub fn configurer(config: &mut web::ServiceConfig) {
@@ -16,8 +16,7 @@ async fn lobby_ws_handler(
     let account_id: uuid::Uuid = auth.account_id;
 
     let (upgrade_response, mut ws_session, mut message_stream): (HttpResponse, Session, MessageStream) =
-        actix_ws::handle(&request, body)
-            .map_err(|error| LobbyError::bad_request(&error.to_string()))?;
+        actix_ws::handle(&request, body).or_bad_request()?;
 
     log::info!("WebSocket lobby connection opened for account [{}]", account_id);
 

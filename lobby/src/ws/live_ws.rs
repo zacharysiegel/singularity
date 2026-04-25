@@ -1,8 +1,8 @@
 use actix_web::{HttpRequest, HttpResponse, rt, web};
 use actix_ws::Message;
 use std::time::{Duration, Instant};
-
-use crate::lobby_error::LobbyError;
+use uuid::Uuid;
+use crate::lobby_error::{LobbyError, ResultExtLobbyError};
 use crate::session::session_extractor::AuthenticatedAccount;
 
 const RATE_LIMIT_MESSAGES_PER_SECOND: u32 = 10;
@@ -17,10 +17,10 @@ async fn live_ws_handler(
     body: web::Payload,
     auth: AuthenticatedAccount,
 ) -> Result<HttpResponse, LobbyError> {
-    let account_id: uuid::Uuid = auth.account_id;
+    let account_id: Uuid = auth.account_id;
 
     let (response, mut ws_session, mut message_stream) = actix_ws::handle(&request, body)
-        .map_err(|error| LobbyError::bad_request(&error.to_string()))?;
+        .or_bad_request()?;
 
     log::info!("WebSocket live connection opened for account [{}]", account_id);
 
