@@ -1,12 +1,14 @@
-use actix_web::{HttpRequest, HttpResponse, rt, web};
-use actix_ws::Message;
-use std::time::{Duration, Instant};
-use uuid::Uuid;
 use crate::lobby_error::{LobbyError, ResultExtLobbyError};
 use crate::session::session_extractor::AuthenticatedAccount;
+use actix_web::{HttpRequest, HttpResponse, rt, web};
+use actix_ws::{Message, MessageStream, Session};
+use std::time::{Duration, Instant};
+use uuid::Uuid;
 
-const RATE_LIMIT_MESSAGES_PER_SECOND: u32 = 10;
-const RATE_LIMIT_INTERVAL: Duration = Duration::from_millis(1000 / RATE_LIMIT_MESSAGES_PER_SECOND as u64);
+/// The "live" WebSocket connection is used by the client while in-game. To avoid frame rate spikes
+/// or denial of service, we enforce a rate limit on outbound messages through this socket.
+const RATE_LIMIT_MESSAGES_PER_SECOND: u64 = 10;
+const RATE_LIMIT_INTERVAL: Duration = Duration::from_millis(1000 / RATE_LIMIT_MESSAGES_PER_SECOND);
 
 pub fn configurer(config: &mut web::ServiceConfig) {
     config.service(web::resource("/ws/live").route(web::get().to(live_ws_handler)));
@@ -19,8 +21,8 @@ async fn live_ws_handler(
 ) -> Result<HttpResponse, LobbyError> {
     let account_id: Uuid = auth.account_id;
 
-    let (response, mut ws_session, mut message_stream) = actix_ws::handle(&request, body)
-        .or_bad_request()?;
+    let (upgrade_response, mut ws_session, mut message_stream): (HttpResponse, Session, MessageStream) =
+        actix_ws::handle(&request, body).or_bad_request()?;
 
     log::info!("WebSocket live connection opened for account [{}]", account_id);
 
@@ -61,7 +63,11 @@ async fn live_ws_handler(
                     }
                     last_delivery = Instant::now();
 
-                    log::debug!("WebSocket live binary from account [{}]: {} bytes", account_id, bytes.len());
+                    log::debug!(
+                        "WebSocket live binary from account [{}]: {} bytes",
+                        account_id,
+                        bytes.len()
+                    );
                     // TODO: parse MessagePack inbound messages
                     if ws_session.binary(bytes).await.is_err() {
                         break;
@@ -84,5 +90,5 @@ async fn live_ws_handler(
         log::info!("WebSocket live task ended for account [{}]", account_id);
     });
 
-    Ok(response)
+    Ok(upgrade_response)
 }
