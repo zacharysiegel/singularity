@@ -9,7 +9,7 @@ pub static STATE: LazyLock<State> = LazyLock::new(|| State {
     stage: StageState::DEFAULT,
     frame_counter: RwLock::new(0),
     screen_texture: RwLock::new(unsafe { mem::zeroed() }),
-    ws: WsState::new(),
+    ws: WsState::default(),
     conversation: ConversationState::new(),
 });
 
