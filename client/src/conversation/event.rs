@@ -1,9 +1,11 @@
 use shared::schema::conversation::{ConversationMemberChange, ConversationMemberChangeSerial};
 use shared::schema::conversation_message::{ConversationMessage, ConversationMessageSerial};
+use std::collections::HashMap;
+use std::sync::RwLockWriteGuard;
 use uuid::Uuid;
 
-use crate::state::STATE;
 use super::state::{ConversationEvent, ConversationLog};
+use crate::state::STATE;
 
 pub fn handle_chat_event(message_serial: ConversationMessageSerial) {
     let conversation_id: Uuid = message_serial.conversation_id;
@@ -27,9 +29,9 @@ pub fn handle_member_left(change_serial: ConversationMemberChangeSerial) {
 }
 
 fn insert_event(conversation_id: Uuid, event: ConversationEvent) {
-    let mut conversations = STATE.conversation.conversations.write().unwrap();
+    let mut conversations: RwLockWriteGuard<HashMap<Uuid, ConversationLog>> = STATE.conversation.conversations.write().unwrap();
     let conversation_log: &mut ConversationLog = conversations
         .entry(conversation_id)
         .or_insert_with(ConversationLog::new);
-    conversation_log.events.push(event);
+    conversation_log.events.insert(event.key(), event);
 }
