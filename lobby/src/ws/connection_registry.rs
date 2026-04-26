@@ -3,7 +3,7 @@ use dashmap::mapref::one::RefMut;
 use dashmap::DashMap;
 use mpsc::error::TrySendError;
 use shared::schema::ws_message::WsEvent;
-use std::sync::LazyLock;
+use std::sync::{Arc, LazyLock};
 use tokio::sync::mpsc;
 use tokio::sync::mpsc::{Receiver, Sender};
 use uuid::Uuid;
@@ -16,12 +16,13 @@ const OUTBOUND_BUFFER_CAPACITY: usize = 512;
 /// Global registry of active WebSocket connections, mapping account_id to per-session connection senders/receivers.
 /// Uses DashMap for per-shard locking so that operations on different accounts don't contend.
 /// Sessions are stored in a Vec (linear scan) rather than a HashMap because the number of concurrent sessions per account is realistically 1-3.
+/// Channels carry Arc<WsEvent> so that broadcasting to multiple recipients clones a pointer, not the message content.
 static CONNECTIONS: LazyLock<DashMap<Uuid, Vec<SessionConnections>>> = LazyLock::new(DashMap::new);
 
 struct SessionConnections {
     session_id: Uuid,
-    lobby: Option<Sender<WsEvent>>,
-    live: Option<Sender<WsEvent>>,
+    lobby: Option<Sender<Arc<WsEvent>>>,
+    live: Option<Sender<Arc<WsEvent>>>,
 }
 
 impl SessionConnections {
@@ -33,14 +34,14 @@ impl SessionConnections {
         }
     }
 
-    fn sender(&self, connection_type: ConnectionType) -> &Option<Sender<WsEvent>> {
+    fn sender(&self, connection_type: ConnectionType) -> &Option<Sender<Arc<WsEvent>>> {
         match connection_type {
             ConnectionType::Lobby => &self.lobby,
             ConnectionType::Live => &self.live,
         }
     }
 
-    fn sender_mut(&mut self, connection_type: ConnectionType) -> &mut Option<Sender<WsEvent>> {
+    fn sender_mut(&mut self, connection_type: ConnectionType) -> &mut Option<Sender<Arc<WsEvent>>> {
         match connection_type {
             ConnectionType::Lobby => &mut self.lobby,
             ConnectionType::Live => &mut self.live,
@@ -52,8 +53,8 @@ impl SessionConnections {
     }
 }
 
-pub fn register(account_id: Uuid, session_id: Uuid, connection_type: ConnectionType) -> Receiver<WsEvent> {
-    let (sender, receiver): (Sender<WsEvent>, Receiver<WsEvent>) = mpsc::channel(OUTBOUND_BUFFER_CAPACITY);
+pub fn register(account_id: Uuid, session_id: Uuid, connection_type: ConnectionType) -> Receiver<Arc<WsEvent>> {
+    let (sender, receiver): (Sender<Arc<WsEvent>>, Receiver<Arc<WsEvent>>) = mpsc::channel(OUTBOUND_BUFFER_CAPACITY);
     let mut sessions: RefMut<Uuid, Vec<SessionConnections>> = CONNECTIONS.entry(account_id)
         .or_insert_with(Vec::new);
 
@@ -93,7 +94,13 @@ pub fn unregister(account_id: Uuid, session_id: Uuid, connection_type: Connectio
     }
 }
 
-pub fn send_to_account(account_id: Uuid, connection_type: ConnectionType, message: &WsEvent) {
+pub fn send_to_accounts(account_ids: &[Uuid], connection_type: ConnectionType, message: &Arc<WsEvent>) {
+    for account_id in account_ids {
+        send_to_account(*account_id, connection_type, &message);
+    }
+}
+
+pub fn send_to_account(account_id: Uuid, connection_type: ConnectionType, message: &Arc<WsEvent>) {
     let Some(sessions) = CONNECTIONS.get(&account_id) else {
         return
     };
@@ -103,18 +110,12 @@ pub fn send_to_account(account_id: Uuid, connection_type: ConnectionType, messag
             continue
         };
 
-        let send_result: Result<(), TrySendError<WsEvent>> = sender.try_send(message.clone());
+        let send_result: Result<(), TrySendError<Arc<WsEvent>>> = sender.try_send(Arc::clone(message));
         if let Err(error) = send_result {
             log::warn!(
                 "Failed to send to [{connection_type}] [{account_id}] [{}]: {error}",
                 session_connections.session_id,
             );
         }
-    }
-}
-
-pub fn send_to_accounts(account_ids: &[Uuid], connection_type: ConnectionType, message: &WsEvent) {
-    for account_id in account_ids {
-        send_to_account(*account_id, connection_type, message);
     }
 }
