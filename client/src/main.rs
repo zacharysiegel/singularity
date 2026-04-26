@@ -10,6 +10,6 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
 
     let (mut rl, rl_thread): (RaylibHandle, RaylibThread) = engine::init()?;
     engine::run(&mut rl, &rl_thread)?;
-    engine::destroy(rl)?;
+    engine::destroy(rl).await?;
     Ok(())
 }

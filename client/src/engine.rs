@@ -134,8 +134,8 @@ fn init_debug_ws() {
     });
 }
 
-pub fn destroy(rl: RaylibHandle) -> Result<(), AppError> {
-    ws::disconnect_all();
+pub async fn destroy(rl: RaylibHandle) -> Result<(), AppError> {
+    ws::shutdown().await;
     drop(rl);
     Ok(())
 }
