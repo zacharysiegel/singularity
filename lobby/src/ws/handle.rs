@@ -7,6 +7,7 @@ use actix_web::{rt, web, HttpRequest, HttpResponse};
 use actix_ws::{CloseCode, CloseReason, Message, MessageStream, ProtocolError, Session};
 use shared::schema::ws_message::{WsRequest, WsEvent};
 use sqlx::PgPool;
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc::Receiver;
 use uuid::Uuid;
@@ -25,7 +26,7 @@ pub async fn ws_handler(
     let (upgrade_response, mut ws_session, mut request_stream): (HttpResponse, Session, MessageStream) =
         actix_ws::handle(&request, body).or_bad_request()?;
 
-    let mut event_receiver: Receiver<WsEvent> = connection_registry::register(account_id, session_id, connection_type);
+    let mut event_receiver: Receiver<Arc<WsEvent>> = connection_registry::register(account_id, session_id, connection_type);
     let pg_pool: PgPool = pg_pool.get_ref().clone();
 
     rt::spawn(async move {
@@ -102,7 +103,7 @@ async fn handle_inbound_frame(
 async fn handle_outbound_event(
     rate_limit_interval: Option<Duration>,
     last_outbound_delivery: &mut Instant,
-    outbound: Option<WsEvent>,
+    outbound: Option<Arc<WsEvent>>,
     ws_session: &mut Session,
 ) -> bool {
     let Some(ws_event) = outbound else {
@@ -129,7 +130,7 @@ async fn handle_text_message(
     let parse_result: Result<WsRequest, _> = serde_json::from_str(text);
     match parse_result {
         Ok(ws_request) => {
-            if let Err(error) = router::handle_ws_request(pool, connection_type, account_id, ws_request).await {
+            if let Err(error) = router::route_ws_request(pool, connection_type, account_id, ws_request).await {
                 let _ = send_outbound_json(ws_session, &WsEvent::Error { message: error.message.clone() }).await;
             }
         }
@@ -155,7 +156,7 @@ async fn handle_binary_message(
     let parse_result: Result<WsRequest, _> = rmp_serde::from_slice(bytes);
     match parse_result {
         Ok(ws_request) => {
-            if let Err(error) = router::handle_ws_request(pool, connection_type, account_id, ws_request).await {
+            if let Err(error) = router::route_ws_request(pool, connection_type, account_id, ws_request).await {
                 let _ = send_outbound_msgpack(ws_session, &WsEvent::Error { message: error.message.clone() }).await;
             }
         }
