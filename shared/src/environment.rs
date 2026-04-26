@@ -63,7 +63,7 @@ impl RuntimeEnvironment {
         }
     }
 
-    pub fn get_lobby_url(&self) -> &'static str {
+    pub fn get_lobby_http_url(&self) -> &'static str {
         match self {
             RuntimeEnvironment::Local => "http://127.0.0.1:10000",
             RuntimeEnvironment::Stage => "http://127.0.0.1:10000",      // todo
