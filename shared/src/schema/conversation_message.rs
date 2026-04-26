@@ -36,7 +36,7 @@ pub struct ConversationMessageSerial {
 
 impl ConversationMessageSerial {
     pub fn to_ws_event(self) -> WsEvent {
-        WsEvent::Chat { message: self }
+        WsEvent::Chat(self)
     }
 }
 

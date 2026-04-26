@@ -5,7 +5,7 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use uuid::Uuid;
-
+use crate::schema::conversation::ConversationMemberChangeSerial;
 use super::conversation_message::ConversationMessageSerial;
 
 #[derive(Debug, Clone, Copy)]
@@ -45,18 +45,9 @@ pub enum WsRequest {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum WsEvent {
-    Chat {
-        #[serde(flatten)]
-        message: ConversationMessageSerial,
-    },
-    MemberJoined {
-        conversation_id: Uuid,
-        account_id: Uuid,
-    },
-    MemberLeft {
-        conversation_id: Uuid,
-        account_id: Uuid,
-    },
+    Chat(ConversationMessageSerial),
+    MemberJoined(ConversationMemberChangeSerial),
+    MemberLeft(ConversationMemberChangeSerial),
     Error {
         message: String,
     },

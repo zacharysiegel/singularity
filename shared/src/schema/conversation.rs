@@ -35,9 +35,26 @@ pub struct ConversationMemberSerial {
     pub exited: Option<DateTime<Utc>>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConversationMemberChangeSerial {
+    pub conversation_id: Uuid,
+    pub account_id: Uuid,
+    pub timestamp: DateTime<Utc>,
+}
+
 #[derive(Debug, Clone)]
 pub struct ConversationMemberChange {
     pub conversation_id: Uuid,
     pub account_id: Uuid,
     pub timestamp: DateTime<Utc>,
+}
+
+impl From<ConversationMemberChangeSerial> for ConversationMemberChange {
+    fn from(serial: ConversationMemberChangeSerial) -> Self {
+        ConversationMemberChange {
+            conversation_id: serial.conversation_id,
+            account_id: serial.account_id,
+            timestamp: serial.timestamp,
+        }
+    }
 }
