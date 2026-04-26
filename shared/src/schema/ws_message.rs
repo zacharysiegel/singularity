@@ -2,9 +2,10 @@
 //! Requests are sent from the client to the server.
 //! Events are sent from the server to the client.
 
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+
+use super::conversation_message::ConversationMessageSerial;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
@@ -19,11 +20,8 @@ pub enum WsRequest {
 #[serde(tag = "type")]
 pub enum WsEvent {
     Chat {
-        id: Uuid,
-        conversation_id: Uuid,
-        sender_account_id: Uuid,
-        content: String,
-        created: DateTime<Utc>,
+        #[serde(flatten)]
+        message: ConversationMessageSerial,
     },
     MemberJoined {
         conversation_id: Uuid,

@@ -1,6 +1,5 @@
 use chrono::{DateTime, Utc};
 use shared::schema::conversation_message::ConversationMessageSerial;
-use shared::schema::ws_message::WsEvent;
 use uuid::Uuid;
 
 #[derive(Debug, Clone)]
@@ -10,18 +9,6 @@ pub struct ConversationMessageEntity {
     pub sender_account_id: Uuid,
     pub content: String,
     pub created: DateTime<Utc>,
-}
-
-impl ConversationMessageEntity {
-    pub fn to_ws_event(&self) -> WsEvent {
-        WsEvent::Chat {
-            id: self.id,
-            conversation_id: self.conversation_id,
-            sender_account_id: self.sender_account_id,
-            content: self.content.clone(),
-            created: self.created,
-        }
-    }
 }
 
 impl From<&ConversationMessageEntity> for ConversationMessageSerial {

@@ -2,6 +2,8 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use super::ws_message::WsEvent;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConversationMessageSerial {
     pub id: Uuid,
@@ -9,6 +11,12 @@ pub struct ConversationMessageSerial {
     pub sender_account_id: Uuid,
     pub content: String,
     pub created: DateTime<Utc>,
+}
+
+impl ConversationMessageSerial {
+    pub fn to_ws_event(self) -> WsEvent {
+        WsEvent::Chat { message: self }
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]
