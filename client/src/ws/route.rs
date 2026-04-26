@@ -1,17 +1,17 @@
 use shared::schema::ws_message::{ConnectionType, WsEvent};
-use crate::conversation::handler;
+use crate::conversation::event;
 use crate::state::STATE;
 
 pub fn route_ws_event(connection_type: ConnectionType, event: WsEvent) {
     match event {
         WsEvent::Chat { message } => {
-            handler::handle_chat_event(message);
+            event::handle_chat_event(message);
         }
         WsEvent::MemberJoined { conversation_id, account_id } => {
-            handler::handle_member_joined(conversation_id, account_id);
+            event::handle_member_joined(conversation_id, account_id);
         }
         WsEvent::MemberLeft { conversation_id, account_id } => {
-            handler::handle_member_left(conversation_id, account_id);
+            event::handle_member_left(conversation_id, account_id);
         }
         WsEvent::Error { message } => {
             log::warn!("WsEvent::Error [{connection_type}]: {message}");
