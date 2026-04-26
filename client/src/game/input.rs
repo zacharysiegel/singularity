@@ -3,7 +3,7 @@ use crate::input::KeyPressResult;
 use crate::input::{ClickResult, ScrollResult};
 use crate::map;
 use crate::state::STATE;
-use crate::window::{PauseWindow, WINDOW_LAYERS, Window};
+use crate::window::{PauseWindow, Window, window_layers};
 use raylib::RaylibHandle;
 use raylib::consts::KeyboardKey;
 use raylib::math::Vector2;
@@ -11,7 +11,7 @@ use shared::map::RenderCoord;
 use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 
 pub fn scroll(rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult {
-    for window in WINDOW_LAYERS {
+    for window in window_layers() {
         let mut window: RwLockWriteGuard<dyn Window> = window.write().unwrap();
         match window.scroll(rl, scroll_v) {
             ScrollResult::Pass => continue,
@@ -23,7 +23,7 @@ pub fn scroll(rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult {
 }
 
 pub fn click(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
-    for window in WINDOW_LAYERS {
+    for window in window_layers() {
         let mut window: RwLockWriteGuard<dyn Window> = window.write().unwrap();
         match window.click(rl, mouse_position) {
             ClickResult::Pass => continue,
@@ -35,7 +35,7 @@ pub fn click(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult 
 }
 
 pub fn hover(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
-    for window in WINDOW_LAYERS {
+    for window in window_layers() {
         let mut window: RwLockWriteGuard<dyn Window> = window.write().unwrap();
         match window.hover(rl, mouse_position) {
             HoverResult::Pass => {
@@ -62,7 +62,7 @@ pub fn key_press(rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
         }
     }
 
-    for window in WINDOW_LAYERS {
+    for window in window_layers() {
         let mut window: RwLockWriteGuard<dyn Window> = window.write().unwrap();
         match window.key_press(rl, key) {
             KeyPressResult::Pass => continue,

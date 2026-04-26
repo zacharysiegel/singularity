@@ -1,7 +1,7 @@
 use crate::config::APPLICATION_NAME;
 use crate::stage::StageType;
 use crate::state::STATE;
-use crate::{connect, input, shader, texture, title};
+use crate::{connect, input, shader, texture, title, ws};
 use raylib::callbacks::TraceLogLevel;
 use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
@@ -23,13 +23,39 @@ pub const DISPLAY_HEIGHT: u16 = 900;
 
 fn update(rl: &mut RaylibHandle, rl_thread: &RaylibThread) {
     texture::update(rl, rl_thread);
-    STATE.stage.switch.update();
 
-    let mut current_stage_g: RwLockWriteGuard<StageType> = STATE.stage.switch.current.write().unwrap();
-    current_stage_g.update(rl);
-    drop(current_stage_g);
+    let previous_stage: StageType = *STATE.stage.switch.current.read().unwrap();
+    STATE.stage.switch.update();
+    let current_stage: StageType = *STATE.stage.switch.current.read().unwrap();
+
+    if previous_stage != current_stage {
+        handle_stage_transition(previous_stage, current_stage);
+    }
+
+    let mut current_stage_guard: RwLockWriteGuard<StageType> = STATE.stage.switch.current.write().unwrap();
+    current_stage_guard.update(rl);
+    drop(current_stage_guard);
 
     input::handle_user_input(rl);
+}
+
+fn handle_stage_transition(previous_stage: StageType, current_stage: StageType) {
+    let runtime_environment: RuntimeEnvironment = RuntimeEnvironment::default();
+    let lobby_ws_url: &str = runtime_environment.get_lobby_ws_url();
+
+    match (previous_stage, current_stage) {
+        (_, StageType::Game) => {
+            // TODO: catch up on in-game chat history via REST before WS delivers new events
+            let token_guard = STATE.ws.token.read().unwrap();
+            if let Some(token) = token_guard.as_ref() {
+                ws::connect_live(lobby_ws_url, token);
+            }
+        }
+        (StageType::Game, _) => {
+            ws::disconnect_live();
+        }
+        _ => {}
+    }
 }
 
 fn draw(rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
@@ -44,6 +70,10 @@ fn draw(rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
 
 pub fn init() -> Result<(RaylibHandle, RaylibThread), AppError> {
     let _: Arc<RwLock<RingBuffer<u8, { BUFFER_SIZE }>>> = connect::connect()?;
+
+    if RuntimeEnvironment::default().is_debug() {
+        init_debug_ws();
+    }
 
     unsafe {
         log::info!("OpenGL version: {}", rlGetVersion());
@@ -82,8 +112,31 @@ pub fn init() -> Result<(RaylibHandle, RaylibThread), AppError> {
     Ok((rl, rl_thread))
 }
 
+fn init_debug_ws() {
+    let runtime_environment: RuntimeEnvironment = RuntimeEnvironment::default();
+    let lobby_url: &str = runtime_environment.get_lobby_url();
+    let lobby_ws_url: &str = runtime_environment.get_lobby_ws_url();
+
+    tokio::spawn(async move {
+        let lobby_url: String = lobby_url.to_string();
+        let lobby_ws_url: String = lobby_ws_url.to_string();
+
+        match ws::auth::debug_authenticate(&lobby_url).await {
+            Ok(token) => {
+                log::info!("Debug authentication successful");
+                *STATE.ws.token.write().unwrap() = Some(token.clone());
+                ws::connect_lobby(&lobby_ws_url, &token);
+            }
+            Err(error) => {
+                log::error!("Debug authentication failed: {error}");
+            }
+        }
+    });
+}
+
 pub fn destroy(rl: RaylibHandle) -> Result<(), AppError> {
-    drop(rl); // Closes the window
+    ws::disconnect_all();
+    drop(rl);
     Ok(())
 }
 

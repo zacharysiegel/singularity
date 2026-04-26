@@ -4,6 +4,27 @@ use uuid::Uuid;
 
 use super::ws_message::WsEvent;
 
+#[derive(Debug, Clone)]
+pub struct ConversationMessage {
+    pub id: Uuid,
+    pub conversation_id: Uuid,
+    pub sender_account_id: Uuid,
+    pub content: String,
+    pub created: DateTime<Utc>,
+}
+
+impl From<ConversationMessageSerial> for ConversationMessage {
+    fn from(serial: ConversationMessageSerial) -> Self {
+        ConversationMessage {
+            id: serial.id,
+            conversation_id: serial.conversation_id,
+            sender_account_id: serial.sender_account_id,
+            content: serial.content,
+            created: serial.created,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConversationMessageSerial {
     pub id: Uuid,

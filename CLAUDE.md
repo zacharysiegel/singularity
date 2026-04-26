@@ -75,3 +75,4 @@ The client has three stages: Title (main menu), Browser (game list), and Game (g
 - Always specify explicit types on `let` bindings unless the type annotation would be extremely unwieldy.
 - Use raw strings (`r#"..."#`) for SQL queries that contain SQLx nullability overrides (`"column!"`, `"column?"`), since the double quotes would otherwise need escaping.
 - Do not include test plans in PR descriptions. Keep test plans within the Claude Code session only.
+- `RwLock` and `Mutex` poison errors (`PoisonError`) are unconditionally unwrapped via `.unwrap()` or `.expect()` in the client crate. A poisoned lock means a thread panicked — propagating is the only sane response. Do not handle `PoisonError` gracefully.

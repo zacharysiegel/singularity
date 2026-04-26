@@ -3,5 +3,4 @@ pub mod ws_lobby_api;
 pub mod connection_registry;
 pub mod router;
 
-mod connection_type;
 mod handle;

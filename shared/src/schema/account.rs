@@ -18,7 +18,7 @@ pub struct AccountPublicSerial {
     pub username: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateAccountRequest {
     pub email: String,
     pub username: String,

@@ -63,6 +63,22 @@ impl RuntimeEnvironment {
         }
     }
 
+    pub fn get_lobby_url(&self) -> &'static str {
+        match self {
+            RuntimeEnvironment::Local => "http://127.0.0.1:10000",
+            RuntimeEnvironment::Stage => "http://127.0.0.1:10000",      // todo
+            RuntimeEnvironment::Production => "http://127.0.0.1:10000", // todo
+        }
+    }
+
+    pub fn get_lobby_ws_url(&self) -> &'static str {
+        match self {
+            RuntimeEnvironment::Local => "ws://127.0.0.1:10000",
+            RuntimeEnvironment::Stage => "ws://127.0.0.1:10000",      // todo
+            RuntimeEnvironment::Production => "ws://127.0.0.1:10000", // todo
+        }
+    }
+
     pub fn is_debug(&self) -> bool {
         match self {
             RuntimeEnvironment::Local => true,

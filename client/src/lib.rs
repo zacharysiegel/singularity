@@ -1,6 +1,7 @@
 pub mod button;
 pub mod config;
 pub mod connect;
+pub mod conversation;
 pub mod engine;
 pub mod facility;
 pub mod font;
@@ -18,3 +19,4 @@ pub mod window;
 pub mod browser;
 pub mod locked_switch;
 pub mod text_box;
+pub mod ws;

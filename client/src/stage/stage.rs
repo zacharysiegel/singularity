@@ -27,7 +27,7 @@ impl StageState {
     };
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum StageType {
     Title,
     Game,

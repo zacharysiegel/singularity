@@ -1,6 +1,6 @@
 use crate::lobby_error::LobbyError;
 use crate::session::session_extractor::AuthenticatedAccount;
-use crate::ws::connection_type::ConnectionType;
+use shared::schema::ws_message::ConnectionType;
 use crate::ws::handle;
 use actix_web::{web, HttpRequest, HttpResponse};
 use sqlx::PgPool;
