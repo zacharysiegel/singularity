@@ -114,7 +114,7 @@ pub fn init() -> Result<(RaylibHandle, RaylibThread), AppError> {
 
 fn init_debug_ws() {
     let runtime_environment: RuntimeEnvironment = RuntimeEnvironment::default();
-    let lobby_url: &str = runtime_environment.get_lobby_url();
+    let lobby_url: &str = runtime_environment.get_lobby_http_url();
     let lobby_ws_url: &str = runtime_environment.get_lobby_ws_url();
 
     tokio::spawn(async move {
