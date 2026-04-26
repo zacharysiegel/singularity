@@ -19,17 +19,22 @@ impl<T: Copy> LockedSwitch<T> {
         *next = Some(inner);
     }
 
-    pub fn update(&self) {
+    /// Returns (previous, current). Previous is None if no state change occurred.
+    pub fn update(&self) -> (Option<T>, T) {
         let next: RwLockReadGuard<Option<T>> = self.next.read().unwrap();
         if next.is_none() {
-            return;
+            let current: RwLockReadGuard<T> = self.current.read().unwrap();
+            return (None, *current);
         }
         drop(next);
 
         let mut current: RwLockWriteGuard<T> = self.current.write().unwrap();
         let mut next: RwLockWriteGuard<Option<T>> = self.next.write().unwrap();
 
+        let previous: T = *current;
         *current = next.as_ref().unwrap().clone();
         *next = None;
+
+        (Some(previous), *current)
     }
 }

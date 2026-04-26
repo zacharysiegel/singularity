@@ -1,7 +1,7 @@
 use crate::config::APPLICATION_NAME;
 use crate::stage::StageType;
 use crate::state::STATE;
-use crate::{connect, input, shader, texture, title, ws};
+use crate::{connect, input, shader, stage, texture, title, ws};
 use raylib::callbacks::TraceLogLevel;
 use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
@@ -24,42 +24,18 @@ pub const DISPLAY_HEIGHT: u16 = 900;
 fn update(rl: &mut RaylibHandle, rl_thread: &RaylibThread) {
     texture::update(rl, rl_thread);
 
-    let previous_stage: StageType = *STATE.stage.switch.current.read().unwrap();
-    STATE.stage.switch.update();
-    let current_stage: StageType = *STATE.stage.switch.current.read().unwrap();
+    let (previous_stage, current_stage): (Option<StageType>, StageType) = STATE.stage.update();
+    stage::handle::handle_stage_transition(previous_stage, current_stage);
 
-    if previous_stage != current_stage {
-        handle_stage_transition(previous_stage, current_stage);
-    }
-
-    let mut current_stage_g: RwLockWriteGuard<StageType> = STATE.stage.switch.current.write().unwrap();
+    let mut current_stage_g: RwLockWriteGuard<StageType> = STATE.stage.current_mut();
     current_stage_g.update(rl);
     drop(current_stage_g);
 
     input::handle_user_input(rl);
 }
 
-fn handle_stage_transition(previous_stage: StageType, current_stage: StageType) {
-    let runtime_environment: RuntimeEnvironment = RuntimeEnvironment::default();
-    let lobby_ws_url: &str = runtime_environment.get_lobby_ws_url();
-
-    match (previous_stage, current_stage) {
-        (_, StageType::Game) => {
-            // TODO: catch up on in-game chat history via REST before WS delivers new events
-            let token_guard = STATE.ws.token.read().unwrap();
-            if let Some(token) = token_guard.as_ref() {
-                ws::connect_live(lobby_ws_url, token);
-            }
-        }
-        (StageType::Game, _) => {
-            ws::disconnect_live();
-        }
-        _ => {}
-    }
-}
-
 fn draw(rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
-    let current_stage: RwLockReadGuard<StageType> = STATE.stage.switch.current.read().unwrap();
+    let current_stage: RwLockReadGuard<StageType> = STATE.stage.current();
     current_stage.draw(rl_draw, rl_thread);
     drop(current_stage);
 

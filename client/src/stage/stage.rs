@@ -10,12 +10,15 @@ use raylib::math::Vector2;
 use raylib::{RaylibHandle, RaylibThread};
 use shared::map::RenderCoord;
 
+use std::sync::{RwLockReadGuard, RwLockWriteGuard};
+
 #[derive(Debug)]
 pub struct StageState {
-    pub switch: LockedSwitch<StageType>,
     pub title: TitleState,
     pub game: GameState,
     pub browser: BrowserState,
+
+    switch: LockedSwitch<StageType>,
 }
 
 impl StageState {
@@ -25,6 +28,22 @@ impl StageState {
         game: GameState::DEFAULT,
         browser: BrowserState::DEFAULT,
     };
+
+    pub fn current(&'_ self) -> RwLockReadGuard<'_, StageType> {
+        self.switch.current.read().unwrap()
+    }
+
+    pub fn current_mut(&'_ self) -> RwLockWriteGuard<'_, StageType> {
+        self.switch.current.write().unwrap()
+    }
+
+    pub fn register_next(&self, stage_type: StageType) {
+        self.switch.register_next(stage_type);
+    }
+
+    pub fn update(&self) -> (Option<StageType>, StageType) {
+        self.switch.update()
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
