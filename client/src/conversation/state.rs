@@ -41,16 +41,9 @@ pub struct ConversationEventKey {
     pub account_id: Uuid,
 }
 
-#[derive(Debug)]
-pub enum ConversationEvent {
-    Chat(ConversationMessage),
-    MemberJoined(ConversationMemberChange),
-    MemberLeft(ConversationMemberChange),
-}
-
-impl ConversationEvent {
-    pub fn key(&self) -> ConversationEventKey {
-        match self {
+impl From<&ConversationEvent> for ConversationEventKey {
+    fn from(value: &ConversationEvent) -> Self {
+        match value {
             ConversationEvent::Chat(message) => ConversationEventKey {
                 timestamp: message.created,
                 account_id: message.sender_account_id,
@@ -65,4 +58,11 @@ impl ConversationEvent {
             },
         }
     }
+}
+
+#[derive(Debug)]
+pub enum ConversationEvent {
+    Chat(ConversationMessage),
+    MemberJoined(ConversationMemberChange),
+    MemberLeft(ConversationMemberChange),
 }

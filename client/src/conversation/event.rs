@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::sync::RwLockWriteGuard;
 use uuid::Uuid;
 
-use super::state::{ConversationEvent, ConversationLog};
+use super::state::{ConversationEvent, ConversationEventKey, ConversationLog};
 use crate::state::STATE;
 
 pub fn handle_chat_event(message_serial: ConversationMessageSerial) {
@@ -33,5 +33,5 @@ fn insert_event(conversation_id: Uuid, event: ConversationEvent) {
     let conversation_log: &mut ConversationLog = conversations
         .entry(conversation_id)
         .or_insert_with(ConversationLog::new);
-    conversation_log.events.insert(event.key(), event);
+    conversation_log.events.insert(ConversationEventKey::from(&event), event);
 }
