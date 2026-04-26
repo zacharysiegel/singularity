@@ -10,7 +10,7 @@ use crate::conversation::conversation_model::ConversationMemberEntity;
 use crate::conversation_message::conversation_message_db;
 use crate::conversation_message::conversation_message_model::ConversationMessageEntity;
 use super::connection_registry;
-use super::connection_type::ConnectionType;
+use shared::schema::ws_message::ConnectionType;
 
 pub async fn route_ws_request(
     pool: &PgPool,

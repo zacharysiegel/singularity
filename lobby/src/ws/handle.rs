@@ -1,7 +1,7 @@
 use crate::lobby_error::{LobbyError, ResultExtLobbyError};
 use crate::session::session_extractor::AuthenticatedAccount;
 use crate::ws::connection_registry;
-use crate::ws::connection_type::ConnectionType;
+use shared::schema::ws_message::ConnectionType;
 use crate::ws::router;
 use actix_web::{rt, web, HttpRequest, HttpResponse};
 use actix_ws::{CloseCode, CloseReason, Message, MessageStream, ProtocolError, Session};

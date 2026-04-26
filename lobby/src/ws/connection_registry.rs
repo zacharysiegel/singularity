@@ -8,7 +8,7 @@ use tokio::sync::mpsc;
 use tokio::sync::mpsc::{Receiver, Sender};
 use uuid::Uuid;
 
-use super::connection_type::ConnectionType;
+use shared::schema::ws_message::ConnectionType;
 
 /// Unit: messages
 const OUTBOUND_BUFFER_CAPACITY: usize = 512;
@@ -17,6 +17,9 @@ const OUTBOUND_BUFFER_CAPACITY: usize = 512;
 /// Uses DashMap for per-shard locking so that operations on different accounts don't contend.
 /// Sessions are stored in a Vec (linear scan) rather than a HashMap because the number of concurrent sessions per account is realistically 1-3.
 /// Channels carry Arc<WsEvent> so that broadcasting to multiple recipients clones a pointer, not the message content.
+// TODO: This registry is process-local. Multiple lobby instances behind a load balancer cannot
+// deliver messages across instances. To horizontally scale, introduce a pub/sub broker (e.g.
+// Redis pub/sub or NATS) between the router and this registry.
 static CONNECTIONS: LazyLock<DashMap<Uuid, Vec<SessionConnections>>> = LazyLock::new(DashMap::new);
 
 struct SessionConnections {

@@ -4,7 +4,7 @@ use crate::input::{
 };
 use crate::window;
 use crate::window::draw::BORDER_GAP;
-use crate::window::state::{WINDOW_LAYERS, WindowLayer};
+use crate::window::state::{WindowLayer, window_layers};
 use raylib::consts::KeyboardKey;
 use raylib::math::Rectangle;
 use raylib::prelude::{RaylibDrawHandle, Vector2};
@@ -70,7 +70,7 @@ pub trait Window: ScrollHandler + ClickHandler + HoverHandler + KeyPressHandler 
 }
 
 pub fn any_window_open() -> bool {
-    for window in WINDOW_LAYERS {
+    for window in window_layers() {
         let window: RwLockReadGuard<dyn Window> = window.read().unwrap();
         if window.is_open() {
             return true;
@@ -109,13 +109,14 @@ pub fn side_button_rectangle(window: &dyn Window, button_index: i16) -> Rectangl
 #[cfg(test)]
 mod tests {
     use crate::window::Window;
-    use crate::window::state::WINDOW_LAYERS;
+    use crate::window::state::window_layers;
     use std::sync::RwLockReadGuard;
 
     #[test]
     fn validate_window_layers() {
-        for i in 0..WINDOW_LAYERS.len() {
-            let window: RwLockReadGuard<dyn Window> = WINDOW_LAYERS[i].read().unwrap();
+        let layers = window_layers();
+        for i in 0..layers.len() {
+            let window: RwLockReadGuard<dyn Window> = layers[i].read().unwrap();
             debug_assert_eq!(i as u8, window.layer() as u8);
         }
     }

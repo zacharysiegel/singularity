@@ -5,8 +5,19 @@ edition = "2024"
 
 [dependencies]
 shared = { path = "../shared" }
+
 log = { workspace = true }
 env_logger = { workspace = true }
 tokio = { workspace = true }
+tokio-tungstenite = { workspace = true }
+futures = { workspace = true }
 socket2 = { workspace = true }
 raylib = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+rmp-serde = { workspace = true }
+reqwest = { workspace = true }
+http = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+dotenvy = { workspace = true }

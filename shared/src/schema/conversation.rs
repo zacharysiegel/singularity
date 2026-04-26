@@ -34,3 +34,10 @@ pub struct ConversationMemberSerial {
     pub entered: DateTime<Utc>,
     pub exited: Option<DateTime<Utc>>,
 }
+
+#[derive(Debug, Clone)]
+pub struct ConversationMemberChange {
+    pub conversation_id: Uuid,
+    pub account_id: Uuid,
+    pub timestamp: DateTime<Utc>,
+}

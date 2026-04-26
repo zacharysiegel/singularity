@@ -3,9 +3,35 @@
 //! Events are sent from the server to the client.
 
 use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter};
 use uuid::Uuid;
 
 use super::conversation_message::ConversationMessageSerial;
+
+#[derive(Debug, Clone, Copy)]
+pub enum ConnectionType {
+    Live,
+    Lobby,
+}
+
+impl Display for ConnectionType {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result {
+        let connection_type_name: &str = match self {
+            ConnectionType::Live => "live",
+            ConnectionType::Lobby => "lobby",
+        };
+        write!(formatter, "{}", connection_type_name)
+    }
+}
+
+impl ConnectionType {
+    pub fn ws_path(&self) -> &'static str {
+        match self {
+            ConnectionType::Lobby => "/ws/lobby",
+            ConnectionType::Live => "/ws/live",
+        }
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]

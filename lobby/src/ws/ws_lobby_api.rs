@@ -3,7 +3,7 @@ use sqlx::PgPool;
 
 use crate::lobby_error::LobbyError;
 use crate::session::session_extractor::AuthenticatedAccount;
-use crate::ws::connection_type::ConnectionType;
+use shared::schema::ws_message::ConnectionType;
 use crate::ws::handle;
 
 const CONNECTION_TYPE: ConnectionType = ConnectionType::Lobby;
