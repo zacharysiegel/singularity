@@ -10,7 +10,7 @@ use std::sync::RwLockReadGuard;
 
 pub fn key_press(rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
     if key == KeyboardKey::KEY_ESCAPE {
-        STATE.stage.switch.register_next(StageType::Title);
+        STATE.stage.register_next(StageType::Title);
         return KeyPressResult::Consume;
     }
 
