@@ -18,12 +18,6 @@ impl ConversationState {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub struct ConversationEventKey {
-    pub timestamp: DateTime<Utc>,
-    pub account_id: Uuid,
-}
-
 #[derive(Debug)]
 pub struct ConversationLog {
     /// Events are stored in a BTreeMap keyed by (timestamp, account_id) so they are always sorted
@@ -39,6 +33,12 @@ impl ConversationLog {
             events: BTreeMap::new(),
         }
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct ConversationEventKey {
+    pub timestamp: DateTime<Utc>,
+    pub account_id: Uuid,
 }
 
 #[derive(Debug)]
