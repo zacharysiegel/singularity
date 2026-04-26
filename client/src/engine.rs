@@ -32,9 +32,9 @@ fn update(rl: &mut RaylibHandle, rl_thread: &RaylibThread) {
         handle_stage_transition(previous_stage, current_stage);
     }
 
-    let mut current_stage_guard: RwLockWriteGuard<StageType> = STATE.stage.switch.current.write().unwrap();
-    current_stage_guard.update(rl);
-    drop(current_stage_guard);
+    let mut current_stage_g: RwLockWriteGuard<StageType> = STATE.stage.switch.current.write().unwrap();
+    current_stage_g.update(rl);
+    drop(current_stage_g);
 
     input::handle_user_input(rl);
 }
@@ -73,6 +73,8 @@ pub fn init() -> Result<(RaylibHandle, RaylibThread), AppError> {
 
     if RuntimeEnvironment::default().is_debug() {
         init_debug_ws();
+    } else {
+        // TODO: authenticate via login UI, then connect lobby WS with the real session token
     }
 
     unsafe {
