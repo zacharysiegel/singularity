@@ -1,4 +1,4 @@
-use shared::schema::ws_message::WsRequest;
+use shared::schema::ws_message::{ConnectionType, WsRequest};
 use std::sync::RwLock;
 use tokio::sync::mpsc::Sender;
 
@@ -12,8 +12,8 @@ pub struct WsState {
     pub token: RwLock<Option<String>>,
 }
 
-impl WsState {
-    pub fn new() -> Self {
+impl Default for WsState {
+    fn default() -> Self {
         WsState {
             lobby_sender: RwLock::new(None),
             live_sender: RwLock::new(None),
@@ -21,11 +21,16 @@ impl WsState {
             token: RwLock::new(None),
         }
     }
+}
 
-    pub fn sender(&self, connection_type: shared::schema::ws_message::ConnectionType) -> &RwLock<Option<Sender<WsRequest>>> {
+impl WsState {
+    pub fn sender(
+        &self,
+        connection_type: ConnectionType,
+    ) -> &RwLock<Option<Sender<WsRequest>>> {
         match connection_type {
-            shared::schema::ws_message::ConnectionType::Lobby => &self.lobby_sender,
-            shared::schema::ws_message::ConnectionType::Live => &self.live_sender,
+            ConnectionType::Lobby => &self.lobby_sender,
+            ConnectionType::Live => &self.live_sender,
         }
     }
 }
