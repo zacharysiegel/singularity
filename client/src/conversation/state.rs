@@ -5,10 +5,16 @@ use std::sync::RwLock;
 use uuid::Uuid;
 
 #[derive(Debug)]
-pub enum ConversationEvent {
-    Chat(ConversationMessage),
-    MemberJoined(ConversationMemberChange),
-    MemberLeft(ConversationMemberChange),
+pub struct ConversationState {
+    pub conversations: RwLock<HashMap<Uuid, ConversationLog>>,
+}
+
+impl ConversationState {
+    pub fn new() -> Self {
+        ConversationState {
+            conversations: RwLock::new(HashMap::new()),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -25,14 +31,8 @@ impl ConversationLog {
 }
 
 #[derive(Debug)]
-pub struct ConversationState {
-    pub conversations: RwLock<HashMap<Uuid, ConversationLog>>,
-}
-
-impl ConversationState {
-    pub fn new() -> Self {
-        ConversationState {
-            conversations: RwLock::new(HashMap::new()),
-        }
-    }
+pub enum ConversationEvent {
+    Chat(ConversationMessage),
+    MemberJoined(ConversationMemberChange),
+    MemberLeft(ConversationMemberChange),
 }
