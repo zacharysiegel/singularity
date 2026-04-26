@@ -154,7 +154,15 @@ async fn connect_once(
             }
             _ = &mut *shutdown_receiver => {
                 log::info!("WebSocket shutdown signal received [{connection_type}]");
-                let _ = ws_sink.close().await;
+                let close_result = ws_sink.send(Message::Close(None)).await;
+
+                // Wait for the server's Close response before dropping the stream
+                while let Some(message) = event_stream.next().await {
+                    if matches!(message, Ok(Message::Close(_))) {
+                        break;
+                    }
+                }
+
                 return ConnectionResult::Shutdown;
             }
         }
