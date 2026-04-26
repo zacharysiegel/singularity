@@ -1,5 +1,6 @@
 use std::sync::Arc;
 use shared::error::AppError;
+use shared::schema::conversation_message::ConversationMessageSerial;
 use shared::schema::ws_message::{WsRequest, WsEvent};
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -43,7 +44,8 @@ async fn handle_chat(
         content,
     ).await?;
 
-    let ws_event: WsEvent = message_entity.to_ws_event();
+    let message_serial: ConversationMessageSerial = ConversationMessageSerial::from(&message_entity);
+    let ws_event: WsEvent = message_serial.to_ws_event();
     let member_ids: Vec<Uuid> = conversation_db::get_active_member_ids(pool, conversation_id).await?;
 
     connection_registry::send_to_accounts(&member_ids, connection_type, &Arc::new(ws_event));
