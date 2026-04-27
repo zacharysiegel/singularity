@@ -1,7 +1,7 @@
 use crate::config::APPLICATION_NAME;
 use crate::stage::StageType;
 use crate::state::STATE;
-use crate::{connect, input, shader, stage, texture, title, ws};
+use crate::{input, network, shader, stage, texture, title, ws};
 use raylib::callbacks::TraceLogLevel;
 use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
@@ -10,12 +10,9 @@ use raylib::{RaylibHandle, RaylibThread};
 use shared::color::{MAP_BACKGROUND_COLOR, TEXT_COLOR};
 use shared::environment::RuntimeEnvironment;
 use shared::error::AppError;
-use shared::network::connection::BUFFER_SIZE;
-use shared::network::ring_buffer::RingBuffer;
-use std::sync::{Arc, RwLockReadGuard, RwLockWriteGuard};
+use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 use std::time;
 use time::Instant;
-use tokio::sync::RwLock;
 
 pub const TARGET_FPS: u8 = 60;
 pub const DISPLAY_WIDTH: u16 = 1600;
@@ -45,8 +42,7 @@ fn draw(rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
 }
 
 pub fn init() -> Result<(RaylibHandle, RaylibThread), AppError> {
-    let _: Arc<RwLock<RingBuffer<u8, { BUFFER_SIZE }>>> = connect::connect()?;
-    ws::init::init();
+    network::init::init();
 
     unsafe {
         log::info!("OpenGL version: {}", rlGetVersion());
