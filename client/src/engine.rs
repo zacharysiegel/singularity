@@ -46,12 +46,7 @@ fn draw(rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
 
 pub fn init() -> Result<(RaylibHandle, RaylibThread), AppError> {
     let _: Arc<RwLock<RingBuffer<u8, { BUFFER_SIZE }>>> = connect::connect()?;
-
-    if RuntimeEnvironment::default().is_debug() {
-        init_debug_ws();
-    } else {
-        // TODO: authenticate via login UI, then connect lobby WS with the real session token
-    }
+    ws::init::init();
 
     unsafe {
         log::info!("OpenGL version: {}", rlGetVersion());
@@ -88,24 +83,6 @@ pub fn init() -> Result<(RaylibHandle, RaylibThread), AppError> {
     title::init_title(&mut rl);
 
     Ok((rl, rl_thread))
-}
-
-fn init_debug_ws() {
-    tokio::spawn(async move {
-        let runtime_env: RuntimeEnvironment = RuntimeEnvironment::default();
-        let auth: Result<String, AppError> = ws::auth::debug_authenticate(&runtime_env.lobby_http_origin()).await;
-
-        match auth {
-            Ok(token) => {
-                log::info!("Debug authentication successful");
-                *STATE.ws.token.write().unwrap() = Some(token.clone());
-                ws::connect_lobby(&runtime_env.lobby_ws_origin(), &token);
-            }
-            Err(error) => {
-                log::error!("Debug authentication failed: {error}");
-            }
-        }
-    });
 }
 
 pub async fn destroy(rl: RaylibHandle) -> Result<(), AppError> {
