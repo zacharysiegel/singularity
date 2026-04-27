@@ -8,7 +8,6 @@ pub fn handle_stage_transition(previous_stage: Option<StageType>, current_stage:
     let Some(previous_stage) = previous_stage else {
         return;
     };
-
     log::info!("Stage transition: {previous_stage:?} -> {current_stage:?}");
 
     let runtime_environment: RuntimeEnvironment = RuntimeEnvironment::default();
