@@ -14,6 +14,7 @@ async fn main() -> Result<(), AppError> {
     env_logger::builder()
         .filter_level(LevelFilter::Debug)
         .format_source_path(true)
+        .format_timestamp_millis()
         .try_init()
         .map_err(|e| AppError::from_error(&e.to_string(), Box::new(e)))?;
 
