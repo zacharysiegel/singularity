@@ -91,19 +91,15 @@ pub fn init() -> Result<(RaylibHandle, RaylibThread), AppError> {
 }
 
 fn init_debug_ws() {
-    let runtime_environment: RuntimeEnvironment = RuntimeEnvironment::default();
-    let lobby_url: &str = runtime_environment.get_lobby_http_url();
-    let lobby_ws_url: &str = runtime_environment.get_lobby_ws_url();
-
     tokio::spawn(async move {
-        let lobby_url: String = lobby_url.to_string();
-        let lobby_ws_url: String = lobby_ws_url.to_string();
+        let runtime_env: RuntimeEnvironment = RuntimeEnvironment::default();
+        let auth: Result<String, AppError> = ws::auth::debug_authenticate(&runtime_env.lobby_http_origin()).await;
 
-        match ws::auth::debug_authenticate(&lobby_url).await {
+        match auth {
             Ok(token) => {
                 log::info!("Debug authentication successful");
                 *STATE.ws.token.write().unwrap() = Some(token.clone());
-                ws::connect_lobby(&lobby_ws_url, &token);
+                ws::connect_lobby(&runtime_env.lobby_ws_origin(), &token);
             }
             Err(error) => {
                 log::error!("Debug authentication failed: {error}");

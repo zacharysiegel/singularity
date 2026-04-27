@@ -11,17 +11,17 @@ static LIVE_SHUTDOWN: Mutex<Option<oneshot::Sender<()>>> = Mutex::new(None);
 static LOBBY_HANDLE: Mutex<Option<JoinHandle<()>>> = Mutex::new(None);
 static LIVE_HANDLE: Mutex<Option<JoinHandle<()>>> = Mutex::new(None);
 
-pub fn connect_lobby(base_url: &str, token: &str) {
+pub fn connect_lobby(origin: &str, token: &str) {
     let (shutdown_sender, shutdown_receiver): (oneshot::Sender<()>, oneshot::Receiver<()>) = oneshot::channel();
     *LOBBY_SHUTDOWN.lock().unwrap() = Some(shutdown_sender);
-    let join_handle: JoinHandle<()> = connection::spawn_ws(base_url, token, ConnectionType::Lobby, shutdown_receiver);
+    let join_handle: JoinHandle<()> = connection::spawn_ws(origin, token, ConnectionType::Lobby, shutdown_receiver);
     *LOBBY_HANDLE.lock().unwrap() = Some(join_handle);
 }
 
-pub fn connect_live(base_url: &str, token: &str) {
+pub fn connect_live(origin: &str, token: &str) {
     let (shutdown_sender, shutdown_receiver): (oneshot::Sender<()>, oneshot::Receiver<()>) = oneshot::channel();
     *LIVE_SHUTDOWN.lock().unwrap() = Some(shutdown_sender);
-    let join_handle: JoinHandle<()> = connection::spawn_ws(base_url, token, ConnectionType::Live, shutdown_receiver);
+    let join_handle: JoinHandle<()> = connection::spawn_ws(origin, token, ConnectionType::Live, shutdown_receiver);
     *LIVE_HANDLE.lock().unwrap() = Some(join_handle);
 }
 
