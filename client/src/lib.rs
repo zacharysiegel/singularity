@@ -20,3 +20,4 @@ pub mod browser;
 pub mod locked_switch;
 pub mod text_box;
 pub mod ws;
+pub mod network;
