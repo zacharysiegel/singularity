@@ -1,6 +1,7 @@
 use shared::schema::ws_message::{ConnectionType, WsRequest};
 use std::sync::RwLock;
 use tokio::sync::mpsc::Sender;
+use crate::state::STATE;
 
 pub const OUTBOUND_BUFFER_CAPACITY: usize = 512;
 
@@ -32,5 +33,13 @@ impl WsState {
             ConnectionType::Lobby => &self.lobby_sender,
             ConnectionType::Live => &self.live_sender,
         }
+    }
+
+    pub fn is_lobby_connected(&self) -> bool {
+        self.lobby_sender.read().unwrap().is_some()
+    }
+
+    pub fn is_live_connected(&self) -> bool {
+        self.live_sender.read().unwrap().is_some()
     }
 }

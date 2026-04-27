@@ -68,11 +68,3 @@ pub fn send_live(request: WsRequest) -> bool {
         None => false,
     }
 }
-
-pub fn is_lobby_connected() -> bool {
-    STATE.ws.lobby_sender.read().unwrap().is_some()
-}
-
-pub fn is_live_connected() -> bool {
-    STATE.ws.live_sender.read().unwrap().is_some()
-}
