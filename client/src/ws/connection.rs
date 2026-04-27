@@ -17,7 +17,7 @@ pub fn spawn_ws(
     connection_type: ConnectionType,
     mut shutdown_receiver: oneshot::Receiver<()>,
 ) -> tokio::task::JoinHandle<()> {
-    let url: String = format!("{}{}", origin, connection_type.ws_sub_path());
+    let url: String = format!("{}{}", origin, connection_type.ws_subpath());
     let token: String = token.to_string();
 
     tokio::spawn(async move {

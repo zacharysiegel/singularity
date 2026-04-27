@@ -25,7 +25,7 @@ impl Display for ConnectionType {
 }
 
 impl ConnectionType {
-    pub fn ws_sub_path(&self) -> String {
+    pub fn ws_subpath(&self) -> String {
         format!("/{}", self.to_string())
     }
 }
