@@ -12,12 +12,12 @@ const BACKOFF_INITIAL: Duration = Duration::from_secs(1);
 const BACKOFF_MAX: Duration = Duration::from_secs(30);
 
 pub fn spawn_ws(
-    base_url: &str,
+    origin: &str,
     token: &str,
     connection_type: ConnectionType,
     mut shutdown_receiver: oneshot::Receiver<()>,
 ) -> tokio::task::JoinHandle<()> {
-    let url: String = format!("{}{}", base_url, connection_type.ws_path());
+    let url: String = format!("{}{}", origin, connection_type.ws_sub_path());
     let token: String = token.to_string();
 
     tokio::spawn(async move {

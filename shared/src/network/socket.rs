@@ -7,8 +7,8 @@ use std::time::Duration;
 
 pub fn get_sock_addr() -> Result<SockAddr, AppError> {
     let runtime_env: RuntimeEnvironment = RuntimeEnvironment::default();
-    let address: &str = runtime_env.get_address();
-    let socket_addr: SocketAddr = SocketAddr::from_str(address).map_err(|err| {
+    let address: String = runtime_env.game_address();
+    let socket_addr: SocketAddr = SocketAddr::from_str(&address).map_err(|err| {
         AppError::from_error(
             &format!("Error translating address string; [{}]", address),
             Box::new(err),

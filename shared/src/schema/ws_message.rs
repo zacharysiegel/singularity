@@ -2,11 +2,11 @@
 //! Requests are sent from the client to the server.
 //! Events are sent from the server to the client.
 
+use super::conversation_message::ConversationMessageSerial;
+use crate::schema::conversation::ConversationMemberChangeSerial;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use uuid::Uuid;
-use crate::schema::conversation::ConversationMemberChangeSerial;
-use super::conversation_message::ConversationMessageSerial;
 
 #[derive(Debug, Clone, Copy)]
 pub enum ConnectionType {
@@ -25,21 +25,15 @@ impl Display for ConnectionType {
 }
 
 impl ConnectionType {
-    pub fn ws_path(&self) -> &'static str {
-        match self {
-            ConnectionType::Lobby => "/ws/lobby",
-            ConnectionType::Live => "/ws/live",
-        }
+    pub fn ws_sub_path(&self) -> String {
+        format!("/{}", self.to_string())
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum WsRequest {
-    Chat {
-        conversation_id: Uuid,
-        content: String,
-    },
+    Chat { conversation_id: Uuid, content: String },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -48,7 +42,5 @@ pub enum WsEvent {
     Chat(ConversationMessageSerial),
     MemberJoined(ConversationMemberChangeSerial),
     MemberLeft(ConversationMemberChangeSerial),
-    Error {
-        message: String,
-    },
+    Error { message: String },
 }

@@ -55,34 +55,53 @@ impl RuntimeEnvironment {
         RuntimeEnvironment::try_from(dotenvy::var("RUNTIME_ENVIRONMENT").unwrap_or(String::from("local")))
     }
 
-    pub fn get_address(&self) -> &'static str {
+    pub fn lobby_host(&self) -> &'static str {
         match self {
-            RuntimeEnvironment::Local => "0.0.0.0:1443",
-            RuntimeEnvironment::Stage => "0.0.0.0:1443",      // todo
-            RuntimeEnvironment::Production => "0.0.0.0:1443", // todo
+            RuntimeEnvironment::Local => "0.0.0.0",
+            RuntimeEnvironment::Stage => "0.0.0.0",      // todo
+            RuntimeEnvironment::Production => "0.0.0.0", // todo
         }
     }
 
-    pub fn get_lobby_http_url(&self) -> &'static str {
+    pub fn lobby_port(&self) -> &'static str {
         match self {
-            RuntimeEnvironment::Local => "http://127.0.0.1:10000",
-            RuntimeEnvironment::Stage => "http://127.0.0.1:10000",      // todo
-            RuntimeEnvironment::Production => "http://127.0.0.1:10000", // todo
+            RuntimeEnvironment::Local => "10000",
+            RuntimeEnvironment::Stage => "10000",      // todo
+            RuntimeEnvironment::Production => "10000", // todo
         }
     }
 
-    pub fn get_lobby_ws_url(&self) -> &'static str {
+    pub fn game_host(&self) -> &'static str {
         match self {
-            RuntimeEnvironment::Local => "ws://127.0.0.1:10000",
-            RuntimeEnvironment::Stage => "ws://127.0.0.1:10000",      // todo
-            RuntimeEnvironment::Production => "ws://127.0.0.1:10000", // todo
+            RuntimeEnvironment::Local => "0.0.0.0",
+            RuntimeEnvironment::Stage => "0.0.0.0",      // todo
+            RuntimeEnvironment::Production => "0.0.0.0", // todo
         }
+    }
+
+    pub fn game_port(&self) -> &'static str {
+        match self {
+            RuntimeEnvironment::Local => "1443",
+            RuntimeEnvironment::Stage => "1443",      // todo
+            RuntimeEnvironment::Production => "1443", // todo
+        }
+    }
+
+    pub fn game_address(&self) -> String {
+        format!("{}:{}", self.game_host(), self.game_port())
+    }
+
+    pub fn lobby_http_origin(&self) -> String {
+        format!("http://{}:{}", self.lobby_host(), self.lobby_port())
+    }
+
+    pub fn lobby_ws_origin(&self) -> String {
+        format!("ws://{}:{}", self.lobby_host(), self.lobby_port())
     }
 
     pub fn is_debug(&self) -> bool {
         match self {
-            RuntimeEnvironment::Local => true,
-            RuntimeEnvironment::Stage => true,
+            RuntimeEnvironment::Local | RuntimeEnvironment::Stage => true,
             RuntimeEnvironment::Production => false,
         }
     }

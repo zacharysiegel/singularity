@@ -12,14 +12,14 @@ pub fn handle_stage_transition(previous_stage: Option<StageType>, current_stage:
     log::info!("Stage transition: {previous_stage:?} -> {current_stage:?}");
 
     let runtime_environment: RuntimeEnvironment = RuntimeEnvironment::default();
-    let lobby_ws_url: &str = runtime_environment.get_lobby_ws_url();
+    let lobby_ws_url: String = runtime_environment.lobby_ws_origin();
 
     match (previous_stage, current_stage) {
         (_, StageType::Game) => {
             // TODO: catch up on in-game chat history via REST before WS delivers new events
             let token_guard: RwLockReadGuard<Option<String>> = STATE.ws.token.read().unwrap();
             if let Some(token) = &*token_guard {
-                ws::connect_live(lobby_ws_url, token);
+                ws::connect_live(&lobby_ws_url, token);
             }
         }
         (StageType::Game, _) => {
