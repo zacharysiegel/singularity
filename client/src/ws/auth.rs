@@ -18,8 +18,7 @@ async fn create_account(lobby_url: &str, password: &str) -> Result<(), AppError>
         .post(&url)
         .json(&create_request)
         .send()
-        .await
-        .map_err(|error| AppError::new(&format!("create account request failed: {error}")))?;
+        .await?;
 
     if !response.status().is_success() {
         return Err(AppError::new(&format!(
@@ -42,8 +41,7 @@ async fn login(lobby_url: &str, password: &str) -> Result<String, AppError> {
         .post(&url)
         .json(&login_request)
         .send()
-        .await
-        .map_err(|error| AppError::new(&format!("login request failed: {error}")))?;
+        .await?;
 
     if !response.status().is_success() {
         return Err(AppError::new(&format!(
@@ -52,12 +50,9 @@ async fn login(lobby_url: &str, password: &str) -> Result<String, AppError> {
         )));
     }
 
-    let body: serde_json::Value = response
-        .json()
-        .await
-        .map_err(|error| AppError::new(&format!("failed to parse login response: {error}")))?;
-
-    let token: &str = body["token"].as_str().ok_or_else(|| AppError::new("login response missing token field"))?;
+    let body: serde_json::Value = response.json().await?;
+    let token: &str = body["token"].as_str()
+        .ok_or_else(|| AppError::new("login response missing token field"))?;
 
     Ok(token.to_string())
 }
