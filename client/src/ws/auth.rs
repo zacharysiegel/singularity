@@ -5,6 +5,7 @@ use shared::schema::session::LoginRequest;
 
 const DEBUG_USERNAME: &str = "debug";
 const DEBUG_EMAIL: &str = "singularity-debug@zach.ro";
+const DEBUG_ACCOUNT_PASSWORD_KEY: &str = "DEBUG_ACCOUNT_PASSWORD";
 
 async fn create_account(lobby_url: &str, password: &str) -> Result<(), AppError> {
     let url: String = format!("{}/account", lobby_url);
@@ -22,11 +23,11 @@ async fn create_account(lobby_url: &str, password: &str) -> Result<(), AppError>
 
     if !response.status().is_success() {
         return Err(AppError::new(&format!(
-            "create account failed with status {}",
-            response.status()
+            "create account failed with status {}; [{}]",
+            response.status(),
+            response.text().await?
         )));
     }
-
     Ok(())
 }
 
@@ -57,16 +58,16 @@ async fn login(lobby_url: &str, password: &str) -> Result<String, AppError> {
     Ok(token.to_string())
 }
 
-pub async fn debug_authenticate(lobby_url: &str) -> Result<String, AppError> {
-    let password: String = dotenvy::var("DEBUG_ACCOUNT_PASSWORD")
-        .map_err(|error| AppError::new(&format!("DEBUG_ACCOUNT_PASSWORD not set: {error}")))?;
+pub async fn debug_authenticate(lobby_http_origin: &str) -> Result<String, AppError> {
+    let password: String = dotenvy::var(DEBUG_ACCOUNT_PASSWORD_KEY)
+        .map_err(|error| AppError::new(&format!("{DEBUG_ACCOUNT_PASSWORD_KEY} not set; [{error}]")))?;
 
-    let first_login: Option<String> = login(lobby_url, &password).await.ok();
-    if let Some(token) = first_login {
+    let token: Option<String> = login(lobby_http_origin, &password).await.ok();
+    if let Some(token) = token {
         return Ok(token);
     }
 
     log::info!("Debug account does not exist, creating it");
-    create_account(lobby_url, &password).await?;
-    login(lobby_url, &password).await
+    create_account(lobby_http_origin, &password).await?;
+    login(lobby_http_origin, &password).await
 }

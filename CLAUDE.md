@@ -78,3 +78,4 @@ The client has three stages: Title (main menu), Browser (game list), and Game (g
 - `RwLock` and `Mutex` poison errors (`PoisonError`) are unconditionally unwrapped via `.unwrap()` or `.expect()` in the client crate. A poisoned lock means a thread panicked — propagating is the only sane response. Do not handle `PoisonError` gracefully.
 - `mod.rs` files should only declare submodules and re-export. Do not put logic, statics, or function definitions in `mod.rs` — move them to a named file within the module.
 - Use one-line commit messages. No multi-line bodies.
+- Format log/error messages as `"<message>; [<data>] [<data_2>]"` not `"<message>: <data>"`. Semicolon separates the message from contextual data, and each data value is bracketed.
