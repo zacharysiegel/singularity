@@ -7,6 +7,7 @@ pub mod enums;
 pub mod environment;
 pub mod error;
 pub mod facility;
+pub mod http;
 pub mod map;
 pub mod math;
 pub mod network;

@@ -2,9 +2,7 @@ use actix_web::http::{StatusCode, header};
 use actix_web::{HttpRequest, HttpResponse};
 use serde::Serialize;
 use shared::error::AppError;
-
-const CONTENT_TYPE_JSON: &str = "application/json";
-const CONTENT_TYPE_MSGPACK: &str = "application/msgpack";
+use shared::http::{CONTENT_TYPE_JSON, CONTENT_TYPE_MSGPACK};
 
 pub fn serialize_response<T: Serialize>(request: &HttpRequest, body: &T) -> HttpResponse {
     serialize_response_with_status(request, body, StatusCode::OK)
