@@ -5,6 +5,7 @@ edition = "2024"
 
 [features]
 sqlx = ["dep:sqlx"]
+reqwest = ["dep:reqwest"]
 
 [dependencies]
 rand = { workspace = true }
@@ -21,3 +22,4 @@ serde = { workspace = true }
 chrono = { workspace = true }
 
 sqlx = { workspace = true, optional = true }
+reqwest = { workspace = true, optional = true }

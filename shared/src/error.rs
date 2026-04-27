@@ -163,3 +163,6 @@ impl_from_error!(base64::DecodeError);
 
 #[cfg(feature = "sqlx")]
 impl_from_error!(sqlx::Error);
+
+#[cfg(feature = "reqwest")]
+impl_from_error!(reqwest::Error);
