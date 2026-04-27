@@ -1,3 +1,4 @@
+use crate::state::HTTP_CLIENT;
 use shared::error::AppError;
 use shared::schema::account::CreateAccountRequest;
 use shared::schema::session::LoginRequest;
@@ -13,8 +14,7 @@ async fn create_account(lobby_url: &str, password: &str) -> Result<(), AppError>
         password: password.to_string(),
     };
 
-    let client: reqwest::Client = reqwest::Client::new();
-    let response: reqwest::Response = client
+    let response: reqwest::Response = HTTP_CLIENT
         .post(&url)
         .json(&create_request)
         .send()
@@ -38,8 +38,7 @@ async fn login(lobby_url: &str, password: &str) -> Result<String, AppError> {
         password: password.to_string(),
     };
 
-    let client: reqwest::Client = reqwest::Client::new();
-    let response: reqwest::Response = client
+    let response: reqwest::Response = HTTP_CLIENT
         .post(&url)
         .json(&login_request)
         .send()

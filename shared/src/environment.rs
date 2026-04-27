@@ -7,6 +7,7 @@ use std::string::ToString;
 use std::sync::LazyLock;
 
 use crate::error::AppError;
+use crate::http::{CONTENT_TYPE_JSON, CONTENT_TYPE_MSGPACK};
 
 static RUNTIME_ENVIRONMENT_DEFAULT: LazyLock<RuntimeEnvironment> =
     LazyLock::new(|| RuntimeEnvironment::from_env().unwrap_or(RuntimeEnvironment::Local));
@@ -103,6 +104,14 @@ impl RuntimeEnvironment {
         match self {
             RuntimeEnvironment::Local | RuntimeEnvironment::Stage => true,
             RuntimeEnvironment::Production => false,
+        }
+    }
+
+    pub fn content_type(&self) -> &'static str {
+        if RuntimeEnvironment::default().is_debug() {
+            CONTENT_TYPE_JSON
+        } else {
+            CONTENT_TYPE_MSGPACK
         }
     }
 }
