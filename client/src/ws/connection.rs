@@ -1,4 +1,3 @@
-use std::ops::DerefMut;
 use futures::{SinkExt, StreamExt};
 use futures::stream::SplitSink;
 use futures::stream::SplitStream;
@@ -9,9 +8,8 @@ use tokio::sync::{mpsc, oneshot};
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 use tokio_tungstenite::tungstenite::Message;
 
-use crate::state::STATE;
 use crate::ws::state::OUTBOUND_BUFFER_CAPACITY;
-use super::route;
+use super::{route, state};
 
 const BACKOFF_INITIAL: Duration = Duration::from_secs(1);
 const BACKOFF_MAX: Duration = Duration::from_secs(30);
@@ -47,7 +45,7 @@ pub fn spawn_ws(
                     break;
                 }
                 ConnectionResult::Disconnected { was_connected } => {
-                    clear_sender(connection_type);
+                    state::clear_sender(connection_type);
 
                     if was_connected {
                         backoff = BACKOFF_INITIAL;
@@ -60,7 +58,7 @@ pub fn spawn_ws(
             }
         }
 
-        clear_sender(connection_type);
+        state::clear_sender(connection_type);
         log::info!("WebSocket [{connection_type}] task ended");
     })
 }
@@ -94,7 +92,7 @@ async fn connect_once(
     let (request_sender, mut request_receiver): (mpsc::Sender<WsRequest>, mpsc::Receiver<WsRequest>) =
         mpsc::channel(OUTBOUND_BUFFER_CAPACITY);
 
-    set_sender(connection_type, request_sender);
+    state::set_sender(connection_type, request_sender);
 
     let mut shutdown_triggered: bool = false;
 
@@ -219,14 +217,4 @@ async fn handle_shutdown(
     }
 
     false
-}
-
-fn set_sender(connection_type: ConnectionType, sender: mpsc::Sender<WsRequest>) {
-    let mut guard = STATE.ws.sender(connection_type).write().unwrap();
-    *guard = Some(sender);
-}
-
-fn clear_sender(connection_type: ConnectionType) {
-    let mut guard = STATE.ws.sender(connection_type).write().unwrap();
-    *guard = None;
 }
