@@ -6,7 +6,7 @@ use shared::environment::RuntimeEnvironment;
 use shared::primitive::LoopAction;
 use shared::schema::ws_message::{ConnectionType, WsEvent, WsRequest};
 use tokio::net::TcpStream;
-use tokio_tungstenite::tungstenite::{Error, Message};
+use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 
 use super::route;
