@@ -35,7 +35,8 @@ impl WsTaskHandle {
 
     fn signal_shutdown(&self) {
         if let Some(sender) = self.shutdown.lock().unwrap().take() {
-            if sender.send(()).is_err() {
+            let result: Result<(), ()> = sender.send(());
+            if result.is_err() {
                 log::warn!("WS shutdown signal failed; receiver already dropped [{}]", self.connection_type);
             }
         }
