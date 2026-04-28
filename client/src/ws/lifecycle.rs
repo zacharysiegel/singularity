@@ -3,37 +3,40 @@ use std::sync::Mutex;
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
 
-use crate::state::STATE;
 use super::connection;
+use crate::state::STATE;
 
-static LOBBY_TASK: WsTaskHandle = WsTaskHandle::new();
-static LIVE_TASK: WsTaskHandle = WsTaskHandle::new();
+static LOBBY_TASK: WsTaskHandle = WsTaskHandle::new(ConnectionType::Lobby);
+static LIVE_TASK: WsTaskHandle = WsTaskHandle::new(ConnectionType::Live);
+static ALL_TASKS: &[&WsTaskHandle] = &[&LIVE_TASK, &LIVE_TASK];
 
 struct WsTaskHandle {
+    connection_type: ConnectionType,
     shutdown: Mutex<Option<oneshot::Sender<()>>>,
     join: Mutex<Option<JoinHandle<()>>>,
 }
 
 impl WsTaskHandle {
-    const fn new() -> Self {
+    const fn new(connection_type: ConnectionType) -> Self {
         WsTaskHandle {
+            connection_type,
             shutdown: Mutex::new(None),
             join: Mutex::new(None),
         }
     }
 
-    fn start(&self, origin: &str, token: &str, connection_type: ConnectionType) {
+    fn start(&self, origin: &str, token: &str) {
         let (shutdown_sender, shutdown_receiver): (oneshot::Sender<()>, oneshot::Receiver<()>) = oneshot::channel();
         *self.shutdown.lock().unwrap() = Some(shutdown_sender);
 
-        let join_handle: JoinHandle<()> = connection::spawn_ws(origin, token, connection_type, shutdown_receiver);
+        let join_handle: JoinHandle<()> = connection::spawn_ws(origin, token, self.connection_type, shutdown_receiver);
         *self.join.lock().unwrap() = Some(join_handle);
     }
 
-    fn signal_shutdown(&self, connection_type: ConnectionType) {
+    fn signal_shutdown(&self) {
         if let Some(sender) = self.shutdown.lock().unwrap().take() {
             if sender.send(()).is_err() {
-                log::warn!("WS shutdown signal failed; receiver already dropped [{connection_type}]");
+                log::warn!("WS shutdown signal failed; receiver already dropped [{}]", self.connection_type);
             }
         }
     }
@@ -53,19 +56,18 @@ fn task(connection_type: ConnectionType) -> &'static WsTaskHandle {
 }
 
 pub fn connect(origin: &str, token: &str, connection_type: ConnectionType) {
-    task(connection_type).start(origin, token, connection_type);
+    task(connection_type).start(origin, token);
 }
 
 pub fn disconnect(connection_type: ConnectionType) {
-    task(connection_type).signal_shutdown(connection_type);
+    task(connection_type).signal_shutdown();
 }
 
 pub async fn shutdown() {
-    LOBBY_TASK.signal_shutdown(ConnectionType::Lobby);
-    LIVE_TASK.signal_shutdown(ConnectionType::Live);
-
-    LOBBY_TASK.await_task_end().await;
-    LIVE_TASK.await_task_end().await;
+    for task in ALL_TASKS {
+        task.signal_shutdown();
+        task.await_task_end().await;
+    }
 }
 
 pub fn send(connection_type: ConnectionType, request: WsRequest) -> bool {
