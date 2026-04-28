@@ -13,7 +13,7 @@ pub fn handle_stage_transition(previous_stage: Option<StageType>, current_stage:
 
     match (previous_stage, current_stage) {
         (_, StageType::Game) => {
-            // TODO: catch up on in-game chat history via REST before WS delivers new events
+            // TODO(ws-catchup): fetch in-game chat history via REST before WS delivers new events
             let runtime_environment: RuntimeEnvironment = RuntimeEnvironment::default();
             let lobby_ws_origin: String = runtime_environment.lobby_ws_origin();
             let token_guard: RwLockReadGuard<Option<String>> = STATE.ws.token.read().unwrap();
