@@ -1,0 +1,41 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        select conversation.id, conversation.game_id, conversation.name, conversation.created\n        from conversation\n        inner join conversation_member on conversation_member.conversation_id = conversation.id\n        where conversation.game_id = $1\n            and conversation_member.account_id = $2\n            and conversation_member.exited is null\n        order by conversation.created asc\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "game_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "created",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      false
+    ]
+  },
+  "hash": "e5064d21e3889dddf24a8cfd7c7c29b937941f447969d9066f2a338a4ea7a1e4"
+}

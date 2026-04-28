@@ -63,3 +63,8 @@ pub struct GameBrowserEntry {
 pub struct GameBrowserQuery {
     pub status: Option<i32>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateGameStatusRequest {
+    pub status: GameStatus,
+}
