@@ -1,7 +1,6 @@
 use shared::schema::ws_message::{ConnectionType, WsRequest};
 use std::sync::RwLock;
 use tokio::sync::mpsc::Sender;
-use crate::state::STATE;
 
 pub const OUTBOUND_BUFFER_CAPACITY: usize = 512;
 

@@ -2,6 +2,7 @@ use crate::state::STATE;
 use crate::{connect, ws};
 use shared::environment::RuntimeEnvironment;
 use shared::error::AppError;
+use shared::schema::ws_message::ConnectionType;
 
 pub fn init() {
     let runtime_env = RuntimeEnvironment::default();
@@ -21,6 +22,6 @@ pub fn init() {
             log::error!("game server connection failed");
             return;
         };
-        ws::connect_lobby(&runtime_env.lobby_ws_origin(), &token);
+        ws::connect(&runtime_env.lobby_ws_origin(), &token, ConnectionType::Lobby);
     });
 }
