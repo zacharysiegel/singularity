@@ -1,6 +1,8 @@
 use shared::schema::ws_message::{ConnectionType, WsRequest};
-use std::sync::RwLock;
+use std::sync::{RwLock, RwLockWriteGuard};
 use tokio::sync::mpsc::Sender;
+use tokio::sync::mpsc;
+use crate::state::STATE;
 
 pub const OUTBOUND_BUFFER_CAPACITY: usize = 512;
 
@@ -41,4 +43,16 @@ impl WsState {
     pub fn is_live_connected(&self) -> bool {
         self.live_sender.read().unwrap().is_some()
     }
+}
+
+pub fn set_sender(connection_type: ConnectionType, sender: mpsc::Sender<WsRequest>) {
+    let mut guard: RwLockWriteGuard<Option<mpsc::Sender<WsRequest>>> =
+        STATE.ws.sender(connection_type).write().unwrap();
+    *guard = Some(sender);
+}
+
+pub fn clear_sender(connection_type: ConnectionType) {
+    let mut guard: RwLockWriteGuard<Option<mpsc::Sender<WsRequest>>> =
+        STATE.ws.sender(connection_type).write().unwrap();
+    *guard = None;
 }
