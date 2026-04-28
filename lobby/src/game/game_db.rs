@@ -39,6 +39,25 @@ pub async fn get_game_by_id(pool: &PgPool, id: Uuid) -> Result<Option<GameEntity
     Ok(record)
 }
 
+pub async fn update_game_status(
+    pool: &PgPool,
+    game_id: Uuid,
+    status: i32,
+) -> Result<GameEntity, AppError> {
+    let record: GameEntity = sqlx::query_as!(
+        GameEntity,
+        "update game
+         set status = $2, updated = now()
+         where id = $1
+         returning *",
+        game_id,
+        status,
+    )
+    .fetch_one(pool)
+    .await?;
+    Ok(record)
+}
+
 pub async fn list_games(pool: &PgPool, status: Option<i32>) -> Result<Vec<GameBrowserRow>, AppError> {
     let records: Vec<GameBrowserRow> = sqlx::query_as!(
         GameBrowserRow,

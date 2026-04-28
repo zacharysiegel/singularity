@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select game_membership.account_id\n         from game_membership\n         where game_membership.game_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "account_id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "aede80d6eca1d168aeac7f162fc4436d63b79fe232dfcf0489b3f5dbc0e0fb8d"
+}

@@ -180,6 +180,71 @@ pub async fn get_conversations_by_account(
     Ok(conversation_entities)
 }
 
+pub async fn get_conversations_by_game(
+    pool: &PgPool,
+    game_id: Uuid,
+    account_id: Uuid,
+) -> Result<Vec<ConversationEntity>, AppError> {
+    let conversation_entities: Vec<ConversationEntity> = sqlx::query_as!(
+        ConversationEntity,
+        r#"
+        select conversation.id, conversation.game_id, conversation.name, conversation.created
+        from conversation
+        inner join conversation_member on conversation_member.conversation_id = conversation.id
+        where conversation.game_id = $1
+            and conversation_member.account_id = $2
+            and conversation_member.exited is null
+        order by conversation.created asc
+        "#,
+        game_id,
+        account_id,
+    )
+    .fetch_all(pool)
+    .await?;
+    Ok(conversation_entities)
+}
+
+/// Checks if a conversation already exists for the given game with exactly the given member set.
+pub async fn conversation_with_members_exists(
+    pool: &PgPool,
+    game_id: Uuid,
+    member_account_ids: &[Uuid],
+) -> Result<bool, AppError> {
+    let record = sqlx::query!(
+        r#"
+        select conversation.id
+        from conversation
+        where conversation.game_id = $1
+            and (
+                select count(*) from conversation_member
+                where conversation_member.conversation_id = conversation.id
+                    and conversation_member.exited is null
+            ) = $2
+            and not exists (
+                select 1 from conversation_member
+                where conversation_member.conversation_id = conversation.id
+                    and conversation_member.exited is null
+                    and conversation_member.account_id != all($3)
+            )
+            and not exists (
+                select 1 from unnest($3::uuid[]) as expected_id
+                where expected_id not in (
+                    select conversation_member.account_id from conversation_member
+                    where conversation_member.conversation_id = conversation.id
+                        and conversation_member.exited is null
+                )
+            )
+        limit 1
+        "#,
+        game_id,
+        member_account_ids.len() as i64,
+        member_account_ids,
+    )
+    .fetch_optional(pool)
+    .await?;
+    Ok(record.is_some())
+}
+
 pub async fn get_active_member_ids(
     pool: &PgPool,
     conversation_id: Uuid,

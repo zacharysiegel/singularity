@@ -50,3 +50,22 @@ pub async fn get_membership(
     .await?;
     Ok(record)
 }
+
+pub async fn get_member_account_ids(
+    pool: &PgPool,
+    game_id: Uuid,
+) -> Result<Vec<Uuid>, AppError> {
+    let member_id_records = sqlx::query!(
+        "select game_membership.account_id
+         from game_membership
+         where game_membership.game_id = $1",
+        game_id,
+    )
+    .fetch_all(pool)
+    .await?;
+    let member_ids: Vec<Uuid> = member_id_records
+        .into_iter()
+        .map(|record| record.account_id)
+        .collect();
+    Ok(member_ids)
+}
