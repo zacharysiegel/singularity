@@ -14,4 +14,5 @@ pub mod network;
 pub mod player;
 pub mod random;
 pub mod decrypt;
+pub mod primitive;
 pub mod schema;

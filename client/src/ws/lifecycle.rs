@@ -8,7 +8,7 @@ use crate::state::STATE;
 
 static LOBBY_TASK: WsTaskHandle = WsTaskHandle::new(ConnectionType::Lobby);
 static LIVE_TASK: WsTaskHandle = WsTaskHandle::new(ConnectionType::Live);
-static ALL_TASKS: &[&WsTaskHandle] = &[&LIVE_TASK, &LIVE_TASK];
+static ALL_TASKS: &[&WsTaskHandle] = &[&LOBBY_TASK, &LIVE_TASK];
 
 struct WsTaskHandle {
     connection_type: ConnectionType,
@@ -34,17 +34,28 @@ impl WsTaskHandle {
     }
 
     fn signal_shutdown(&self) {
-        if let Some(sender) = self.shutdown.lock().unwrap().take() {
-            let result: Result<(), ()> = sender.send(());
-            if result.is_err() {
-                log::warn!("WS shutdown signal failed; receiver already dropped [{}]", self.connection_type);
+        let sender: Option<oneshot::Sender<()>> = self.shutdown.lock().unwrap().take();
+        match sender {
+            Some(sender) => {
+                if sender.send(()).is_err() {
+                    log::warn!("WS shutdown signal failed; receiver already dropped [{}]", self.connection_type);
+                }
+            }
+            None => {
+                log::debug!("WS shutdown signal skipped; not connected [{}]", self.connection_type);
             }
         }
     }
 
     async fn await_task_end(&self) {
-        if let Some(handle) = self.join.lock().unwrap().take() {
-            let _ = handle.await;
+        let handle: Option<JoinHandle<()>> = self.join.lock().unwrap().take();
+        match handle {
+            Some(handle) => {
+                let _ = handle.await;
+            }
+            None => {
+                log::debug!("WS await_task_end skipped; no handle [{}]", self.connection_type);
+            }
         }
     }
 }
