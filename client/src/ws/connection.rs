@@ -11,8 +11,8 @@ use tokio_tungstenite::tungstenite::Message;
 use crate::ws::state::OUTBOUND_BUFFER_CAPACITY;
 use super::{route, state};
 
-const BACKOFF_INITIAL: Duration = Duration::from_secs(1);
-const BACKOFF_MAX: Duration = Duration::from_secs(30);
+const BACKOFF_INITIAL: Duration = Duration::from_millis(100);
+const BACKOFF_MAX: Duration = Duration::from_secs(5);
 
 type WsSink = SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>;
 type WsStream = SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>;
