@@ -76,16 +76,10 @@ function generate_env_from_template {
 		secr decrypt --utf8 --file "$secrets_path" --key "$master_secret" "$postgres__user_singularity_password_local_key"
 	)
 
-	local account_debug_password_local_key="account.debug.password.local"
-	local account_debug_password_local=$(
-		secr decrypt --utf8 --file "$secrets_path" --key "$master_secret" "$account_debug_password_local_key"
-	)
-
 	sed > ./.env \
 		-E \
 		-e "s/${master_secret_key}/${master_secret}/g" \
 		-e "s/${postgres__user_singularity_password_local_key}/${postgres__user_singularity_password_local}/g" \
-		-e "s/${account_debug_password_local_key}/${account_debug_password_local}/g" \
 		./template.env
 }
 generate_env_from_template

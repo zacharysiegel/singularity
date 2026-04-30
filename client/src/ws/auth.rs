@@ -1,3 +1,5 @@
+use shared::decrypt;
+use shared::environment::RuntimeEnvironment;
 use crate::state::HTTP_CLIENT;
 use shared::error::AppError;
 use shared::schema::account::CreateAccountRequest;
@@ -5,7 +7,6 @@ use shared::schema::session::LoginRequest;
 
 const DEBUG_USERNAME: &str = "debug";
 const DEBUG_EMAIL: &str = "singularity-debug@zach.ro";
-const DEBUG_ACCOUNT_PASSWORD_KEY: &str = "DEBUG_ACCOUNT_PASSWORD";
 
 async fn create_account(lobby_url: &str, password: &str) -> Result<(), AppError> {
     let url: String = format!("{}/account", lobby_url);
@@ -59,8 +60,10 @@ async fn login(lobby_url: &str, password: &str) -> Result<String, AppError> {
 }
 
 pub async fn debug_authenticate(lobby_http_origin: &str) -> Result<String, AppError> {
-    let password: String = dotenvy::var(DEBUG_ACCOUNT_PASSWORD_KEY)
-        .map_err(|error| AppError::new(&format!("{DEBUG_ACCOUNT_PASSWORD_KEY} not set; [{error}]")))?;
+    let runtime_environment: RuntimeEnvironment = RuntimeEnvironment::default();
+    let password_key: String = format!("account.debug.password.{runtime_environment}");
+    let password: Vec<u8> = decrypt::master_decrypt(&password_key)?;
+    let password: String = String::from_utf8(password)?;
 
     let token: Option<String> = login(lobby_http_origin, &password).await.ok();
     if let Some(token) = token {

@@ -7,6 +7,13 @@ use std::sync::LazyLock;
 
 const STORE: LazyLock<SecretStore> = LazyLock::new(|| load_secrets().expect("loading secret store"));
 
+/// ## Standard usage:
+/// ```
+/// let runtime_environment: RuntimeEnvironment = RuntimeEnvironment::default();
+/// let key: String = format!("<key>.{runtime_environment}");
+/// let secret: Vec<u8> = decrypt::master_decrypt(&key)?;
+/// let secret: String = String::from_utf8(secret)?;
+/// ```
 pub fn master_decrypt(secret_name: &str) -> Result<Vec<u8>, AppError> {
     let master_secret: String = dotenvy::var("MASTER_SECRET")?;
     let master_secret: Vec<u8> = BASE64.decode(master_secret)?;
