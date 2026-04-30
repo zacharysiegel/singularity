@@ -67,7 +67,7 @@ pub async fn list_games(pool: &PgPool, status: Option<i32>) -> Result<Vec<GameBr
          from game g
          inner join game_member_count_view mcv on mcv.game_id = g.id
          where ($1::int is null or g.status = $1)
-         order by g.created desc",
+         order by g.status asc, g.created desc",
         status,
     )
     .fetch_all(pool)

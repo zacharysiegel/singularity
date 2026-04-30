@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "select g.id, g.name, g.creator_id, g.status, g.max_players,\n                mcv.member_count as \"member_count!\",\n                g.created\n         from game g\n         inner join game_member_count_view mcv on mcv.game_id = g.id\n         where ($1::int is null or g.status = $1)\n         order by g.created desc",
+  "query": "select g.id, g.name, g.creator_id, g.status, g.max_players,\n                mcv.member_count as \"member_count!\",\n                g.created\n         from game g\n         inner join game_member_count_view mcv on mcv.game_id = g.id\n         where ($1::int is null or g.status = $1)\n         order by g.status asc, g.created desc",
   "describe": {
     "columns": [
       {
@@ -54,5 +54,5 @@
       false
     ]
   },
-  "hash": "d7334848cfdd64daf131088e4c7d50ae83513a7939f3bf94947b0d5f9f6db096"
+  "hash": "a1f0aee27762026356d9f21059c6d3472bf9aa7a284229e1701c3c94bc90eec9"
 }
