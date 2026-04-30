@@ -180,7 +180,7 @@ pub async fn get_conversations_by_account(
     Ok(conversation_entities)
 }
 
-pub async fn get_conversations_by_game(
+pub async fn get_conversations_by_game_and_account(
     pool: &PgPool,
     game_id: Uuid,
     account_id: Uuid,
@@ -204,17 +204,19 @@ pub async fn get_conversations_by_game(
     Ok(conversation_entities)
 }
 
-/// Checks if a conversation already exists for the given game with exactly the given member set.
+/// Checks if a conversation already exists with exactly the given member set.
+/// For in-game conversations, pass Some(game_id). For global conversations, pass None.
 pub async fn conversation_with_members_exists(
     pool: &PgPool,
-    game_id: Uuid,
+    game_id: Option<Uuid>,
     member_account_ids: &[Uuid],
 ) -> Result<bool, AppError> {
     let record = sqlx::query!(
         r#"
         select conversation.id
         from conversation
-        where conversation.game_id = $1
+        where ($1::uuid is null and conversation.game_id is null
+               or conversation.game_id = $1)
             and (
                 select count(*) from conversation_member
                 where conversation_member.conversation_id = conversation.id
@@ -236,7 +238,7 @@ pub async fn conversation_with_members_exists(
             )
         limit 1
         "#,
-        game_id,
+        game_id as Option<Uuid>,
         member_account_ids.len() as i64,
         member_account_ids,
     )
