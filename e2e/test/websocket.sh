@@ -2,11 +2,13 @@
 set -uo pipefail
 source "$(dirname "$0")/../harness.sh"
 
-echo "=== WebSocket E2E Tests ==="
+print_header "WebSocket E2E Tests"
 
-# Setup
-create_account "e2e_ws@test.com" "e2e_ws" "pass123" > /dev/null
-TOKEN=$(login "e2e_ws@test.com" "pass123")
+EMAIL="e2e_ws@test.com"
+PASSWORD="pass123"
+
+create_account "$EMAIL" "e2e_ws" "$PASSWORD" > /dev/null
+TOKEN=$(login "$EMAIL" "$PASSWORD")
 
 # --- Auth ---
 

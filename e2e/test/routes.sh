@@ -2,12 +2,14 @@
 set -uo pipefail
 source "$(dirname "$0")/../harness.sh"
 
-echo "=== Route Scoping E2E Tests ==="
+print_header "Route Scoping E2E Tests"
 
-# Setup
-ACCOUNT=$(create_account "e2e_routes@test.com" "e2e_routes" "pass123")
+EMAIL="e2e_routes@test.com"
+PASSWORD="pass123"
+
+ACCOUNT=$(create_account "$EMAIL" "e2e_routes" "$PASSWORD")
 ACCOUNT_ID=$(echo "$ACCOUNT" | jq -r '.id')
-TOKEN=$(login "e2e_routes@test.com" "pass123")
+TOKEN=$(login "$EMAIL" "$PASSWORD")
 
 GAME=$(curl -s -X POST "$BASE_URL/game" \
     -H "Authorization: Bearer $TOKEN" \

@@ -33,6 +33,11 @@ function assert_status {
     assert_equals "$test_name" "$expected" "$actual"
 }
 
+function print_header {
+    local suite_name="$1"
+    echo "=== $suite_name ==="
+}
+
 function print_results {
     echo ""
     echo "=== Results: $PASS passed, $FAIL failed ==="
