@@ -31,7 +31,7 @@ async fn list_game_conversations(
     membership.or_forbidden("must be a game member to list conversations")?;
 
     let conversation_entities: Vec<ConversationEntity> =
-        conversation_db::get_conversations_by_game(pool.get_ref(), game_id, auth.account_id).await?;
+        conversation_db::get_conversations_by_game_and_account(pool.get_ref(), game_id, auth.account_id).await?;
 
     let conversation_serials: Vec<ConversationSerial> = conversation_entities
         .into_iter()
@@ -82,7 +82,7 @@ async fn create_game_conversation(
 
     // Check for duplicate conversation with the same member set
     let duplicate_exists: bool =
-        conversation_db::conversation_with_members_exists(pool.get_ref(), game_id, &all_member_ids).await?;
+        conversation_db::conversation_with_members_exists(pool.get_ref(), Some(game_id), &all_member_ids).await?;
     if duplicate_exists {
         return Err(LobbyError::conflict("a conversation with this member set already exists for this game"));
     }

@@ -34,6 +34,17 @@ async fn create_conversation(
         return Err(LobbyError::bad_request("invalid create conversation request"));
     }
 
+    let mut all_member_ids: Vec<Uuid> = payload.member_account_ids.clone();
+    if !all_member_ids.contains(&auth.account_id) {
+        all_member_ids.push(auth.account_id);
+    }
+
+    let duplicate_exists: bool =
+        conversation_db::conversation_with_members_exists(pool.get_ref(), None, &all_member_ids).await?;
+    if duplicate_exists {
+        return Err(LobbyError::conflict("a conversation with this member set already exists"));
+    }
+
     let entity: ConversationEntity = conversation_db::create_conversation(
         pool.get_ref(),
         payload.name.as_deref(),
