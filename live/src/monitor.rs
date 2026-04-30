@@ -8,11 +8,12 @@ use shared::random::random_uuid;
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::pin;
-use std::sync::LazyLock;
+use std::sync::{Arc, LazyLock};
 use tokio::net::TcpListener;
 use tokio::net::TcpStream;
 use tokio::sync;
 use tokio::sync::mpsc;
+use tokio::sync::Notify;
 use uuid::Uuid;
 
 pub const GAMES: LazyLock<HashMap<Uuid, Game>> = LazyLock::new(|| HashMap::new());
@@ -134,11 +135,12 @@ async fn monitor_client(
 
 async fn monitor_client_task(tcp_stream: TcpStream, socket_addr: SocketAddr) {
     let connection: Connection = Connection::new(tcp_stream, socket_addr);
+    let shutdown: Arc<Notify> = Arc::new(Notify::new());
 
     let incoming_f = monitor::monitor_incoming_frames(connection.reader, route_frame);
     let incoming_f = pin::pin!(incoming_f);
 
-    let outgoing_f = monitor::monitor_outgoing_frames(connection.writer);
+    let outgoing_f = monitor::monitor_outgoing_frames(connection.writer, shutdown.clone());
     let outgoing_f = pin::pin!(outgoing_f);
 
     match future::select(incoming_f, outgoing_f).await {

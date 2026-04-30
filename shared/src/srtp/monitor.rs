@@ -3,8 +3,9 @@ use crate::srtp::connection::{BUFFER_SIZE, BytesRead, ConnectionReader, Connecti
 use crate::srtp::frame_buffer::FrameBuffer;
 use crate::srtp::protocol::Frame;
 use crate::srtp::ring_buffer::RingBuffer;
+use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::{RwLockReadGuard, RwLockWriteGuard};
+use tokio::sync::{Notify, RwLockReadGuard, RwLockWriteGuard};
 use tokio::time;
 
 pub async fn monitor_incoming_frames<F, Fut>(mut reader: ConnectionReader, callback: F)
@@ -43,12 +44,18 @@ where
     }
 }
 
-pub async fn monitor_outgoing_frames(mut writer: ConnectionWriter) -> Result<(), AppErrorStatic> {
+pub async fn monitor_outgoing_frames(
+    mut writer: ConnectionWriter,
+    shutdown: Arc<Notify>,
+) -> Result<(), AppErrorStatic> {
     loop {
         let buffer_g: RwLockReadGuard<RingBuffer<u8, { BUFFER_SIZE }>> = writer.buffer.read().await;
         if buffer_g.used_space() == 0 {
-            time::sleep(Duration::from_millis(50)).await;
-            continue;
+            drop(buffer_g);
+            tokio::select! {
+                _ = time::sleep(Duration::from_millis(50)) => continue,
+                _ = shutdown.notified() => break,
+            }
         }
         drop(buffer_g);
 
@@ -60,4 +67,5 @@ pub async fn monitor_outgoing_frames(mut writer: ConnectionWriter) -> Result<(),
             writer.write_frame(&frame).await?;
         }
     }
+    Ok(())
 }

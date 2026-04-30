@@ -13,7 +13,7 @@ use shared::srtp::{protocol, socket};
 use shared::{srtp, random};
 use socket2::{SockAddr, Socket};
 use tokio::net::TcpStream;
-use tokio::sync::RwLock;
+use tokio::sync::{Notify, RwLock};
 // todo: close connection during engine::destroy
 
 pub fn connect() -> Result<WriteBufferT, AppError> {
@@ -28,26 +28,28 @@ pub fn connect() -> Result<WriteBufferT, AppError> {
     let peer_addr: SocketAddr = tcp_stream.peer_addr()?;
     let connection: Connection = Connection::new(tcp_stream, peer_addr);
     let write_buffer: Arc<RwLock<RingBuffer<u8, { BUFFER_SIZE }>>> = connection.writer.buffer.clone();
+    let shutdown: Arc<Notify> = Arc::new(Notify::new());
 
     send_register(write_buffer.clone());
-    spawn_reader(connection.reader);
-    spawn_writer(connection.writer);
+    spawn_reader(connection.reader, shutdown.clone());
+    spawn_writer(connection.writer, shutdown);
 
     Ok(write_buffer)
 }
 
-fn spawn_reader(reader: ConnectionReader) {
-    tokio::spawn(async {
+fn spawn_reader(reader: ConnectionReader, shutdown: Arc<Notify>) {
+    tokio::spawn(async move {
         srtp::monitor::monitor_incoming_frames(reader, |write_buffer, frame| async {
             route::route_frame(write_buffer, frame).await;
         })
         .await;
+        shutdown.notify_one();
     });
 }
 
-fn spawn_writer(writer: ConnectionWriter) {
+fn spawn_writer(writer: ConnectionWriter, shutdown: Arc<Notify>) {
     tokio::spawn(async move {
-        match srtp::monitor::monitor_outgoing_frames(writer).await {
+        match srtp::monitor::monitor_outgoing_frames(writer, shutdown).await {
             Ok(_) => {}
             Err(e) => {
                 log::error!("Error writing frame to the network; {:#}", e);
