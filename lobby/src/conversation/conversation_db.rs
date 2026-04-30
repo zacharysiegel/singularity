@@ -1,6 +1,6 @@
 use shared::error::AppError;
-use sqlx::{PgPool, Postgres, Transaction};
 use sqlx::postgres::PgQueryResult;
+use sqlx::{PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
 use super::conversation_model::{ConversationEntity, ConversationMemberEntity};
@@ -53,10 +53,7 @@ pub async fn create_conversation(
     Ok(conversation)
 }
 
-pub async fn get_conversation_by_id(
-    pool: &PgPool,
-    id: Uuid,
-) -> Result<Option<ConversationEntity>, AppError> {
+pub async fn get_conversation_by_id(pool: &PgPool, id: Uuid) -> Result<Option<ConversationEntity>, AppError> {
     let record: Option<ConversationEntity> = sqlx::query_as!(
         ConversationEntity,
         "select conversation.id, conversation.game_id, conversation.name, conversation.created
@@ -108,11 +105,7 @@ pub async fn get_member(
     Ok(record)
 }
 
-pub async fn leave_conversation(
-    pool: &PgPool,
-    conversation_id: Uuid,
-    account_id: Uuid,
-) -> Result<bool, AppError> {
+pub async fn leave_conversation(pool: &PgPool, conversation_id: Uuid, account_id: Uuid) -> Result<bool, AppError> {
     let mut transaction: Transaction<Postgres> = pool.begin().await?;
     let did_leave: bool = leave_conversation_exec(&mut *transaction, conversation_id, account_id).await?;
     if did_leave {
@@ -143,7 +136,8 @@ pub async fn delete_conversation_if_empty_exec<'e, E: sqlx::Executor<'e, Databas
     executor: E,
     conversation_id: Uuid,
 ) -> Result<(), AppError> {
-    sqlx::query!("
+    sqlx::query!(
+        "
         with active_members as (
             select 1 from conversation_member
             where conversation_id = $1 and exited is null
@@ -175,8 +169,8 @@ pub async fn get_conversations_by_account(
         "#,
         account_id,
     )
-        .fetch_all(pool)
-        .await?;
+    .fetch_all(pool)
+    .await?;
     Ok(conversation_entities)
 }
 
@@ -206,6 +200,7 @@ pub async fn get_conversations_by_game_and_account(
 
 /// Checks if a conversation already exists with exactly the given member set.
 /// For in-game conversations, pass Some(game_id). For global conversations, pass None.
+/// Uses symmetric set difference (double EXCEPT) to compare member sets.
 pub async fn conversation_with_members_exists(
     pool: &PgPool,
     game_id: Option<Uuid>,
@@ -215,31 +210,25 @@ pub async fn conversation_with_members_exists(
         r#"
         select conversation.id
         from conversation
-        where ($1::uuid is null and conversation.game_id is null
-               or conversation.game_id = $1)
-            and (
-                select count(*) from conversation_member
-                where conversation_member.conversation_id = conversation.id
-                    and conversation_member.exited is null
-            ) = $2
+        where
+            ((conversation.game_id is null and $1::uuid is null) or conversation.game_id = $1)
             and not exists (
-                select 1 from conversation_member
+                select conversation_member.account_id from conversation_member
                 where conversation_member.conversation_id = conversation.id
                     and conversation_member.exited is null
-                    and conversation_member.account_id != all($3)
+                except
+                select unnest($2::uuid[])
             )
             and not exists (
-                select 1 from unnest($3::uuid[]) as expected_id
-                where expected_id not in (
-                    select conversation_member.account_id from conversation_member
-                    where conversation_member.conversation_id = conversation.id
-                        and conversation_member.exited is null
-                )
+                select unnest($2::uuid[])
+                except
+                select conversation_member.account_id from conversation_member
+                where conversation_member.conversation_id = conversation.id
+                    and conversation_member.exited is null
             )
         limit 1
         "#,
         game_id as Option<Uuid>,
-        member_account_ids.len() as i64,
         member_account_ids,
     )
     .fetch_optional(pool)
@@ -247,23 +236,21 @@ pub async fn conversation_with_members_exists(
     Ok(record.is_some())
 }
 
-pub async fn get_active_member_ids(
+pub async fn get_active_members(
     pool: &PgPool,
     conversation_id: Uuid,
-) -> Result<Vec<Uuid>, AppError> {
-    let member_id_records = sqlx::query!("
-        select conversation_member.account_id
+) -> Result<Vec<ConversationMemberEntity>, AppError> {
+    let member_records: Vec<ConversationMemberEntity> = sqlx::query_as!(
+        ConversationMemberEntity,
+        "
+        select *
         from conversation_member
         where conversation_member.conversation_id = $1
-            and conversation_member.exited is null",
+            and conversation_member.exited is null
+        ",
         conversation_id,
     )
     .fetch_all(pool)
     .await?;
-
-    let member_ids: Vec<Uuid> = member_id_records
-        .into_iter()
-        .map(|record| record.account_id)
-        .collect();
-    Ok(member_ids)
+    Ok(member_records)
 }

@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        select conversation.id\n        from conversation\n        where\n            ((conversation.game_id is null and $1::uuid is null) or conversation.game_id = $1)\n            and not exists (\n                select conversation_member.account_id from conversation_member\n                where conversation_member.conversation_id = conversation.id\n                    and conversation_member.exited is null\n                except\n                select unnest($2::uuid[])\n            )\n            and not exists (\n                select unnest($2::uuid[])\n                except\n                select conversation_member.account_id from conversation_member\n                where conversation_member.conversation_id = conversation.id\n                    and conversation_member.exited is null\n            )\n        limit 1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "156eefafbf6462e0c08c53fddc54d1e692931ab41d005e3d752953f15ecb9ceb"
+}
