@@ -1,9 +1,9 @@
 use crate::route::route_frame;
 use futures::future;
 use futures::future::Either;
-use network::monitor;
-use shared::network;
-use shared::network::connection::Connection;
+use srtp::monitor;
+use shared::srtp;
+use shared::srtp::connection::Connection;
 use shared::random::random_uuid;
 use std::collections::HashMap;
 use std::net::SocketAddr;

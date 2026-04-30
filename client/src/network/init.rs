@@ -19,7 +19,7 @@ pub fn init() {
         *STATE.ws.token.write().unwrap() = Some(token.clone());
 
         let Ok(_) = connect::connect() else {
-            log::error!("game server connection failed");
+            log::error!("live server connection failed");
             return;
         };
         ws::connect(&runtime_env.lobby_ws_origin(), &token, ConnectionType::Lobby);

@@ -14,8 +14,8 @@ Requires Rust (2024 edition), Podman, dbmate, and `secr`. Run `./setup.sh` for f
 # Build everything
 cargo build
 
-# Run the game server (TCP, port 1443)
-cargo run -p server
+# Run the live server (TCP, port 1443)
+cargo run -p live
 
 # Run the client (raylib GUI)
 cargo run -p client
@@ -42,12 +42,12 @@ Database migrations use dbmate. Run via the wrapper script which auto-configures
 
 Four workspace crates:
 
-- **`shared`** -- Domain types and networking used by both client and server. Contains the hex map model, player model, facility definitions, a custom binary serialization system (`SyncTrait`), and a custom TCP framing protocol. Has an optional `sqlx` feature (enabled only by `lobby`).
-- **`server`** -- TCP game server. Accepts connections, manages game state, broadcasts to players. Uses Tokio tasks: one for the TCP listener, one for each connected player, and one for the game manager. Tasks communicate via Tokio broadcast/MPSC channels.
-- **`client`** -- Raylib-based GUI client. Connects to the game server over TCP. Runs a game loop (`engine.rs`: init/update/draw/destroy) with stages (Title, Browser, Game) managed by a `LockedSwitch<StageType>`. Each stage has its own state, draw, and input modules. Also runs Tokio for async network I/O alongside the synchronous render loop.
+- **`shared`** -- Domain types and networking used by both client and live server. Contains the hex map model, player model, facility definitions, a custom binary serialization system (`SyncTrait`), and SRTP (Singularity Real Time Protocol). Has an optional `sqlx` feature (enabled only by `lobby`).
+- **`live`** -- TCP live server. Accepts connections, manages game state, broadcasts to players. Uses Tokio tasks: one for the TCP listener, one for each connected player, and one for the game manager. Tasks communicate via Tokio broadcast/MPSC channels.
+- **`client`** -- Raylib-based GUI client. Connects to the live server over TCP. Runs a game loop (`engine.rs`: init/update/draw/destroy) with stages (Title, Browser, Game) managed by a `LockedSwitch<StageType>`. Each stage has its own state, draw, and input modules. Also runs Tokio for async network I/O alongside the synchronous render loop.
 - **`lobby`** -- Actix-web HTTP server backed by PostgreSQL (via SQLx). Intended to manage user accounts, game listings, and matchmaking. Currently minimal.
 
-### Custom binary protocol (`shared::network::protocol`)
+### SRTP — Singularity Real Time Protocol (`shared::srtp::protocol`)
 
 Client-server communication uses a custom frame-based binary protocol over raw TCP (not WebSocket). Frames have a 1-byte op code, an optional 4-byte big-endian length (for variable-size frames), and a body. Fixed-size frames use `#[repr(C, packed(1))]` structs with `transmute_copy` for serialization. The `Operation` trait defines each message type.
 
@@ -57,7 +57,7 @@ Client-server communication uses a custom frame-based binary protocol over raw T
 
 ### Network I/O
 
-Both client and server use a `RingBuffer`-backed read/write buffer system. Writes are enqueued to a shared `WriteBufferT` (Arc<RwLock<RingBuffer>>) and flushed by a dedicated writer task. Reads are consumed from a reader task that parses frames and dispatches to a `route_frame` function.
+Both client and live server use a `RingBuffer`-backed read/write buffer system. Writes are enqueued to a shared `WriteBufferT` (Arc<RwLock<RingBuffer>>) and flushed by a dedicated writer task. Reads are consumed from a reader task that parses frames and dispatches to a `route_frame` function.
 
 ### Client stages
 

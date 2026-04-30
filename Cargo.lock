@@ -1834,6 +1834,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6373607a59f0be73a39b6fe456b8192fcc3585f602af20751600e974dd455e77"
 
 [[package]]
+name = "live"
+version = "0.1.0"
+dependencies = [
+ "env_logger",
+ "futures",
+ "log",
+ "shared",
+ "socket2 0.6.1",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "lobby"
 version = "0.1.0"
 dependencies = [
@@ -2840,19 +2853,6 @@ dependencies = [
  "ryu",
  "serde",
  "unsafe-libyaml",
-]
-
-[[package]]
-name = "server"
-version = "0.1.0"
-dependencies = [
- "env_logger",
- "futures",
- "log",
- "shared",
- "socket2 0.6.1",
- "tokio",
- "uuid",
 ]
 
 [[package]]

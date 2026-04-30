@@ -28,9 +28,9 @@ Start the lobby server:
 cargo run -p lobby
 ```
 
-Start the game server:
+Start the live server (for in-game realtime communications):
 ```shell
-cargo run -p server
+cargo run -p live
 ```
 
 Start the client:

@@ -1,7 +1,7 @@
 use crate::game;
-use shared::network::connection::WriteBufferT;
-use shared::network::protocol;
-use shared::network::protocol::{Acknowledgement, DebugGame, Frame, Heartbeat, OperationType, Register};
+use shared::srtp::connection::WriteBufferT;
+use shared::srtp::protocol;
+use shared::srtp::protocol::{Acknowledgement, DebugGame, Frame, Heartbeat, OperationType, Register};
 use shared::sync::SyncGame;
 
 pub async fn route_frame(write_buffer: WriteBufferT, frame: Frame) {

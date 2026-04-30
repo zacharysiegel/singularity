@@ -1,3 +1,5 @@
+//! SRTP: Singularity Real Time Protocol
+
 pub mod connection;
 pub mod frame_buffer;
 pub mod monitor;

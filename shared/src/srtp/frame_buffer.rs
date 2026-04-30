@@ -1,6 +1,6 @@
 use crate::error::{AppError, AppErrorStatic};
-use crate::network::protocol::{Frame, Head, OpCode, OperationType};
-use crate::network::ring_buffer::{RingBuffer, RingBufferView};
+use crate::srtp::protocol::{Frame, Head, OpCode, OperationType};
+use crate::srtp::ring_buffer::{RingBuffer, RingBufferView};
 
 pub trait FrameBuffer {
     fn pop_frames(&mut self) -> Result<Vec<Frame>, AppErrorStatic>;

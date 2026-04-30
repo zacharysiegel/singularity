@@ -1,8 +1,8 @@
 use crate::error::AppErrorStatic;
-use crate::network::connection::{BUFFER_SIZE, ConnectionReader, ConnectionWriter, WriteBufferT};
-use crate::network::frame_buffer::FrameBuffer;
-use crate::network::protocol::Frame;
-use crate::network::ring_buffer::RingBuffer;
+use crate::srtp::connection::{BUFFER_SIZE, ConnectionReader, ConnectionWriter, WriteBufferT};
+use crate::srtp::frame_buffer::FrameBuffer;
+use crate::srtp::protocol::Frame;
+use crate::srtp::ring_buffer::RingBuffer;
 use std::time::Duration;
 use tokio::sync::{RwLockReadGuard, RwLockWriteGuard};
 use tokio::time;

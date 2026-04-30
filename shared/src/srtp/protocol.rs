@@ -7,7 +7,7 @@
 //! The rest of the frame is considered the frame's "body".
 
 use crate::error::{AppError, AppErrorStatic};
-use crate::network::connection::WriteBufferT;
+use crate::srtp::connection::WriteBufferT;
 use crate::sync::{SyncGame, SyncTrait};
 use std::fmt::{self, Debug, Display};
 use std::mem;
@@ -18,16 +18,16 @@ macro_rules! fixed_size_impl {
     () => {
         const FIXED_SIZE: ::std::option::Option<usize> = ::std::option::Option::Some(::std::mem::size_of::<Self>());
 
-        fn to_frame(&self) -> $crate::network::protocol::Frame {
-            let head = $crate::network::protocol::Head {
-                op_type: $crate::network::protocol::OperationType::from_op_code(Self::OP_CODE).unwrap(),
+        fn to_frame(&self) -> $crate::srtp::protocol::Frame {
+            let head = $crate::srtp::protocol::Head {
+                op_type: $crate::srtp::protocol::OperationType::from_op_code(Self::OP_CODE).unwrap(),
                 data_length: ::std::mem::size_of::<Self>(),
             };
             let data = ::std::vec::Vec::from(unsafe {
                 mem::transmute_copy::<Self, [u8; ::std::mem::size_of::<Self>()]>(self)
             });
 
-            $crate::network::protocol::Frame { head, data }
+            $crate::srtp::protocol::Frame { head, data }
         }
     };
 }

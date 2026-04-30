@@ -6,11 +6,11 @@ use std::time::Duration;
 use crate::route;
 use shared::environment::RuntimeEnvironment;
 use shared::error::AppError;
-use shared::network::connection::{Connection, ConnectionReader, ConnectionWriter, WriteBufferT, BUFFER_SIZE};
-use shared::network::protocol::Register;
-use shared::network::ring_buffer::RingBuffer;
-use shared::network::{protocol, socket};
-use shared::{network, random};
+use shared::srtp::connection::{Connection, ConnectionReader, ConnectionWriter, WriteBufferT, BUFFER_SIZE};
+use shared::srtp::protocol::Register;
+use shared::srtp::ring_buffer::RingBuffer;
+use shared::srtp::{protocol, socket};
+use shared::{srtp, random};
 use socket2::{SockAddr, Socket};
 use tokio::net::TcpStream;
 use tokio::sync::RwLock;
@@ -38,7 +38,7 @@ pub fn connect() -> Result<WriteBufferT, AppError> {
 
 fn spawn_reader(reader: ConnectionReader) {
     tokio::spawn(async {
-        network::monitor::monitor_incoming_frames(reader, |write_buffer, frame| async {
+        srtp::monitor::monitor_incoming_frames(reader, |write_buffer, frame| async {
             route::route_frame(write_buffer, frame).await;
         })
         .await;
@@ -47,7 +47,7 @@ fn spawn_reader(reader: ConnectionReader) {
 
 fn spawn_writer(writer: ConnectionWriter) {
     tokio::spawn(async move {
-        match network::monitor::monitor_outgoing_frames(writer).await {
+        match srtp::monitor::monitor_outgoing_frames(writer).await {
             Ok(_) => {}
             Err(e) => {
                 log::error!("Error writing frame to the network; {:#}", e);

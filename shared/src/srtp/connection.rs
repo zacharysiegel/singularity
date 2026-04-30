@@ -1,6 +1,6 @@
 use crate::error::AppError;
-use crate::network::protocol::Frame;
-use crate::network::ring_buffer::RingBuffer;
+use crate::srtp::protocol::Frame;
+use crate::srtp::ring_buffer::RingBuffer;
 use std::fmt::Debug;
 use std::io;
 use std::io::IoSliceMut;

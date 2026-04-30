@@ -72,7 +72,7 @@ impl RuntimeEnvironment {
         }
     }
 
-    pub fn game_host(&self) -> &'static str {
+    pub fn live_host(&self) -> &'static str {
         match self {
             RuntimeEnvironment::Local => "0.0.0.0",
             RuntimeEnvironment::Stage => "0.0.0.0",      // todo
@@ -80,7 +80,7 @@ impl RuntimeEnvironment {
         }
     }
 
-    pub fn game_port(&self) -> &'static str {
+    pub fn live_port(&self) -> &'static str {
         match self {
             RuntimeEnvironment::Local => "1443",
             RuntimeEnvironment::Stage => "1443",      // todo
@@ -88,8 +88,8 @@ impl RuntimeEnvironment {
         }
     }
 
-    pub fn game_address(&self) -> String {
-        format!("{}:{}", self.game_host(), self.game_port())
+    pub fn live_address(&self) -> String {
+        format!("{}:{}", self.live_host(), self.live_port())
     }
 
     pub fn lobby_http_origin(&self) -> String {

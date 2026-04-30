@@ -2,9 +2,9 @@ use crate::state::STATE;
 use crate::title;
 use shared::environment::RuntimeEnvironment;
 use shared::map::{Hex, HEX_COUNT};
-use shared::network::connection::WriteBufferT;
-use shared::network::protocol;
-use shared::network::protocol::{Acknowledgement, DebugGame, Frame, Operation, OperationType};
+use shared::srtp::connection::WriteBufferT;
+use shared::srtp::protocol;
+use shared::srtp::protocol::{Acknowledgement, DebugGame, Frame, Operation, OperationType};
 use shared::player::Player;
 use std::sync::RwLockWriteGuard;
 

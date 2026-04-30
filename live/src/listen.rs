@@ -4,7 +4,7 @@ use socket2::{SockAddr, Socket};
 use tokio::net::TcpListener;
 
 use shared::error::AppError;
-use shared::network::socket;
+use shared::srtp::socket;
 
 pub async fn listen() -> Result<TcpListener, AppError> {
     let socket: Socket = socket::create_socket()?;
