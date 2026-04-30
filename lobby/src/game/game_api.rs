@@ -1,14 +1,16 @@
-use actix_web::{web, HttpRequest, HttpResponse};
-use shared::schema::game::{CreateGameRequest, GameBrowserEntry, GameBrowserQuery, GameSerial, GameStatus, UpdateGameStatusRequest};
-use sqlx::PgPool;
-use uuid::Uuid;
-use crate::conversation::conversation_db;
-use crate::lobby_error::{LobbyError, OptionExtLobbyError, ResultExtLobbyError};
-use crate::game_membership::game_membership_db;
-use crate::http;
-use crate::session::session_extractor::AuthenticatedAccount;
 use super::game_db;
 use super::game_model::{Game, GameBrowserRow, GameEntity};
+use crate::game_membership::game_membership_db;
+use crate::http;
+use crate::lobby_error::{LobbyError, OptionExtLobbyError, ResultExtLobbyError};
+use crate::session::session_extractor::AuthenticatedAccount;
+use actix_web::{HttpRequest, HttpResponse, web};
+use shared::error::AppError;
+use shared::schema::game::{
+    CreateGameRequest, GameBrowserEntry, GameBrowserQuery, GameSerial, GameStatus, UpdateGameStatusRequest,
+};
+use sqlx::PgPool;
+use uuid::Uuid;
 
 const DEFAULT_MAX_PLAYERS: i32 = 8;
 
@@ -34,10 +36,8 @@ async fn list_games(
 ) -> Result<HttpResponse, LobbyError> {
     let game_browser_rows: Vec<GameBrowserRow> = game_db::list_games(pool.get_ref(), query.status).await?;
 
-    let game_browser_entries: Vec<GameBrowserEntry> = game_browser_rows
-        .into_iter()
-        .map(GameBrowserEntry::try_from)
-        .collect::<Result<Vec<_>, _>>()?;
+    let game_browser_entries: Vec<GameBrowserEntry> =
+        game_browser_rows.into_iter().map(GameBrowserEntry::try_from).collect::<Result<Vec<_>, _>>()?;
 
     Ok(http::serialize_response(&request, &game_browser_entries))
 }
@@ -90,68 +90,39 @@ async fn update_game_status(
     body: web::Bytes,
     auth: AuthenticatedAccount,
 ) -> Result<HttpResponse, LobbyError> {
-    let (game_id_string,): (String,) = path.into_inner();
-    let game_id: Uuid = Uuid::parse_str(&game_id_string).or_bad_request()?;
-
+    let (game_id,): (String,) = path.into_inner();
+    let game_id: Uuid = Uuid::parse_str(&game_id).or_bad_request()?;
     let payload: UpdateGameStatusRequest = http::deserialize_request(&request, &body).or_bad_request()?;
 
-    let game_entity: Option<GameEntity> = game_db::get_game_by_id(pool.get_ref(), game_id).await?;
-    let game_entity: GameEntity = game_entity.or_not_found()?;
-
+    let game_entity: GameEntity = game_db::get_game_by_id(pool.get_ref(), game_id).await?.or_not_found()?;
     if game_entity.creator_id != auth.account_id {
         return Err(LobbyError::forbidden("only the game creator can update game status"));
     }
 
     let current_status: GameStatus = GameStatus::try_from(game_entity.status)?;
-    validate_status_transition(current_status, payload.status)?;
+    validate_status_transition(current_status, payload.status).or_bad_request()?;
 
-    let updated_entity: GameEntity = game_db::update_game_status(pool.get_ref(), game_id, payload.status as i32).await?;
+    let updated_entity: GameEntity =
+        game_db::update_game_status(pool.get_ref(), game_id, payload.status as i32).await?;
 
-    if payload.status == GameStatus::Active {
-        auto_create_game_conversation(pool.get_ref(), game_id, &game_entity.name, auth.account_id).await?;
-    }
+    super::hook::on_status_transition(pool.get_ref(), &game_entity, payload.status, auth.account_id).await?;
 
     let game: Game = Game::try_from(updated_entity)?;
     let serial: GameSerial = GameSerial::from(&game);
     Ok(http::serialize_response(&request, &serial))
 }
 
-fn validate_status_transition(current: GameStatus, target: GameStatus) -> Result<(), LobbyError> {
-    let valid: bool = matches!(
-        (current, target),
-        (GameStatus::Pending, GameStatus::Active) | (GameStatus::Active, GameStatus::Completed)
-    );
-    if !valid {
-        return Err(LobbyError::bad_request(&format!(
+fn validate_status_transition(current: GameStatus, target: GameStatus) -> Result<(), AppError> {
+    let valid: bool = match (current, target) {
+        (GameStatus::Pending, GameStatus::Active) => true,
+        (GameStatus::Active, GameStatus::Completed) => true,
+        _ => false,
+    };
+
+    match valid {
+        true => Ok(()),
+        false => Err(AppError::new(&format!(
             "invalid status transition; [{current}] -> [{target}]"
-        )));
+        ))),
     }
-    Ok(())
-}
-
-async fn auto_create_game_conversation(
-    pool: &PgPool,
-    game_id: Uuid,
-    game_name: &str,
-    creator_account_id: Uuid,
-) -> Result<(), LobbyError> {
-    let member_ids: Vec<Uuid> = game_membership_db::get_members_per_game(pool, game_id)
-        .await?
-        .iter()
-        .map(|member| member.account_id)
-        .collect();
-    let conversation_name: String = format!("Global [{}]", game_name);
-
-    // creator_account_id has no ownership semantics — it is simply the first member added
-    // to the conversation. All members are equal once added.
-    conversation_db::create_conversation(
-        pool,
-        Some(&conversation_name),
-        Some(game_id),
-        creator_account_id,
-        &member_ids,
-    )
-    .await?;
-
-    Ok(())
 }
