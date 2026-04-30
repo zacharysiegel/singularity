@@ -13,7 +13,7 @@ use crate::session::session_extractor::AuthenticatedAccount;
 
 pub fn game_configurer(config: &mut web::ServiceConfig) {
     config
-        .route("/{game_id}/conversations", web::get().to(list_game_conversations))
+        .route("/{game_id}/conversation", web::get().to(list_game_conversations))
         .route("/{game_id}/conversation", web::post().to(create_game_conversation));
 }
 
@@ -84,7 +84,7 @@ async fn create_game_conversation(
     let duplicate_exists: bool =
         conversation_db::conversation_with_members_exists(pool.get_ref(), Some(game_id), &all_member_ids).await?;
     if duplicate_exists {
-        return Err(LobbyError::conflict("a conversation with this member set already exists for this game"));
+        return Err(LobbyError::conflict("a live conversation with this member set already exists for this game"));
     }
 
     let entity: ConversationEntity = conversation_db::create_conversation(
