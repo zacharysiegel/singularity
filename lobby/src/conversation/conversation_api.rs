@@ -131,10 +131,8 @@ async fn leave_conversation(
     let (conversation_id_string,): (String,) = path.into_inner();
     let conversation_id: Uuid = Uuid::parse_str(&conversation_id_string).or_bad_request()?;
 
-    let conversation_entity: Option<ConversationEntity> =
-        conversation_db::get_conversation_by_id(pool.get_ref(), conversation_id).await?;
-    let conversation_entity: ConversationEntity = conversation_entity.or_not_found()?;
-
+    let conversation_entity: ConversationEntity =
+        conversation_db::get_conversation_by_id(pool.get_ref(), conversation_id).await?.or_not_found()?;
     if conversation_entity.game_id.is_some() {
         return Err(LobbyError::forbidden("cannot leave in-game conversations"));
     }
