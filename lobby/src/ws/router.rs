@@ -46,7 +46,11 @@ async fn handle_chat(
 
     let message_serial: ConversationMessageSerial = ConversationMessageSerial::from(&message_entity);
     let ws_event: WsEvent = message_serial.to_ws_event();
-    let member_ids: Vec<Uuid> = conversation_db::get_active_member_ids(pool, conversation_id).await?;
+    let member_ids: Vec<Uuid> = conversation_db::get_active_members(pool, conversation_id)
+        .await?
+        .iter()
+        .map(|member| member.account_id)
+        .collect();
 
     connection_registry::send_to_accounts(&member_ids, connection_type, &Arc::new(ws_event));
     Ok(())

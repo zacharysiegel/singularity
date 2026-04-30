@@ -1,7 +1,7 @@
 use super::game_db;
 use super::game_model::{Game, GameBrowserRow, GameEntity};
 use crate::game_membership::game_membership_db;
-use crate::http;
+use crate::{game, http};
 use crate::lobby_error::{LobbyError, OptionExtLobbyError, ResultExtLobbyError};
 use crate::session::session_extractor::AuthenticatedAccount;
 use actix_web::{HttpRequest, HttpResponse, web};
@@ -11,6 +11,8 @@ use shared::schema::game::{
 };
 use sqlx::PgPool;
 use uuid::Uuid;
+use game::hook;
+use crate::game::hook::GameStatusTransition;
 
 const DEFAULT_MAX_PLAYERS: i32 = 8;
 
@@ -25,7 +27,7 @@ pub fn configurer(config: &mut web::ServiceConfig) {
             .configure(crate::game_session::game_session_api::game_configurer)
             .configure(crate::accolade::accolade_api::game_configurer)
             .configure(crate::statistic::statistic_api::game_configurer)
-            .configure(crate::conversation::live::game_configurer),
+            .configure(crate::conversation::conversation_api::game_configurer),
     );
 }
 
@@ -105,7 +107,11 @@ async fn update_game_status(
     let updated_entity: GameEntity =
         game_db::update_game_status(pool.get_ref(), game_id, payload.status as i32).await?;
 
-    super::hook::on_status_transition(pool.get_ref(), &game_entity, payload.status, auth.account_id).await?;
+    let transition: GameStatusTransition = GameStatusTransition {
+        from: current_status,
+        to: payload.status,
+    };
+    hook::on_status_transition(transition, pool.get_ref(), &game_entity, auth.account_id).await?;
 
     let game: Game = Game::try_from(updated_entity)?;
     let serial: GameSerial = GameSerial::from(&game);

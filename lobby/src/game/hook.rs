@@ -8,17 +8,22 @@ use crate::game_membership::game_membership_db;
 
 use super::game_model::GameEntity;
 
+pub struct GameStatusTransition {
+    pub from: GameStatus,
+    pub to: GameStatus,
+}
+
 pub async fn on_status_transition(
+    transition: GameStatusTransition,
     pool: &PgPool,
     game_entity: &GameEntity,
-    new_status: GameStatus,
     auth_account_id: Uuid,
 ) -> Result<(), AppError> {
-    match new_status {
-        GameStatus::Active => {
+    match transition {
+        GameStatusTransition { from: GameStatus::Pending, to: GameStatus::Active } =>  {
             auto_create_game_conversation(pool, game_entity, auth_account_id).await?;
         }
-        GameStatus::Completed => {
+        GameStatusTransition { from: GameStatus::Active, to: GameStatus::Completed } => {
             // TODO: finalize scores, award accolades, etc.
         }
         _ => {}
