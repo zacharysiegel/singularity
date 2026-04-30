@@ -2,23 +2,29 @@
 set -uo pipefail
 source "$(dirname "$0")/../harness.sh"
 
-echo "=== In-Game Chat E2E Tests ==="
+print_header "In-Game Chat E2E Tests"
 
-# Setup: create four accounts
-ACCOUNT_A=$(create_account "e2e_igc_a@test.com" "e2e_igc_a" "pass123")
+# A, B, C are game members. D is not a game member.
+EMAIL_A="e2e_igc_a@test.com"
+EMAIL_B="e2e_igc_b@test.com"
+EMAIL_C="e2e_igc_c@test.com"
+EMAIL_D="e2e_igc_d@test.com"
+PASSWORD="pass123"
+
+ACCOUNT_A=$(create_account "$EMAIL_A" "e2e_igc_a" "$PASSWORD")
 ACCOUNT_A_ID=$(echo "$ACCOUNT_A" | jq -r '.id')
-ACCOUNT_B=$(create_account "e2e_igc_b@test.com" "e2e_igc_b" "pass123")
+ACCOUNT_B=$(create_account "$EMAIL_B" "e2e_igc_b" "$PASSWORD")
 ACCOUNT_B_ID=$(echo "$ACCOUNT_B" | jq -r '.id')
-ACCOUNT_C=$(create_account "e2e_igc_c@test.com" "e2e_igc_c" "pass123")
+ACCOUNT_C=$(create_account "$EMAIL_C" "e2e_igc_c" "$PASSWORD")
 ACCOUNT_C_ID=$(echo "$ACCOUNT_C" | jq -r '.id')
-ACCOUNT_D=$(create_account "e2e_igc_d@test.com" "e2e_igc_d" "pass123")
+ACCOUNT_D=$(create_account "$EMAIL_D" "e2e_igc_d" "$PASSWORD")
 ACCOUNT_D_ID=$(echo "$ACCOUNT_D" | jq -r '.id')
-TOKEN_A=$(login "e2e_igc_a@test.com" "pass123")
-TOKEN_B=$(login "e2e_igc_b@test.com" "pass123")
-TOKEN_C=$(login "e2e_igc_c@test.com" "pass123")
-TOKEN_D=$(login "e2e_igc_d@test.com" "pass123")
+TOKEN_A=$(login "$EMAIL_A" "$PASSWORD")
+TOKEN_B=$(login "$EMAIL_B" "$PASSWORD")
+TOKEN_C=$(login "$EMAIL_C" "$PASSWORD")
+TOKEN_D=$(login "$EMAIL_D" "$PASSWORD")
 
-# Create game (A is creator)
+# Create game. A is the creator and first member.
 GAME=$(curl -s -X POST "$BASE_URL/game" \
     -H "Authorization: Bearer $TOKEN_A" \
     -H 'Content-Type: application/json' \

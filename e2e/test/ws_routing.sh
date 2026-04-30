@@ -2,15 +2,19 @@
 set -uo pipefail
 source "$(dirname "$0")/../harness.sh"
 
-echo "=== WebSocket Routing E2E Tests ==="
+print_header "WebSocket Routing E2E Tests"
 
-# Setup: two accounts in a conversation
-ACCOUNT_A=$(create_account "e2e_wsrt_a@test.com" "e2e_wsrt_a" "pass123")
+# A and B are conversation members. C is not.
+EMAIL_A="e2e_wsrt_a@test.com"
+EMAIL_B="e2e_wsrt_b@test.com"
+PASSWORD="pass123"
+
+ACCOUNT_A=$(create_account "$EMAIL_A" "e2e_wsrt_a" "$PASSWORD")
 ACCOUNT_A_ID=$(echo "$ACCOUNT_A" | jq -r '.id')
-ACCOUNT_B=$(create_account "e2e_wsrt_b@test.com" "e2e_wsrt_b" "pass123")
+ACCOUNT_B=$(create_account "$EMAIL_B" "e2e_wsrt_b" "$PASSWORD")
 ACCOUNT_B_ID=$(echo "$ACCOUNT_B" | jq -r '.id')
-TOKEN_A=$(login "e2e_wsrt_a@test.com" "pass123")
-TOKEN_B=$(login "e2e_wsrt_b@test.com" "pass123")
+TOKEN_A=$(login "$EMAIL_A" "$PASSWORD")
+TOKEN_B=$(login "$EMAIL_B" "$PASSWORD")
 
 CONV=$(curl -s -X POST "$BASE_URL/conversation" \
     -H "Authorization: Bearer $TOKEN_A" \
@@ -57,8 +61,9 @@ assert_equals "Sender receives own message" "echo to self" "$(echo "$RESPONSE" |
 
 # --- Non-member gets error ---
 
-_ACCOUNT_C=$(create_account "e2e_wsrt_c@test.com" "e2e_wsrt_c" "pass123")
-TOKEN_C=$(login "e2e_wsrt_c@test.com" "pass123")
+EMAIL_C="e2e_wsrt_c@test.com"
+_ACCOUNT_C=$(create_account "$EMAIL_C" "e2e_wsrt_c" "$PASSWORD")
+TOKEN_C=$(login "$EMAIL_C" "$PASSWORD")
 
 RESPONSE=$(ws_send "/ws/lobby" "$TOKEN_C" "$(cat <<EOF
 {"type":"Chat","conversation_id":"$CONV_ID","content":"should fail"}

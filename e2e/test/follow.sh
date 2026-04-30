@@ -2,15 +2,18 @@
 set -uo pipefail
 source "$(dirname "$0")/../harness.sh"
 
-echo "=== Follow E2E Tests ==="
+print_header "Follow E2E Tests"
 
-# Setup
-ACCOUNT_A=$(create_account "e2e_follow_a@test.com" "e2e_follow_a" "pass123")
+EMAIL_A="e2e_follow_a@test.com"
+EMAIL_B="e2e_follow_b@test.com"
+PASSWORD="pass123"
+
+ACCOUNT_A=$(create_account "$EMAIL_A" "e2e_follow_a" "$PASSWORD")
 ACCOUNT_A_ID=$(echo "$ACCOUNT_A" | jq -r '.id')
-ACCOUNT_B=$(create_account "e2e_follow_b@test.com" "e2e_follow_b" "pass123")
+ACCOUNT_B=$(create_account "$EMAIL_B" "e2e_follow_b" "$PASSWORD")
 ACCOUNT_B_ID=$(echo "$ACCOUNT_B" | jq -r '.id')
-TOKEN_A=$(login "e2e_follow_a@test.com" "pass123")
-TOKEN_B=$(login "e2e_follow_b@test.com" "pass123")
+TOKEN_A=$(login "$EMAIL_A" "$PASSWORD")
+TOKEN_B=$(login "$EMAIL_B" "$PASSWORD")
 
 # A follows B
 STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$BASE_URL/account/$ACCOUNT_B_ID/follow" -H "Authorization: Bearer $TOKEN_A")

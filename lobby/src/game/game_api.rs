@@ -135,7 +135,11 @@ async fn auto_create_game_conversation(
     game_name: &str,
     creator_account_id: Uuid,
 ) -> Result<(), LobbyError> {
-    let member_ids: Vec<Uuid> = game_membership_db::get_member_account_ids(pool, game_id).await?;
+    let member_ids: Vec<Uuid> = game_membership_db::get_members_per_game(pool, game_id)
+        .await?
+        .iter()
+        .map(|member| member.account_id)
+        .collect();
     let conversation_name: String = format!("Global [{}]", game_name);
 
     // creator_account_id has no ownership semantics — it is simply the first member added

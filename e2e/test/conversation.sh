@@ -2,15 +2,19 @@
 set -uo pipefail
 source "$(dirname "$0")/../harness.sh"
 
-echo "=== Conversation E2E Tests ==="
+print_header "Conversation E2E Tests"
 
-# Setup: create two accounts
-ACCOUNT_A=$(create_account "e2e_conv_a@test.com" "e2e_conv_a" "pass123")
+# A and B are conversation members. C is not.
+EMAIL_A="e2e_conv_a@test.com"
+EMAIL_B="e2e_conv_b@test.com"
+PASSWORD="pass123"
+
+ACCOUNT_A=$(create_account "$EMAIL_A" "e2e_conv_a" "$PASSWORD")
 ACCOUNT_A_ID=$(echo "$ACCOUNT_A" | jq -r '.id')
-ACCOUNT_B=$(create_account "e2e_conv_b@test.com" "e2e_conv_b" "pass123")
+ACCOUNT_B=$(create_account "$EMAIL_B" "e2e_conv_b" "$PASSWORD")
 ACCOUNT_B_ID=$(echo "$ACCOUNT_B" | jq -r '.id')
-TOKEN_A=$(login "e2e_conv_a@test.com" "pass123")
-TOKEN_B=$(login "e2e_conv_b@test.com" "pass123")
+TOKEN_A=$(login "$EMAIL_A" "$PASSWORD")
+TOKEN_B=$(login "$EMAIL_B" "$PASSWORD")
 
 # Create conversation
 CONV=$(curl -s -X POST "$BASE_URL/conversation" \
@@ -37,9 +41,10 @@ STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/conversation/$CONV_ID
 assert_status "Get conversation details" "200" "$STATUS"
 
 # Non-member can't access
-ACCOUNT_C=$(create_account "e2e_conv_c@test.com" "e2e_conv_c" "pass123")
+EMAIL_C="e2e_conv_c@test.com"
+ACCOUNT_C=$(create_account "$EMAIL_C" "e2e_conv_c" "$PASSWORD")
 ACCOUNT_C_ID=$(echo "$ACCOUNT_C" | jq -r '.id')
-TOKEN_C=$(login "e2e_conv_c@test.com" "pass123")
+TOKEN_C=$(login "$EMAIL_C" "$PASSWORD")
 STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/conversation/$CONV_ID" -H "Authorization: Bearer $TOKEN_C")
 assert_status "Non-member can't get details" "403" "$STATUS"
 
