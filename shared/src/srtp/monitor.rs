@@ -1,5 +1,5 @@
 use crate::error::AppErrorStatic;
-use crate::srtp::connection::{BUFFER_SIZE, ConnectionReader, ConnectionWriter, WriteBufferT};
+use crate::srtp::connection::{BUFFER_SIZE, BytesRead, ConnectionReader, ConnectionWriter, WriteBufferT};
 use crate::srtp::frame_buffer::FrameBuffer;
 use crate::srtp::protocol::Frame;
 use crate::srtp::ring_buffer::RingBuffer;
@@ -13,10 +13,21 @@ where
     Fut: Future<Output = ()>,
 {
     loop {
-        let Ok(_) = reader.read_chunk().await else {
-            log::info!("Connection terminated; {:?}", reader);
-            break;
+        let bytes_read: BytesRead = match reader.read_chunk().await {
+            Ok(bytes_read) => bytes_read,
+            Err(error) => {
+                log::error!("Connection read error; {:?} {:#}", reader, error);
+                break;
+            }
         };
+
+        match bytes_read {
+            BytesRead::ReadClosed => {
+                log::info!("Connection closed; {:?}", reader);
+                break;
+            }
+            BytesRead::Some(_) => {}
+        }
 
         match reader.read_buffer.pop_frames() {
             Ok(frames) => {
