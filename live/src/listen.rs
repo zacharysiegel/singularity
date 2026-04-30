@@ -10,6 +10,7 @@ pub async fn listen() -> Result<TcpListener, AppError> {
     let socket: Socket = socket::create_socket()?;
     let sock_addr: SockAddr = socket::get_sock_addr()?;
 
+    socket.set_reuse_address(true)?;
     socket.bind(&sock_addr)?;
     socket.listen(128)?;
     log::info!(
