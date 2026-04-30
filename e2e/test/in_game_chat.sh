@@ -51,18 +51,18 @@ EOF
 assert_status "Transition to Active" "200" "$STATUS"
 
 # Verify whole-game conversation was auto-created
-CONVS=$(curl -s "$BASE_URL/game/$GAME_ID/conversations" -H "Authorization: Bearer $TOKEN_A")
+CONVS=$(curl -s "$BASE_URL/game/$GAME_ID/conversation" -H "Authorization: Bearer $TOKEN_A")
 assert_equals "A has 1 game conversation" "1" "$(echo "$CONVS" | jq 'length')"
 GAME_CONV_ID=$(echo "$CONVS" | jq -r '.[0].id')
 GAME_CONV_NAME=$(echo "$CONVS" | jq -r '.[0].name')
 assert_equals "Game conversation name" "Global [E2E In-Game Chat Test]" "$GAME_CONV_NAME"
 
 # B also sees the conversation
-CONVS_B=$(curl -s "$BASE_URL/game/$GAME_ID/conversations" -H "Authorization: Bearer $TOKEN_B")
+CONVS_B=$(curl -s "$BASE_URL/game/$GAME_ID/conversation" -H "Authorization: Bearer $TOKEN_B")
 assert_equals "B has 1 game conversation" "1" "$(echo "$CONVS_B" | jq 'length')"
 
 # Non-member D cannot list game conversations
-STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/game/$GAME_ID/conversations" -H "Authorization: Bearer $TOKEN_D")
+STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/game/$GAME_ID/conversation" -H "Authorization: Bearer $TOKEN_D")
 assert_status "Non-member can't list conversations" "403" "$STATUS"
 
 # --- Send message in game conversation ---
@@ -94,7 +94,7 @@ DM_ID=$(echo "$DM" | jq -r '.id')
 assert_equals "DM created" "DM" "$(echo "$DM" | jq -r '.name')"
 
 # A now has 2 conversations
-CONVS=$(curl -s "$BASE_URL/game/$GAME_ID/conversations" -H "Authorization: Bearer $TOKEN_A")
+CONVS=$(curl -s "$BASE_URL/game/$GAME_ID/conversation" -H "Authorization: Bearer $TOKEN_A")
 assert_equals "A has 2 game conversations" "2" "$(echo "$CONVS" | jq 'length')"
 
 # --- Duplicate DM detection ---
@@ -152,7 +152,7 @@ EOF
 assert_status "Transition to Completed" "200" "$STATUS"
 
 # Conversations still accessible after completion
-CONVS=$(curl -s "$BASE_URL/game/$GAME_ID/conversations" -H "Authorization: Bearer $TOKEN_A")
+CONVS=$(curl -s "$BASE_URL/game/$GAME_ID/conversation" -H "Authorization: Bearer $TOKEN_A")
 assert_equals "Conversations persist after completion" "2" "$(echo "$CONVS" | jq 'length')"
 
 # Cleanup
