@@ -1,5 +1,6 @@
 pub mod auth;
 pub mod connection;
+pub mod hook;
 pub mod lifecycle;
 pub mod route;
 pub mod state;

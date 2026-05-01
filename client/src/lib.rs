@@ -6,6 +6,7 @@ pub mod engine;
 pub mod facility;
 pub mod font;
 pub mod game;
+pub mod http;
 pub mod input;
 pub mod map;
 pub mod player;
