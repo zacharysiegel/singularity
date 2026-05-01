@@ -21,6 +21,9 @@ pub async fn catch_up(token: &str) {
         }
     };
 
+    let mut conversation_count: i32 = 0;
+    let mut message_count: i32 = 0;
+
     for conversation_serial in &conversation_serials {
         let message_serials: Vec<ConversationMessageSerial> =
             match fetch_messages(token, conversation_serial.id).await {
@@ -34,15 +37,14 @@ pub async fn catch_up(token: &str) {
                 }
             };
 
+        conversation_count += i32::from(message_serials.len() > 0);
+        message_count += message_serials.len() as i32;
         for message_serial in message_serials {
             event::handle_chat_event(message_serial);
         }
     }
 
-    log::info!(
-        "Chat catch-up complete; [{} conversations]",
-        conversation_serials.len()
-    );
+    log::info!("Chat catch-up complete; [{conversation_count} conversations] [{message_count} messages]");
 }
 
 async fn fetch_conversations(token: &str) -> Result<Vec<ConversationSerial>, AppErrorStatic> {
