@@ -8,7 +8,7 @@ use tokio::sync::{mpsc, oneshot};
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 
 use crate::ws::state::OUTBOUND_BUFFER_CAPACITY;
-use super::{handle, state};
+use super::{handle, hook, state};
 use super::handle::{WsSink, WsStream};
 
 const BACKOFF_INITIAL: Duration = Duration::from_millis(100);
@@ -96,9 +96,9 @@ async fn connect_once(
 
     log::info!("WebSocket connected [{connection_type}]");
 
-    let hook_token: String = token.to_string();
+    let hook_token: String = token.to_string(); // Must be owned by the future's closure
     tokio::spawn(async move {
-        super::hook::after_connect(connection_type, &hook_token).await;
+        hook::after_connect(connection_type, &hook_token).await;
     });
 
     let (mut request_sink, mut event_stream): (WsSink, WsStream) = ws_stream.split();
