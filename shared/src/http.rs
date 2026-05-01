@@ -5,7 +5,8 @@ use std::time::Duration;
 pub const CONTENT_TYPE_JSON: &str = "application/json";
 pub const CONTENT_TYPE_MSGPACK: &str = "application/msgpack";
 
-const RETRY_BACKOFF_INITIAL: Duration = Duration::from_millis(500);
+const RETRY_BACKOFF_INITIAL: Duration = Duration::from_millis(200);
+const RETRY_BACKOFF_MAX: Duration = Duration::from_secs(2);
 
 pub async fn with_retry<F, Fut, T, E>(
     max_attempts: u32,
@@ -28,7 +29,7 @@ where
                         "Retrying; [attempt {attempt}/{max_attempts}] [{error}]"
                     );
                     tokio::time::sleep(backoff).await;
-                    backoff *= 2;
+                    backoff = (backoff * 2).min(RETRY_BACKOFF_MAX);
                 }
                 last_error = Some(error);
             }
