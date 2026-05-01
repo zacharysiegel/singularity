@@ -1,8 +1,10 @@
 use reqwest::Response;
+use serde::de::DeserializeOwned;
 use shared::error::AppError;
 use shared::http::CONTENT_TYPE_MSGPACK;
 
-pub async fn deserialize_response<T: serde::de::DeserializeOwned>(
+/// Deserialization utility specifically suited for the "reqwest" library (used on the client)
+pub async fn deserialize_response<T: DeserializeOwned>(
     response: Response,
 ) -> Result<T, AppError> {
     let content_type: Option<String> = response
