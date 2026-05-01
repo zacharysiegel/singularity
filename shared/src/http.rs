@@ -21,12 +21,13 @@ where
     let mut last_error: Option<E> = None;
 
     for attempt in 1..=max_attempts {
-        match operation().await {
+        let result: Result<T, E> = operation().await;
+        match result {
             Ok(result) => return Ok(result),
             Err(error) => {
                 if attempt < max_attempts {
                     log::warn!(
-                        "Retrying; [attempt {attempt}/{max_attempts}] [{error}]"
+                        "Retrying in {}ms; [attempt {attempt}/{max_attempts}] [{error}]", backoff.as_millis()
                     );
                     tokio::time::sleep(backoff).await;
                     backoff = (backoff * 2).min(RETRY_BACKOFF_MAX);
