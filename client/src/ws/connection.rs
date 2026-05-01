@@ -95,8 +95,11 @@ async fn connect_once(
     };
 
     log::info!("WebSocket connected [{connection_type}]");
-    /* TODO(ws-catchup): fetch missed messages via REST before entering the message loop, to catch up on
-        anything lost during the disconnect. The BTreeMap composite key handles deduplication. */
+
+    let hook_token: String = token.to_string();
+    tokio::spawn(async move {
+        super::hook::after_connect(connection_type, &hook_token).await;
+    });
 
     let (mut request_sink, mut event_stream): (WsSink, WsStream) = ws_stream.split();
     let (request_sender, mut request_receiver): (mpsc::Sender<WsRequest>, mpsc::Receiver<WsRequest>) =
