@@ -2,6 +2,7 @@ use actix_web::{web, HttpRequest, HttpResponse};
 use shared::schema::conversation::{
     AddConversationMemberRequest, ConversationMemberSerial, ConversationSerial, CreateConversationRequest,
 };
+use shared::schema::ws_message::ConnectionType;
 use sqlx::PgPool;
 use uuid::Uuid;
 use crate::conversation_message::conversation_message_api;
@@ -10,6 +11,7 @@ use crate::game_membership::game_membership_model::GameMembershipEntity;
 use crate::http;
 use crate::lobby_error::{LobbyError, OptionExtLobbyError, ResultExtLobbyError};
 use crate::session::session_extractor::AuthenticatedAccount;
+use super::conversation_broadcast;
 use super::conversation_db;
 use super::conversation_model::{Conversation, ConversationEntity, ConversationMember, ConversationMemberEntity};
 
@@ -61,7 +63,12 @@ async fn create_conversation(
         &payload.member_account_ids,
     )
     .await?;
-    // todo: should this push to new conversation member websockets? or should we require an http fetch?
+
+    for member_id in &all_member_ids {
+        conversation_broadcast::broadcast_member_joined(
+            pool.get_ref(), entity.id, *member_id, entity.created, ConnectionType::Lobby,
+        ).await;
+    }
 
     let conversation: Conversation = Conversation::from(entity);
     let serial: ConversationSerial = ConversationSerial::from(&conversation);
@@ -134,7 +141,11 @@ async fn add_member(
         conversation_id,
         payload.account_id
     ).await?;
-    // todo: push to websockets for conversation members
+
+    let connection_type: ConnectionType = connection_type_for_conversation(pool.get_ref(), conversation_id).await?;
+    conversation_broadcast::broadcast_member_joined(
+        pool.get_ref(), conversation_id, payload.account_id, member.entered, connection_type,
+    ).await;
 
     let member: ConversationMember = ConversationMember::from(member);
     let member: ConversationMemberSerial = ConversationMemberSerial::from(&member);
@@ -157,7 +168,13 @@ async fn leave_conversation(
     }
 
     let did_leave: bool = conversation_db::leave_conversation(pool.get_ref(), conversation_id, auth.account_id).await?;
-    // todo: push to websockets for conversation members
+
+    if did_leave {
+        let connection_type: ConnectionType = connection_type_from_game_id(conversation_entity.game_id);
+        conversation_broadcast::broadcast_member_left(
+            pool.get_ref(), conversation_id, auth.account_id, chrono::Utc::now(), connection_type,
+        ).await;
+    }
 
     match did_leave {
         true => Ok(HttpResponse::Ok().finish()),
@@ -243,7 +260,29 @@ async fn create_game_conversation(
     )
     .await?;
 
+    for member_id in &all_member_ids {
+        conversation_broadcast::broadcast_member_joined(
+            pool.get_ref(), entity.id, *member_id, entity.created, ConnectionType::Live,
+        ).await;
+    }
+
     let conversation: Conversation = Conversation::from(entity);
     let serial: ConversationSerial = ConversationSerial::from(&conversation);
     Ok(http::serialize_response(&request, &serial))
+}
+
+async fn connection_type_for_conversation(
+    pool: &PgPool,
+    conversation_id: Uuid,
+) -> Result<ConnectionType, LobbyError> {
+    let entity: ConversationEntity =
+        conversation_db::get_conversation_by_id(pool, conversation_id).await?.or_not_found()?;
+    Ok(connection_type_from_game_id(entity.game_id))
+}
+
+fn connection_type_from_game_id(game_id: Option<Uuid>) -> ConnectionType {
+    match game_id {
+        Some(_) => ConnectionType::Live,
+        None => ConnectionType::Lobby,
+    }
 }
