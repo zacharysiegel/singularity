@@ -1,4 +1,5 @@
 use actix_web::{web, HttpRequest, HttpResponse};
+use chrono::Utc;
 use shared::schema::conversation::{
     AddConversationMemberRequest, ConversationMemberSerial, ConversationSerial, CreateConversationRequest,
 };
@@ -148,7 +149,7 @@ async fn leave_conversation(
     if did_leave {
         let connection_type: ConnectionType = ConnectionType::from_game_id(conversation_entity.game_id);
         conversation_broadcast::broadcast_member_left(
-            pool.get_ref(), conversation_id, auth.account_id, chrono::Utc::now(), connection_type,
+            pool.get_ref(), conversation_id, auth.account_id, Utc::now(), connection_type,
         ).await;
     }
 
