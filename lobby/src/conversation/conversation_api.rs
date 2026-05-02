@@ -11,6 +11,7 @@ use crate::game_membership::game_membership_model::GameMembershipEntity;
 use crate::http;
 use crate::lobby_error::{LobbyError, OptionExtLobbyError, ResultExtLobbyError};
 use crate::session::session_extractor::AuthenticatedAccount;
+use super::conversation;
 use super::conversation_broadcast;
 use super::conversation_db;
 use super::conversation_model::{Conversation, ConversationEntity, ConversationMember, ConversationMemberEntity};
@@ -44,7 +45,7 @@ async fn create_conversation(
         return Err(LobbyError::bad_request("invalid create conversation request"));
     }
 
-    conversation_broadcast::create_conversation(&request, pool.get_ref(), payload, auth.account_id, None).await
+    conversation::create_conversation(&request, pool.get_ref(), payload, auth.account_id, None).await
 }
 
 async fn list_conversations(
@@ -114,7 +115,7 @@ async fn add_member(
         payload.account_id
     ).await?;
 
-    let connection_type: ConnectionType = connection_type_for_conversation(pool.get_ref(), conversation_id).await?;
+    let connection_type: ConnectionType = conversation::connection_type_for_conversation(pool.get_ref(), conversation_id).await?;
     conversation_broadcast::broadcast_member_joined(
         pool.get_ref(), conversation_id, payload.account_id, member.entered, connection_type,
     ).await;
@@ -210,14 +211,5 @@ async fn create_game_conversation(
         }
     }
 
-    conversation_broadcast::create_conversation(&request, pool.get_ref(), payload, auth.account_id, Some(game_id)).await
-}
-
-async fn connection_type_for_conversation(
-    pool: &PgPool,
-    conversation_id: Uuid,
-) -> Result<ConnectionType, LobbyError> {
-    let entity: ConversationEntity =
-        conversation_db::get_conversation_by_id(pool, conversation_id).await?.or_not_found()?;
-    Ok(ConnectionType::from_game_id(entity.game_id))
+    conversation::create_conversation(&request, pool.get_ref(), payload, auth.account_id, Some(game_id)).await
 }
