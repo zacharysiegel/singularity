@@ -45,7 +45,10 @@ async fn create_conversation(
         return Err(LobbyError::bad_request("invalid create conversation request"));
     }
 
-    conversation::create_conversation(&request, pool.get_ref(), payload, auth.account_id, None).await
+    let conversation: Conversation =
+        conversation::create_conversation(pool.get_ref(), payload, auth.account_id, None).await?;
+    let serial: ConversationSerial = ConversationSerial::from(&conversation);
+    Ok(http::serialize_response(&request, &serial))
 }
 
 async fn list_conversations(
@@ -211,5 +214,8 @@ async fn create_game_conversation(
         }
     }
 
-    conversation::create_conversation(&request, pool.get_ref(), payload, auth.account_id, Some(game_id)).await
+    let conversation: Conversation =
+        conversation::create_conversation(pool.get_ref(), payload, auth.account_id, Some(game_id)).await?;
+    let serial: ConversationSerial = ConversationSerial::from(&conversation);
+    Ok(http::serialize_response(&request, &serial))
 }

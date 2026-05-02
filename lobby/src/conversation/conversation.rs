@@ -1,5 +1,4 @@
-use actix_web::{HttpRequest, HttpResponse};
-use shared::schema::conversation::{ConversationSerial, CreateConversationRequest};
+use shared::schema::conversation::CreateConversationRequest;
 use shared::schema::ws_message::ConnectionType;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -7,17 +6,15 @@ use uuid::Uuid;
 use super::conversation_broadcast;
 use super::conversation_db;
 use super::conversation_model::{Conversation, ConversationEntity};
-use crate::http;
 use crate::lobby_error::{LobbyError, OptionExtLobbyError};
 
 pub async fn create_conversation(
-    request: &HttpRequest,
     pool: &PgPool,
-    payload: CreateConversationRequest,
+    command: CreateConversationRequest,
     creator_account_id: Uuid,
     game_id: Option<Uuid>,
-) -> Result<HttpResponse, LobbyError> {
-    let mut all_member_ids: Vec<Uuid> = payload.member_account_ids.clone();
+) -> Result<Conversation, LobbyError> {
+    let mut all_member_ids: Vec<Uuid> = command.member_account_ids.clone();
     if !all_member_ids.contains(&creator_account_id) {
         all_member_ids.push(creator_account_id);
     }
@@ -30,10 +27,10 @@ pub async fn create_conversation(
 
     let entity: ConversationEntity = conversation_db::create_conversation(
         pool,
-        payload.name.as_deref(),
+        command.name.as_deref(),
         game_id,
         creator_account_id,
-        &payload.member_account_ids,
+        &command.member_account_ids,
     )
     .await?;
 
@@ -44,9 +41,7 @@ pub async fn create_conversation(
         ).await;
     }
 
-    let conversation: Conversation = Conversation::from(entity);
-    let serial: ConversationSerial = ConversationSerial::from(&conversation);
-    Ok(http::serialize_response(request, &serial))
+    Ok(Conversation::from(entity))
 }
 
 pub async fn connection_type_for_conversation(
