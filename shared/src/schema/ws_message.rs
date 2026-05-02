@@ -25,6 +25,13 @@ impl Display for ConnectionType {
 }
 
 impl ConnectionType {
+    pub fn from_game_id(game_id: Option<Uuid>) -> ConnectionType {
+        match game_id {
+            Some(_) => ConnectionType::Live,
+            None => ConnectionType::Lobby,
+        }
+    }
+
     pub fn ws_path(&self) -> String {
         format!("/ws/{}", self.to_string())
     }

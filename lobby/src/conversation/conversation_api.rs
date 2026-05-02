@@ -44,35 +44,7 @@ async fn create_conversation(
         return Err(LobbyError::bad_request("invalid create conversation request"));
     }
 
-    let mut all_member_ids: Vec<Uuid> = payload.member_account_ids.clone();
-    if !all_member_ids.contains(&auth.account_id) {
-        all_member_ids.push(auth.account_id);
-    }
-
-    let duplicate_exists: bool =
-        conversation_db::conversation_with_members_exists(pool.get_ref(), None, &all_member_ids).await?;
-    if duplicate_exists {
-        return Err(LobbyError::conflict("a lobby conversation with this member set already exists"));
-    }
-
-    let entity: ConversationEntity = conversation_db::create_conversation(
-        pool.get_ref(),
-        payload.name.as_deref(),
-        None,
-        auth.account_id,
-        &payload.member_account_ids,
-    )
-    .await?;
-
-    for member_id in &all_member_ids {
-        conversation_broadcast::broadcast_member_joined(
-            pool.get_ref(), entity.id, *member_id, entity.created, ConnectionType::Lobby,
-        ).await;
-    }
-
-    let conversation: Conversation = Conversation::from(entity);
-    let serial: ConversationSerial = ConversationSerial::from(&conversation);
-    Ok(http::serialize_response(&request, &serial))
+    conversation_broadcast::create_conversation(&request, pool.get_ref(), payload, auth.account_id, None).await
 }
 
 async fn list_conversations(
@@ -170,7 +142,7 @@ async fn leave_conversation(
     let did_leave: bool = conversation_db::leave_conversation(pool.get_ref(), conversation_id, auth.account_id).await?;
 
     if did_leave {
-        let connection_type: ConnectionType = connection_type_from_game_id(conversation_entity.game_id);
+        let connection_type: ConnectionType = ConnectionType::from_game_id(conversation_entity.game_id);
         conversation_broadcast::broadcast_member_left(
             pool.get_ref(), conversation_id, auth.account_id, chrono::Utc::now(), connection_type,
         ).await;
@@ -238,37 +210,7 @@ async fn create_game_conversation(
         }
     }
 
-    // Include the caller in the full member set
-    let mut all_member_ids: Vec<Uuid> = payload.member_account_ids.clone();
-    if !all_member_ids.contains(&auth.account_id) {
-        all_member_ids.push(auth.account_id);
-    }
-
-    // Check for duplicate conversation with the same member set
-    let duplicate_exists: bool =
-        conversation_db::conversation_with_members_exists(pool.get_ref(), Some(game_id), &all_member_ids).await?;
-    if duplicate_exists {
-        return Err(LobbyError::conflict("a live conversation with this member set already exists for this game"));
-    }
-
-    let entity: ConversationEntity = conversation_db::create_conversation(
-        pool.get_ref(),
-        payload.name.as_deref(),
-        Some(game_id),
-        auth.account_id,
-        &payload.member_account_ids,
-    )
-    .await?;
-
-    for member_id in &all_member_ids {
-        conversation_broadcast::broadcast_member_joined(
-            pool.get_ref(), entity.id, *member_id, entity.created, ConnectionType::Live,
-        ).await;
-    }
-
-    let conversation: Conversation = Conversation::from(entity);
-    let serial: ConversationSerial = ConversationSerial::from(&conversation);
-    Ok(http::serialize_response(&request, &serial))
+    conversation_broadcast::create_conversation(&request, pool.get_ref(), payload, auth.account_id, Some(game_id)).await
 }
 
 async fn connection_type_for_conversation(
@@ -277,12 +219,5 @@ async fn connection_type_for_conversation(
 ) -> Result<ConnectionType, LobbyError> {
     let entity: ConversationEntity =
         conversation_db::get_conversation_by_id(pool, conversation_id).await?.or_not_found()?;
-    Ok(connection_type_from_game_id(entity.game_id))
-}
-
-fn connection_type_from_game_id(game_id: Option<Uuid>) -> ConnectionType {
-    match game_id {
-        Some(_) => ConnectionType::Live,
-        None => ConnectionType::Lobby,
-    }
+    Ok(ConnectionType::from_game_id(entity.game_id))
 }
