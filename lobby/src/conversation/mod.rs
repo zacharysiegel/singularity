@@ -1,3 +1,4 @@
+pub(crate) mod conversation_broadcast;
 pub(crate) mod conversation_db;
 
 pub mod conversation_api;
