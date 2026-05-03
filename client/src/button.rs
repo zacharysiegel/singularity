@@ -1,9 +1,14 @@
+use crate::component;
+use crate::font::DEFAULT_FONT_SPACING;
 use crate::input;
 use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
-use raylib::math::Rectangle;
+use raylib::drawing::RaylibDrawHandle;
+use raylib::math::{Rectangle, Vector2};
 use raylib::RaylibHandle;
 use shared::defaults::DEFAULT_RECTANGLE;
 use shared::map::RenderCoord;
+
+pub const DEFAULT_BUTTON_FONT_SIZE: f32 = 18.;
 
 #[derive(Debug, Clone)]
 pub struct RectangularButton {
@@ -63,5 +68,16 @@ impl RectangularButton {
 
     pub fn is_hovered(&self) -> bool {
         self.hovered
+    }
+
+    pub fn draw(&self, rl_draw: &mut RaylibDrawHandle) {
+        component::draw::draw_button_background(rl_draw, self.rectangle, self.hovered);
+        if let Some(text) = &self.text {
+            let center: Vector2 = Vector2 {
+                x: self.rectangle.x + self.rectangle.width / 2.,
+                y: self.rectangle.y + self.rectangle.height / 2.,
+            };
+            component::draw::draw_centered_text(rl_draw, text, center, DEFAULT_BUTTON_FONT_SIZE, DEFAULT_FONT_SPACING);
+        }
     }
 }

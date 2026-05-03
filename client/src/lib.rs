@@ -1,4 +1,5 @@
 pub mod button;
+pub mod component;
 pub mod config;
 pub mod connect;
 pub mod conversation;

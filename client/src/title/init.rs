@@ -1,10 +1,10 @@
-use crate::button::RectangularButton;
+use crate::button::{DEFAULT_BUTTON_FONT_SIZE, RectangularButton};
 use crate::font::DEFAULT_FONT_SPACING;
 use crate::input::ClickResult;
 use crate::stage::StageType;
 use crate::state::STATE;
 use crate::title::{
-    BUTTON_FONT_SIZE, BUTTON_INTERNAL_MARGIN, BUTTON_TEXT_ARRAY, BUTTON_VERTICAL_MARGIN, SCREEN_MARGIN,
+    BUTTON_INTERNAL_MARGIN, BUTTON_TEXT_ARRAY, BUTTON_VERTICAL_MARGIN, SCREEN_MARGIN,
     TITLE_VERTICAL_MARGIN,
 };
 use raylib::ffi::GetFontDefault;
@@ -24,7 +24,7 @@ const BUTTON_DIMENSIONS: LazyLock<Vector2> = LazyLock::new(|| {
 
     for text in BUTTON_TEXT_ARRAY {
         let font: WeakFont = unsafe { WeakFont::from_raw(GetFontDefault()) };
-        let measure: Vector2 = font.measure_text(text, BUTTON_FONT_SIZE, DEFAULT_FONT_SPACING);
+        let measure: Vector2 = font.measure_text(text, DEFAULT_BUTTON_FONT_SIZE, DEFAULT_FONT_SPACING);
         if measure.x > max_measure.x {
             max_measure = measure;
         }
