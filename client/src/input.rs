@@ -5,7 +5,9 @@ use raylib::math::Vector2;
 use raylib::RaylibHandle;
 use shared::environment::RuntimeEnvironment;
 use shared::map::RenderCoord;
-use std::sync::RwLockReadGuard;
+use std::sync::{RwLock, RwLockReadGuard};
+
+static MOUSE_PRESS_POSITION: RwLock<Option<RenderCoord>> = RwLock::new(None);
 
 #[derive(PartialEq)]
 pub enum ScrollResult {
@@ -79,9 +81,19 @@ pub fn handle_user_input(rl: &mut RaylibHandle) {
     scroll(rl, scroll_v);
     hover(rl, mouse_position);
 
-    if rl.is_mouse_button_released(MouseButton::MOUSE_BUTTON_LEFT) {
-        click(rl, mouse_position);
+    if rl.is_mouse_button_pressed(MouseButton::MOUSE_BUTTON_LEFT) {
+        let mut press_position = MOUSE_PRESS_POSITION.write().unwrap();
+        *press_position = Some(mouse_position);
     }
+
+    if rl.is_mouse_button_released(MouseButton::MOUSE_BUTTON_LEFT) {
+        let mut press_position = MOUSE_PRESS_POSITION.write().unwrap();
+        if press_position.is_some() {
+            click(rl, mouse_position);
+        }
+        *press_position = None;
+    }
+
     if RuntimeEnvironment::default().is_debug() && rl.is_mouse_button_released(MouseButton::MOUSE_BUTTON_MIDDLE) {
         log::debug!("Position: ({}, {})", mouse_position.x, mouse_position.y);
     }
@@ -134,4 +146,8 @@ pub fn noop_on_key_press(_rl: &mut RaylibHandle, _key: KeyboardKey) -> KeyPressR
 
 pub fn noop_on_char_press(_rl: &mut RaylibHandle, _ch: char) -> CharPressResult {
     CharPressResult::Consume
+}
+
+pub fn mouse_press_position() -> Option<RenderCoord> {
+    *MOUSE_PRESS_POSITION.read().unwrap()
 }
