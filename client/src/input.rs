@@ -14,9 +14,6 @@ pub enum ScrollResult {
 }
 
 pub trait ScrollHandler {
-    /// Hook to allow an object to handle a scroll event.
-    /// The hook should return [ScrollResult::Consume] to consume the event, or
-    /// [ScrollResult::Pass] to allow subsequent objects to handle the same event.
     fn scroll(&mut self, rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult;
 }
 
@@ -27,9 +24,6 @@ pub enum ClickResult {
 }
 
 pub trait ClickHandler {
-    /// Hook to allow an object to handle a click event.
-    /// The hook should return [ClickResult::Consume] to consume the event, or
-    /// [ClickResult::Pass] to allow subsequent objects to handle the same event.
     fn click(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult;
 }
 
@@ -40,9 +34,6 @@ pub enum HoverResult {
 }
 
 pub trait HoverHandler {
-    /// Hook to allow an object to handle a mouse hover event.
-    /// The hook should return [HoverResult::Consume] to consume the event, or
-    /// [HoverResult::Pass] to allow subsequent objects to handle the same event.
     fn hover(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult;
 }
 
@@ -53,10 +44,17 @@ pub enum KeyPressResult {
 }
 
 pub trait KeyPressHandler {
-    /// Hook to allow an object to handle a key press event.
-    /// The hook should return [KeyPressResult::Consume] to consume the event, or
-    /// [KeyPressResult::Pass] to allow subsequent objects to handle the same event.
     fn key_press(&mut self, rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult;
+}
+
+#[derive(PartialEq)]
+pub enum CharPressResult {
+    Pass,
+    Consume,
+}
+
+pub trait CharPressHandler {
+    fn char_press(&mut self, rl: &mut RaylibHandle, ch: char) -> CharPressResult;
 }
 
 pub fn handle_user_input(rl: &mut RaylibHandle) {
@@ -73,8 +71,16 @@ pub fn handle_user_input(rl: &mut RaylibHandle) {
         log::debug!("Position: ({}, {})", mouse_position.x, mouse_position.y);
     }
 
-    if let Some(key) = rl.get_key_pressed() {
-        key_press(rl, key);
+    while let Some(key) = rl.get_key_pressed() {
+        if key_press(rl, key) == KeyPressResult::Consume {
+            break;
+        }
+    }
+
+    while let Some(ch) = rl.get_char_pressed() {
+        if char_press(rl, ch) == CharPressResult::Consume {
+            break;
+        }
     }
 }
 
@@ -93,9 +99,14 @@ fn hover(rl: &mut RaylibHandle, mouse_position: RenderCoord) {
     current_stage.hover(rl, mouse_position);
 }
 
-fn key_press(rl: &mut RaylibHandle, key: KeyboardKey) {
+fn key_press(rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
     let current_stage: RwLockReadGuard<StageType> = STATE.stage.current();
-    current_stage.key_press(rl, key);
+    current_stage.key_press(rl, key)
+}
+
+fn char_press(rl: &mut RaylibHandle, ch: char) -> CharPressResult {
+    let current_stage: RwLockReadGuard<StageType> = STATE.stage.current();
+    current_stage.char_press(rl, ch)
 }
 
 pub fn noop_on_click(_rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> ClickResult {
@@ -108,4 +119,8 @@ pub fn noop_on_hover(_rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> Ho
 
 pub fn noop_on_key_press(_rl: &mut RaylibHandle, _key: KeyboardKey) -> KeyPressResult {
     KeyPressResult::Consume
+}
+
+pub fn noop_on_char_press(_rl: &mut RaylibHandle, _ch: char) -> CharPressResult {
+    CharPressResult::Consume
 }

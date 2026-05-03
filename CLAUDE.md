@@ -63,6 +63,10 @@ Both client and live server use a `RingBuffer`-backed read/write buffer system. 
 
 The client has three stages: Title (main menu), Browser (game list), and Game (gameplay with hex map). Stage transitions use `LockedSwitch`, which defers the switch until the next frame to avoid mid-frame state corruption. Each stage is organized into sub-modules: `state.rs`, `draw.rs`, `input.rs`.
 
+### Component module (`client/src/component/`)
+
+The `component` module contains reusable UI primitives (buttons, text input, scroll regions, text wrapping) and the input handler traits they implement (`ClickHandler`, `ScrollHandler`, etc.). It must not import from other `client` modules — no `STATE`, no `conversation`, no `stage`, no `ws`. Dependencies flow one direction: `client` → `component`. This constraint ensures the module can be extracted to a standalone crate without breaking anything.
+
 ## Infrastructure
 
 - **Secrets**: Managed via `secr` (encrypted in `secrets.yaml`, decrypted at runtime using `MASTER_SECRET` env var). Use the `secr` crate directly at the point of use — do not pre-decrypt secrets into `.env` via `setup.sh`.

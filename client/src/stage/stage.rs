@@ -1,6 +1,6 @@
 use crate::browser::BrowserState;
 use crate::game::GameState;
-use crate::input::{ClickResult, HoverResult, KeyPressResult, ScrollResult};
+use crate::input::{CharPressResult, ClickResult, HoverResult, KeyPressResult, ScrollResult};
 use crate::locked_switch::LockedSwitch;
 use crate::title::TitleState;
 use crate::{browser, game, title};
@@ -88,6 +88,13 @@ impl StageType {
             StageType::Game => game::key_press(rl, key),
             StageType::Browser => browser::key_press(rl, key),
             _ => KeyPressResult::Pass,
+        }
+    }
+
+    pub fn char_press(&self, rl: &mut RaylibHandle, ch: char) -> CharPressResult {
+        match self {
+            StageType::Game => game::char_press(rl, ch),
+            _ => CharPressResult::Pass,
         }
     }
 

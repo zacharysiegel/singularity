@@ -1,5 +1,6 @@
 use crate::button::RectangularButton;
 use crate::input::{
+    CharPressHandler, CharPressResult,
     ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult, ScrollHandler, ScrollResult,
 };
 use crate::window;
@@ -15,7 +16,7 @@ use std::sync::RwLockReadGuard;
 
 pub const BUTTON_WIDTH: f32 = 42.;
 
-pub trait Window: ScrollHandler + ClickHandler + HoverHandler + KeyPressHandler {
+pub trait Window: ScrollHandler + ClickHandler + HoverHandler + KeyPressHandler + CharPressHandler {
     fn is_open(&self) -> bool;
     fn close(&mut self);
     fn origin(&self) -> Option<RenderCoord>;
@@ -43,6 +44,11 @@ pub trait Window: ScrollHandler + ClickHandler + HoverHandler + KeyPressHandler 
     #[allow(unused)]
     fn handle_window_key_press(&mut self, rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
         KeyPressResult::Consume
+    }
+
+    #[allow(unused)]
+    fn handle_window_char_press(&mut self, rl: &mut RaylibHandle, ch: char) -> CharPressResult {
+        CharPressResult::Consume
     }
 
     fn draw(&self, rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread)
