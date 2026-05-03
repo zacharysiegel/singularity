@@ -44,3 +44,8 @@ Current
         Mutuals
         Account lookup (follow button)
 
+Sessions
+    "singularity-lobby"
+    "singularity-chat-ui"
+    "singularity-game-design"
+
