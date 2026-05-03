@@ -1,4 +1,4 @@
-use crate::input::HoverResult;
+use crate::input::{CharPressResult, HoverResult};
 use crate::input::KeyPressResult;
 use crate::input::{ClickResult, ScrollResult};
 use crate::map;
@@ -71,4 +71,16 @@ pub fn key_press(rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
     }
 
     KeyPressResult::Pass
+}
+
+pub fn char_press(rl: &mut RaylibHandle, ch: char) -> CharPressResult {
+    for window in window_layers() {
+        let mut window: RwLockWriteGuard<dyn Window> = window.write().unwrap();
+        match window.char_press(rl, ch) {
+            CharPressResult::Pass => continue,
+            CharPressResult::Consume => return CharPressResult::Consume,
+        }
+    }
+
+    CharPressResult::Pass
 }

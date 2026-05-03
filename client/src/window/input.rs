@@ -1,4 +1,5 @@
 use crate::input::{
+    CharPressHandler, CharPressResult,
     ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult, ScrollHandler, ScrollResult,
 };
 use crate::window::Window;
@@ -71,4 +72,14 @@ fn window_contains_render_coord(window: &dyn Window, render_coord: RenderCoord) 
 
     let rectangle: Rectangle = window.try_to_rectangle().unwrap();
     rectangle.check_collision_point_rec(Vector2::from(render_coord))
+}
+
+impl<T: Window> CharPressHandler for T {
+    fn char_press(&mut self, rl: &mut RaylibHandle, ch: char) -> CharPressResult {
+        if self.is_open() {
+            self.handle_window_char_press(rl, ch)
+        } else {
+            CharPressResult::Pass
+        }
+    }
 }
