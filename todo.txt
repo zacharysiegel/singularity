@@ -35,8 +35,12 @@ Networking
 Proper map generation (see plan.md)
 
 Current
-	Associate client with user (session)
-		Sign-in stage before title
-		Clipboard past button for user id (UUID) input
-	Associate user with game (persistent) (database) ("join")
-	Associate client with game (session) ("launch")
+	Sign-in stage before title
+    UI component abstraction
+    Chat UI
+    Profile UI
+        Followers
+        Following
+        Mutuals
+        Account lookup (follow button)
+

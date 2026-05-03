@@ -126,7 +126,7 @@ On average, the player with maximal consumption should win
     Accolades may be given for second or third place (e.g. Subterfuge) to minimize blue-shell behavior
 
 Victory
-    Refine enough U-235 to build a nuclear weapon
+    Accumulate victory points to a critical point
     Requires siphoning industrial surplus to victory point resource generation
     Victory points are not functional
     Like anything else, trading can increase industrial capacity
