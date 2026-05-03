@@ -1,12 +1,10 @@
 use crate::button::RectangularButton;
 use crate::config::APPLICATION_NAME;
-use crate::font::DEFAULT_FONT_SPACING;
 use crate::state::{Loading, STATE};
-use crate::title::{BUTTON_FONT_SIZE, TITLE_VERTICAL_MARGIN};
-use raylib::color::Color;
+use crate::title::TITLE_VERTICAL_MARGIN;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
-use shared::color::{DIFF_HOVER_BUTTON, MAP_BACKGROUND_COLOR, TEXT_COLOR, WINDOW_BACKGROUND_COLOR};
+use shared::color::{MAP_BACKGROUND_COLOR, TEXT_COLOR};
 use shared::math;
 use std::sync::RwLockReadGuard;
 
@@ -64,38 +62,12 @@ fn draw_debug_button(rl_draw: &mut RaylibDrawHandle) {
 }
 
 fn draw_main_buttons(rl_draw: &mut RaylibDrawHandle) {
-    for button_l in &STATE.stage.title.main_buttons {
-        let button: RwLockReadGuard<RectangularButton> = button_l.read().unwrap();
-        draw_button(rl_draw, &button);
+    for button_lock in &STATE.stage.title.main_buttons {
+        let button: RwLockReadGuard<RectangularButton> = button_lock.read().unwrap();
+        button.draw(rl_draw);
     }
 }
 
 fn draw_button(rl_draw: &mut RaylibDrawHandle, button: &RectangularButton) {
-    let position: Vector2 = math::rect_origin(button.rectangle);
-    let dimensions: Vector2 = math::rect_dimensions(button.rectangle);
-    let mut bg_color: Color = WINDOW_BACKGROUND_COLOR;
-    if button.is_hovered() {
-        bg_color = math::color_add(&bg_color, &DIFF_HOVER_BUTTON);
-    }
-
-    rl_draw.draw_rectangle_v(position, dimensions, bg_color);
-    if let Some(text) = &button.text {
-        rl_draw.draw_text_ex(
-            rl_draw.get_font_default(),
-            text,
-            math::centered_text_origin(
-                Vector2 {
-                    x: position.x + dimensions.x / 2.,
-                    y: position.y + dimensions.y / 2.,
-                },
-                text,
-                rl_draw.get_font_default(),
-                BUTTON_FONT_SIZE,
-                DEFAULT_FONT_SPACING,
-            ),
-            BUTTON_FONT_SIZE,
-            DEFAULT_FONT_SPACING,
-            TEXT_COLOR,
-        );
-    }
+    button.draw(rl_draw);
 }
