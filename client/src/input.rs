@@ -14,6 +14,9 @@ pub enum ScrollResult {
 }
 
 pub trait ScrollHandler {
+    /// Hook to allow an object to handle a scroll event.
+    /// The hook should return [ScrollResult::Consume] to consume the event, or
+    /// [ScrollResult::Pass] to allow subsequent objects to handle the same event.
     fn scroll(&mut self, rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult;
 }
 
@@ -24,6 +27,9 @@ pub enum ClickResult {
 }
 
 pub trait ClickHandler {
+    /// Hook to allow an object to handle a click event.
+    /// The hook should return [ClickResult::Consume] to consume the event, or
+    /// [ClickResult::Pass] to allow subsequent objects to handle the same event.
     fn click(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult;
 }
 
@@ -34,6 +40,9 @@ pub enum HoverResult {
 }
 
 pub trait HoverHandler {
+    /// Hook to allow an object to handle a mouse hover event.
+    /// The hook should return [HoverResult::Consume] to consume the event, or
+    /// [HoverResult::Pass] to allow subsequent objects to handle the same event.
     fn hover(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult;
 }
 
@@ -44,6 +53,9 @@ pub enum KeyPressResult {
 }
 
 pub trait KeyPressHandler {
+    /// Hook to allow an object to handle a key press event.
+    /// The hook should return [KeyPressResult::Consume] to consume the event, or
+    /// [KeyPressResult::Pass] to allow subsequent objects to handle the same event.
     fn key_press(&mut self, rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult;
 }
 
@@ -54,6 +66,9 @@ pub enum CharPressResult {
 }
 
 pub trait CharPressHandler {
+    /// Hook to allow an object to handle a character input event (printable characters).
+    /// The hook should return [CharPressResult::Consume] to consume the event, or
+    /// [CharPressResult::Pass] to allow subsequent objects to handle the same event.
     fn char_press(&mut self, rl: &mut RaylibHandle, ch: char) -> CharPressResult;
 }
 
