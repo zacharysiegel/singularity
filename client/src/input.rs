@@ -87,15 +87,11 @@ pub fn handle_user_input(rl: &mut RaylibHandle) {
     }
 
     while let Some(key) = rl.get_key_pressed() {
-        if key_press(rl, key) == KeyPressResult::Consume {
-            break;
-        }
+        key_press(rl, key);
     }
 
     while let Some(ch) = rl.get_char_pressed() {
-        if char_press(rl, ch) == CharPressResult::Consume {
-            break;
-        }
+        char_press(rl, ch);
     }
 }
 
