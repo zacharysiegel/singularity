@@ -65,15 +65,6 @@ impl<T: Window> KeyPressHandler for T {
     }
 }
 
-fn window_contains_render_coord(window: &dyn Window, render_coord: RenderCoord) -> bool {
-    if !window.is_open() {
-        return false;
-    }
-
-    let rectangle: Rectangle = window.try_to_rectangle().unwrap();
-    rectangle.check_collision_point_rec(Vector2::from(render_coord))
-}
-
 impl<T: Window> CharPressHandler for T {
     fn char_press(&mut self, rl: &mut RaylibHandle, ch: char) -> CharPressResult {
         if self.is_open() {
@@ -82,4 +73,13 @@ impl<T: Window> CharPressHandler for T {
             CharPressResult::Pass
         }
     }
+}
+
+fn window_contains_render_coord(window: &dyn Window, render_coord: RenderCoord) -> bool {
+    if !window.is_open() {
+        return false;
+    }
+
+    let rectangle: Rectangle = window.try_to_rectangle().unwrap();
+    rectangle.check_collision_point_rec(Vector2::from(render_coord))
 }
