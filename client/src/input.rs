@@ -110,14 +110,14 @@ fn hover(rl: &mut RaylibHandle, mouse_position: RenderCoord) {
     current_stage.hover(rl, mouse_position);
 }
 
-fn key_press(rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
+fn key_press(rl: &mut RaylibHandle, key: KeyboardKey) {
     let current_stage: RwLockReadGuard<StageType> = STATE.stage.current();
-    current_stage.key_press(rl, key)
+    current_stage.key_press(rl, key);
 }
 
-fn char_press(rl: &mut RaylibHandle, ch: char) -> CharPressResult {
+fn char_press(rl: &mut RaylibHandle, ch: char) {
     let current_stage: RwLockReadGuard<StageType> = STATE.stage.current();
-    current_stage.char_press(rl, ch)
+    current_stage.char_press(rl, ch);
 }
 
 pub fn noop_on_click(_rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> ClickResult {
