@@ -17,10 +17,9 @@ pub struct RectangularButton {
 
 impl ClickHandler for RectangularButton {
     fn click(&mut self, rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
-        if !self.rectangle.check_collision_point_rec(release_position) {
-            return ClickResult::Pass;
-        }
-        if !self.rectangle.check_collision_point_rec(press_position) {
+        if !self.rectangle.check_collision_point_rec(press_position)
+            || !self.rectangle.check_collision_point_rec(release_position)
+        {
             return ClickResult::Pass;
         }
         (self.on_click)(rl, press_position, release_position)
