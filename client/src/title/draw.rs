@@ -58,7 +58,7 @@ fn draw_debug_button(rl_draw: &mut RaylibDrawHandle) {
         debug_button.text = Some("Loading...".to_string());
     }
 
-    draw_button(rl_draw, &debug_button);
+    debug_button.draw(rl_draw);
 }
 
 fn draw_main_buttons(rl_draw: &mut RaylibDrawHandle) {
@@ -66,8 +66,4 @@ fn draw_main_buttons(rl_draw: &mut RaylibDrawHandle) {
         let button: RwLockReadGuard<RectangularButton> = button_lock.read().unwrap();
         button.draw(rl_draw);
     }
-}
-
-fn draw_button(rl_draw: &mut RaylibDrawHandle, button: &RectangularButton) {
-    button.draw(rl_draw);
 }
