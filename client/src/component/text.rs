@@ -12,57 +12,76 @@ pub fn wrap_text(
     let mut wrapped_lines: Vec<String> = Vec::new();
     let mut current_line: String = String::new();
 
-    for word in text.split_whitespace() {
-        let candidate: String = if current_line.is_empty() {
-            word.to_string()
-        } else {
-            format!("{current_line} {word}")
-        };
+    for segment in split_preserving_whitespace(text) {
+        if segment.chars().all(|character| character == '\n') {
+            for _ in 0..segment.len() {
+                wrapped_lines.push(current_line);
+                current_line = String::new();
+            }
+            continue;
+        }
 
+        let candidate: String = format!("{current_line}{segment}");
         let measure: Vector2 = font.measure_text(&candidate, font_size, font_spacing);
+
         if measure.x <= max_width {
             current_line = candidate;
         } else if current_line.is_empty() {
-            wrap_long_word(&mut wrapped_lines, word, &font, font_size, font_spacing, max_width);
+            wrap_long_segment(&mut wrapped_lines, &segment, font, font_size, font_spacing, max_width);
         } else {
             wrapped_lines.push(current_line);
-            current_line = word.to_string();
+            current_line = segment.trim_start().to_string();
         }
     }
 
-    if !current_line.is_empty() {
-        wrapped_lines.push(current_line);
-    }
-
-    if wrapped_lines.is_empty() {
-        wrapped_lines.push(String::new());
-    }
-
+    wrapped_lines.push(current_line);
     wrapped_lines
 }
 
-fn wrap_long_word(
+fn split_preserving_whitespace(text: &str) -> Vec<String> {
+    let mut segments: Vec<String> = Vec::new();
+    let mut current_segment: String = String::new();
+    let mut in_whitespace: bool = false;
+
+    for character in text.chars() {
+        let is_whitespace: bool = character.is_whitespace();
+        if is_whitespace != in_whitespace && !current_segment.is_empty() {
+            segments.push(current_segment);
+            current_segment = String::new();
+        }
+        current_segment.push(character);
+        in_whitespace = is_whitespace;
+    }
+
+    if !current_segment.is_empty() {
+        segments.push(current_segment);
+    }
+
+    segments
+}
+
+fn wrap_long_segment(
     wrapped_lines: &mut Vec<String>,
-    word: &str,
+    segment: &str,
     font: &WeakFont,
     font_size: f32,
     font_spacing: f32,
     max_width: f32,
 ) {
-    let mut current_segment: String = String::new();
+    let mut current_fragment: String = String::new();
 
-    for character in word.chars() {
-        let candidate: String = format!("{current_segment}{character}");
+    for character in segment.chars() {
+        let candidate: String = format!("{current_fragment}{character}");
         let measure: Vector2 = font.measure_text(&candidate, font_size, font_spacing);
-        if measure.x > max_width && !current_segment.is_empty() {
-            wrapped_lines.push(current_segment);
-            current_segment = character.to_string();
+        if measure.x > max_width && !current_fragment.is_empty() {
+            wrapped_lines.push(current_fragment);
+            current_fragment = character.to_string();
         } else {
-            current_segment = candidate;
+            current_fragment = candidate;
         }
     }
 
-    if !current_segment.is_empty() {
-        wrapped_lines.push(current_segment);
+    if !current_fragment.is_empty() {
+        wrapped_lines.push(current_fragment);
     }
 }
