@@ -5,7 +5,7 @@ use raylib::math::Vector2;
 use raylib::RaylibHandle;
 use shared::environment::RuntimeEnvironment;
 use shared::map::RenderCoord;
-use std::sync::{RwLock, RwLockReadGuard};
+use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 static MOUSE_PRESS_POSITION: RwLock<Option<RenderCoord>> = RwLock::new(None);
 
@@ -82,12 +82,12 @@ pub fn handle_user_input(rl: &mut RaylibHandle) {
     hover(rl, mouse_position);
 
     if rl.is_mouse_button_pressed(MouseButton::MOUSE_BUTTON_LEFT) {
-        let mut press_position = MOUSE_PRESS_POSITION.write().unwrap();
+        let mut press_position: RwLockWriteGuard<Option<RenderCoord>> = MOUSE_PRESS_POSITION.write().unwrap();
         *press_position = Some(mouse_position);
     }
 
     if rl.is_mouse_button_released(MouseButton::MOUSE_BUTTON_LEFT) {
-        let mut press_position = MOUSE_PRESS_POSITION.write().unwrap();
+        let mut press_position: RwLockWriteGuard<Option<RenderCoord>> = MOUSE_PRESS_POSITION.write().unwrap();
         if press_position.is_some() {
             click(rl, mouse_position);
         }
