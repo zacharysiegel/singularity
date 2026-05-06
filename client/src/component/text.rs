@@ -2,15 +2,16 @@ use raylib::math::Vector2;
 use raylib::prelude::WeakFont;
 use raylib::text::RaylibFont;
 
-/// Wraps text into lines that fit within `max_width` pixels. Preserves original whitespace
+/// Wraps text into lines that fit within `max_length` pixels. Preserves original whitespace
 /// between words. Newlines in the input produce explicit line breaks. Falls back to
-/// character-level wrapping for segments wider than `max_width`.
+/// character-level wrapping for segments wider than `max_length`.
+/// Does not support right-to-left text (assumes width increases monotonically with character count).
 pub fn wrap_text(
     text: &str,
     font: &WeakFont,
     font_size: f32,
     font_spacing: f32,
-    max_width: f32,
+    max_length: f32,
 ) -> Vec<String> {
     let mut accumulator: Vec<String> = Vec::new();
     let mut current_line: String = String::new();
@@ -47,10 +48,10 @@ pub fn wrap_text(
         let candidate: String = format!("{current_line}{token}");
         let measure: Vector2 = font.measure_text(&candidate, font_size, font_spacing);
 
-        if measure.x <= max_width {
+        if measure.x <= max_length {
             current_line = candidate;
         } else if current_line.is_empty() {
-            wrap_long_token(&mut accumulator, &token, font, font_size, font_spacing, max_width);
+            wrap_long_token(&mut accumulator, &token, font, font_size, font_spacing, max_length);
         } else {
             accumulator.push(current_line.trim_end().to_string());
             current_line = token;
@@ -86,29 +87,51 @@ fn split_preserving_whitespace(text: &str) -> Vec<String> {
     segments
 }
 
-/// Wraps a single segment that is wider than `max_width` by breaking at character boundaries.
+/// Wraps a single token which is wider than `max_length` by breaking at character boundaries.
+/// Uses binary search to find break points (assumes width is monotonically increasing — not RTL-safe).
 fn wrap_long_token(
     wrapped_lines: &mut Vec<String>,
     segment: &str,
     font: &WeakFont,
     font_size: f32,
     font_spacing: f32,
-    max_width: f32,
+    max_length: f32,
 ) {
-    let mut current_fragment: String = String::new();
+    let chars: Vec<char> = segment.chars().collect();
+    let mut start: usize = 0;
 
-    for character in segment.chars() {
-        let candidate: String = format!("{current_fragment}{character}");
-        let measure: Vector2 = font.measure_text(&candidate, font_size, font_spacing);
-        if measure.x > max_width && !current_fragment.is_empty() {
-            wrapped_lines.push(current_fragment);
-            current_fragment = character.to_string();
+    while start < chars.len() {
+        let remaining: &[char] = &chars[start..];
+        let break_index: usize = find_break_point(remaining, font, font_size, font_spacing, max_length);
+        let fragment: String = remaining[..break_index].iter().collect();
+        wrapped_lines.push(fragment);
+        start += break_index;
+    }
+}
+
+/// Binary search for the largest prefix of `chars` that fits within `max_length`.
+/// Assumes width increases monotonically with character count (not RTL-safe).
+fn find_break_point(
+    chars: &[char],
+    font: &WeakFont,
+    font_size: f32,
+    font_spacing: f32,
+    max_length: f32,
+) -> usize {
+    let mut low: usize = 1;
+    let mut high: usize = chars.len();
+
+    while low < high {
+        let mid: usize = (low + high + 1) / 2;
+        let prefix: String = chars[..mid].iter().collect();
+        let width: f32 = font.measure_text(&prefix, font_size, font_spacing).x;
+
+        if width <= max_length {
+            low = mid;
         } else {
-            current_fragment = candidate;
+            high = mid - 1;
         }
     }
 
-    if !current_fragment.is_empty() {
-        wrapped_lines.push(current_fragment);
-    }
+    low.max(1)
 }
