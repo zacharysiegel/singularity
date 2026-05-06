@@ -73,7 +73,7 @@ impl RectangularButton {
     }
 
     pub fn draw(&self, rl_draw: &mut RaylibDrawHandle) {
-        component::draw::draw_button_background(rl_draw, self.rectangle, self.hovered);
+        component::draw::draw_button_background(rl_draw, self);
         if let Some(text) = &self.text {
             let center: Vector2 = Vector2 {
                 x: self.rectangle.x + self.rectangle.width / 2.,
