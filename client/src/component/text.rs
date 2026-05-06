@@ -2,6 +2,9 @@ use raylib::math::Vector2;
 use raylib::prelude::WeakFont;
 use raylib::text::RaylibFont;
 
+/// Wraps text into lines that fit within `max_width` pixels. Preserves original whitespace
+/// between words. Newlines in the input produce explicit line breaks. Falls back to
+/// character-level wrapping for segments wider than `max_width`.
 pub fn wrap_text(
     text: &str,
     font: &WeakFont,
@@ -38,6 +41,8 @@ pub fn wrap_text(
     wrapped_lines
 }
 
+/// Splits text into alternating word and whitespace segments without discarding any characters.
+/// e.g. "hello  world" -> ["hello", "  ", "world"]
 fn split_preserving_whitespace(text: &str) -> Vec<String> {
     let mut segments: Vec<String> = Vec::new();
     let mut current_segment: String = String::new();
@@ -60,6 +65,7 @@ fn split_preserving_whitespace(text: &str) -> Vec<String> {
     segments
 }
 
+/// Wraps a single segment that is wider than `max_width` by breaking at character boundaries.
 fn wrap_long_segment(
     wrapped_lines: &mut Vec<String>,
     segment: &str,
