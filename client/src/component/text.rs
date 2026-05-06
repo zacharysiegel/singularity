@@ -109,7 +109,7 @@ fn wrap_long_token(
     }
 }
 
-/// Binary search for the largest prefix of `chars` that fits within `max_length`.
+/// Binary search for the largest prefix of `chars` which fits within `max_length`.
 /// Assumes width increases monotonically with character count (not RTL-safe).
 fn find_break_point(
     chars: &[char],
