@@ -20,10 +20,10 @@ impl<T: Window> ScrollHandler for T {
 
 impl<T: Window> ClickHandler for T {
     fn click(&mut self, rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
-        let press_inside: bool = window_contains_render_coord(self, press_position);
-        let release_inside: bool = window_contains_render_coord(self, release_position);
+        let press_outside: bool = !window_contains_render_coord(self, press_position);
+        let release_outside: bool = !window_contains_render_coord(self, release_position);
 
-        if !press_inside && !release_inside {
+        if press_outside && release_outside {
             return if self.is_open() {
                 self.close();
                 ClickResult::Consume
@@ -32,7 +32,7 @@ impl<T: Window> ClickHandler for T {
             };
         }
 
-        if !press_inside || !release_inside {
+        if press_outside || release_outside {
             return ClickResult::Consume;
         }
 
