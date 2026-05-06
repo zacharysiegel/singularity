@@ -22,17 +22,21 @@ fn scrolled_map_origin(map_origin: MapCoord, scroll_v: Vector2) -> MapCoord {
     MapCoord(unchecked_origin).overflow_adjusted()
 }
 
-pub fn handle_click_hex(rl: &mut RaylibHandle, _press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
-    let containing_hex_coord: HexCoord = {
-        let map_origin: RwLockReadGuard<MapCoord> = STATE.stage.game.map.map_origin.read().unwrap();
-        release_position.containing_hex(&*map_origin)
-    };
+pub fn handle_click_hex(rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
+    let map_origin: RwLockReadGuard<MapCoord> = STATE.stage.game.map.map_origin.read().unwrap();
+    let press_hex: HexCoord = press_position.containing_hex(&*map_origin);
+    let release_hex: HexCoord = release_position.containing_hex(&*map_origin);
+    drop(map_origin);
+
+    if press_hex != release_hex {
+        return ClickResult::Pass;
+    }
 
     let mut hex_window: RwLockWriteGuard<HexWindow> = STATE.stage.game.window.hex.write().unwrap();
     hex_window.open(
         rl,
         RenderCoord(Vector2::from(release_position)),
-        super::clone_hex(containing_hex_coord).unwrap(),
+        super::clone_hex(release_hex).unwrap(),
     );
     drop(hex_window);
 
