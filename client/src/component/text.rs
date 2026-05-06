@@ -16,7 +16,7 @@ pub fn wrap_text(
     let mut current_line: String = String::new();
 
     for token in split_preserving_whitespace(text) {
-        if token.chars().next().is_some_and(|character| character.is_whitespace()) {
+        if token.starts_with(|character: char| character.is_whitespace()) {
             for character in token.chars() {
                 if character == '\n' {
                     wrapped_lines.push(current_line);
