@@ -13,8 +13,10 @@ pub struct TextBox {
 }
 
 impl ClickHandler for TextBox {
-    fn click(&mut self, _rl: &mut RaylibHandle, _press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
-        if self.rectangle.check_collision_point_rec(release_position) {
+    fn click(&mut self, _rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
+        if self.rectangle.check_collision_point_rec(press_position)
+            && self.rectangle.check_collision_point_rec(release_position)
+        {
             self.focused = true;
             ClickResult::Consume
         } else {
