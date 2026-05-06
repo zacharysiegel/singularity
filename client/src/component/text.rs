@@ -46,14 +46,15 @@ pub fn wrap_text(
 fn split_preserving_whitespace(text: &str) -> Vec<String> {
     let mut segments: Vec<String> = Vec::new();
     let mut current_segment: String = String::new();
-    let mut in_whitespace: bool = false;
+    let mut in_whitespace: bool = text.starts_with(|character: char| character.is_whitespace());
 
     for character in text.chars() {
         let is_whitespace: bool = character.is_whitespace();
-        if is_whitespace != in_whitespace && !current_segment.is_empty() {
+        if is_whitespace != in_whitespace {
             segments.push(current_segment);
             current_segment = String::new();
         }
+
         current_segment.push(character);
         in_whitespace = is_whitespace;
     }
