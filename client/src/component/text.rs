@@ -17,13 +17,24 @@ pub fn wrap_text(
 
     for token in split_preserving_whitespace(text) {
         if token.starts_with(|character: char| character.is_whitespace()) {
-            for character in token.chars() {
+            let token_chars: Vec<char> = token.chars().collect();
+            let mut index: usize = 0;
+
+            while index < token_chars.len() {
+                let character: char = token_chars[index];
                 if character == '\n' {
                     wrapped_lines.push(current_line);
                     current_line = String::new();
+                } else if character == '\r' {
+                    wrapped_lines.push(current_line);
+                    current_line = String::new();
+                    if token_chars.get(index + 1) == Some(&'\n') {
+                        index += 1;
+                    }
                 } else {
                     current_line.push(character);
                 }
+                index += 1;
             }
             continue;
         }
