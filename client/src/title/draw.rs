@@ -1,4 +1,4 @@
-use crate::button::RectangularButton;
+use crate::button::{InnerText, RectangularButton};
 use crate::config::APPLICATION_NAME;
 use crate::state::{Loading, STATE};
 use crate::title::TITLE_VERTICAL_MARGIN;
@@ -55,7 +55,7 @@ fn draw_debug_button(rl_draw: &mut RaylibDrawHandle) {
     let mut debug_button: RectangularButton = debug_button_g.as_ref().unwrap().clone();
     let debug_ready: RwLockReadGuard<Loading> = STATE.stage.title.debug_button.loading.read().unwrap();
     if *debug_ready == Loading::Incomplete {
-        debug_button.label = Some(crate::button::InnerText::from_str_default("Loading..."));
+        debug_button.inner_text = Some(InnerText::from_str_default("Loading..."));
     }
 
     debug_button.draw(rl_draw);

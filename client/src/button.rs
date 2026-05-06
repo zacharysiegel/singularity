@@ -1,16 +1,16 @@
 use crate::font::DEFAULT_FONT_SPACING;
 use crate::input;
 use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
+use raylib::RaylibHandle;
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::{Rectangle, Vector2};
-use raylib::RaylibHandle;
 use shared::color::{DIFF_HOVER_BUTTON, TEXT_COLOR, WINDOW_BACKGROUND_COLOR};
 use shared::defaults::DEFAULT_RECTANGLE;
 use shared::map::RenderCoord;
 use shared::math;
 
-pub const DEFAULT_LABEL_FONT_SIZE: f32 = 18.;
+pub const DEFAULT_FONT_SIZE: f32 = 18.;
 
 #[derive(Debug, Clone)]
 pub struct InnerText {
@@ -27,14 +27,14 @@ impl InnerText {
     }
 
     pub fn from_str_default(text: &str) -> InnerText {
-        InnerText::new(text, DEFAULT_LABEL_FONT_SIZE)
+        InnerText::new(text, DEFAULT_FONT_SIZE)
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct RectangularButton {
     pub rectangle: Rectangle,
-    pub label: Option<InnerText>,
+    pub inner_text: Option<InnerText>,
     pub on_click: fn(rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult,
     pub on_hover: fn(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult,
 
@@ -42,7 +42,12 @@ pub struct RectangularButton {
 }
 
 impl ClickHandler for RectangularButton {
-    fn click(&mut self, rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
+    fn click(
+        &mut self,
+        rl: &mut RaylibHandle,
+        press_position: RenderCoord,
+        release_position: RenderCoord,
+    ) -> ClickResult {
         if !self.rectangle.check_collision_point_rec(press_position)
             || !self.rectangle.check_collision_point_rec(release_position)
         {
@@ -69,7 +74,7 @@ shared::default_const_impl!(RectangularButton);
 impl RectangularButton {
     pub const DEFAULT: RectangularButton = RectangularButton {
         rectangle: DEFAULT_RECTANGLE,
-        label: None,
+        inner_text: None,
         on_click: input::noop_on_click,
         on_hover: input::noop_on_hover,
         hovered: false,
@@ -81,9 +86,9 @@ impl RectangularButton {
         button
     }
 
-    pub fn new_with_label(label: InnerText, rectangle: Rectangle) -> RectangularButton {
+    pub fn new_with_text(inner_text: InnerText, rectangle: Rectangle) -> RectangularButton {
         let mut button: RectangularButton = Self::new(rectangle);
-        button.label = Some(label);
+        button.inner_text = Some(inner_text);
         button
     }
 
@@ -93,26 +98,8 @@ impl RectangularButton {
 
     pub fn draw(&self, rl_draw: &mut RaylibDrawHandle) {
         self.draw_background(rl_draw);
-        if let Some(label) = &self.label {
-            let center: Vector2 = Vector2 {
-                x: self.rectangle.x + self.rectangle.width / 2.,
-                y: self.rectangle.y + self.rectangle.height / 2.,
-            };
-            let position: Vector2 = math::centered_text_origin(
-                center,
-                &label.text,
-                rl_draw.get_font_default(),
-                label.font_size,
-                DEFAULT_FONT_SPACING,
-            );
-            rl_draw.draw_text_ex(
-                rl_draw.get_font_default(),
-                &label.text,
-                position,
-                label.font_size,
-                DEFAULT_FONT_SPACING,
-                TEXT_COLOR,
-            );
+        if let Some(inner_text) = &self.inner_text {
+            self.draw_inner_text(rl_draw, inner_text);
         }
     }
 
@@ -124,5 +111,27 @@ impl RectangularButton {
             background_color = math::color_add(&background_color, &DIFF_HOVER_BUTTON);
         }
         rl_draw.draw_rectangle_v(position, dimensions, background_color);
+    }
+
+    fn draw_inner_text(&self, rl_draw: &mut RaylibDrawHandle, inner_text: &InnerText) {
+        let center: Vector2 = Vector2 {
+            x: self.rectangle.x + self.rectangle.width / 2.,
+            y: self.rectangle.y + self.rectangle.height / 2.,
+        };
+        let position: Vector2 = math::centered_text_origin(
+            center,
+            &inner_text.text,
+            rl_draw.get_font_default(),
+            inner_text.font_size,
+            DEFAULT_FONT_SPACING,
+        );
+        rl_draw.draw_text_ex(
+            rl_draw.get_font_default(),
+            &inner_text.text,
+            position,
+            inner_text.font_size,
+            DEFAULT_FONT_SPACING,
+            TEXT_COLOR,
+        );
     }
 }
