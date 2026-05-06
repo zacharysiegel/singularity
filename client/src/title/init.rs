@@ -1,4 +1,4 @@
-use crate::button::{DEFAULT_BUTTON_FONT_SIZE, RectangularButton};
+use crate::button::{DEFAULT_LABEL_FONT_SIZE, InnerText, RectangularButton};
 use crate::font::DEFAULT_FONT_SPACING;
 use crate::input::ClickResult;
 use crate::stage::StageType;
@@ -24,7 +24,7 @@ const BUTTON_DIMENSIONS: LazyLock<Vector2> = LazyLock::new(|| {
 
     for text in BUTTON_TEXT_ARRAY {
         let font: WeakFont = unsafe { WeakFont::from_raw(GetFontDefault()) };
-        let measure: Vector2 = font.measure_text(text, DEFAULT_BUTTON_FONT_SIZE, DEFAULT_FONT_SPACING);
+        let measure: Vector2 = font.measure_text(text, DEFAULT_LABEL_FONT_SIZE, DEFAULT_FONT_SPACING);
         if measure.x > max_measure.x {
             max_measure = measure;
         }
@@ -51,8 +51,9 @@ pub fn init_title(rl: &mut RaylibHandle) {
 }
 
 fn create_debug_button(rl: &mut RaylibHandle) -> RectangularButton {
-    let mut button: RectangularButton = RectangularButton::new_with_text(
-        "Debug",
+    let label: InnerText = InnerText::new("Debug", DEFAULT_LABEL_FONT_SIZE);
+    let mut button: RectangularButton = RectangularButton::new_with_label(
+        label,
         Rectangle {
             x: rl.get_screen_width() as f32 - SCREEN_MARGIN - BUTTON_DIMENSIONS.x,
             y: SCREEN_MARGIN,
@@ -76,8 +77,9 @@ fn create_games_button(rl: &mut RaylibHandle) -> RectangularButton {
         y: rl.get_screen_height() as f32 / 2. - BUTTON_DIMENSIONS.y / 2. + TITLE_VERTICAL_MARGIN / 2.,
     };
 
-    let mut button: RectangularButton = RectangularButton::new_with_text(
-        BUTTON_TEXT_ARRAY[0],
+    let label: InnerText = InnerText::new(BUTTON_TEXT_ARRAY[0], DEFAULT_LABEL_FONT_SIZE);
+    let mut button: RectangularButton = RectangularButton::new_with_label(
+        label,
         Rectangle {
             x: position.x,
             y: position.y,
@@ -102,8 +104,9 @@ fn create_account_button(rl: &mut RaylibHandle) -> RectangularButton {
             + BUTTON_VERTICAL_MARGIN,
     };
 
-    let button: RectangularButton = RectangularButton::new_with_text(
-        BUTTON_TEXT_ARRAY[1],
+    let label: InnerText = InnerText::new(BUTTON_TEXT_ARRAY[1], DEFAULT_LABEL_FONT_SIZE);
+    let button: RectangularButton = RectangularButton::new_with_label(
+        label,
         Rectangle {
             x: position.x,
             y: position.y,

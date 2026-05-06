@@ -10,12 +10,31 @@ use shared::defaults::DEFAULT_RECTANGLE;
 use shared::map::RenderCoord;
 use shared::math;
 
-pub const DEFAULT_BUTTON_FONT_SIZE: f32 = 18.;
+pub const DEFAULT_LABEL_FONT_SIZE: f32 = 18.;
+
+#[derive(Debug, Clone)]
+pub struct InnerText {
+    pub text: String,
+    pub font_size: f32,
+}
+
+impl InnerText {
+    pub fn new(text: &str, font_size: f32) -> InnerText {
+        InnerText {
+            text: text.to_string(),
+            font_size,
+        }
+    }
+
+    pub fn from_str(text: &str) -> InnerText {
+        InnerText::new(text, DEFAULT_LABEL_FONT_SIZE)
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct RectangularButton {
     pub rectangle: Rectangle,
-    pub text: Option<String>,
+    pub label: Option<InnerText>,
     pub on_click: fn(rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult,
     pub on_hover: fn(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult,
 
@@ -50,7 +69,7 @@ shared::default_const_impl!(RectangularButton);
 impl RectangularButton {
     pub const DEFAULT: RectangularButton = RectangularButton {
         rectangle: DEFAULT_RECTANGLE,
-        text: None,
+        label: None,
         on_click: input::noop_on_click,
         on_hover: input::noop_on_hover,
         hovered: false,
@@ -62,9 +81,9 @@ impl RectangularButton {
         button
     }
 
-    pub fn new_with_text(text: &str, rectangle: Rectangle) -> RectangularButton {
+    pub fn new_with_label(label: InnerText, rectangle: Rectangle) -> RectangularButton {
         let mut button: RectangularButton = Self::new(rectangle);
-        button.text = Some(text.to_string());
+        button.label = Some(label);
         button
     }
 
@@ -74,23 +93,23 @@ impl RectangularButton {
 
     pub fn draw(&self, rl_draw: &mut RaylibDrawHandle) {
         self.draw_background(rl_draw);
-        if let Some(text) = &self.text {
+        if let Some(label) = &self.label {
             let center: Vector2 = Vector2 {
                 x: self.rectangle.x + self.rectangle.width / 2.,
                 y: self.rectangle.y + self.rectangle.height / 2.,
             };
             let position: Vector2 = math::centered_text_origin(
                 center,
-                text,
+                &label.text,
                 rl_draw.get_font_default(),
-                DEFAULT_BUTTON_FONT_SIZE,
+                label.font_size,
                 DEFAULT_FONT_SPACING,
             );
             rl_draw.draw_text_ex(
                 rl_draw.get_font_default(),
-                text,
+                &label.text,
                 position,
-                DEFAULT_BUTTON_FONT_SIZE,
+                label.font_size,
                 DEFAULT_FONT_SPACING,
                 TEXT_COLOR,
             );
