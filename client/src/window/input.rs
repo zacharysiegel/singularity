@@ -32,7 +32,11 @@ impl<T: Window> ClickHandler for T {
             };
         }
 
-        if press_outside || release_outside {
+        if press_outside {
+            return ClickResult::Pass;
+        }
+
+        if release_outside {
             return ClickResult::Consume;
         }
 
