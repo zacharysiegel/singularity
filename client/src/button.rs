@@ -26,7 +26,7 @@ impl InnerText {
         }
     }
 
-    pub fn from_str(text: &str) -> InnerText {
+    pub fn from_str_default(text: &str) -> InnerText {
         InnerText::new(text, DEFAULT_LABEL_FONT_SIZE)
     }
 }
