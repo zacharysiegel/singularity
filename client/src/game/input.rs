@@ -31,7 +31,7 @@ pub fn click(rl: &mut RaylibHandle, press_position: RenderCoord, release_positio
         }
     }
 
-    map::handle_click_hex(rl, release_position)
+    map::handle_click_hex(rl, press_position, release_position)
 }
 
 pub fn hover(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
