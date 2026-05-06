@@ -1,11 +1,11 @@
-use crate::component;
 use crate::font::DEFAULT_FONT_SPACING;
 use crate::input;
 use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
+use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::{Rectangle, Vector2};
 use raylib::RaylibHandle;
-use shared::color::TEXT_COLOR;
+use shared::color::{DIFF_HOVER_BUTTON, TEXT_COLOR, WINDOW_BACKGROUND_COLOR};
 use shared::defaults::DEFAULT_RECTANGLE;
 use shared::map::RenderCoord;
 use shared::math;
@@ -73,7 +73,7 @@ impl RectangularButton {
     }
 
     pub fn draw(&self, rl_draw: &mut RaylibDrawHandle) {
-        component::draw::draw_button_background(rl_draw, self);
+        self.draw_background(rl_draw);
         if let Some(text) = &self.text {
             let center: Vector2 = Vector2 {
                 x: self.rectangle.x + self.rectangle.width / 2.,
@@ -95,5 +95,15 @@ impl RectangularButton {
                 TEXT_COLOR,
             );
         }
+    }
+
+    fn draw_background(&self, rl_draw: &mut RaylibDrawHandle) {
+        let position: Vector2 = math::rect_origin(self.rectangle);
+        let dimensions: Vector2 = math::rect_dimensions(self.rectangle);
+        let mut background_color: Color = WINDOW_BACKGROUND_COLOR;
+        if self.hovered {
+            background_color = math::color_add(&background_color, &DIFF_HOVER_BUTTON);
+        }
+        rl_draw.draw_rectangle_v(position, dimensions, background_color);
     }
 }
