@@ -15,25 +15,29 @@ pub fn wrap_text(
     let mut wrapped_lines: Vec<String> = Vec::new();
     let mut current_line: String = String::new();
 
-    for segment in split_preserving_whitespace(text) {
-        if segment.chars().all(|character| character == '\n') {
-            for _ in 0..segment.len() {
-                wrapped_lines.push(current_line);
-                current_line = String::new();
+    for token in split_preserving_whitespace(text) {
+        if token.chars().next().is_some_and(|character| character.is_whitespace()) {
+            for character in token.chars() {
+                if character == '\n' {
+                    wrapped_lines.push(current_line);
+                    current_line = String::new();
+                } else {
+                    current_line.push(character);
+                }
             }
             continue;
         }
 
-        let candidate: String = format!("{current_line}{segment}");
+        let candidate: String = format!("{current_line}{token}");
         let measure: Vector2 = font.measure_text(&candidate, font_size, font_spacing);
 
         if measure.x <= max_width {
             current_line = candidate;
         } else if current_line.is_empty() {
-            wrap_long_segment(&mut wrapped_lines, &segment, font, font_size, font_spacing, max_width);
+            wrap_long_segment(&mut wrapped_lines, &token, font, font_size, font_spacing, max_width);
         } else {
             wrapped_lines.push(current_line);
-            current_line = segment.trim_start().to_string();
+            current_line = token.trim_start().to_string();
         }
     }
 
