@@ -102,10 +102,10 @@ fn wrap_long_token(
 
     while start < chars.len() {
         let remaining: &[char] = &chars[start..];
-        let break_index: usize = find_break_point(remaining, font, font_size, font_spacing, max_length);
-        let fragment: String = remaining[..break_index].iter().collect();
+        let break_point: usize = find_break_point(remaining, font, font_size, font_spacing, max_length);
+        let fragment: String = remaining[..break_point].iter().collect();
         wrapped_lines.push(fragment);
-        start += break_index;
+        start += break_point;
     }
 }
 
