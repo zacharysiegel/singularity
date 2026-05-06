@@ -122,11 +122,13 @@ fn find_break_point(
     let mut high: usize = chars.len();
 
     while low < high {
-        let mid: usize = (low + high + 1) / 2;
+        // Ceiling division ensures mid > low. Without it, `low = mid` would not advance
+        // when high = low + 1, causing an infinite loop.
+        let mid: usize = (low + high).div_ceil(2);
         let prefix: String = chars[..mid].iter().collect();
-        let width: f32 = font.measure_text(&prefix, font_size, font_spacing).x;
+        let measure: f32 = font.measure_text(&prefix, font_size, font_spacing).x;
 
-        if width <= max_length {
+        if measure <= max_length {
             low = mid;
         } else {
             high = mid - 1;
