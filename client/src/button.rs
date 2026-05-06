@@ -2,11 +2,13 @@ use crate::component;
 use crate::font::DEFAULT_FONT_SPACING;
 use crate::input;
 use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
-use raylib::drawing::RaylibDrawHandle;
+use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::{Rectangle, Vector2};
 use raylib::RaylibHandle;
+use shared::color::TEXT_COLOR;
 use shared::defaults::DEFAULT_RECTANGLE;
 use shared::map::RenderCoord;
+use shared::math;
 
 pub const DEFAULT_BUTTON_FONT_SIZE: f32 = 18.;
 
@@ -77,7 +79,21 @@ impl RectangularButton {
                 x: self.rectangle.x + self.rectangle.width / 2.,
                 y: self.rectangle.y + self.rectangle.height / 2.,
             };
-            component::draw::draw_centered_text(rl_draw, text, center, DEFAULT_BUTTON_FONT_SIZE, DEFAULT_FONT_SPACING);
+            let position: Vector2 = math::centered_text_origin(
+                center,
+                text,
+                rl_draw.get_font_default(),
+                DEFAULT_BUTTON_FONT_SIZE,
+                DEFAULT_FONT_SPACING,
+            );
+            rl_draw.draw_text_ex(
+                rl_draw.get_font_default(),
+                text,
+                position,
+                DEFAULT_BUTTON_FONT_SIZE,
+                DEFAULT_FONT_SPACING,
+                TEXT_COLOR,
+            );
         }
     }
 }
