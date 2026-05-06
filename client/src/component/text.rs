@@ -12,7 +12,7 @@ pub fn wrap_text(
     font_spacing: f32,
     max_width: f32,
 ) -> Vec<String> {
-    let mut wrapped_lines: Vec<String> = Vec::new();
+    let mut accumulator: Vec<String> = Vec::new();
     let mut current_line: String = String::new();
 
     for token in split_preserving_whitespace(text) {
@@ -22,38 +22,43 @@ pub fn wrap_text(
 
             while index < token_chars.len() {
                 let character: char = token_chars[index];
+
                 if character == '\n' {
-                    wrapped_lines.push(current_line);
+                    accumulator.push(current_line);
                     current_line = String::new();
                 } else if character == '\r' {
-                    wrapped_lines.push(current_line);
+                    accumulator.push(current_line);
                     current_line = String::new();
+
                     if token_chars.get(index + 1) == Some(&'\n') {
-                        index += 1;
+                        index += 1; // Skip \n for CRLF style
                     }
                 } else {
                     current_line.push(character);
                 }
+
                 index += 1;
             }
+
             continue;
         }
 
+        // Due to kerning and spacing techniques, we cannot assume measure(a + b) = measure(a) + measure(b)
         let candidate: String = format!("{current_line}{token}");
         let measure: Vector2 = font.measure_text(&candidate, font_size, font_spacing);
 
         if measure.x <= max_width {
             current_line = candidate;
         } else if current_line.is_empty() {
-            wrap_long_segment(&mut wrapped_lines, &token, font, font_size, font_spacing, max_width);
+            wrap_long_token(&mut accumulator, &token, font, font_size, font_spacing, max_width);
         } else {
-            wrapped_lines.push(current_line);
-            current_line = token.trim_start().to_string();
+            accumulator.push(current_line);
+            current_line = token;
         }
     }
 
-    wrapped_lines.push(current_line);
-    wrapped_lines
+    accumulator.push(current_line);
+    accumulator
 }
 
 /// Splits text into alternating word and whitespace segments without discarding any characters.
@@ -82,7 +87,7 @@ fn split_preserving_whitespace(text: &str) -> Vec<String> {
 }
 
 /// Wraps a single segment that is wider than `max_width` by breaking at character boundaries.
-fn wrap_long_segment(
+fn wrap_long_token(
     wrapped_lines: &mut Vec<String>,
     segment: &str,
     font: &WeakFont,
