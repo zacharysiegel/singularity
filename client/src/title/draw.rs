@@ -55,7 +55,7 @@ fn draw_debug_button(rl_draw: &mut RaylibDrawHandle) {
     let mut debug_button: RectangularButton = debug_button_g.as_ref().unwrap().clone();
     let debug_ready: RwLockReadGuard<Loading> = STATE.stage.title.debug_button.loading.read().unwrap();
     if *debug_ready == Loading::Incomplete {
-        debug_button.text = Some("Loading...".to_string());
+        debug_button.label = Some(crate::button::InnerText::from_str("Loading..."));
     }
 
     debug_button.draw(rl_draw);
