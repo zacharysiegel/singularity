@@ -52,7 +52,7 @@ pub fn wrap_text(
         } else if current_line.is_empty() {
             wrap_long_token(&mut accumulator, &token, font, font_size, font_spacing, max_width);
         } else {
-            accumulator.push(current_line);
+            accumulator.push(current_line.trim_end().to_string());
             current_line = token;
         }
     }
