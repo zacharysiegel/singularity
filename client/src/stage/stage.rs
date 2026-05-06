@@ -67,11 +67,11 @@ impl StageType {
         }
     }
 
-    pub fn click(&self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
+    pub fn click(&self, rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
         match self {
-            StageType::Title => title::click(rl, mouse_position),
-            StageType::Game => game::click(rl, mouse_position),
-            StageType::Browser => browser::click(rl, mouse_position),
+            StageType::Title => title::click(rl, press_position, release_position),
+            StageType::Game => game::click(rl, press_position, release_position),
+            StageType::Browser => browser::click(rl, press_position, release_position),
         }
     }
 

@@ -61,7 +61,7 @@ fn create_debug_button(rl: &mut RaylibHandle) -> RectangularButton {
         },
     );
 
-    fn on_click(_rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> ClickResult {
+    fn on_click(_rl: &mut RaylibHandle, _press_position: RenderCoord, _release_position: RenderCoord) -> ClickResult {
         STATE.stage.register_next(StageType::Game);
         ClickResult::Consume
     }
@@ -86,7 +86,7 @@ fn create_games_button(rl: &mut RaylibHandle) -> RectangularButton {
         },
     );
     button.on_click = on_click;
-    fn on_click(_rl: &mut RaylibHandle, _render_coord: RenderCoord) -> ClickResult {
+    fn on_click(_rl: &mut RaylibHandle, _press_position: RenderCoord, _release_position: RenderCoord) -> ClickResult {
         STATE.stage.register_next(StageType::Browser);
         ClickResult::Consume
     }

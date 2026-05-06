@@ -32,7 +32,7 @@ pub trait Window: ScrollHandler + ClickHandler + HoverHandler + KeyPressHandler 
     }
 
     #[allow(unused)]
-    fn handle_window_click(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
+    fn handle_window_click(&mut self, rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
         ClickResult::Consume
     }
 
