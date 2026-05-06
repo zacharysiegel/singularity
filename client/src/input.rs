@@ -32,7 +32,7 @@ pub trait ClickHandler {
     /// Hook to allow an object to handle a click event.
     /// The hook should return [ClickResult::Consume] to consume the event, or
     /// [ClickResult::Pass] to allow subsequent objects to handle the same event.
-    fn click(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult;
+    fn click(&mut self, rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult;
 }
 
 #[derive(PartialEq)]
@@ -88,8 +88,8 @@ pub fn handle_user_input(rl: &mut RaylibHandle) {
 
     if rl.is_mouse_button_released(MouseButton::MOUSE_BUTTON_LEFT) {
         let mut press_position: RwLockWriteGuard<Option<RenderCoord>> = MOUSE_PRESS_POSITION.write().unwrap();
-        if press_position.is_some() {
-            click(rl, mouse_position);
+        if let Some(press) = *press_position {
+            click(rl, press, mouse_position);
         }
         *press_position = None;
     }
@@ -112,9 +112,9 @@ fn scroll(rl: &mut RaylibHandle, scroll_v: Vector2) {
     current_stage.scroll(rl, scroll_v);
 }
 
-fn click(rl: &mut RaylibHandle, mouse_position: RenderCoord) {
+fn click(rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) {
     let current_stage: RwLockReadGuard<StageType> = STATE.stage.current();
-    current_stage.click(rl, mouse_position);
+    current_stage.click(rl, press_position, release_position);
 }
 
 fn hover(rl: &mut RaylibHandle, mouse_position: RenderCoord) {
@@ -132,7 +132,7 @@ fn char_press(rl: &mut RaylibHandle, ch: char) {
     current_stage.char_press(rl, ch);
 }
 
-pub fn noop_on_click(_rl: &mut RaylibHandle, _mouse_position: RenderCoord) -> ClickResult {
+pub fn noop_on_click(_rl: &mut RaylibHandle, _press_position: RenderCoord, _release_position: RenderCoord) -> ClickResult {
     ClickResult::Consume
 }
 
@@ -146,8 +146,4 @@ pub fn noop_on_key_press(_rl: &mut RaylibHandle, _key: KeyboardKey) -> KeyPressR
 
 pub fn noop_on_char_press(_rl: &mut RaylibHandle, _ch: char) -> CharPressResult {
     CharPressResult::Consume
-}
-
-pub fn mouse_press_position() -> Option<RenderCoord> {
-    *MOUSE_PRESS_POSITION.read().unwrap()
 }

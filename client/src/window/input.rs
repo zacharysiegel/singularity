@@ -19,8 +19,8 @@ impl<T: Window> ScrollHandler for T {
 }
 
 impl<T: Window> ClickHandler for T {
-    fn click(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
-        if !window_contains_render_coord(self, mouse_position) {
+    fn click(&mut self, rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
+        if !window_contains_render_coord(self, release_position) {
             return if self.is_open() {
                 self.close();
                 ClickResult::Consume
@@ -29,12 +29,12 @@ impl<T: Window> ClickHandler for T {
             };
         }
 
-        if let ClickResult::Consume = self.close_button_mut().click(rl, mouse_position) {
+        if let ClickResult::Consume = self.close_button_mut().click(rl, press_position, release_position) {
             self.close();
             return ClickResult::Consume;
         }
 
-        self.handle_window_click(rl, mouse_position);
+        self.handle_window_click(rl, press_position, release_position);
         ClickResult::Consume
     }
 }

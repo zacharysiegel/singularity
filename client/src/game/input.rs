@@ -22,16 +22,16 @@ pub fn scroll(rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult {
     map::scroll(rl, scroll_v)
 }
 
-pub fn click(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> ClickResult {
+pub fn click(rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
     for window in window_layers() {
         let mut window: RwLockWriteGuard<dyn Window> = window.write().unwrap();
-        match window.click(rl, mouse_position) {
+        match window.click(rl, press_position, release_position) {
             ClickResult::Pass => continue,
             ClickResult::Consume => return ClickResult::Consume,
         }
     }
 
-    map::handle_click_hex(rl, mouse_position)
+    map::handle_click_hex(rl, release_position)
 }
 
 pub fn hover(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
