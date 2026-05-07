@@ -1,6 +1,6 @@
 use crate::button::RectangularButton;
 use crate::config::APPLICATION_NAME;
-use crate::state::{Loading, STATE};
+use crate::state::STATE;
 use crate::title::TITLE_VERTICAL_MARGIN;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
@@ -52,12 +52,7 @@ fn draw_debug_button(rl_draw: &mut RaylibDrawHandle) {
         return;
     };
 
-    let debug_ready: RwLockReadGuard<Loading> = STATE.stage.title.debug_button.loading.read().unwrap();
-    if *debug_ready == Loading::Incomplete {
-        debug_button.draw_with_text_override(rl_draw, "Loading...");
-    } else {
-        debug_button.draw(rl_draw);
-    }
+    debug_button.draw(rl_draw);
 }
 
 fn draw_main_buttons(rl_draw: &mut RaylibDrawHandle) {

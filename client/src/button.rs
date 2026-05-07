@@ -1,5 +1,4 @@
 use crate::component::text::Text;
-use crate::font::DEFAULT_FONT_SPACING;
 use crate::input;
 use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
 use raylib::RaylibHandle;
@@ -81,17 +80,6 @@ impl RectangularButton {
         if let Some(text) = &self.text {
             self.draw_text_content(rl_draw, &text.content, text.font_size, text.font_spacing);
         }
-    }
-
-    pub fn draw_with_text_override(&self, rl_draw: &mut RaylibDrawHandle, content: &str) {
-        self.draw_background(rl_draw);
-        let font_size: f32 = self.text.as_ref()
-            .map(|text| text.font_size)
-            .unwrap_or(crate::component::text::DEFAULT_FONT_SIZE);
-        let font_spacing: f32 = self.text.as_ref()
-            .map(|text| text.font_spacing)
-            .unwrap_or(DEFAULT_FONT_SPACING);
-        self.draw_text_content(rl_draw, content, font_size, font_spacing);
     }
 
     fn draw_background(&self, rl_draw: &mut RaylibDrawHandle) {
