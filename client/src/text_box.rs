@@ -17,9 +17,11 @@ use shared::primitive;
 use std::time::Instant;
 
 const DEFAULT_TEXT_BOX_FONT_SIZE: f32 = 16.;
-const DEFAULT_HORIZONTAL_PADDING: f32 = 6.;
-const CURSOR_BLINK_CYCLE_MS: u128 = 1000;
+const DEFAULT_HORIZONTAL_PADDING: f32 = 12.;
+const CURSOR_BLINK_CYCLE_MS: u128 = 1500;
 const CURSOR_VISIBLE_RATIO: f64 = 0.6;
+const CURSOR_THICKNESS: f32 = 2.;
+const GLYPH_OVERFLOW_MARGIN: f32 = 2.;
 
 #[derive(Debug)]
 pub struct TextBox {
@@ -33,7 +35,7 @@ pub struct TextBox {
     /// Cursor position is expressed as character units from the start of the string
     cursor_position: usize,
     scroll_offset: f32,
-    created_at: Instant,
+    last_input_at: Instant,
 }
 
 impl ClickHandler for TextBox {
@@ -79,6 +81,7 @@ impl KeyPressHandler for TextBox {
                     primitive::remove_char(&mut self.text.content, self.cursor_position - 1);
                     self.cursor_position -= 1;
                     self.clamp_scroll_to_cursor(rl);
+                    self.reset_cursor_blink();
                 }
                 KeyPressResult::Consume
             }
@@ -86,6 +89,7 @@ impl KeyPressHandler for TextBox {
                 let char_count: usize = self.text.content.chars().count();
                 if self.cursor_position < char_count {
                     primitive::remove_char(&mut self.text.content, self.cursor_position);
+                    self.reset_cursor_blink();
                 }
                 KeyPressResult::Consume
             }
@@ -93,6 +97,7 @@ impl KeyPressHandler for TextBox {
                 if self.cursor_position > 0 {
                     self.cursor_position -= 1;
                     self.clamp_scroll_to_cursor(rl);
+                    self.reset_cursor_blink();
                 }
                 KeyPressResult::Consume
             }
@@ -101,17 +106,20 @@ impl KeyPressHandler for TextBox {
                 if self.cursor_position < char_count {
                     self.cursor_position += 1;
                     self.clamp_scroll_to_cursor(rl);
+                    self.reset_cursor_blink();
                 }
                 KeyPressResult::Consume
             }
             KeyboardKey::KEY_HOME => {
                 self.cursor_position = 0;
                 self.clamp_scroll_to_cursor(rl);
+                self.reset_cursor_blink();
                 KeyPressResult::Consume
             }
             KeyboardKey::KEY_END => {
                 self.cursor_position = self.text.content.chars().count();
                 self.clamp_scroll_to_cursor(rl);
+                self.reset_cursor_blink();
                 KeyPressResult::Consume
             }
             KeyboardKey::KEY_ENTER => {
@@ -134,6 +142,7 @@ impl CharPressHandler for TextBox {
         primitive::insert_char(&mut self.text.content, self.cursor_position, ch);
         self.cursor_position += 1;
         self.clamp_scroll_to_cursor(rl);
+        self.reset_cursor_blink();
         CharPressResult::Consume
     }
 }
@@ -154,7 +163,7 @@ impl Default for TextBox {
             on_submit: None,
             cursor_position: 0,
             scroll_offset: 0.,
-            created_at: Instant::now(),
+            last_input_at: Instant::now(),
         }
     }
 }
@@ -183,12 +192,14 @@ impl TextBox {
         rl_draw.draw_rectangle_lines_ex(self.rectangle, border_thickness, border_color);
 
         let content_x: f32 = self.rectangle.x + self.horizontal_padding;
+        let scissor_x: f32 = content_x - GLYPH_OVERFLOW_MARGIN;
+        let scissor_width: i32 = (self.inner_width() + GLYPH_OVERFLOW_MARGIN) as i32;
         let text_y: f32 = self.rectangle.y + (self.rectangle.height - self.text.font_size) / 2.;
 
         rl_draw.draw_scissor_mode(
-            content_x as i32,
+            scissor_x as i32,
             self.rectangle.y as i32,
-            self.inner_width() as i32,
+            scissor_width,
             self.rectangle.height as i32,
             |mut scissor_draw| {
                 let text_x: f32 = content_x - self.scroll_offset;
@@ -206,14 +217,18 @@ impl TextBox {
                     let cursor_x: f32 = text_x + self.cursor_offset(scissor_draw.get_font_default());
                     let cursor_top: Vector2 = Vector2 { x: cursor_x, y: text_y };
                     let cursor_bottom: Vector2 = Vector2 { x: cursor_x, y: text_y + self.text.font_size };
-                    scissor_draw.draw_line_ex(cursor_top, cursor_bottom, 1., self.text.color);
+                    scissor_draw.draw_line_ex(cursor_top, cursor_bottom, CURSOR_THICKNESS, self.text.color);
                 }
             },
         );
     }
 
+    fn reset_cursor_blink(&mut self) {
+        self.last_input_at = Instant::now();
+    }
+
     fn cursor_visible(&self) -> bool {
-        let elapsed_ms: u128 = self.created_at.elapsed().as_millis();
+        let elapsed_ms: u128 = self.last_input_at.elapsed().as_millis();
         let position_in_cycle: u128 = elapsed_ms % CURSOR_BLINK_CYCLE_MS;
         let visible_duration_ms: u128 = (CURSOR_BLINK_CYCLE_MS as f64 * CURSOR_VISIBLE_RATIO) as u128;
         position_in_cycle < visible_duration_ms
