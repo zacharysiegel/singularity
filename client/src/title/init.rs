@@ -4,7 +4,7 @@ use crate::component::text::Text;
 use crate::component::text::DEFAULT_FONT_SPACING;
 use crate::input::ClickResult;
 use crate::stage::StageType;
-use crate::state::STATE;
+use crate::state::{Loading, STATE};
 use crate::text_box::TextBox;
 use crate::title::{
     ACCOUNT_BUTTON_INDEX, BUTTON_INTERNAL_MARGIN, BUTTON_TEXT_ARRAY, BUTTON_VERTICAL_MARGIN,
@@ -61,6 +61,10 @@ pub fn init_title(rl: &mut RaylibHandle) {
 }
 
 fn create_debug_button(rl: &mut RaylibHandle) -> RectangularButton {
+    let debug_ready: std::sync::RwLockReadGuard<Loading> = STATE.stage.title.debug_button.loading.read().unwrap();
+    let label: &str = if *debug_ready == Loading::Complete { "Debug" } else { "Loading..." };
+    drop(debug_ready);
+
     let mut button: RectangularButton = RectangularButton::new_with_text(
         Rectangle {
             x: rl.get_screen_width() as f32 - SCREEN_MARGIN - BUTTON_DIMENSIONS.x,
@@ -68,7 +72,7 @@ fn create_debug_button(rl: &mut RaylibHandle) -> RectangularButton {
             width: BUTTON_DIMENSIONS.x,
             height: BUTTON_DIMENSIONS.y,
         },
-        Text::from_str_default("Loading..."),
+        Text::from_str_default(label),
     );
 
     fn on_click(_rl: &mut RaylibHandle, _press_position: RenderCoord, _release_position: RenderCoord) -> ClickResult {
