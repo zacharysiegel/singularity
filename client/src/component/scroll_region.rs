@@ -59,11 +59,11 @@ fn wrap_draw_fn(
 
 impl ScrollHandler for VerticalScrollRegion {
     fn scroll(&mut self, _rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult {
-        if scroll_v.y.abs() > 0. {
+        if scroll_v.y == 0. {
+            ScrollResult::Pass
+        } else {
             self.scroll_by(-scroll_v.y * SCROLL_SPEED);
             ScrollResult::Consume
-        } else {
-            ScrollResult::Pass
         }
     }
 }
