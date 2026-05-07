@@ -9,7 +9,7 @@ use raylib::math::{Rectangle, Vector2};
 use shared::map::RenderCoord;
 
 impl<T: Window> ScrollHandler for T {
-    fn scroll(&mut self, rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult {
+    fn scroll(&mut self, rl: &mut RaylibHandle, scroll_v: Vector2, _mouse_position: RenderCoord) -> ScrollResult {
         if self.is_open() {
             self.handle_window_scroll(rl, scroll_v)
         } else {

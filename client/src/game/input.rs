@@ -10,16 +10,16 @@ use raylib::math::Vector2;
 use shared::map::RenderCoord;
 use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 
-pub fn scroll(rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult {
+pub fn scroll(rl: &mut RaylibHandle, scroll_v: Vector2, mouse_position: RenderCoord) -> ScrollResult {
     for window in window_layers() {
         let mut window: RwLockWriteGuard<dyn Window> = window.write().unwrap();
-        match window.scroll(rl, scroll_v) {
+        match window.scroll(rl, scroll_v, mouse_position) {
             ScrollResult::Pass => continue,
             ScrollResult::Consume => return ScrollResult::Consume,
         }
     }
 
-    map::scroll(rl, scroll_v)
+    map::scroll(rl, scroll_v, mouse_position)
 }
 
 pub fn click(rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {

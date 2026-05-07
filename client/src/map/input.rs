@@ -8,7 +8,7 @@ use shared::map::{HexCoord, MapCoord, RenderCoord};
 use std::ops::{Add, Mul};
 use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 
-pub fn scroll(_rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult {
+pub fn scroll(_rl: &mut RaylibHandle, scroll_v: Vector2, _mouse_position: RenderCoord) -> ScrollResult {
     let mut map_origin: RwLockWriteGuard<MapCoord> =
         STATE.stage.game.map.map_origin.write().expect("global state poisoned");
 

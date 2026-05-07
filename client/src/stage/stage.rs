@@ -60,9 +60,9 @@ impl StageType {
         }
     }
 
-    pub fn scroll(&self, rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult {
+    pub fn scroll(&self, rl: &mut RaylibHandle, scroll_v: Vector2, mouse_position: RenderCoord) -> ScrollResult {
         match self {
-            StageType::Game => game::scroll(rl, scroll_v),
+            StageType::Game => game::scroll(rl, scroll_v, mouse_position),
             _ => ScrollResult::Consume,
         }
     }
