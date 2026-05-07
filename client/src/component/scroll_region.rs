@@ -5,15 +5,17 @@ use raylib::RaylibHandle;
 
 const SCROLL_SPEED: f32 = 30.;
 
-pub struct ScrollRegion {
+/// A vertical scroll region which clips content to a viewport rectangle.
+/// Content taller than the viewport can be scrolled via mouse wheel.
+pub struct VerticalScrollRegion {
     pub viewport: Rectangle,
     pub content_height: f32,
     pub scroll_offset: f32,
 }
 
-impl ScrollRegion {
-    pub fn new(viewport: Rectangle) -> ScrollRegion {
-        ScrollRegion {
+impl VerticalScrollRegion {
+    pub fn new(viewport: Rectangle) -> VerticalScrollRegion {
+        VerticalScrollRegion {
             viewport,
             content_height: 0.,
             scroll_offset: 0.,
@@ -57,7 +59,7 @@ fn wrap_draw_fn(
     }
 }
 
-impl ScrollHandler for ScrollRegion {
+impl ScrollHandler for VerticalScrollRegion {
     fn scroll(&mut self, _rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult {
         if scroll_v.y.abs() > 0. {
             self.scroll_by(-scroll_v.y * SCROLL_SPEED);
