@@ -1,12 +1,14 @@
 use crate::button::RectangularButton;
 use crate::component::text::Text;
 use crate::state::{Loading, STATE};
+use crate::text_box::TextBox;
 use std::sync::{RwLock, RwLockWriteGuard};
 
 #[derive(Debug)]
 pub struct TitleState {
     pub debug_button: DebugButton,
     pub main_buttons: [RwLock<RectangularButton>; 2],
+    pub test_text_box: RwLock<Option<TextBox>>,
 }
 
 impl TitleState {
@@ -16,6 +18,7 @@ impl TitleState {
             RwLock::new(RectangularButton::DEFAULT),
             RwLock::new(RectangularButton::DEFAULT),
         ],
+        test_text_box: RwLock::new(None),
     };
 }
 

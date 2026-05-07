@@ -85,14 +85,15 @@ impl StageType {
 
     pub fn key_press(&self, rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
         match self {
+            StageType::Title => title::key_press(rl, key),
             StageType::Game => game::key_press(rl, key),
             StageType::Browser => browser::key_press(rl, key),
-            _ => KeyPressResult::Pass,
         }
     }
 
     pub fn char_press(&self, rl: &mut RaylibHandle, ch: char) -> CharPressResult {
         match self {
+            StageType::Title => title::char_press(rl, ch),
             StageType::Game => game::char_press(rl, ch),
             _ => CharPressResult::Pass,
         }
