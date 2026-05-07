@@ -103,7 +103,7 @@ fn on_click(_rl: &mut RaylibHandle, _press_position: RenderCoord, _release_posit
 }
 
 mod draw {
-    use crate::font::DEFAULT_FONT_SPACING;
+    use crate::component::text::DEFAULT_FONT_SPACING;
     use crate::shader::{ExitIconShader, SHADER_STORE};
     use crate::state::STATE;
     use crate::texture::ScreenRenderTexture;

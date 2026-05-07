@@ -1,6 +1,5 @@
-use crate::font::DEFAULT_FONT_SPACING;
-
 pub const DEFAULT_FONT_SIZE: f32 = 18.;
+pub const DEFAULT_FONT_SPACING: f32 = 2.;
 
 #[derive(Debug)]
 pub struct Text {
