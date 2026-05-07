@@ -1,0 +1,1 @@
+- Color math (color_add, hover blending) operates in sRGB which is perceptually nonlinear. Should eventually move to a linear or perceptual color space (e.g. Oklab) for more predictable blending. Low priority.

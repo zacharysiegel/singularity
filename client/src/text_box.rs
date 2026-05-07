@@ -22,8 +22,8 @@ const CURSOR_BLINK_CYCLE_MS: u128 = 1500;
 const CURSOR_VISIBLE_RATIO: f64 = 0.6;
 const CURSOR_THICKNESS: f32 = 2.;
 
-/// Extra pixels added to the left edge of the scissor region to prevent clipping of glyph
-/// overhang on characters like "j" which extend slightly left of their origin point.
+/// Extra pixels added to both edges of the scissor region to prevent clipping of glyph
+/// overhang on characters like "j" which extend slightly beyond their origin point.
 const GLYPH_OVERFLOW_MARGIN: f32 = 2.;
 
 #[derive(Debug)]
@@ -200,7 +200,7 @@ impl TextBox {
 
         let content_x: f32 = self.rectangle.x + self.horizontal_padding;
         let scissor_x: f32 = content_x - GLYPH_OVERFLOW_MARGIN;
-        let scissor_width: i32 = (self.inner_width() + GLYPH_OVERFLOW_MARGIN) as i32;
+        let scissor_width: i32 = (self.inner_width() + GLYPH_OVERFLOW_MARGIN * 2.) as i32;
         let text_y: f32 = self.rectangle.y + (self.rectangle.height - self.text.font_size) / 2.;
 
         rl_draw.draw_scissor_mode(
