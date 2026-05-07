@@ -5,7 +5,6 @@ pub mod connect;
 pub mod conversation;
 pub mod engine;
 pub mod facility;
-pub mod font;
 pub mod game;
 pub mod http;
 pub mod input;

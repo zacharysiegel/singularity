@@ -1,17 +1,17 @@
-use crate::font::DEFAULT_FONT_SPACING;
+use crate::component::text::DEFAULT_FONT_SPACING;
 use crate::input::{
-    CharPressHandler, CharPressResult,
-    ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult,
+    CharPressHandler, CharPressResult, ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler,
+    KeyPressResult,
 };
+use raylib::RaylibHandle;
+use raylib::color::Color;
 use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle, RaylibScissorModeExt};
 use raylib::math::{Rectangle, Vector2};
 use raylib::text::RaylibFont;
-use raylib::RaylibHandle;
 use shared::color::{TEXT_COLOR, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR};
 use shared::defaults::DEFAULT_RECTANGLE;
 use shared::map::RenderCoord;
-use shared::math;
 use shared::primitive;
 use std::time::Instant;
 
@@ -36,7 +36,12 @@ pub struct TextBox {
 }
 
 impl ClickHandler for TextBox {
-    fn click(&mut self, _rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
+    fn click(
+        &mut self,
+        _rl: &mut RaylibHandle,
+        press_position: RenderCoord,
+        release_position: RenderCoord,
+    ) -> ClickResult {
         if self.rectangle.check_collision_point_rec(press_position)
             && self.rectangle.check_collision_point_rec(release_position)
         {
@@ -164,24 +169,17 @@ impl TextBox {
     pub fn draw(&self, rl_draw: &mut RaylibDrawHandle) {
         rl_draw.draw_rectangle_rec(self.rectangle, WINDOW_BACKGROUND_COLOR);
 
-        let border_color: raylib::color::Color = if self.focused {
-            TEXT_COLOR
-        } else {
-            WINDOW_BORDER_COLOR
-        };
+        let border_color: Color = if self.focused { TEXT_COLOR } else { WINDOW_BORDER_COLOR };
         rl_draw.draw_rectangle_lines_ex(self.rectangle, 1., border_color);
 
-        let position: Vector2 = math::rect_origin(self.rectangle);
-        let dimensions: Vector2 = math::rect_dimensions(self.rectangle);
-        let content_x: f32 = position.x + self.horizontal_padding;
-        let content_width: i32 = (dimensions.x - self.horizontal_padding * 2.) as i32;
-        let text_y: f32 = position.y + (dimensions.y - TEXT_BOX_FONT_SIZE) / 2.;
+        let content_x: f32 = self.rectangle.x + self.horizontal_padding;
+        let text_y: f32 = self.rectangle.y + (self.rectangle.height - TEXT_BOX_FONT_SIZE) / 2.;
 
         rl_draw.draw_scissor_mode(
             content_x as i32,
-            position.y as i32,
-            content_width,
-            dimensions.y as i32,
+            self.rectangle.y as i32,
+            self.inner_width() as i32,
+            self.rectangle.height as i32,
             |mut scissor_draw| {
                 let text_x: f32 = content_x - self.scroll_offset;
                 scissor_draw.draw_text_ex(
@@ -195,8 +193,10 @@ impl TextBox {
 
                 if self.focused && self.cursor_visible() {
                     let text_before_cursor: String = self.text.chars().take(self.cursor_position).collect();
-                    let cursor_offset: f32 = scissor_draw.get_font_default()
-                        .measure_text(&text_before_cursor, TEXT_BOX_FONT_SIZE, DEFAULT_FONT_SPACING).x;
+                    let cursor_offset: f32 = scissor_draw
+                        .get_font_default()
+                        .measure_text(&text_before_cursor, TEXT_BOX_FONT_SIZE, DEFAULT_FONT_SPACING)
+                        .x;
                     let cursor_x: f32 = text_x + cursor_offset + DEFAULT_FONT_SPACING;
                     scissor_draw.draw_line(
                         cursor_x as i32,
@@ -223,8 +223,7 @@ impl TextBox {
 
     fn cursor_x_offset(&self, rl: &RaylibHandle) -> f32 {
         let text_before_cursor: String = self.text.chars().take(self.cursor_position).collect();
-        rl.get_font_default()
-            .measure_text(&text_before_cursor, TEXT_BOX_FONT_SIZE, DEFAULT_FONT_SPACING).x
+        rl.get_font_default().measure_text(&text_before_cursor, TEXT_BOX_FONT_SIZE, DEFAULT_FONT_SPACING).x
             + DEFAULT_FONT_SPACING
     }
 

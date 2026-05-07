@@ -1,5 +1,5 @@
 use crate::browser::BrowserDomainTrait;
-use crate::font::DEFAULT_FONT_SPACING;
+use crate::component::text::DEFAULT_FONT_SPACING;
 use crate::input;
 use crate::input::KeyPressResult;
 use raylib::consts::KeyboardKey;

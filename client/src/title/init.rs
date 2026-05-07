@@ -1,6 +1,6 @@
 use crate::button::RectangularButton;
 use crate::component::text::Text;
-use crate::font::DEFAULT_FONT_SPACING;
+use crate::component::text::DEFAULT_FONT_SPACING;
 use crate::input::ClickResult;
 use crate::stage::StageType;
 use crate::state::STATE;
@@ -53,13 +53,13 @@ pub fn init_title(rl: &mut RaylibHandle) {
 
 fn create_debug_button(rl: &mut RaylibHandle) -> RectangularButton {
     let mut button: RectangularButton = RectangularButton::new_with_text(
-        Text::from_str_default("Loading..."),
         Rectangle {
             x: rl.get_screen_width() as f32 - SCREEN_MARGIN - BUTTON_DIMENSIONS.x,
             y: SCREEN_MARGIN,
             width: BUTTON_DIMENSIONS.x,
             height: BUTTON_DIMENSIONS.y,
         },
+        Text::from_str_default("Loading..."),
     );
 
     fn on_click(_rl: &mut RaylibHandle, _press_position: RenderCoord, _release_position: RenderCoord) -> ClickResult {
@@ -78,13 +78,13 @@ fn create_games_button(rl: &mut RaylibHandle) -> RectangularButton {
     };
 
     let mut button: RectangularButton = RectangularButton::new_with_text(
-        Text::from_str_default(BUTTON_TEXT_ARRAY[0]),
         Rectangle {
             x: position.x,
             y: position.y,
             width: BUTTON_DIMENSIONS.x,
             height: BUTTON_DIMENSIONS.y,
         },
+        Text::from_str_default(BUTTON_TEXT_ARRAY[0]),
     );
     button.on_click = on_click;
     fn on_click(_rl: &mut RaylibHandle, _press_position: RenderCoord, _release_position: RenderCoord) -> ClickResult {
@@ -104,13 +104,13 @@ fn create_account_button(rl: &mut RaylibHandle) -> RectangularButton {
     };
 
     let button: RectangularButton = RectangularButton::new_with_text(
-        Text::from_str_default(BUTTON_TEXT_ARRAY[1]),
         Rectangle {
             x: position.x,
             y: position.y,
             width: BUTTON_DIMENSIONS.x,
             height: BUTTON_DIMENSIONS.y,
         },
+        Text::from_str_default(BUTTON_TEXT_ARRAY[1]),
     );
     button
 }

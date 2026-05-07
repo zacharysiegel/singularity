@@ -65,7 +65,7 @@ impl RectangularButton {
         button
     }
 
-    pub fn new_with_text(text: Text, rectangle: Rectangle) -> RectangularButton {
+    pub fn new_with_text(rectangle: Rectangle, text: Text) -> RectangularButton {
         let mut button: RectangularButton = Self::new(rectangle);
         button.text = Some(text);
         button
@@ -78,7 +78,7 @@ impl RectangularButton {
     pub fn draw(&self, rl_draw: &mut RaylibDrawHandle) {
         self.draw_background(rl_draw);
         if let Some(text) = &self.text {
-            self.draw_text_content(rl_draw, &text.content, text.font_size, text.font_spacing);
+            self.draw_text_content(rl_draw, text);
         }
     }
 
@@ -92,24 +92,24 @@ impl RectangularButton {
         rl_draw.draw_rectangle_v(position, dimensions, background_color);
     }
 
-    fn draw_text_content(&self, rl_draw: &mut RaylibDrawHandle, content: &str, font_size: f32, font_spacing: f32) {
+    fn draw_text_content(&self, rl_draw: &mut RaylibDrawHandle, text: &Text) {
         let center: Vector2 = Vector2 {
             x: self.rectangle.x + self.rectangle.width / 2.,
             y: self.rectangle.y + self.rectangle.height / 2.,
         };
         let position: Vector2 = math::centered_text_origin(
             center,
-            content,
+            &text.content,
             rl_draw.get_font_default(),
-            font_size,
-            font_spacing,
+            text.font_size,
+            text.font_spacing,
         );
         rl_draw.draw_text_ex(
             rl_draw.get_font_default(),
-            content,
+            &text.content,
             position,
-            font_size,
-            font_spacing,
+            text.font_size,
+            text.font_spacing,
             TEXT_COLOR,
         );
     }
