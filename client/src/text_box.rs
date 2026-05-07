@@ -1,4 +1,4 @@
-use crate::component::text::DEFAULT_FONT_SPACING;
+use crate::component::text::{DEFAULT_FONT_SPACING, Text};
 use crate::input::{
     CharPressHandler, CharPressResult, ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler,
     KeyPressResult,
@@ -15,7 +15,7 @@ use shared::map::RenderCoord;
 use shared::primitive;
 use std::time::Instant;
 
-const TEXT_BOX_FONT_SIZE: f32 = 16.;
+const DEFAULT_TEXT_BOX_FONT_SIZE: f32 = 16.;
 const DEFAULT_HORIZONTAL_PADDING: f32 = 6.;
 const CURSOR_BLINK_CYCLE_MS: u128 = 1000;
 const CURSOR_VISIBLE_RATIO: f64 = 0.6;
@@ -23,7 +23,7 @@ const CURSOR_VISIBLE_RATIO: f64 = 0.6;
 #[derive(Debug)]
 pub struct TextBox {
     pub rectangle: Rectangle,
-    pub text: String,
+    pub text: Text,
     pub focused: bool,
     pub hovered: bool,
     pub horizontal_padding: f32,
@@ -75,16 +75,16 @@ impl KeyPressHandler for TextBox {
         match key {
             KeyboardKey::KEY_BACKSPACE => {
                 if self.cursor_position > 0 {
-                    primitive::remove_char(&mut self.text, self.cursor_position - 1);
+                    primitive::remove_char(&mut self.text.content, self.cursor_position - 1);
                     self.cursor_position -= 1;
                     self.clamp_scroll_to_cursor(rl);
                 }
                 KeyPressResult::Consume
             }
             KeyboardKey::KEY_DELETE => {
-                let char_count: usize = self.text.chars().count();
+                let char_count: usize = self.text.content.chars().count();
                 if self.cursor_position < char_count {
-                    primitive::remove_char(&mut self.text, self.cursor_position);
+                    primitive::remove_char(&mut self.text.content, self.cursor_position);
                 }
                 KeyPressResult::Consume
             }
@@ -96,7 +96,7 @@ impl KeyPressHandler for TextBox {
                 KeyPressResult::Consume
             }
             KeyboardKey::KEY_RIGHT => {
-                let char_count: usize = self.text.chars().count();
+                let char_count: usize = self.text.content.chars().count();
                 if self.cursor_position < char_count {
                     self.cursor_position += 1;
                     self.clamp_scroll_to_cursor(rl);
@@ -109,13 +109,13 @@ impl KeyPressHandler for TextBox {
                 KeyPressResult::Consume
             }
             KeyboardKey::KEY_END => {
-                self.cursor_position = self.text.chars().count();
+                self.cursor_position = self.text.content.chars().count();
                 self.clamp_scroll_to_cursor(rl);
                 KeyPressResult::Consume
             }
             KeyboardKey::KEY_ENTER => {
                 if let Some(on_submit) = self.on_submit {
-                    on_submit(&self.text);
+                    on_submit(&self.text.content);
                 }
                 KeyPressResult::Consume
             }
@@ -130,7 +130,7 @@ impl CharPressHandler for TextBox {
             return CharPressResult::Pass;
         }
 
-        primitive::insert_char(&mut self.text, self.cursor_position, ch);
+        primitive::insert_char(&mut self.text.content, self.cursor_position, ch);
         self.cursor_position += 1;
         self.clamp_scroll_to_cursor(rl);
         CharPressResult::Consume
@@ -141,7 +141,11 @@ impl Default for TextBox {
     fn default() -> Self {
         TextBox {
             rectangle: DEFAULT_RECTANGLE,
-            text: String::new(),
+            text: Text {
+                content: String::new(),
+                font_size: DEFAULT_TEXT_BOX_FONT_SIZE,
+                font_spacing: DEFAULT_FONT_SPACING,
+            },
             focused: false,
             hovered: false,
             horizontal_padding: DEFAULT_HORIZONTAL_PADDING,
@@ -154,11 +158,11 @@ impl Default for TextBox {
 }
 
 impl TextBox {
-    pub fn new(rectangle: Rectangle, text: &str) -> Self {
+    pub fn new(rectangle: Rectangle, content: &str) -> Self {
         let mut text_box: TextBox = TextBox::default();
         text_box.rectangle = rectangle;
-        text_box.text = String::from(text);
-        text_box.cursor_position = text.chars().count();
+        text_box.text.content = String::from(content);
+        text_box.cursor_position = content.chars().count();
         text_box
     }
 
@@ -173,7 +177,7 @@ impl TextBox {
         rl_draw.draw_rectangle_lines_ex(self.rectangle, 1., border_color);
 
         let content_x: f32 = self.rectangle.x + self.horizontal_padding;
-        let text_y: f32 = self.rectangle.y + (self.rectangle.height - TEXT_BOX_FONT_SIZE) / 2.;
+        let text_y: f32 = self.rectangle.y + (self.rectangle.height - self.text.font_size) / 2.;
 
         rl_draw.draw_scissor_mode(
             content_x as i32,
@@ -184,25 +188,25 @@ impl TextBox {
                 let text_x: f32 = content_x - self.scroll_offset;
                 scissor_draw.draw_text_ex(
                     scissor_draw.get_font_default(),
-                    &self.text,
+                    &self.text.content,
                     Vector2 { x: text_x, y: text_y },
-                    TEXT_BOX_FONT_SIZE,
-                    DEFAULT_FONT_SPACING,
+                    self.text.font_size,
+                    self.text.font_spacing,
                     TEXT_COLOR,
                 );
 
                 if self.focused && self.cursor_visible() {
-                    let text_before_cursor: String = self.text.chars().take(self.cursor_position).collect();
+                    let text_before_cursor: String = self.text.content.chars().take(self.cursor_position).collect();
                     let cursor_offset: f32 = scissor_draw
                         .get_font_default()
-                        .measure_text(&text_before_cursor, TEXT_BOX_FONT_SIZE, DEFAULT_FONT_SPACING)
+                        .measure_text(&text_before_cursor, self.text.font_size, self.text.font_spacing)
                         .x;
-                    let cursor_x: f32 = text_x + cursor_offset + DEFAULT_FONT_SPACING;
+                    let cursor_x: f32 = text_x + cursor_offset + self.text.font_spacing;
                     scissor_draw.draw_line(
                         cursor_x as i32,
                         text_y as i32,
                         cursor_x as i32,
-                        (text_y + TEXT_BOX_FONT_SIZE) as i32,
+                        (text_y + self.text.font_size) as i32,
                         TEXT_COLOR,
                     );
                 }
@@ -222,9 +226,9 @@ impl TextBox {
     }
 
     fn cursor_x_offset(&self, rl: &RaylibHandle) -> f32 {
-        let text_before_cursor: String = self.text.chars().take(self.cursor_position).collect();
-        rl.get_font_default().measure_text(&text_before_cursor, TEXT_BOX_FONT_SIZE, DEFAULT_FONT_SPACING).x
-            + DEFAULT_FONT_SPACING
+        let text_before_cursor: String = self.text.content.chars().take(self.cursor_position).collect();
+        rl.get_font_default().measure_text(&text_before_cursor, self.text.font_size, self.text.font_spacing).x
+            + self.text.font_spacing
     }
 
     fn clamp_scroll_to_cursor(&mut self, rl: &RaylibHandle) {
