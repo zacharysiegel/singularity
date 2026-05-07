@@ -12,15 +12,11 @@ pub struct Text {
 }
 
 impl Text {
-    pub fn new(content: &str, font_size: f32) -> Text {
+    pub fn from_str_default(content: &str) -> Text {
         Text {
             content: content.to_string(),
-            font_size,
+            font_size: DEFAULT_FONT_SIZE,
             font_spacing: DEFAULT_FONT_SPACING,
         }
-    }
-
-    pub fn from_str_default(content: &str) -> Text {
-        Text::new(content, DEFAULT_FONT_SIZE)
     }
 }
