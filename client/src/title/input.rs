@@ -1,11 +1,14 @@
 use crate::button::RectangularButton;
+use crate::component::scroll_region::VerticalScrollRegion;
 use crate::input::{
     CharPressHandler, CharPressResult,
     ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult,
+    ScrollHandler, ScrollResult,
 };
 use crate::state::{Loading, STATE};
 use crate::text_box::TextBox;
 use raylib::consts::KeyboardKey;
+use raylib::math::Vector2;
 use raylib::RaylibHandle;
 use shared::map::RenderCoord;
 use std::sync::{RwLockReadGuard, RwLockWriteGuard};
@@ -82,4 +85,15 @@ pub fn char_press(rl: &mut RaylibHandle, ch: char) -> CharPressResult {
         }
     }
     CharPressResult::Pass
+}
+
+pub fn scroll(rl: &mut RaylibHandle, scroll_v: Vector2, mouse_position: RenderCoord) -> ScrollResult {
+    let mut scroll_guard: RwLockWriteGuard<Option<VerticalScrollRegion>> =
+        STATE.stage.title.debug_scroll_region.write().unwrap();
+    if let Some(scroll_region) = scroll_guard.as_mut() {
+        if let ScrollResult::Consume = scroll_region.scroll(rl, scroll_v, mouse_position) {
+            return ScrollResult::Consume;
+        }
+    }
+    ScrollResult::Pass
 }

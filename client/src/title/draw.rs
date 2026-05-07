@@ -1,11 +1,13 @@
 use crate::button::RectangularButton;
+use crate::component::scroll_region::VerticalScrollRegion;
+use crate::component::text_wrap;
 use crate::config::APPLICATION_NAME;
 use crate::state::STATE;
 use crate::text_box::TextBox;
 use crate::title::TITLE_VERTICAL_MARGIN;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
-use shared::color::{MAP_BACKGROUND_COLOR, TEXT_COLOR};
+use shared::color::{MAP_BACKGROUND_COLOR, TEXT_COLOR, WINDOW_BORDER_COLOR};
 use shared::math;
 use std::sync::RwLockReadGuard;
 
@@ -14,6 +16,7 @@ pub fn draw(rl_draw: &mut RaylibDrawHandle) {
 
     draw_title_text(rl_draw);
     draw_debug_button(rl_draw);
+    draw_debug_scroll_region(rl_draw);
     draw_debug_text_box(rl_draw);
     draw_main_buttons(rl_draw);
 }
@@ -55,6 +58,44 @@ fn draw_debug_button(rl_draw: &mut RaylibDrawHandle) {
     };
 
     debug_button.draw(rl_draw);
+}
+
+fn draw_debug_scroll_region(rl_draw: &mut RaylibDrawHandle) {
+    let scroll_guard: RwLockReadGuard<Option<VerticalScrollRegion>> =
+        STATE.stage.title.debug_scroll_region.read().unwrap();
+    let Some(scroll_region) = scroll_guard.as_ref() else {
+        return;
+    };
+
+    rl_draw.draw_rectangle_lines_ex(scroll_region.viewport, 1., WINDOW_BORDER_COLOR);
+
+    let sample_text: &str = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. \
+        Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, \
+        quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. \
+        Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. \
+        Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
+
+    let font_size: f32 = 14.;
+    let font_spacing: f32 = 1.;
+    let line_height: f32 = 18.;
+    let padding: f32 = 8.;
+    let wrap_width: f32 = scroll_region.viewport.width - padding * 2.;
+    let font = rl_draw.get_font_default();
+    let wrapped_lines: Vec<String> = text_wrap::wrap_text(sample_text, &font, font_size, font_spacing, wrap_width);
+
+    scroll_region.draw(rl_draw, |mut scissor_draw, y_offset| {
+        for (line_index, line) in wrapped_lines.iter().enumerate() {
+            let line_y: f32 = scroll_region.viewport.y + padding + y_offset + (line_index as f32 * line_height);
+            scissor_draw.draw_text_ex(
+                scissor_draw.get_font_default(),
+                line,
+                Vector2 { x: scroll_region.viewport.x + padding, y: line_y },
+                font_size,
+                font_spacing,
+                TEXT_COLOR,
+            );
+        }
+    });
 }
 
 fn draw_debug_text_box(rl_draw: &mut RaylibDrawHandle) {
