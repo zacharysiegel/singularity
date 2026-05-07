@@ -13,6 +13,7 @@ pub struct Text {
     pub font_size: f32,
     pub font_spacing: f32,
     pub color: Color,
+    // TODO: add line_spacing field and compute line_height as font_size * line_spacing
 }
 
 impl Text {
