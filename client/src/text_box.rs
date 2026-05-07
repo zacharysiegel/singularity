@@ -26,6 +26,7 @@ pub struct TextBox {
     pub horizontal_padding: f32,
     pub on_submit: Option<fn(&str)>,
 
+    cursor_position: usize,
     scroll_offset: f32,
     frame_counter: u64,
 }
@@ -64,7 +65,44 @@ impl KeyPressHandler for TextBox {
 
         match key {
             KeyboardKey::KEY_BACKSPACE => {
-                self.text.pop();
+                if self.cursor_position > 0 {
+                    let byte_index: usize = self.byte_offset_at(self.cursor_position - 1);
+                    self.text.remove(byte_index);
+                    self.cursor_position -= 1;
+                    self.clamp_scroll_to_cursor(rl);
+                }
+                KeyPressResult::Consume
+            }
+            KeyboardKey::KEY_DELETE => {
+                let char_count: usize = self.text.chars().count();
+                if self.cursor_position < char_count {
+                    let byte_index: usize = self.byte_offset_at(self.cursor_position);
+                    self.text.remove(byte_index);
+                }
+                KeyPressResult::Consume
+            }
+            KeyboardKey::KEY_LEFT => {
+                if self.cursor_position > 0 {
+                    self.cursor_position -= 1;
+                    self.clamp_scroll_to_cursor(rl);
+                }
+                KeyPressResult::Consume
+            }
+            KeyboardKey::KEY_RIGHT => {
+                let char_count: usize = self.text.chars().count();
+                if self.cursor_position < char_count {
+                    self.cursor_position += 1;
+                    self.clamp_scroll_to_cursor(rl);
+                }
+                KeyPressResult::Consume
+            }
+            KeyboardKey::KEY_HOME => {
+                self.cursor_position = 0;
+                self.clamp_scroll_to_cursor(rl);
+                KeyPressResult::Consume
+            }
+            KeyboardKey::KEY_END => {
+                self.cursor_position = self.text.chars().count();
                 self.clamp_scroll_to_cursor(rl);
                 KeyPressResult::Consume
             }
@@ -85,7 +123,9 @@ impl CharPressHandler for TextBox {
             return CharPressResult::Pass;
         }
 
-        self.text.push(ch);
+        let byte_index: usize = self.byte_offset_at(self.cursor_position);
+        self.text.insert(byte_index, ch);
+        self.cursor_position += 1;
         self.clamp_scroll_to_cursor(rl);
         CharPressResult::Consume
     }
@@ -101,6 +141,7 @@ impl TextBox {
         hovered: false,
         horizontal_padding: DEFAULT_HORIZONTAL_PADDING,
         on_submit: None,
+        cursor_position: 0,
         scroll_offset: 0.,
         frame_counter: 0,
     };
@@ -109,6 +150,7 @@ impl TextBox {
         TextBox {
             rectangle,
             text: String::from(text),
+            cursor_position: text.chars().count(),
             ..Self::DEFAULT
         }
     }
@@ -161,9 +203,10 @@ impl TextBox {
                 );
 
                 if self.focused && (self.frame_counter / CURSOR_BLINK_FRAMES) % 2 == 0 {
-                    let text_width: f32 = scissor_draw.get_font_default()
-                        .measure_text(&self.text, TEXT_BOX_FONT_SIZE, DEFAULT_FONT_SPACING).x;
-                    let cursor_x: f32 = text_x + text_width + DEFAULT_FONT_SPACING;
+                    let text_before_cursor: String = self.text.chars().take(self.cursor_position).collect();
+                    let cursor_offset: f32 = scissor_draw.get_font_default()
+                        .measure_text(&text_before_cursor, TEXT_BOX_FONT_SIZE, DEFAULT_FONT_SPACING).x;
+                    let cursor_x: f32 = text_x + cursor_offset + DEFAULT_FONT_SPACING;
                     scissor_draw.draw_line(
                         cursor_x as i32,
                         text_y as i32,
@@ -180,9 +223,17 @@ impl TextBox {
         self.rectangle.width - self.horizontal_padding * 2.
     }
 
+    fn byte_offset_at(&self, char_index: usize) -> usize {
+        self.text.char_indices()
+            .nth(char_index)
+            .map(|(byte_index, _)| byte_index)
+            .unwrap_or(self.text.len())
+    }
+
     fn cursor_x_offset(&self, rl: &RaylibHandle) -> f32 {
+        let text_before_cursor: String = self.text.chars().take(self.cursor_position).collect();
         rl.get_font_default()
-            .measure_text(&self.text, TEXT_BOX_FONT_SIZE, DEFAULT_FONT_SPACING).x
+            .measure_text(&text_before_cursor, TEXT_BOX_FONT_SIZE, DEFAULT_FONT_SPACING).x
             + DEFAULT_FONT_SPACING
     }
 
