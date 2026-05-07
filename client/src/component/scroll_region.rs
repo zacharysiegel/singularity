@@ -5,8 +5,6 @@ use raylib::RaylibHandle;
 
 const SCROLL_SPEED: f32 = 30.;
 
-/// A vertical scroll region which clips content to a viewport rectangle.
-/// Content taller than the viewport can be scrolled via mouse wheel.
 pub struct VerticalScrollRegion {
     pub viewport: Rectangle,
     pub content_height: f32,
