@@ -1,6 +1,11 @@
 use crate::button::RectangularButton;
-use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
+use crate::input::{
+    CharPressHandler, CharPressResult,
+    ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult,
+};
 use crate::state::{Loading, STATE};
+use crate::text_box::TextBox;
+use raylib::consts::KeyboardKey;
 use raylib::RaylibHandle;
 use shared::map::RenderCoord;
 use std::sync::{RwLockReadGuard, RwLockWriteGuard};
@@ -22,6 +27,14 @@ pub fn click(rl: &mut RaylibHandle, press_position: RenderCoord, release_positio
             return ClickResult::Consume;
         }
     }
+
+    let mut text_box_guard: RwLockWriteGuard<Option<TextBox>> = STATE.stage.title.test_text_box.write().unwrap();
+    if let Some(text_box) = text_box_guard.as_mut() {
+        if let ClickResult::Consume = text_box.click(rl, press_position, release_position) {
+            return ClickResult::Consume;
+        }
+    }
+
     ClickResult::Pass
 }
 
@@ -40,5 +53,33 @@ pub fn hover(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult 
             return HoverResult::Consume;
         }
     }
+
+    let mut text_box_guard: RwLockWriteGuard<Option<TextBox>> = STATE.stage.title.test_text_box.write().unwrap();
+    if let Some(text_box) = text_box_guard.as_mut() {
+        if let HoverResult::Consume = text_box.hover(rl, mouse_position) {
+            return HoverResult::Consume;
+        }
+    }
+
     HoverResult::Pass
+}
+
+pub fn key_press(rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
+    let mut text_box_guard: RwLockWriteGuard<Option<TextBox>> = STATE.stage.title.test_text_box.write().unwrap();
+    if let Some(text_box) = text_box_guard.as_mut() {
+        if let KeyPressResult::Consume = text_box.key_press(rl, key) {
+            return KeyPressResult::Consume;
+        }
+    }
+    KeyPressResult::Pass
+}
+
+pub fn char_press(rl: &mut RaylibHandle, ch: char) -> CharPressResult {
+    let mut text_box_guard: RwLockWriteGuard<Option<TextBox>> = STATE.stage.title.test_text_box.write().unwrap();
+    if let Some(text_box) = text_box_guard.as_mut() {
+        if let CharPressResult::Consume = text_box.char_press(rl, ch) {
+            return CharPressResult::Consume;
+        }
+    }
+    CharPressResult::Pass
 }

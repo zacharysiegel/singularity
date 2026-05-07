@@ -1,6 +1,7 @@
 use crate::button::RectangularButton;
 use crate::config::APPLICATION_NAME;
 use crate::state::STATE;
+use crate::text_box::TextBox;
 use crate::title::TITLE_VERTICAL_MARGIN;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
@@ -14,6 +15,7 @@ pub fn draw(rl_draw: &mut RaylibDrawHandle) {
     draw_title_text(rl_draw);
     draw_debug_button(rl_draw);
     draw_main_buttons(rl_draw);
+    draw_test_text_box(rl_draw);
 }
 
 fn draw_title_text(rl_draw: &mut RaylibDrawHandle) {
@@ -60,4 +62,12 @@ fn draw_main_buttons(rl_draw: &mut RaylibDrawHandle) {
         let button: RwLockReadGuard<RectangularButton> = button_lock.read().unwrap();
         button.draw(rl_draw);
     }
+}
+
+fn draw_test_text_box(rl_draw: &mut RaylibDrawHandle) {
+    let text_box_guard: RwLockReadGuard<Option<TextBox>> = STATE.stage.title.test_text_box.read().unwrap();
+    let Some(text_box) = text_box_guard.as_ref() else {
+        return;
+    };
+    text_box.draw(rl_draw);
 }

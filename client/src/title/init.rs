@@ -4,6 +4,7 @@ use crate::component::text::DEFAULT_FONT_SPACING;
 use crate::input::ClickResult;
 use crate::stage::StageType;
 use crate::state::STATE;
+use crate::text_box::TextBox;
 use crate::title::{
     ACCOUNT_BUTTON_INDEX, BUTTON_INTERNAL_MARGIN, BUTTON_TEXT_ARRAY, BUTTON_VERTICAL_MARGIN, GAMES_BUTTON_INDEX,
     SCREEN_MARGIN, TITLE_VERTICAL_MARGIN,
@@ -49,6 +50,14 @@ pub fn init_title(rl: &mut RaylibHandle) {
 
     let mut account_button: RwLockWriteGuard<RectangularButton> = STATE.stage.title.main_buttons[ACCOUNT_BUTTON_INDEX].write().unwrap();
     *account_button = create_account_button(rl);
+
+    let mut test_text_box: RwLockWriteGuard<Option<TextBox>> = STATE.stage.title.test_text_box.write().unwrap();
+    *test_text_box = Some(TextBox::new_empty(Rectangle {
+        x: rl.get_screen_width() as f32 - SCREEN_MARGIN - 300.,
+        y: rl.get_screen_height() as f32 - SCREEN_MARGIN - 30.,
+        width: 300.,
+        height: 30.,
+    }));
 }
 
 fn create_debug_button(rl: &mut RaylibHandle) -> RectangularButton {
