@@ -4,7 +4,7 @@ use raylib::math::{Rectangle, Vector2};
 use raylib::RaylibHandle;
 use shared::map::RenderCoord;
 
-const SCROLL_SPEED: f32 = 30.;
+const SCROLL_SPEED: f32 = 8.;
 
 #[derive(Debug)]
 pub struct VerticalScrollRegion {
