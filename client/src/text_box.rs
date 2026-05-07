@@ -1,3 +1,4 @@
+use crate::component::animated::Animated;
 use crate::font::DEFAULT_FONT_SPACING;
 use crate::input::{
     CharPressHandler, CharPressResult,
@@ -133,6 +134,12 @@ impl CharPressHandler for TextBox {
 
 shared::default_const_impl!(TextBox);
 
+impl Animated for TextBox {
+    fn tick(&mut self) {
+        self.frame_counter = self.frame_counter.wrapping_add(1);
+    }
+}
+
 impl TextBox {
     pub const DEFAULT: TextBox = TextBox {
         rectangle: DEFAULT_RECTANGLE,
@@ -157,10 +164,6 @@ impl TextBox {
 
     pub fn new_empty(rectangle: Rectangle) -> Self {
         Self::new(rectangle, "")
-    }
-
-    pub fn tick(&mut self) {
-        self.frame_counter = self.frame_counter.wrapping_add(1);
     }
 
     pub fn draw(&self, rl_draw: &mut RaylibDrawHandle) {
