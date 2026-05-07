@@ -53,7 +53,7 @@ pub fn init_title(rl: &mut RaylibHandle) {
 
 fn create_debug_button(rl: &mut RaylibHandle) -> RectangularButton {
     let mut button: RectangularButton = RectangularButton::new_with_text(
-        Text::from_str_default("Debug"),
+        Text::from_str_default("Loading..."),
         Rectangle {
             x: rl.get_screen_width() as f32 - SCREEN_MARGIN - BUTTON_DIMENSIONS.x,
             y: SCREEN_MARGIN,

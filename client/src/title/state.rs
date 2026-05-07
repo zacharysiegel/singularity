@@ -1,4 +1,5 @@
 use crate::button::RectangularButton;
+use crate::component::text::Text;
 use crate::state::{Loading, STATE};
 use std::sync::{RwLock, RwLockWriteGuard};
 
@@ -35,4 +36,10 @@ pub fn enable_debug() {
     let mut debug_ready: RwLockWriteGuard<Loading> = STATE.stage.title.debug_button.loading.write().unwrap();
     *debug_ready = Loading::Complete;
     drop(debug_ready);
+
+    let mut debug_button: RwLockWriteGuard<Option<RectangularButton>> =
+        STATE.stage.title.debug_button.button.write().unwrap();
+    if let Some(button) = debug_button.as_mut() {
+        button.text = Some(Text::from_str_default("Debug"));
+    }
 }
