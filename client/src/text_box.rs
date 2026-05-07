@@ -4,7 +4,7 @@ use crate::input::{
     ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult,
 };
 use raylib::consts::KeyboardKey;
-use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
+use raylib::drawing::{RaylibDraw, RaylibDrawHandle, RaylibScissorModeExt};
 use raylib::math::{Rectangle, Vector2};
 use raylib::text::RaylibFont;
 use raylib::RaylibHandle;
@@ -26,6 +26,7 @@ pub struct TextBox {
     pub horizontal_padding: f32,
     pub on_submit: Option<fn(&str)>,
 
+    scroll_offset: f32,
     frame_counter: u64,
 }
 
@@ -56,13 +57,15 @@ impl HoverHandler for TextBox {
 }
 
 impl KeyPressHandler for TextBox {
-    fn key_press(&mut self, _rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
+    fn key_press(&mut self, rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
         if !self.focused {
             return KeyPressResult::Pass;
         }
+
         match key {
             KeyboardKey::KEY_BACKSPACE => {
                 self.text.pop();
+                self.clamp_scroll_to_cursor(rl);
                 KeyPressResult::Consume
             }
             KeyboardKey::KEY_ENTER => {
@@ -81,14 +84,9 @@ impl CharPressHandler for TextBox {
         if !self.focused {
             return CharPressResult::Pass;
         }
-        let mut candidate: String = self.text.clone();
-        candidate.push(ch);
-        let available_width: f32 = self.rectangle.width - self.horizontal_padding * 2.;
-        let candidate_width: f32 = rl.get_font_default()
-            .measure_text(&candidate, TEXT_BOX_FONT_SIZE, DEFAULT_FONT_SPACING).x;
-        if candidate_width <= available_width {
-            self.text = candidate;
-        }
+
+        self.text.push(ch);
+        self.clamp_scroll_to_cursor(rl);
         CharPressResult::Consume
     }
 }
@@ -103,6 +101,7 @@ impl TextBox {
         hovered: false,
         horizontal_padding: DEFAULT_HORIZONTAL_PADDING,
         on_submit: None,
+        scroll_offset: 0.,
         frame_counter: 0,
     };
 
@@ -141,30 +140,62 @@ impl TextBox {
             border_color,
         );
 
-        let text_x: f32 = position.x + self.horizontal_padding;
+        let content_x: f32 = position.x + self.horizontal_padding;
+        let content_width: i32 = (dimensions.x - self.horizontal_padding * 2.) as i32;
         let text_y: f32 = position.y + (dimensions.y - TEXT_BOX_FONT_SIZE) / 2.;
-        rl_draw.draw_text_ex(
-            rl_draw.get_font_default(),
-            &self.text,
-            Vector2 { x: text_x, y: text_y },
-            TEXT_BOX_FONT_SIZE,
-            DEFAULT_FONT_SPACING,
-            TEXT_COLOR,
-        );
 
-        if self.focused && (self.frame_counter / CURSOR_BLINK_FRAMES) % 2 == 0 {
-            let text_measure: Vector2 =
-                rl_draw.get_font_default().measure_text(&self.text, TEXT_BOX_FONT_SIZE, DEFAULT_FONT_SPACING);
-            let cursor_x: f32 = text_x + text_measure.x + DEFAULT_FONT_SPACING;
-            let cursor_y_top: f32 = text_y;
-            let cursor_y_bottom: f32 = text_y + TEXT_BOX_FONT_SIZE;
-            rl_draw.draw_line(
-                cursor_x as i32,
-                cursor_y_top as i32,
-                cursor_x as i32,
-                cursor_y_bottom as i32,
-                TEXT_COLOR,
-            );
+        rl_draw.draw_scissor_mode(
+            content_x as i32,
+            position.y as i32,
+            content_width,
+            dimensions.y as i32,
+            |mut scissor_draw| {
+                let text_x: f32 = content_x - self.scroll_offset;
+                scissor_draw.draw_text_ex(
+                    scissor_draw.get_font_default(),
+                    &self.text,
+                    Vector2 { x: text_x, y: text_y },
+                    TEXT_BOX_FONT_SIZE,
+                    DEFAULT_FONT_SPACING,
+                    TEXT_COLOR,
+                );
+
+                if self.focused && (self.frame_counter / CURSOR_BLINK_FRAMES) % 2 == 0 {
+                    let text_width: f32 = scissor_draw.get_font_default()
+                        .measure_text(&self.text, TEXT_BOX_FONT_SIZE, DEFAULT_FONT_SPACING).x;
+                    let cursor_x: f32 = text_x + text_width + DEFAULT_FONT_SPACING;
+                    scissor_draw.draw_line(
+                        cursor_x as i32,
+                        text_y as i32,
+                        cursor_x as i32,
+                        (text_y + TEXT_BOX_FONT_SIZE) as i32,
+                        TEXT_COLOR,
+                    );
+                }
+            },
+        );
+    }
+
+    fn available_width(&self) -> f32 {
+        self.rectangle.width - self.horizontal_padding * 2.
+    }
+
+    fn cursor_x_offset(&self, rl: &RaylibHandle) -> f32 {
+        rl.get_font_default()
+            .measure_text(&self.text, TEXT_BOX_FONT_SIZE, DEFAULT_FONT_SPACING).x
+            + DEFAULT_FONT_SPACING
+    }
+
+    fn clamp_scroll_to_cursor(&mut self, rl: &RaylibHandle) {
+        let cursor_x: f32 = self.cursor_x_offset(rl);
+        let available_width: f32 = self.available_width();
+
+        if cursor_x - self.scroll_offset > available_width {
+            self.scroll_offset = cursor_x - available_width;
         }
+        if cursor_x - self.scroll_offset < 0. {
+            self.scroll_offset = cursor_x;
+        }
+        self.scroll_offset = self.scroll_offset.max(0.);
     }
 }
