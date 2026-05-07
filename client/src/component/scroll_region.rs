@@ -24,7 +24,7 @@ impl VerticalScrollRegion {
         (self.content_height - self.viewport.height).max(0.)
     }
 
-    pub fn scroll_by(&mut self, delta: f32) {
+    pub fn scroll_clamped(&mut self, delta: f32) {
         self.scroll_offset = (self.scroll_offset + delta).clamp(0., self.max_scroll());
     }
 
@@ -35,7 +35,7 @@ impl VerticalScrollRegion {
     pub fn draw(
         &self,
         rl_draw: &mut RaylibDrawHandle,
-        draw_fn: impl FnMut(RaylibScissorMode<RaylibDrawHandle>, f32),
+        mut draw_fn: impl FnMut(RaylibScissorMode<RaylibDrawHandle>, f32),
     ) {
         let y_offset: f32 = -self.scroll_offset;
         rl_draw.draw_scissor_mode(
@@ -43,17 +43,10 @@ impl VerticalScrollRegion {
             self.viewport.y as i32,
             self.viewport.width as i32,
             self.viewport.height as i32,
-            wrap_draw_fn(draw_fn, y_offset),
+            |scissor_draw: RaylibScissorMode<RaylibDrawHandle>| {
+                draw_fn(scissor_draw, y_offset);
+            },
         );
-    }
-}
-
-fn wrap_draw_fn(
-    mut draw_fn: impl FnMut(RaylibScissorMode<RaylibDrawHandle>, f32),
-    y_offset: f32,
-) -> impl FnMut(RaylibScissorMode<RaylibDrawHandle>) {
-    move |scissor_draw: RaylibScissorMode<RaylibDrawHandle>| {
-        draw_fn(scissor_draw, y_offset);
     }
 }
 
@@ -62,7 +55,7 @@ impl ScrollHandler for VerticalScrollRegion {
         if scroll_v.y == 0. {
             ScrollResult::Pass
         } else {
-            self.scroll_by(-scroll_v.y * SCROLL_SPEED);
+            self.scroll_clamped(-scroll_v.y * SCROLL_SPEED);
             ScrollResult::Consume
         }
     }
