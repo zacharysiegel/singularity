@@ -102,7 +102,7 @@ fn create_debug_scroll_region(rl: &mut RaylibHandle) -> VerticalScrollRegion {
     let wrapped_line_count: usize = crate::component::text_wrap::wrap_text(
         DEBUG_SCROLL_TEXT, &font, 14., 1., wrap_width,
     ).len();
-    let content_height: f32 = (wrapped_line_count as f32 * line_height) + padding * 2.;
+    let content_height: f32 = wrapped_line_count as f32 * line_height;
 
     let mut scroll_region: VerticalScrollRegion = VerticalScrollRegion::new(Rectangle {
         x: rl.get_screen_width() as f32 - SCREEN_MARGIN - viewport_width,
