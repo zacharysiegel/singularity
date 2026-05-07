@@ -5,8 +5,8 @@ use crate::input::ClickResult;
 use crate::stage::StageType;
 use crate::state::STATE;
 use crate::title::{
-    BUTTON_INTERNAL_MARGIN, BUTTON_TEXT_ARRAY, BUTTON_VERTICAL_MARGIN, SCREEN_MARGIN,
-    TITLE_VERTICAL_MARGIN,
+    ACCOUNT_BUTTON_INDEX, BUTTON_INTERNAL_MARGIN, BUTTON_TEXT_ARRAY, BUTTON_VERTICAL_MARGIN, GAMES_BUTTON_INDEX,
+    SCREEN_MARGIN, TITLE_VERTICAL_MARGIN,
 };
 use raylib::ffi::GetFontDefault;
 use raylib::math::{Rectangle, Vector2};
@@ -44,10 +44,10 @@ pub fn init_title(rl: &mut RaylibHandle) {
         *debug_button = Some(create_debug_button(rl));
     }
 
-    let mut games_button: RwLockWriteGuard<RectangularButton> = STATE.stage.title.main_buttons[0].write().unwrap();
+    let mut games_button: RwLockWriteGuard<RectangularButton> = STATE.stage.title.main_buttons[GAMES_BUTTON_INDEX].write().unwrap();
     *games_button = create_games_button(rl);
 
-    let mut account_button: RwLockWriteGuard<RectangularButton> = STATE.stage.title.main_buttons[1].write().unwrap();
+    let mut account_button: RwLockWriteGuard<RectangularButton> = STATE.stage.title.main_buttons[ACCOUNT_BUTTON_INDEX].write().unwrap();
     *account_button = create_account_button(rl);
 }
 
@@ -84,7 +84,7 @@ fn create_games_button(rl: &mut RaylibHandle) -> RectangularButton {
             width: BUTTON_DIMENSIONS.x,
             height: BUTTON_DIMENSIONS.y,
         },
-        Text::from_str_default(BUTTON_TEXT_ARRAY[0]),
+        Text::from_str_default(BUTTON_TEXT_ARRAY[GAMES_BUTTON_INDEX]),
     );
     button.on_click = on_click;
     fn on_click(_rl: &mut RaylibHandle, _press_position: RenderCoord, _release_position: RenderCoord) -> ClickResult {
@@ -110,7 +110,7 @@ fn create_account_button(rl: &mut RaylibHandle) -> RectangularButton {
             width: BUTTON_DIMENSIONS.x,
             height: BUTTON_DIMENSIONS.y,
         },
-        Text::from_str_default(BUTTON_TEXT_ARRAY[1]),
+        Text::from_str_default(BUTTON_TEXT_ARRAY[ACCOUNT_BUTTON_INDEX]),
     );
     button
 }

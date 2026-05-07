@@ -1,6 +1,8 @@
 use raylib::math::Vector2;
 
 pub const BUTTON_TEXT_ARRAY: [&'static str; 2] = ["Games", "Account"];
+pub const GAMES_BUTTON_INDEX: usize = 0;
+pub const ACCOUNT_BUTTON_INDEX: usize = 1;
 pub const BUTTON_INTERNAL_MARGIN: Vector2 = Vector2 { x: 14., y: 10. };
 pub const SCREEN_MARGIN: f32 = 20.;
 pub const TITLE_VERTICAL_MARGIN: f32 = 80.;
