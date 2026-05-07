@@ -1,4 +1,3 @@
-use crate::component::animated::Animated;
 use crate::font::DEFAULT_FONT_SPACING;
 use crate::input::{
     CharPressHandler, CharPressResult,
@@ -13,10 +12,11 @@ use shared::color::{TEXT_COLOR, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR};
 use shared::defaults::DEFAULT_RECTANGLE;
 use shared::map::RenderCoord;
 use shared::math;
+use std::time::Instant;
 
 const TEXT_BOX_FONT_SIZE: f32 = 16.;
 const DEFAULT_HORIZONTAL_PADDING: f32 = 6.;
-const CURSOR_BLINK_FRAMES: u64 = 30;
+const CURSOR_BLINK_INTERVAL_MS: u128 = 500;
 
 #[derive(Debug)]
 pub struct TextBox {
@@ -29,7 +29,7 @@ pub struct TextBox {
 
     cursor_position: usize,
     scroll_offset: f32,
-    frame_counter: u64,
+    created_at: Instant,
 }
 
 impl ClickHandler for TextBox {
@@ -132,34 +132,30 @@ impl CharPressHandler for TextBox {
     }
 }
 
-shared::default_const_impl!(TextBox);
-
-impl Animated for TextBox {
-    fn tick(&mut self) {
-        self.frame_counter = self.frame_counter.wrapping_add(1);
+impl Default for TextBox {
+    fn default() -> Self {
+        TextBox {
+            rectangle: DEFAULT_RECTANGLE,
+            text: String::new(),
+            focused: false,
+            hovered: false,
+            horizontal_padding: DEFAULT_HORIZONTAL_PADDING,
+            on_submit: None,
+            cursor_position: 0,
+            scroll_offset: 0.,
+            created_at: Instant::now(),
+        }
     }
 }
 
 impl TextBox {
-    pub const DEFAULT: TextBox = TextBox {
-        rectangle: DEFAULT_RECTANGLE,
-        text: String::new(),
-        focused: false,
-        hovered: false,
-        horizontal_padding: DEFAULT_HORIZONTAL_PADDING,
-        on_submit: None,
-        cursor_position: 0,
-        scroll_offset: 0.,
-        frame_counter: 0,
-    };
 
     pub fn new(rectangle: Rectangle, text: &str) -> Self {
-        TextBox {
-            rectangle,
-            text: String::from(text),
-            cursor_position: text.chars().count(),
-            ..Self::DEFAULT
-        }
+        let mut text_box: TextBox = TextBox::default();
+        text_box.rectangle = rectangle;
+        text_box.text = String::from(text);
+        text_box.cursor_position = text.chars().count();
+        text_box
     }
 
     pub fn new_empty(rectangle: Rectangle) -> Self {
@@ -205,7 +201,7 @@ impl TextBox {
                     TEXT_COLOR,
                 );
 
-                if self.focused && (self.frame_counter / CURSOR_BLINK_FRAMES) % 2 == 0 {
+                if self.focused && self.cursor_visible() {
                     let text_before_cursor: String = self.text.chars().take(self.cursor_position).collect();
                     let cursor_offset: f32 = scissor_draw.get_font_default()
                         .measure_text(&text_before_cursor, TEXT_BOX_FONT_SIZE, DEFAULT_FONT_SPACING).x;
@@ -220,6 +216,11 @@ impl TextBox {
                 }
             },
         );
+    }
+
+    fn cursor_visible(&self) -> bool {
+        let elapsed_ms: u128 = self.created_at.elapsed().as_millis();
+        (elapsed_ms / CURSOR_BLINK_INTERVAL_MS) % 2 == 0
     }
 
     fn available_width(&self) -> f32 {
