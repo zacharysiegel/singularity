@@ -195,7 +195,7 @@ impl TextBox {
         rl_draw.draw_rectangle_rec(self.rectangle, background_color);
 
         let (border_color, border_thickness): (Color, f32) = if self.focused {
-            (WINDOW_BORDER_FOCUSED_COLOR, 2.)
+            (WINDOW_BORDER_FOCUSED_COLOR, 1.)
         } else {
             (WINDOW_BORDER_COLOR, 1.)
         };
