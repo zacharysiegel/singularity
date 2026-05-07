@@ -7,8 +7,8 @@ use crate::stage::StageType;
 use crate::state::STATE;
 use crate::text_box::TextBox;
 use crate::title::{
-    ACCOUNT_BUTTON_INDEX, BUTTON_INTERNAL_MARGIN, BUTTON_TEXT_ARRAY, BUTTON_VERTICAL_MARGIN, GAMES_BUTTON_INDEX,
-    SCREEN_MARGIN, TITLE_VERTICAL_MARGIN,
+    ACCOUNT_BUTTON_INDEX, BUTTON_INTERNAL_MARGIN, BUTTON_TEXT_ARRAY, BUTTON_VERTICAL_MARGIN,
+    DEBUG_SCROLL_TEXT, GAMES_BUTTON_INDEX, SCREEN_MARGIN, TITLE_VERTICAL_MARGIN,
 };
 use raylib::ffi::GetFontDefault;
 use raylib::math::{Rectangle, Vector2};
@@ -93,14 +93,24 @@ fn create_debug_scroll_region(rl: &mut RaylibHandle) -> VerticalScrollRegion {
     let text_box_y: f32 = rl.get_screen_height() as f32 - SCREEN_MARGIN - 30.;
     let scroll_height: f32 = 200.;
     let gap: f32 = 10.;
+    let padding: f32 = 8.;
+    let line_height: f32 = 18.;
+    let viewport_width: f32 = 300.;
+
+    let font: WeakFont = rl.get_font_default();
+    let wrap_width: f32 = viewport_width - padding * 2.;
+    let wrapped_line_count: usize = crate::component::text_wrap::wrap_text(
+        DEBUG_SCROLL_TEXT, &font, 14., 1., wrap_width,
+    ).len();
+    let content_height: f32 = (wrapped_line_count as f32 * line_height) + padding * 2.;
 
     let mut scroll_region: VerticalScrollRegion = VerticalScrollRegion::new(Rectangle {
-        x: rl.get_screen_width() as f32 - SCREEN_MARGIN - 300.,
+        x: rl.get_screen_width() as f32 - SCREEN_MARGIN - viewport_width,
         y: text_box_y - gap - scroll_height,
-        width: 300.,
+        width: viewport_width,
         height: scroll_height,
     });
-    scroll_region.content_height = 600.;
+    scroll_region.content_height = content_height;
     scroll_region
 }
 
