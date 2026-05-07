@@ -14,6 +14,7 @@ use shared::defaults::DEFAULT_RECTANGLE;
 use shared::map::RenderCoord;
 use shared::primitive;
 use std::time::Instant;
+use raylib::prelude::WeakFont;
 
 const DEFAULT_TEXT_BOX_FONT_SIZE: f32 = 16.;
 const DEFAULT_HORIZONTAL_PADDING: f32 = 6.;
@@ -185,7 +186,9 @@ impl TextBox {
             self.inner_width() as i32,
             self.rectangle.height as i32,
             |mut scissor_draw| {
+                let font: WeakFont = scissor_draw.get_font_default();
                 let text_x: f32 = content_x - self.scroll_offset;
+
                 scissor_draw.draw_text_ex(
                     scissor_draw.get_font_default(),
                     &self.text.content,

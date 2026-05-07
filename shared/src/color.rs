@@ -114,6 +114,12 @@ pub const WINDOW_BORDER_COLOR: Color = Color {
     b: 0xb0,
     a: 0xff,
 };
+pub const WINDOW_BORDER_FOCUSED_COLOR: Color = Color {
+    r: 0xf0,
+    g: 0xf0,
+    b: 0xf0,
+    a: 0xff,
+};
 pub const WINDOW_INTERIOR_BORDER_COLOR: Color = Color {
     r: 0x80,
     g: 0x80,
