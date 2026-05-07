@@ -1,3 +1,4 @@
+use crate::component::text::Text;
 use crate::font::DEFAULT_FONT_SPACING;
 use crate::input;
 use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
@@ -10,31 +11,10 @@ use shared::defaults::DEFAULT_RECTANGLE;
 use shared::map::RenderCoord;
 use shared::math;
 
-pub const DEFAULT_FONT_SIZE: f32 = 18.;
-
-#[derive(Debug, Clone)]
-pub struct InnerText {
-    pub text: String,
-    pub font_size: f32,
-}
-
-impl InnerText {
-    pub fn new(text: &str, font_size: f32) -> InnerText {
-        InnerText {
-            text: text.to_string(),
-            font_size,
-        }
-    }
-
-    pub fn from_str_default(text: &str) -> InnerText {
-        InnerText::new(text, DEFAULT_FONT_SIZE)
-    }
-}
-
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct RectangularButton {
     pub rectangle: Rectangle,
-    pub inner_text: Option<InnerText>,
+    pub text: Option<Text>,
     pub on_click: fn(rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult,
     pub on_hover: fn(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult,
 
@@ -74,7 +54,7 @@ shared::default_const_impl!(RectangularButton);
 impl RectangularButton {
     pub const DEFAULT: RectangularButton = RectangularButton {
         rectangle: DEFAULT_RECTANGLE,
-        inner_text: None,
+        text: None,
         on_click: input::noop_on_click,
         on_hover: input::noop_on_hover,
         hovered: false,
@@ -86,9 +66,9 @@ impl RectangularButton {
         button
     }
 
-    pub fn new_with_text(inner_text: InnerText, rectangle: Rectangle) -> RectangularButton {
+    pub fn new_with_text(text: Text, rectangle: Rectangle) -> RectangularButton {
         let mut button: RectangularButton = Self::new(rectangle);
-        button.inner_text = Some(inner_text);
+        button.text = Some(text);
         button
     }
 
@@ -98,9 +78,20 @@ impl RectangularButton {
 
     pub fn draw(&self, rl_draw: &mut RaylibDrawHandle) {
         self.draw_background(rl_draw);
-        if let Some(inner_text) = &self.inner_text {
-            self.draw_inner_text(rl_draw, inner_text);
+        if let Some(text) = &self.text {
+            self.draw_text_content(rl_draw, &text.content, text.font_size, text.font_spacing);
         }
+    }
+
+    pub fn draw_with_text_override(&self, rl_draw: &mut RaylibDrawHandle, content: &str) {
+        self.draw_background(rl_draw);
+        let font_size: f32 = self.text.as_ref()
+            .map(|text| text.font_size)
+            .unwrap_or(crate::component::text::DEFAULT_FONT_SIZE);
+        let font_spacing: f32 = self.text.as_ref()
+            .map(|text| text.font_spacing)
+            .unwrap_or(DEFAULT_FONT_SPACING);
+        self.draw_text_content(rl_draw, content, font_size, font_spacing);
     }
 
     fn draw_background(&self, rl_draw: &mut RaylibDrawHandle) {
@@ -113,24 +104,24 @@ impl RectangularButton {
         rl_draw.draw_rectangle_v(position, dimensions, background_color);
     }
 
-    fn draw_inner_text(&self, rl_draw: &mut RaylibDrawHandle, inner_text: &InnerText) {
+    fn draw_text_content(&self, rl_draw: &mut RaylibDrawHandle, content: &str, font_size: f32, font_spacing: f32) {
         let center: Vector2 = Vector2 {
             x: self.rectangle.x + self.rectangle.width / 2.,
             y: self.rectangle.y + self.rectangle.height / 2.,
         };
         let position: Vector2 = math::centered_text_origin(
             center,
-            &inner_text.text,
+            content,
             rl_draw.get_font_default(),
-            inner_text.font_size,
-            DEFAULT_FONT_SPACING,
+            font_size,
+            font_spacing,
         );
         rl_draw.draw_text_ex(
             rl_draw.get_font_default(),
-            &inner_text.text,
+            content,
             position,
-            inner_text.font_size,
-            DEFAULT_FONT_SPACING,
+            font_size,
+            font_spacing,
             TEXT_COLOR,
         );
     }

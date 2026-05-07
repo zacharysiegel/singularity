@@ -1,4 +1,5 @@
-use crate::button::{InnerText, RectangularButton};
+use crate::button::RectangularButton;
+use crate::component::text::Text;
 use crate::font::DEFAULT_FONT_SPACING;
 use crate::input::ClickResult;
 use crate::stage::StageType;
@@ -15,7 +16,6 @@ use raylib::RaylibHandle;
 use shared::environment::RuntimeEnvironment;
 use shared::map::RenderCoord;
 use std::sync::{LazyLock, RwLockWriteGuard};
-use crate::button;
 
 const BUTTON_DIMENSIONS: LazyLock<Vector2> = LazyLock::new(|| {
     let mut max_measure: Vector2 = Vector2 {
@@ -25,7 +25,7 @@ const BUTTON_DIMENSIONS: LazyLock<Vector2> = LazyLock::new(|| {
 
     for text in BUTTON_TEXT_ARRAY {
         let font: WeakFont = unsafe { WeakFont::from_raw(GetFontDefault()) };
-        let measure: Vector2 = font.measure_text(text, button::DEFAULT_FONT_SIZE, DEFAULT_FONT_SPACING);
+        let measure: Vector2 = font.measure_text(text, crate::component::text::DEFAULT_FONT_SIZE, DEFAULT_FONT_SPACING);
         if measure.x > max_measure.x {
             max_measure = measure;
         }
@@ -53,7 +53,7 @@ pub fn init_title(rl: &mut RaylibHandle) {
 
 fn create_debug_button(rl: &mut RaylibHandle) -> RectangularButton {
     let mut button: RectangularButton = RectangularButton::new_with_text(
-        InnerText::from_str_default("Debug"),
+        Text::from_str_default("Debug"),
         Rectangle {
             x: rl.get_screen_width() as f32 - SCREEN_MARGIN - BUTTON_DIMENSIONS.x,
             y: SCREEN_MARGIN,
@@ -78,7 +78,7 @@ fn create_games_button(rl: &mut RaylibHandle) -> RectangularButton {
     };
 
     let mut button: RectangularButton = RectangularButton::new_with_text(
-        InnerText::from_str_default(BUTTON_TEXT_ARRAY[0]),
+        Text::from_str_default(BUTTON_TEXT_ARRAY[0]),
         Rectangle {
             x: position.x,
             y: position.y,
@@ -104,7 +104,7 @@ fn create_account_button(rl: &mut RaylibHandle) -> RectangularButton {
     };
 
     let button: RectangularButton = RectangularButton::new_with_text(
-        InnerText::from_str_default(BUTTON_TEXT_ARRAY[1]),
+        Text::from_str_default(BUTTON_TEXT_ARRAY[1]),
         Rectangle {
             x: position.x,
             y: position.y,
