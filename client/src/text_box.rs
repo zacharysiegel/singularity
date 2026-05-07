@@ -17,7 +17,8 @@ use std::time::Instant;
 
 const TEXT_BOX_FONT_SIZE: f32 = 16.;
 const DEFAULT_HORIZONTAL_PADDING: f32 = 6.;
-const CURSOR_BLINK_INTERVAL_MS: u128 = 500;
+const CURSOR_BLINK_CYCLE_MS: u128 = 1000;
+const CURSOR_VISIBLE_RATIO: f64 = 0.6;
 
 #[derive(Debug)]
 pub struct TextBox {
@@ -28,6 +29,7 @@ pub struct TextBox {
     pub horizontal_padding: f32,
     pub on_submit: Option<fn(&str)>,
 
+    /// Cursor position is expressed as character units from the start of the string
     cursor_position: usize,
     scroll_offset: f32,
     created_at: Instant,
@@ -218,7 +220,9 @@ impl TextBox {
 
     fn cursor_visible(&self) -> bool {
         let elapsed_ms: u128 = self.created_at.elapsed().as_millis();
-        (elapsed_ms / CURSOR_BLINK_INTERVAL_MS) % 2 == 0
+        let position_in_cycle: u128 = elapsed_ms % CURSOR_BLINK_CYCLE_MS;
+        let visible_duration_ms: u128 = (CURSOR_BLINK_CYCLE_MS as f64 * CURSOR_VISIBLE_RATIO) as u128;
+        position_in_cycle < visible_duration_ms
     }
 
     fn inner_width(&self) -> f32 {
