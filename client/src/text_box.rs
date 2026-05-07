@@ -204,13 +204,9 @@ impl TextBox {
 
                 if self.cursor_visible() && self.focused {
                     let cursor_x: f32 = text_x + self.cursor_offset(scissor_draw.get_font_default());
-                    scissor_draw.draw_line(
-                        cursor_x as i32,
-                        text_y as i32,
-                        cursor_x as i32,
-                        (text_y + self.text.font_size) as i32,
-                        self.text.color,
-                    );
+                    let cursor_top: Vector2 = Vector2 { x: cursor_x, y: text_y };
+                    let cursor_bottom: Vector2 = Vector2 { x: cursor_x, y: text_y + self.text.font_size };
+                    scissor_draw.draw_line_ex(cursor_top, cursor_bottom, 1., self.text.color);
                 }
             },
         );
@@ -233,22 +229,18 @@ impl TextBox {
         self.rectangle.width - self.horizontal_padding * 2.
     }
 
-    fn cursor_x_offset(&self, rl: &RaylibHandle) -> f32 {
-        let text_before_cursor: String = self.text.content.chars().take(self.cursor_position).collect();
-        rl.get_font_default().measure_text(&text_before_cursor, self.text.font_size, self.text.font_spacing).x
-            + self.text.font_spacing
-    }
-
     fn clamp_scroll_to_cursor(&mut self, rl: &RaylibHandle) {
-        let cursor_x: f32 = self.cursor_x_offset(rl);
+        let cursor_x: f32 = self.cursor_offset(rl.get_font_default());
         let inner_width: f32 = self.inner_width();
 
         if cursor_x - self.scroll_offset > inner_width {
             self.scroll_offset = cursor_x - inner_width;
         }
+
         if cursor_x - self.scroll_offset < 0. {
             self.scroll_offset = cursor_x;
         }
+
         self.scroll_offset = self.scroll_offset.max(0.);
     }
 }
