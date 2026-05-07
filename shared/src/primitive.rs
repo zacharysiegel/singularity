@@ -3,3 +3,12 @@ pub enum LoopAction {
     Continue,
     Stop,
 }
+
+/// Returns the byte offset of the character at the given char index within a UTF-8 string.
+/// If `char_index` is past the end of the string, returns `text.len()` (one past the last byte).
+pub fn byte_offset_at(text: &str, char_index: usize) -> usize {
+    text.char_indices()
+        .nth(char_index)
+        .map(|(byte_index, _)| byte_index)
+        .unwrap_or(text.len())
+}

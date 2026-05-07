@@ -12,6 +12,7 @@ use shared::color::{TEXT_COLOR, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR};
 use shared::defaults::DEFAULT_RECTANGLE;
 use shared::map::RenderCoord;
 use shared::math;
+use shared::primitive;
 use std::time::Instant;
 
 const TEXT_BOX_FONT_SIZE: f32 = 16.;
@@ -67,7 +68,7 @@ impl KeyPressHandler for TextBox {
         match key {
             KeyboardKey::KEY_BACKSPACE => {
                 if self.cursor_position > 0 {
-                    let byte_index: usize = self.byte_offset_at(self.cursor_position - 1);
+                    let byte_index: usize = primitive::byte_offset_at(&self.text, self.cursor_position - 1);
                     self.text.remove(byte_index);
                     self.cursor_position -= 1;
                     self.clamp_scroll_to_cursor(rl);
@@ -77,7 +78,7 @@ impl KeyPressHandler for TextBox {
             KeyboardKey::KEY_DELETE => {
                 let char_count: usize = self.text.chars().count();
                 if self.cursor_position < char_count {
-                    let byte_index: usize = self.byte_offset_at(self.cursor_position);
+                    let byte_index: usize = primitive::byte_offset_at(&self.text, self.cursor_position);
                     self.text.remove(byte_index);
                 }
                 KeyPressResult::Consume
@@ -124,7 +125,7 @@ impl CharPressHandler for TextBox {
             return CharPressResult::Pass;
         }
 
-        let byte_index: usize = self.byte_offset_at(self.cursor_position);
+        let byte_index: usize = primitive::byte_offset_at(&self.text, self.cursor_position);
         self.text.insert(byte_index, ch);
         self.cursor_position += 1;
         self.clamp_scroll_to_cursor(rl);
@@ -225,13 +226,6 @@ impl TextBox {
 
     fn inner_width(&self) -> f32 {
         self.rectangle.width - self.horizontal_padding * 2.
-    }
-
-    fn byte_offset_at(&self, char_index: usize) -> usize {
-        self.text.char_indices()
-            .nth(char_index)
-            .map(|(byte_index, _)| byte_index)
-            .unwrap_or(self.text.len())
     }
 
     fn cursor_x_offset(&self, rl: &RaylibHandle) -> f32 {
