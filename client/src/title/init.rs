@@ -1,4 +1,5 @@
 use crate::button::RectangularButton;
+use crate::component::scroll_region::VerticalScrollRegion;
 use crate::component::text::Text;
 use crate::component::text::DEFAULT_FONT_SPACING;
 use crate::input::ClickResult;
@@ -46,6 +47,10 @@ pub fn init_title(rl: &mut RaylibHandle) {
 
         let mut debug_text_box: RwLockWriteGuard<Option<TextBox>> = STATE.stage.title.debug_text_box.write().unwrap();
         *debug_text_box = Some(create_debug_text_box(rl));
+
+        let mut debug_scroll_region: RwLockWriteGuard<Option<VerticalScrollRegion>> =
+            STATE.stage.title.debug_scroll_region.write().unwrap();
+        *debug_scroll_region = Some(create_debug_scroll_region(rl));
     }
 
     let mut games_button: RwLockWriteGuard<RectangularButton> = STATE.stage.title.main_buttons[GAMES_BUTTON_INDEX].write().unwrap();
@@ -82,6 +87,21 @@ fn create_debug_text_box(rl: &mut RaylibHandle) -> TextBox {
         width: 300.,
         height: 30.,
     })
+}
+
+fn create_debug_scroll_region(rl: &mut RaylibHandle) -> VerticalScrollRegion {
+    let text_box_y: f32 = rl.get_screen_height() as f32 - SCREEN_MARGIN - 30.;
+    let scroll_height: f32 = 200.;
+    let gap: f32 = 10.;
+
+    let mut scroll_region: VerticalScrollRegion = VerticalScrollRegion::new(Rectangle {
+        x: rl.get_screen_width() as f32 - SCREEN_MARGIN - 300.,
+        y: text_box_y - gap - scroll_height,
+        width: 300.,
+        height: scroll_height,
+    });
+    scroll_region.content_height = 600.;
+    scroll_region
 }
 
 fn create_games_button(rl: &mut RaylibHandle) -> RectangularButton {

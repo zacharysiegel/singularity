@@ -6,6 +6,7 @@ use shared::map::RenderCoord;
 
 const SCROLL_SPEED: f32 = 30.;
 
+#[derive(Debug)]
 pub struct VerticalScrollRegion {
     pub viewport: Rectangle,
     pub content_height: f32,
@@ -52,6 +53,7 @@ impl ScrollHandler for VerticalScrollRegion {
         if !self.viewport.check_collision_point_rec(mouse_position) {
             return ScrollResult::Pass;
         }
+
         if scroll_v.y == 0. {
             ScrollResult::Pass
         } else {
