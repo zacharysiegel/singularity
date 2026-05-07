@@ -43,6 +43,9 @@ pub fn init_title(rl: &mut RaylibHandle) {
         let mut debug_button: RwLockWriteGuard<Option<RectangularButton>> =
             STATE.stage.title.debug_button.button.write().unwrap();
         *debug_button = Some(create_debug_button(rl));
+
+        let mut debug_text_box: RwLockWriteGuard<Option<TextBox>> = STATE.stage.title.debug_text_box.write().unwrap();
+        *debug_text_box = Some(create_debug_text_box(rl));
     }
 
     let mut games_button: RwLockWriteGuard<RectangularButton> = STATE.stage.title.main_buttons[GAMES_BUTTON_INDEX].write().unwrap();
@@ -50,14 +53,6 @@ pub fn init_title(rl: &mut RaylibHandle) {
 
     let mut account_button: RwLockWriteGuard<RectangularButton> = STATE.stage.title.main_buttons[ACCOUNT_BUTTON_INDEX].write().unwrap();
     *account_button = create_account_button(rl);
-
-    let mut test_text_box: RwLockWriteGuard<Option<TextBox>> = STATE.stage.title.test_text_box.write().unwrap();
-    *test_text_box = Some(TextBox::new_empty(Rectangle {
-        x: rl.get_screen_width() as f32 - SCREEN_MARGIN - 300.,
-        y: rl.get_screen_height() as f32 - SCREEN_MARGIN - 30.,
-        width: 300.,
-        height: 30.,
-    }));
 }
 
 fn create_debug_button(rl: &mut RaylibHandle) -> RectangularButton {
@@ -78,6 +73,15 @@ fn create_debug_button(rl: &mut RaylibHandle) -> RectangularButton {
     button.on_click = on_click;
 
     button
+}
+
+fn create_debug_text_box(rl: &mut RaylibHandle) -> TextBox {
+    TextBox::new_empty(Rectangle {
+        x: rl.get_screen_width() as f32 - SCREEN_MARGIN - 300.,
+        y: rl.get_screen_height() as f32 - SCREEN_MARGIN - 30.,
+        width: 300.,
+        height: 30.,
+    })
 }
 
 fn create_games_button(rl: &mut RaylibHandle) -> RectangularButton {
