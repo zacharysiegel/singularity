@@ -1,4 +1,3 @@
-use std::rc::Weak;
 use crate::component::text::{DEFAULT_FONT_SPACING, Text};
 use crate::input::{
     CharPressHandler, CharPressResult, ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler,
