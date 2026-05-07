@@ -149,7 +149,6 @@ impl Default for TextBox {
 }
 
 impl TextBox {
-
     pub fn new(rectangle: Rectangle, text: &str) -> Self {
         let mut text_box: TextBox = TextBox::default();
         text_box.rectangle = rectangle;
@@ -163,24 +162,17 @@ impl TextBox {
     }
 
     pub fn draw(&self, rl_draw: &mut RaylibDrawHandle) {
-        let position: Vector2 = math::rect_origin(self.rectangle);
-        let dimensions: Vector2 = math::rect_dimensions(self.rectangle);
-
-        rl_draw.draw_rectangle_v(position, dimensions, WINDOW_BACKGROUND_COLOR);
+        rl_draw.draw_rectangle_rec(self.rectangle, WINDOW_BACKGROUND_COLOR);
 
         let border_color: raylib::color::Color = if self.focused {
             TEXT_COLOR
         } else {
             WINDOW_BORDER_COLOR
         };
-        rl_draw.draw_rectangle_lines(
-            position.x as i32,
-            position.y as i32,
-            dimensions.x as i32,
-            dimensions.y as i32,
-            border_color,
-        );
+        rl_draw.draw_rectangle_lines_ex(self.rectangle, 1., border_color);
 
+        let position: Vector2 = math::rect_origin(self.rectangle);
+        let dimensions: Vector2 = math::rect_dimensions(self.rectangle);
         let content_x: f32 = position.x + self.horizontal_padding;
         let content_width: i32 = (dimensions.x - self.horizontal_padding * 2.) as i32;
         let text_y: f32 = position.y + (dimensions.y - TEXT_BOX_FONT_SIZE) / 2.;
