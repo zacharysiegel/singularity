@@ -1,6 +1,9 @@
 pub const DEFAULT_FONT_SIZE: f32 = 18.;
 pub const DEFAULT_FONT_SPACING: f32 = 2.;
 
+/// Text content with rendering properties. Does not include a font reference because raylib's
+/// `WeakFont` is not `Send`/`Sync`, which prevents storing it in components held in global state.
+/// Components resolve the font at draw time via `get_font_default()`.
 #[derive(Debug)]
 pub struct Text {
     pub content: String,
