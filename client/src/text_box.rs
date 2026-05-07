@@ -68,8 +68,7 @@ impl KeyPressHandler for TextBox {
         match key {
             KeyboardKey::KEY_BACKSPACE => {
                 if self.cursor_position > 0 {
-                    let byte_index: usize = primitive::byte_offset_at(&self.text, self.cursor_position - 1);
-                    self.text.remove(byte_index);
+                    primitive::remove_char(&mut self.text, self.cursor_position - 1);
                     self.cursor_position -= 1;
                     self.clamp_scroll_to_cursor(rl);
                 }
@@ -78,8 +77,7 @@ impl KeyPressHandler for TextBox {
             KeyboardKey::KEY_DELETE => {
                 let char_count: usize = self.text.chars().count();
                 if self.cursor_position < char_count {
-                    let byte_index: usize = primitive::byte_offset_at(&self.text, self.cursor_position);
-                    self.text.remove(byte_index);
+                    primitive::remove_char(&mut self.text, self.cursor_position);
                 }
                 KeyPressResult::Consume
             }
@@ -125,8 +123,7 @@ impl CharPressHandler for TextBox {
             return CharPressResult::Pass;
         }
 
-        let byte_index: usize = primitive::byte_offset_at(&self.text, self.cursor_position);
-        self.text.insert(byte_index, ch);
+        primitive::insert_char(&mut self.text, self.cursor_position, ch);
         self.cursor_position += 1;
         self.clamp_scroll_to_cursor(rl);
         CharPressResult::Consume
