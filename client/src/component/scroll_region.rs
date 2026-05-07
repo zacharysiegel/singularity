@@ -10,6 +10,7 @@ const SCROLL_SPEED: f32 = 8.;
 pub struct VerticalScrollRegion {
     pub viewport: Rectangle,
     pub content_height: f32,
+    pub padding: f32,
     pub scroll_offset: f32,
 }
 
@@ -18,12 +19,13 @@ impl VerticalScrollRegion {
         VerticalScrollRegion {
             viewport,
             content_height: 0.,
+            padding: 0.,
             scroll_offset: 0.,
         }
     }
 
     pub fn max_scroll(&self) -> f32 {
-        (self.content_height - self.viewport.height).max(0.)
+        (self.content_height + self.padding * 2. - self.viewport.height).max(0.)
     }
 
     pub fn scroll_clamped(&mut self, delta: f32) {
@@ -35,7 +37,7 @@ impl VerticalScrollRegion {
         rl_draw: &mut RaylibDrawHandle,
         mut draw_fn: impl FnMut(RaylibScissorMode<RaylibDrawHandle>, f32),
     ) {
-        let y_offset: f32 = -self.scroll_offset;
+        let y_offset: f32 = self.padding - self.scroll_offset;
         rl_draw.draw_scissor_mode(
             self.viewport.x as i32,
             self.viewport.y as i32,
