@@ -14,8 +14,7 @@ use shared::map::RenderCoord;
 use shared::math;
 
 const TEXT_BOX_FONT_SIZE: f32 = 16.;
-const TEXT_BOX_PADDING: f32 = 6.;
-const DEFAULT_MAX_LENGTH: usize = 256;
+const DEFAULT_PADDING: f32 = 6.;
 const CURSOR_BLINK_FRAMES: u64 = 30;
 
 #[derive(Debug)]
@@ -24,7 +23,7 @@ pub struct TextBox {
     pub text: String,
     pub focused: bool,
     pub hovered: bool,
-    pub max_length: usize,
+    pub padding: f32,
     pub on_submit: Option<fn(&str)>,
 
     frame_counter: u64,
@@ -78,12 +77,17 @@ impl KeyPressHandler for TextBox {
 }
 
 impl CharPressHandler for TextBox {
-    fn char_press(&mut self, _rl: &mut RaylibHandle, ch: char) -> CharPressResult {
+    fn char_press(&mut self, rl: &mut RaylibHandle, ch: char) -> CharPressResult {
         if !self.focused {
             return CharPressResult::Pass;
         }
-        if self.text.len() < self.max_length {
-            self.text.push(ch);
+        let mut candidate: String = self.text.clone();
+        candidate.push(ch);
+        let available_width: f32 = self.rectangle.width - self.padding * 2.;
+        let candidate_width: f32 = rl.get_font_default()
+            .measure_text(&candidate, TEXT_BOX_FONT_SIZE, DEFAULT_FONT_SPACING).x;
+        if candidate_width <= available_width {
+            self.text = candidate;
         }
         CharPressResult::Consume
     }
@@ -97,7 +101,7 @@ impl TextBox {
         text: String::new(),
         focused: false,
         hovered: false,
-        max_length: DEFAULT_MAX_LENGTH,
+        padding: DEFAULT_PADDING,
         on_submit: None,
         frame_counter: 0,
     };
@@ -137,7 +141,7 @@ impl TextBox {
             border_color,
         );
 
-        let text_x: f32 = position.x + TEXT_BOX_PADDING;
+        let text_x: f32 = position.x + self.padding;
         let text_y: f32 = position.y + (dimensions.y - TEXT_BOX_FONT_SIZE) / 2.;
         rl_draw.draw_text_ex(
             rl_draw.get_font_default(),
