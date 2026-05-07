@@ -14,7 +14,7 @@ use shared::map::RenderCoord;
 use shared::math;
 
 const TEXT_BOX_FONT_SIZE: f32 = 16.;
-const DEFAULT_PADDING: f32 = 6.;
+const DEFAULT_HORIZONTAL_PADDING: f32 = 6.;
 const CURSOR_BLINK_FRAMES: u64 = 30;
 
 #[derive(Debug)]
@@ -23,7 +23,7 @@ pub struct TextBox {
     pub text: String,
     pub focused: bool,
     pub hovered: bool,
-    pub padding: f32,
+    pub horizontal_padding: f32,
     pub on_submit: Option<fn(&str)>,
 
     frame_counter: u64,
@@ -83,7 +83,7 @@ impl CharPressHandler for TextBox {
         }
         let mut candidate: String = self.text.clone();
         candidate.push(ch);
-        let available_width: f32 = self.rectangle.width - self.padding * 2.;
+        let available_width: f32 = self.rectangle.width - self.horizontal_padding * 2.;
         let candidate_width: f32 = rl.get_font_default()
             .measure_text(&candidate, TEXT_BOX_FONT_SIZE, DEFAULT_FONT_SPACING).x;
         if candidate_width <= available_width {
@@ -101,7 +101,7 @@ impl TextBox {
         text: String::new(),
         focused: false,
         hovered: false,
-        padding: DEFAULT_PADDING,
+        horizontal_padding: DEFAULT_HORIZONTAL_PADDING,
         on_submit: None,
         frame_counter: 0,
     };
@@ -141,7 +141,7 @@ impl TextBox {
             border_color,
         );
 
-        let text_x: f32 = position.x + self.padding;
+        let text_x: f32 = position.x + self.horizontal_padding;
         let text_y: f32 = position.y + (dimensions.y - TEXT_BOX_FONT_SIZE) / 2.;
         rl_draw.draw_text_ex(
             rl_draw.get_font_default(),
