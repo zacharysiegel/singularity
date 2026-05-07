@@ -10,7 +10,7 @@ use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle, RaylibScissorModeExt};
 use raylib::math::{Rectangle, Vector2};
 use raylib::text::{RaylibFont, WeakFont};
-use shared::color::{WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_BORDER_FOCUSED_COLOR};
+use shared::color::{DIFF_HOVER_BUTTON, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_BORDER_FOCUSED_COLOR};
 use shared::defaults::DEFAULT_RECTANGLE;
 use shared::map::RenderCoord;
 use shared::primitive;
@@ -21,6 +21,9 @@ const DEFAULT_HORIZONTAL_PADDING: f32 = 12.;
 const CURSOR_BLINK_CYCLE_MS: u128 = 1500;
 const CURSOR_VISIBLE_RATIO: f64 = 0.6;
 const CURSOR_THICKNESS: f32 = 2.;
+
+/// Extra pixels added to the left edge of the scissor region to prevent clipping of glyph
+/// overhang on characters like "j" which extend slightly left of their origin point.
 const GLYPH_OVERFLOW_MARGIN: f32 = 2.;
 
 #[derive(Debug)]
@@ -182,7 +185,11 @@ impl TextBox {
     }
 
     pub fn draw(&self, rl_draw: &mut RaylibDrawHandle) {
-        rl_draw.draw_rectangle_rec(self.rectangle, WINDOW_BACKGROUND_COLOR);
+        let mut background_color: Color = WINDOW_BACKGROUND_COLOR;
+        if !self.focused && self.hovered {
+            background_color = shared::math::color_add(&background_color, &DIFF_HOVER_BUTTON);
+        }
+        rl_draw.draw_rectangle_rec(self.rectangle, background_color);
 
         let (border_color, border_thickness): (Color, f32) = if self.focused {
             (WINDOW_BORDER_FOCUSED_COLOR, 2.)
