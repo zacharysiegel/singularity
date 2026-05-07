@@ -223,7 +223,7 @@ impl TextBox {
         (elapsed_ms / CURSOR_BLINK_INTERVAL_MS) % 2 == 0
     }
 
-    fn available_width(&self) -> f32 {
+    fn inner_width(&self) -> f32 {
         self.rectangle.width - self.horizontal_padding * 2.
     }
 
@@ -243,10 +243,10 @@ impl TextBox {
 
     fn clamp_scroll_to_cursor(&mut self, rl: &RaylibHandle) {
         let cursor_x: f32 = self.cursor_x_offset(rl);
-        let available_width: f32 = self.available_width();
+        let inner_width: f32 = self.inner_width();
 
-        if cursor_x - self.scroll_offset > available_width {
-            self.scroll_offset = cursor_x - available_width;
+        if cursor_x - self.scroll_offset > inner_width {
+            self.scroll_offset = cursor_x - inner_width;
         }
         if cursor_x - self.scroll_offset < 0. {
             self.scroll_offset = cursor_x;
