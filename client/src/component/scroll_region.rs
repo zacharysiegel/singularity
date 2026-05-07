@@ -28,10 +28,6 @@ impl VerticalScrollRegion {
         self.scroll_offset = (self.scroll_offset + delta).clamp(0., self.max_scroll());
     }
 
-    pub fn contains(&self, point: Vector2) -> bool {
-        self.viewport.check_collision_point_rec(point)
-    }
-
     pub fn draw(
         &self,
         rl_draw: &mut RaylibDrawHandle,
