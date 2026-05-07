@@ -1,3 +1,4 @@
+use std::rc::Weak;
 use crate::component::text::{DEFAULT_FONT_SPACING, Text};
 use crate::input::{
     CharPressHandler, CharPressResult, ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler,
@@ -8,7 +9,7 @@ use raylib::color::Color;
 use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle, RaylibScissorModeExt};
 use raylib::math::{Rectangle, Vector2};
-use raylib::text::RaylibFont;
+use raylib::text::{RaylibFont, WeakFont};
 use shared::color::{WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_BORDER_FOCUSED_COLOR};
 use shared::defaults::DEFAULT_RECTANGLE;
 use shared::map::RenderCoord;
@@ -202,12 +203,7 @@ impl TextBox {
                 );
 
                 if self.cursor_visible() && self.focused {
-                    let text_before_cursor: String = self.text.content.chars().take(self.cursor_position).collect();
-                    let cursor_offset: f32 = scissor_draw
-                        .get_font_default()
-                        .measure_text(&text_before_cursor, self.text.font_size, self.text.font_spacing)
-                        .x;
-                    let cursor_x: f32 = text_x + cursor_offset + self.text.font_spacing;
+                    let cursor_x: f32 = text_x + self.cursor_offset(scissor_draw.get_font_default());
                     scissor_draw.draw_line(
                         cursor_x as i32,
                         text_y as i32,
@@ -225,6 +221,12 @@ impl TextBox {
         let position_in_cycle: u128 = elapsed_ms % CURSOR_BLINK_CYCLE_MS;
         let visible_duration_ms: u128 = (CURSOR_BLINK_CYCLE_MS as f64 * CURSOR_VISIBLE_RATIO) as u128;
         position_in_cycle < visible_duration_ms
+    }
+
+    fn cursor_offset(&self, font: WeakFont) -> f32 {
+        let text_before_cursor: String = self.text.content.chars().take(self.cursor_position).collect();
+        let text_measure: Vector2 = font.measure_text(&text_before_cursor, self.text.font_size, self.text.font_spacing);
+        text_measure.x + self.text.font_spacing
     }
 
     fn inner_width(&self) -> f32 {
