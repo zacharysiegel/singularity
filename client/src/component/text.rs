@@ -1,3 +1,6 @@
+use raylib::color::Color;
+use shared::color::TEXT_COLOR;
+
 pub const DEFAULT_FONT_SIZE: f32 = 18.;
 pub const DEFAULT_FONT_SPACING: f32 = 2.;
 
@@ -9,6 +12,7 @@ pub struct Text {
     pub content: String,
     pub font_size: f32,
     pub font_spacing: f32,
+    pub color: Color,
 }
 
 impl Text {
@@ -17,6 +21,7 @@ impl Text {
             content: content.to_string(),
             font_size: DEFAULT_FONT_SIZE,
             font_spacing: DEFAULT_FONT_SPACING,
+            color: TEXT_COLOR,
         }
     }
 }
