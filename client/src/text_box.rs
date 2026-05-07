@@ -130,6 +130,10 @@ impl KeyPressHandler for TextBox {
                 }
                 KeyPressResult::Consume
             }
+            KeyboardKey::KEY_ESCAPE => {
+                self.focused = false;
+                KeyPressResult::Consume
+            }
             _ => KeyPressResult::Pass,
         }
     }
@@ -243,7 +247,11 @@ impl TextBox {
     fn cursor_offset(&self, font: WeakFont) -> f32 {
         let text_before_cursor: String = self.text.content.chars().take(self.cursor_position).collect();
         let text_measure: Vector2 = font.measure_text(&text_before_cursor, self.text.font_size, self.text.font_spacing);
-        text_measure.x + self.text.font_spacing
+        if self.cursor_position == 0 {
+            0.
+        } else {
+            text_measure.x + self.text.font_spacing / 2.
+        }
     }
 
     fn inner_width(&self) -> f32 {
