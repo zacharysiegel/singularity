@@ -9,12 +9,11 @@ use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle, RaylibScissorModeExt};
 use raylib::math::{Rectangle, Vector2};
 use raylib::text::RaylibFont;
-use shared::color::{TEXT_COLOR, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR};
+use shared::color::{WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_BORDER_FOCUSED_COLOR};
 use shared::defaults::DEFAULT_RECTANGLE;
 use shared::map::RenderCoord;
 use shared::primitive;
 use std::time::Instant;
-use raylib::prelude::WeakFont;
 
 const DEFAULT_TEXT_BOX_FONT_SIZE: f32 = 16.;
 const DEFAULT_HORIZONTAL_PADDING: f32 = 6.;
@@ -146,6 +145,7 @@ impl Default for TextBox {
                 content: String::new(),
                 font_size: DEFAULT_TEXT_BOX_FONT_SIZE,
                 font_spacing: DEFAULT_FONT_SPACING,
+                color: shared::color::TEXT_COLOR,
             },
             focused: false,
             hovered: false,
@@ -174,8 +174,12 @@ impl TextBox {
     pub fn draw(&self, rl_draw: &mut RaylibDrawHandle) {
         rl_draw.draw_rectangle_rec(self.rectangle, WINDOW_BACKGROUND_COLOR);
 
-        let border_color: Color = if self.focused { TEXT_COLOR } else { WINDOW_BORDER_COLOR };
-        rl_draw.draw_rectangle_lines_ex(self.rectangle, 1., border_color);
+        let (border_color, border_thickness): (Color, f32) = if self.focused {
+            (WINDOW_BORDER_FOCUSED_COLOR, 2.)
+        } else {
+            (WINDOW_BORDER_COLOR, 1.)
+        };
+        rl_draw.draw_rectangle_lines_ex(self.rectangle, border_thickness, border_color);
 
         let content_x: f32 = self.rectangle.x + self.horizontal_padding;
         let text_y: f32 = self.rectangle.y + (self.rectangle.height - self.text.font_size) / 2.;
@@ -186,7 +190,6 @@ impl TextBox {
             self.inner_width() as i32,
             self.rectangle.height as i32,
             |mut scissor_draw| {
-                let font: WeakFont = scissor_draw.get_font_default();
                 let text_x: f32 = content_x - self.scroll_offset;
 
                 scissor_draw.draw_text_ex(
@@ -195,10 +198,10 @@ impl TextBox {
                     Vector2 { x: text_x, y: text_y },
                     self.text.font_size,
                     self.text.font_spacing,
-                    TEXT_COLOR,
+                    self.text.color,
                 );
 
-                if self.focused && self.cursor_visible() {
+                if self.cursor_visible() && self.focused {
                     let text_before_cursor: String = self.text.content.chars().take(self.cursor_position).collect();
                     let cursor_offset: f32 = scissor_draw
                         .get_font_default()
@@ -210,7 +213,7 @@ impl TextBox {
                         text_y as i32,
                         cursor_x as i32,
                         (text_y + self.text.font_size) as i32,
-                        TEXT_COLOR,
+                        self.text.color,
                     );
                 }
             },

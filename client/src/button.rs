@@ -5,7 +5,7 @@ use raylib::RaylibHandle;
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::{Rectangle, Vector2};
-use shared::color::{DIFF_HOVER_BUTTON, TEXT_COLOR, WINDOW_BACKGROUND_COLOR};
+use shared::color::{DIFF_HOVER_BUTTON, WINDOW_BACKGROUND_COLOR};
 use shared::defaults::DEFAULT_RECTANGLE;
 use shared::map::RenderCoord;
 use shared::math;
@@ -110,7 +110,7 @@ impl RectangularButton {
             position,
             text.font_size,
             text.font_spacing,
-            TEXT_COLOR,
+            text.color,
         );
     }
 }
