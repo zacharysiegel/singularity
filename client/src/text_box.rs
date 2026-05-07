@@ -235,9 +235,7 @@ impl TextBox {
 
         if cursor_x - self.scroll_offset > inner_width {
             self.scroll_offset = cursor_x - inner_width;
-        }
-
-        if cursor_x - self.scroll_offset < 0. {
+        } else if cursor_x - self.scroll_offset < 0. {
             self.scroll_offset = cursor_x;
         }
 
