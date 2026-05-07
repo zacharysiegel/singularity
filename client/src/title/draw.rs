@@ -4,7 +4,7 @@ use crate::component::text_wrap;
 use crate::config::APPLICATION_NAME;
 use crate::state::STATE;
 use crate::text_box::TextBox;
-use crate::title::TITLE_VERTICAL_MARGIN;
+use crate::title::{DEBUG_SCROLL_TEXT, TITLE_VERTICAL_MARGIN};
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
 use shared::color::{MAP_BACKGROUND_COLOR, TEXT_COLOR, WINDOW_BORDER_COLOR};
@@ -69,11 +69,7 @@ fn draw_debug_scroll_region(rl_draw: &mut RaylibDrawHandle) {
 
     rl_draw.draw_rectangle_lines_ex(scroll_region.viewport, 1., WINDOW_BORDER_COLOR);
 
-    let sample_text: &str = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. \
-        Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, \
-        quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. \
-        Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. \
-        Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
+    let sample_text: &str = DEBUG_SCROLL_TEXT;
 
     let font_size: f32 = 14.;
     let font_spacing: f32 = 1.;
