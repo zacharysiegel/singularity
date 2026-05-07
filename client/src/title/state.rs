@@ -7,18 +7,18 @@ use std::sync::{RwLock, RwLockWriteGuard};
 #[derive(Debug)]
 pub struct TitleState {
     pub debug_button: DebugButton,
+    pub debug_text_box: RwLock<Option<TextBox>>,
     pub main_buttons: [RwLock<RectangularButton>; 2],
-    pub test_text_box: RwLock<Option<TextBox>>,
 }
 
 impl TitleState {
     pub const DEFAULT: TitleState = TitleState {
         debug_button: DebugButton::DEFAULT,
+        debug_text_box: RwLock::new(None),
         main_buttons: [
             RwLock::new(RectangularButton::DEFAULT),
             RwLock::new(RectangularButton::DEFAULT),
         ],
-        test_text_box: RwLock::new(None),
     };
 }
 

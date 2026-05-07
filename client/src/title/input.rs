@@ -28,7 +28,7 @@ pub fn click(rl: &mut RaylibHandle, press_position: RenderCoord, release_positio
         }
     }
 
-    let mut text_box_guard: RwLockWriteGuard<Option<TextBox>> = STATE.stage.title.test_text_box.write().unwrap();
+    let mut text_box_guard: RwLockWriteGuard<Option<TextBox>> = STATE.stage.title.debug_text_box.write().unwrap();
     if let Some(text_box) = text_box_guard.as_mut() {
         if let ClickResult::Consume = text_box.click(rl, press_position, release_position) {
             return ClickResult::Consume;
@@ -54,7 +54,7 @@ pub fn hover(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult 
         }
     }
 
-    let mut text_box_guard: RwLockWriteGuard<Option<TextBox>> = STATE.stage.title.test_text_box.write().unwrap();
+    let mut text_box_guard: RwLockWriteGuard<Option<TextBox>> = STATE.stage.title.debug_text_box.write().unwrap();
     if let Some(text_box) = text_box_guard.as_mut() {
         if let HoverResult::Consume = text_box.hover(rl, mouse_position) {
             return HoverResult::Consume;
@@ -65,7 +65,7 @@ pub fn hover(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult 
 }
 
 pub fn key_press(rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
-    let mut text_box_guard: RwLockWriteGuard<Option<TextBox>> = STATE.stage.title.test_text_box.write().unwrap();
+    let mut text_box_guard: RwLockWriteGuard<Option<TextBox>> = STATE.stage.title.debug_text_box.write().unwrap();
     if let Some(text_box) = text_box_guard.as_mut() {
         if let KeyPressResult::Consume = text_box.key_press(rl, key) {
             return KeyPressResult::Consume;
@@ -75,7 +75,7 @@ pub fn key_press(rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
 }
 
 pub fn char_press(rl: &mut RaylibHandle, ch: char) -> CharPressResult {
-    let mut text_box_guard: RwLockWriteGuard<Option<TextBox>> = STATE.stage.title.test_text_box.write().unwrap();
+    let mut text_box_guard: RwLockWriteGuard<Option<TextBox>> = STATE.stage.title.debug_text_box.write().unwrap();
     if let Some(text_box) = text_box_guard.as_mut() {
         if let CharPressResult::Consume = text_box.char_press(rl, ch) {
             return CharPressResult::Consume;

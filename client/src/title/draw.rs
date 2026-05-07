@@ -14,8 +14,8 @@ pub fn draw(rl_draw: &mut RaylibDrawHandle) {
 
     draw_title_text(rl_draw);
     draw_debug_button(rl_draw);
+    draw_debug_text_box(rl_draw);
     draw_main_buttons(rl_draw);
-    draw_test_text_box(rl_draw);
 }
 
 fn draw_title_text(rl_draw: &mut RaylibDrawHandle) {
@@ -57,17 +57,17 @@ fn draw_debug_button(rl_draw: &mut RaylibDrawHandle) {
     debug_button.draw(rl_draw);
 }
 
+fn draw_debug_text_box(rl_draw: &mut RaylibDrawHandle) {
+    let text_box_guard: RwLockReadGuard<Option<TextBox>> = STATE.stage.title.debug_text_box.read().unwrap();
+    let Some(text_box) = text_box_guard.as_ref() else {
+        return;
+    };
+    text_box.draw(rl_draw);
+}
+
 fn draw_main_buttons(rl_draw: &mut RaylibDrawHandle) {
     for button_lock in &STATE.stage.title.main_buttons {
         let button: RwLockReadGuard<RectangularButton> = button_lock.read().unwrap();
         button.draw(rl_draw);
     }
-}
-
-fn draw_test_text_box(rl_draw: &mut RaylibDrawHandle) {
-    let text_box_guard: RwLockReadGuard<Option<TextBox>> = STATE.stage.title.test_text_box.read().unwrap();
-    let Some(text_box) = text_box_guard.as_ref() else {
-        return;
-    };
-    text_box.draw(rl_draw);
 }
