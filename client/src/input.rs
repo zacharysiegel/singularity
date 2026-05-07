@@ -19,7 +19,7 @@ pub trait ScrollHandler {
     /// Hook to allow an object to handle a scroll event.
     /// The hook should return [ScrollResult::Consume] to consume the event, or
     /// [ScrollResult::Pass] to allow subsequent objects to handle the same event.
-    fn scroll(&mut self, rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult;
+    fn scroll(&mut self, rl: &mut RaylibHandle, scroll_v: Vector2, mouse_position: RenderCoord) -> ScrollResult;
 }
 
 #[derive(PartialEq)]
@@ -78,7 +78,7 @@ pub fn handle_user_input(rl: &mut RaylibHandle) {
     let mouse_position: RenderCoord = RenderCoord(rl.get_mouse_position());
     let scroll_v: Vector2 = Vector2::from(rl.get_mouse_wheel_move_v());
 
-    scroll(rl, scroll_v);
+    scroll(rl, scroll_v, mouse_position);
     hover(rl, mouse_position);
 
     if rl.is_mouse_button_pressed(MouseButton::MOUSE_BUTTON_LEFT) {
@@ -107,9 +107,9 @@ pub fn handle_user_input(rl: &mut RaylibHandle) {
     }
 }
 
-fn scroll(rl: &mut RaylibHandle, scroll_v: Vector2) {
+fn scroll(rl: &mut RaylibHandle, scroll_v: Vector2, mouse_position: RenderCoord) {
     let current_stage: RwLockReadGuard<StageType> = STATE.stage.current();
-    current_stage.scroll(rl, scroll_v);
+    current_stage.scroll(rl, scroll_v, mouse_position);
 }
 
 fn click(rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) {

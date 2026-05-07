@@ -2,6 +2,7 @@ use crate::input::{ScrollHandler, ScrollResult};
 use raylib::drawing::{RaylibDrawHandle, RaylibScissorMode, RaylibScissorModeExt};
 use raylib::math::{Rectangle, Vector2};
 use raylib::RaylibHandle;
+use shared::map::RenderCoord;
 
 const SCROLL_SPEED: f32 = 30.;
 
@@ -47,7 +48,10 @@ impl VerticalScrollRegion {
 }
 
 impl ScrollHandler for VerticalScrollRegion {
-    fn scroll(&mut self, _rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult {
+    fn scroll(&mut self, _rl: &mut RaylibHandle, scroll_v: Vector2, mouse_position: RenderCoord) -> ScrollResult {
+        if !self.viewport.check_collision_point_rec(mouse_position) {
+            return ScrollResult::Pass;
+        }
         if scroll_v.y == 0. {
             ScrollResult::Pass
         } else {
