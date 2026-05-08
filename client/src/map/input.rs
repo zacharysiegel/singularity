@@ -8,9 +8,9 @@ use shared::map::{HexCoord, MapCoord, RenderCoord};
 use std::ops::{Add, Mul};
 use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 
-pub struct Map;
+pub struct MapInput;
 
-impl ScrollHandler for Map {
+impl ScrollHandler for MapInput {
     fn scroll(&mut self, _rl: &mut RaylibHandle, scroll_v: Vector2, _mouse_position: RenderCoord) -> ScrollResult {
         let mut map_origin: RwLockWriteGuard<MapCoord> =
             STATE.stage.game.map.map_origin.write().expect("global state poisoned");
@@ -20,7 +20,7 @@ impl ScrollHandler for Map {
     }
 }
 
-impl ClickHandler for Map {
+impl ClickHandler for MapInput {
     fn click(&mut self, rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
         let map_origin: RwLockReadGuard<MapCoord> = STATE.stage.game.map.map_origin.read().unwrap();
         let press_hex: HexCoord = press_position.containing_hex(&*map_origin);
@@ -43,7 +43,7 @@ impl ClickHandler for Map {
     }
 }
 
-impl HoverHandler for Map {
+impl HoverHandler for MapInput {
     fn hover(&mut self, _rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
         if window::any_window_open() {
             return HoverResult::Pass;
