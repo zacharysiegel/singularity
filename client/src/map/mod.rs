@@ -1,8 +1,8 @@
 mod draw;
 pub use draw::*;
 
-mod input;
-pub use input::*;
+mod map;
+pub use map::*;
 
 mod state;
 pub use state::*;
