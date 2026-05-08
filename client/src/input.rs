@@ -1,3 +1,8 @@
+//! Input handler traits with handle semantics: the implementor is responsible for determining
+//! whether an event applies to it (e.g. hit-testing mouse position against its own bounds).
+//! Return `Consume` to stop propagation to subsequent handlers, or `Pass` to allow it.
+//! Contrast with `on_*` callbacks/methods where the caller has already verified relevance.
+
 use crate::stage::StageInput;
 use raylib::consts::{KeyboardKey, MouseButton};
 use raylib::math::Vector2;
@@ -14,10 +19,9 @@ pub enum ScrollResult {
     Consume,
 }
 
+/// Handle semantics: the implementor must determine whether the scroll event applies to it
+/// (e.g. by checking if `mouse_position` is within its bounds).
 pub trait ScrollHandler {
-    /// Hook to allow an object to handle a scroll event.
-    /// The hook should return [ScrollResult::Consume] to consume the event, or
-    /// [ScrollResult::Pass] to allow subsequent objects to handle the same event.
     fn scroll(&mut self, rl: &mut RaylibHandle, scroll_v: Vector2, mouse_position: RenderCoord) -> ScrollResult;
 }
 
@@ -27,10 +31,9 @@ pub enum ClickResult {
     Consume,
 }
 
+/// Handle semantics: the implementor must determine whether the click applies to it
+/// (e.g. by checking if both press and release positions are within its bounds).
 pub trait ClickHandler {
-    /// Hook to allow an object to handle a click event.
-    /// The hook should return [ClickResult::Consume] to consume the event, or
-    /// [ClickResult::Pass] to allow subsequent objects to handle the same event.
     fn click(&mut self, rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult;
 }
 
@@ -40,10 +43,9 @@ pub enum HoverResult {
     Consume,
 }
 
+/// Handle semantics: the implementor must determine whether the hover applies to it
+/// (e.g. by checking if `mouse_position` is within its bounds).
 pub trait HoverHandler {
-    /// Hook to allow an object to handle a mouse hover event.
-    /// The hook should return [HoverResult::Consume] to consume the event, or
-    /// [HoverResult::Pass] to allow subsequent objects to handle the same event.
     fn hover(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult;
 }
 
@@ -53,10 +55,9 @@ pub enum KeyPressResult {
     Consume,
 }
 
+/// Handle semantics: the implementor must determine whether the key press applies to it
+/// (e.g. by checking if it is focused or active).
 pub trait KeyPressHandler {
-    /// Hook to allow an object to handle a key press event.
-    /// The hook should return [KeyPressResult::Consume] to consume the event, or
-    /// [KeyPressResult::Pass] to allow subsequent objects to handle the same event.
     fn key_press(&mut self, rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult;
 }
 
@@ -66,10 +67,10 @@ pub enum CharPressResult {
     Consume,
 }
 
+/// Handle semantics: the implementor must determine whether the character input applies to it
+/// (e.g. by checking if it is focused). Char events are printable characters only;
+/// control keys (backspace, enter, escape) are delivered via [KeyPressHandler] instead.
 pub trait CharPressHandler {
-    /// Hook to allow an object to handle a character input event (printable characters).
-    /// The hook should return [CharPressResult::Consume] to consume the event, or
-    /// [CharPressResult::Pass] to allow subsequent objects to handle the same event.
     fn char_press(&mut self, rl: &mut RaylibHandle, ch: char) -> CharPressResult;
 }
 
