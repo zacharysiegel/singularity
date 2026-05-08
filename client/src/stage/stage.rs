@@ -1,9 +1,14 @@
 use crate::browser::BrowserState;
 use crate::game::GameState;
-use crate::input::{CharPressResult, ClickResult, HoverResult, KeyPressResult, ScrollResult};
+use crate::input::{
+    CharPressHandler, CharPressResult, ClickHandler, ClickResult, HoverHandler, HoverResult,
+    KeyPressHandler, KeyPressResult, ScrollHandler, ScrollResult,
+};
 use crate::locked_switch::LockedSwitch;
 use crate::title::TitleState;
-use crate::{browser, game, title};
+use crate::browser::BrowserInput;
+use crate::game::GameInput;
+use crate::title::TitleInput;
 use raylib::consts::KeyboardKey;
 use raylib::drawing::RaylibDrawHandle;
 use raylib::math::Vector2;
@@ -62,49 +67,49 @@ impl StageType {
 
     pub fn scroll(&self, rl: &mut RaylibHandle, scroll_v: Vector2, mouse_position: RenderCoord) -> ScrollResult {
         match self {
-            StageType::Title => title::scroll(rl, scroll_v, mouse_position),
-            StageType::Game => game::scroll(rl, scroll_v, mouse_position),
+            StageType::Title => TitleInput.scroll(rl, scroll_v, mouse_position),
+            StageType::Game => GameInput.scroll(rl, scroll_v, mouse_position),
             _ => ScrollResult::Consume,
         }
     }
 
     pub fn click(&self, rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
         match self {
-            StageType::Title => title::click(rl, press_position, release_position),
-            StageType::Game => game::click(rl, press_position, release_position),
-            StageType::Browser => browser::click(rl, press_position, release_position),
+            StageType::Title => TitleInput.click(rl, press_position, release_position),
+            StageType::Game => GameInput.click(rl, press_position, release_position),
+            StageType::Browser => BrowserInput.click(rl, press_position, release_position),
         }
     }
 
     pub fn hover(&self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
         match self {
-            StageType::Title => title::hover(rl, mouse_position),
-            StageType::Game => game::hover(rl, mouse_position),
-            StageType::Browser => browser::hover(rl, mouse_position),
+            StageType::Title => TitleInput.hover(rl, mouse_position),
+            StageType::Game => GameInput.hover(rl, mouse_position),
+            StageType::Browser => BrowserInput.hover(rl, mouse_position),
         }
     }
 
     pub fn key_press(&self, rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
         match self {
-            StageType::Title => title::key_press(rl, key),
-            StageType::Game => game::key_press(rl, key),
-            StageType::Browser => browser::key_press(rl, key),
+            StageType::Title => TitleInput.key_press(rl, key),
+            StageType::Game => GameInput.key_press(rl, key),
+            StageType::Browser => BrowserInput.key_press(rl, key),
         }
     }
 
     pub fn char_press(&self, rl: &mut RaylibHandle, ch: char) -> CharPressResult {
         match self {
-            StageType::Title => title::char_press(rl, ch),
-            StageType::Game => game::char_press(rl, ch),
+            StageType::Title => TitleInput.char_press(rl, ch),
+            StageType::Game => GameInput.char_press(rl, ch),
             _ => CharPressResult::Pass,
         }
     }
 
     pub fn draw(&self, rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
         match self {
-            StageType::Title => title::draw(rl_draw),
-            StageType::Game => game::draw(rl_draw, rl_thread),
-            StageType::Browser => browser::draw(rl_draw),
+            StageType::Title => crate::title::draw(rl_draw),
+            StageType::Game => crate::game::draw(rl_draw, rl_thread),
+            StageType::Browser => crate::browser::draw(rl_draw),
         }
     }
 }
