@@ -1,11 +1,10 @@
-use crate::stage::StageType;
-use crate::state::STATE;
+use crate::stage::StageInput;
 use raylib::consts::{KeyboardKey, MouseButton};
 use raylib::math::Vector2;
 use raylib::RaylibHandle;
 use shared::environment::RuntimeEnvironment;
 use shared::map::RenderCoord;
-use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
+use std::sync::{RwLock, RwLockWriteGuard};
 
 static MOUSE_PRESS_POSITION: RwLock<Option<RenderCoord>> = RwLock::new(None);
 
@@ -108,28 +107,23 @@ pub fn handle_user_input(rl: &mut RaylibHandle) {
 }
 
 fn scroll(rl: &mut RaylibHandle, scroll_v: Vector2, mouse_position: RenderCoord) {
-    let current_stage: RwLockReadGuard<StageType> = STATE.stage.current();
-    current_stage.scroll(rl, scroll_v, mouse_position);
+    StageInput.scroll(rl, scroll_v, mouse_position);
 }
 
 fn click(rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) {
-    let current_stage: RwLockReadGuard<StageType> = STATE.stage.current();
-    current_stage.click(rl, press_position, release_position);
+    StageInput.click(rl, press_position, release_position);
 }
 
 fn hover(rl: &mut RaylibHandle, mouse_position: RenderCoord) {
-    let current_stage: RwLockReadGuard<StageType> = STATE.stage.current();
-    current_stage.hover(rl, mouse_position);
+    StageInput.hover(rl, mouse_position);
 }
 
 fn key_press(rl: &mut RaylibHandle, key: KeyboardKey) {
-    let current_stage: RwLockReadGuard<StageType> = STATE.stage.current();
-    current_stage.key_press(rl, key);
+    StageInput.key_press(rl, key);
 }
 
 fn char_press(rl: &mut RaylibHandle, ch: char) {
-    let current_stage: RwLockReadGuard<StageType> = STATE.stage.current();
-    current_stage.char_press(rl, ch);
+    StageInput.char_press(rl, ch);
 }
 
 pub fn noop_on_click(_rl: &mut RaylibHandle, _press_position: RenderCoord, _release_position: RenderCoord) -> ClickResult {
