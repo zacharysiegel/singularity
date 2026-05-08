@@ -84,3 +84,4 @@ The `component` module contains reusable UI primitives (buttons, text input, scr
 - `mod.rs` files should only declare submodules and re-export. Do not put logic, statics, or function definitions in `mod.rs` — move them to a named file within the module.
 - Use one-line commit messages. No multi-line bodies.
 - Format log/error messages as `"<message>; [<data>] [<data_2>]"` not `"<message>: <data>"`. Semicolon separates the message from contextual data, and each data value is bracketed.
+- Input handler naming: trait methods (e.g. `ClickHandler::click`) use **handle semantics** — the implementor checks if the event applies (hit test, bounds check). Callback fields and delegation methods (e.g. `on_click`, `on_window_click`) use **on semantics** — the caller has already verified the event is relevant.

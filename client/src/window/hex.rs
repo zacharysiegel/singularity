@@ -58,7 +58,7 @@ impl Window for HexWindow {
         self.draw_footer(rl_draw);
     }
 
-    fn handle_window_scroll(&mut self, _rl: &mut RaylibHandle, _scroll_v: Vector2) -> ScrollResult {
+    fn on_window_scroll(&mut self, _rl: &mut RaylibHandle, _scroll_v: Vector2) -> ScrollResult {
         ScrollResult::Pass
     }
 }

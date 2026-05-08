@@ -11,7 +11,7 @@ use shared::map::RenderCoord;
 impl<T: Window> ScrollHandler for T {
     fn scroll(&mut self, rl: &mut RaylibHandle, scroll_v: Vector2, _mouse_position: RenderCoord) -> ScrollResult {
         if self.is_open() {
-            self.handle_window_scroll(rl, scroll_v)
+            self.on_window_scroll(rl, scroll_v)
         } else {
             ScrollResult::Pass
         }
@@ -45,7 +45,7 @@ impl<T: Window> ClickHandler for T {
             return ClickResult::Consume;
         }
 
-        self.handle_window_click(rl, press_position, release_position);
+        self.on_window_click(rl, press_position, release_position);
         ClickResult::Consume
     }
 }
@@ -57,7 +57,7 @@ impl<T: Window> HoverHandler for T {
         }
 
         self.close_button_mut().hover(rl, mouse_position);
-        self.handle_window_hover(rl, mouse_position)
+        self.on_window_hover(rl, mouse_position)
     }
 }
 
@@ -68,7 +68,7 @@ impl<T: Window> KeyPressHandler for T {
                 self.close();
                 KeyPressResult::Consume
             } else {
-                self.handle_window_key_press(rl, key)
+                self.on_window_key_press(rl, key)
             }
         } else {
             KeyPressResult::Pass
@@ -79,7 +79,7 @@ impl<T: Window> KeyPressHandler for T {
 impl<T: Window> CharPressHandler for T {
     fn char_press(&mut self, rl: &mut RaylibHandle, ch: char) -> CharPressResult {
         if self.is_open() {
-            self.handle_window_char_press(rl, ch)
+            self.on_window_char_press(rl, ch)
         } else {
             CharPressResult::Pass
         }
