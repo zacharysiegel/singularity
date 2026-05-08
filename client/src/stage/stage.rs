@@ -1,14 +1,12 @@
-use crate::browser::BrowserState;
-use crate::game::GameState;
+use crate::browser::{BrowserInput, BrowserState};
+use crate::game::{GameInput, GameState};
 use crate::input::{
     CharPressHandler, CharPressResult, ClickHandler, ClickResult, HoverHandler, HoverResult,
     KeyPressHandler, KeyPressResult, ScrollHandler, ScrollResult,
 };
 use crate::locked_switch::LockedSwitch;
-use crate::title::TitleState;
-use crate::browser::BrowserInput;
-use crate::game::GameInput;
-use crate::title::TitleInput;
+use crate::title::{TitleInput, TitleState};
+use crate::{browser, game, title};
 use raylib::consts::KeyboardKey;
 use raylib::drawing::RaylibDrawHandle;
 use raylib::math::Vector2;
@@ -107,9 +105,9 @@ impl StageType {
 
     pub fn draw(&self, rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
         match self {
-            StageType::Title => crate::title::draw(rl_draw),
-            StageType::Game => crate::game::draw(rl_draw, rl_thread),
-            StageType::Browser => crate::browser::draw(rl_draw),
+            StageType::Title => title::draw(rl_draw),
+            StageType::Game => game::draw(rl_draw, rl_thread),
+            StageType::Browser => browser::draw(rl_draw),
         }
     }
 }
