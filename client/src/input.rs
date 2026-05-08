@@ -77,8 +77,8 @@ pub fn handle_user_input(rl: &mut RaylibHandle) {
     let mouse_position: RenderCoord = RenderCoord(rl.get_mouse_position());
     let scroll_v: Vector2 = Vector2::from(rl.get_mouse_wheel_move_v());
 
-    scroll(rl, scroll_v, mouse_position);
-    hover(rl, mouse_position);
+    StageInput.scroll(rl, scroll_v, mouse_position);
+    StageInput.hover(rl, mouse_position);
 
     if rl.is_mouse_button_pressed(MouseButton::MOUSE_BUTTON_LEFT) {
         let mut press_position: RwLockWriteGuard<Option<RenderCoord>> = MOUSE_PRESS_POSITION.write().unwrap();
@@ -88,7 +88,7 @@ pub fn handle_user_input(rl: &mut RaylibHandle) {
     if rl.is_mouse_button_released(MouseButton::MOUSE_BUTTON_LEFT) {
         let mut press_position: RwLockWriteGuard<Option<RenderCoord>> = MOUSE_PRESS_POSITION.write().unwrap();
         if let Some(press) = *press_position {
-            click(rl, press, mouse_position);
+            StageInput.click(rl, press, mouse_position);
         }
         *press_position = None;
     }
@@ -98,32 +98,12 @@ pub fn handle_user_input(rl: &mut RaylibHandle) {
     }
 
     while let Some(key) = rl.get_key_pressed() {
-        key_press(rl, key);
+        StageInput.key_press(rl, key);
     }
 
     while let Some(ch) = rl.get_char_pressed() {
-        char_press(rl, ch);
+        StageInput.char_press(rl, ch);
     }
-}
-
-fn scroll(rl: &mut RaylibHandle, scroll_v: Vector2, mouse_position: RenderCoord) {
-    StageInput.scroll(rl, scroll_v, mouse_position);
-}
-
-fn click(rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) {
-    StageInput.click(rl, press_position, release_position);
-}
-
-fn hover(rl: &mut RaylibHandle, mouse_position: RenderCoord) {
-    StageInput.hover(rl, mouse_position);
-}
-
-fn key_press(rl: &mut RaylibHandle, key: KeyboardKey) {
-    StageInput.key_press(rl, key);
-}
-
-fn char_press(rl: &mut RaylibHandle, ch: char) {
-    StageInput.char_press(rl, ch);
 }
 
 pub fn noop_on_click(_rl: &mut RaylibHandle, _press_position: RenderCoord, _release_position: RenderCoord) -> ClickResult {
