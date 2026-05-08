@@ -17,3 +17,5 @@ compose.yaml
 # IDE
 .idea/
 
+# Plans (symlinks to ~/.claude/plans/)
+plans/

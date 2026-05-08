@@ -69,6 +69,7 @@ The `component` module contains reusable UI primitives (buttons, text input, scr
 
 ## Infrastructure
 
+- **Plans**: The `plans/` directory (gitignored) contains symlinks to Claude Code plan files in `~/.claude/plans/`. These track implementation history and future work.
 - **Secrets**: Managed via `secr` (encrypted in `secrets.yaml`, decrypted at runtime using `MASTER_SECRET` env var). Use the `secr` crate directly at the point of use — do not pre-decrypt secrets into `.env` via `setup.sh`.
 - **Database**: PostgreSQL 18 via Podman compose; connection string in `DATABASE_URL` env var
 - **Account soft-delete**: Accounts are soft-deleted (`deleted_at` set, PII anonymized, sessions hard-deleted). The account row is preserved, so `ON DELETE CASCADE` will not fire. When creating new tables that reference `account(id)`, always analyze the soft-delete impact and explicitly add cleanup to `soft_delete_account` in `lobby/src/account/account_db.rs`.
