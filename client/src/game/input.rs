@@ -2,7 +2,7 @@ use crate::input::{
     CharPressResult, ClickHandler, ClickResult, HoverHandler, HoverResult,
     KeyPressResult, ScrollHandler, ScrollResult,
 };
-use crate::map::Map;
+use crate::map::MapInput;
 use crate::state::STATE;
 use crate::window::{PauseWindow, Window, window_layers};
 use raylib::RaylibHandle;
@@ -20,7 +20,7 @@ pub fn scroll(rl: &mut RaylibHandle, scroll_v: Vector2, mouse_position: RenderCo
         }
     }
 
-    Map.scroll(rl, scroll_v, mouse_position)
+    MapInput.scroll(rl, scroll_v, mouse_position)
 }
 
 pub fn click(rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
@@ -32,7 +32,7 @@ pub fn click(rl: &mut RaylibHandle, press_position: RenderCoord, release_positio
         }
     }
 
-    Map.click(rl, press_position, release_position)
+    MapInput.click(rl, press_position, release_position)
 }
 
 pub fn hover(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
@@ -49,7 +49,7 @@ pub fn hover(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult 
             HoverResult::Consume => return HoverResult::Consume,
         }
     }
-    Map.hover(rl, mouse_position)
+    MapInput.hover(rl, mouse_position)
 }
 
 pub fn key_press(rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
