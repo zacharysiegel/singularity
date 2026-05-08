@@ -58,15 +58,15 @@ impl Window for PauseWindow {
         self.draw_buttons(rl_draw, rl_thread);
     }
 
-    fn handle_window_click(&mut self, rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
+    fn on_window_click(&mut self, rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
         self.exit_button.click(rl, press_position, release_position)
     }
 
-    fn handle_window_hover(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
+    fn on_window_hover(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
         self.exit_button.hover(rl, mouse_position)
     }
 
-    fn handle_window_key_press(&mut self, _rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
+    fn on_window_key_press(&mut self, _rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
         if key == KeyboardKey::KEY_P {
             self.close();
         }

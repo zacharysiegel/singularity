@@ -27,27 +27,27 @@ pub trait Window: ScrollHandler + ClickHandler + HoverHandler + KeyPressHandler 
     fn draw_content(&self, rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread);
 
     #[allow(unused)]
-    fn handle_window_scroll(&mut self, rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult {
+    fn on_window_scroll(&mut self, rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult {
         ScrollResult::Consume
     }
 
     #[allow(unused)]
-    fn handle_window_click(&mut self, rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
+    fn on_window_click(&mut self, rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
         ClickResult::Consume
     }
 
     #[allow(unused)]
-    fn handle_window_hover(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
+    fn on_window_hover(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
         HoverResult::Consume
     }
 
     #[allow(unused)]
-    fn handle_window_key_press(&mut self, rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
+    fn on_window_key_press(&mut self, rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
         KeyPressResult::Consume
     }
 
     #[allow(unused)]
-    fn handle_window_char_press(&mut self, rl: &mut RaylibHandle, ch: char) -> CharPressResult {
+    fn on_window_char_press(&mut self, rl: &mut RaylibHandle, ch: char) -> CharPressResult {
         CharPressResult::Consume
     }
 
