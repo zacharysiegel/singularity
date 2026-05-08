@@ -48,4 +48,5 @@ Sessions
     "singularity-lobby"
     "singularity-chat-ui"
     "singularity-game-design"
+    "singularity-tmux"
 
