@@ -9,13 +9,11 @@ use shared::color::{
     TEXT_COLOR, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_INTERIOR_BORDER_COLOR,
 };
 use std::f32::consts::SQRT_2;
-use std::sync::RwLockReadGuard;
 
 const PANEL_BACKGROUND_ALPHA: u8 = 0xD0;
 
 pub fn draw(rl_draw: &mut RaylibDrawHandle, _rl_thread: &RaylibThread) {
-    let chat_panel: RwLockReadGuard<ChatPanel> = STATE.conversation.chat_panel.read().unwrap();
-    if !chat_panel.open {
+    if !STATE.conversation.chat_panel.read().unwrap().open {
         return;
     }
 
