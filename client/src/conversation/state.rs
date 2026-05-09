@@ -33,6 +33,8 @@ pub struct Conversation {
     pub unread_count: u32,
 }
 
+use shared::schema::conversation::ConversationSerial;
+
 impl Conversation {
     pub fn new() -> Self {
         Conversation {
@@ -44,6 +46,12 @@ impl Conversation {
             last_read: None,
             unread_count: 0,
         }
+    }
+
+    pub fn set_metadata(&mut self, serial: &ConversationSerial) {
+        self.name = serial.name.clone();
+        self.game_id = serial.game_id;
+        self.created = Some(serial.created);
     }
 }
 
