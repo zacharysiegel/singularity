@@ -1,3 +1,4 @@
+use crate::window::{BORDER_GAP, BUTTON_WIDTH};
 use raylib::math::Rectangle;
 use uuid::Uuid;
 
@@ -17,6 +18,14 @@ pub struct ChatPanel {
     /// Conversation IDs of open tabs in the rail, in top-down display order.
     pub conversation_tabs: Vec<Uuid>,
     pub expanded: bool,
+    pub hovered_rail_button: Option<RailButton>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum RailButton {
+    Close,
+    New,
+    List,
 }
 
 impl ChatPanel {
@@ -26,6 +35,7 @@ impl ChatPanel {
             active_tab: ChatTab::ConversationList,
             conversation_tabs: Vec::new(),
             expanded: false,
+            hovered_rail_button: None,
         }
     }
 
@@ -44,6 +54,22 @@ impl ChatPanel {
             y: 0.,
             width,
             height: screen_height,
+        }
+    }
+
+    pub fn rail_button_rect(panel_rect: Rectangle, button: RailButton) -> Rectangle {
+        let rail_x: f32 = panel_rect.x + panel_rect.width - BUTTON_WIDTH - BORDER_GAP;
+        let rail_y: f32 = panel_rect.y + BORDER_GAP;
+        let index: f32 = match button {
+            RailButton::Close => 0.,
+            RailButton::New => 1.,
+            RailButton::List => 2.,
+        };
+        Rectangle {
+            x: rail_x,
+            y: rail_y + BUTTON_WIDTH * index,
+            width: BUTTON_WIDTH,
+            height: BUTTON_WIDTH,
         }
     }
 }

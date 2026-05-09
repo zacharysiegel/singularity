@@ -1,4 +1,4 @@
-use crate::conversation::panel::{ChatPanel, ChatTab};
+use crate::conversation::panel::{ChatPanel, ChatTab, RailButton};
 use crate::input::{
     CharPressHandler, CharPressResult, ClickHandler, ClickResult, HoverHandler, HoverResult,
     KeyPressHandler, KeyPressResult, ScrollHandler, ScrollResult,
@@ -9,7 +9,7 @@ use raylib::consts::KeyboardKey;
 use raylib::math::{Rectangle, Vector2};
 use raylib::RaylibHandle;
 use shared::map::RenderCoord;
-use std::sync::{RwLockReadGuard, RwLockWriteGuard};
+use std::sync::RwLockWriteGuard;
 
 pub struct ChatPanelInput;
 
@@ -67,11 +67,18 @@ impl HoverHandler for ChatPanelInput {
             rl.get_screen_width() as f32,
             rl.get_screen_height() as f32,
         );
-        if panel_rect.check_collision_point_rec(mouse_position) {
-            HoverResult::Consume
-        } else {
-            HoverResult::Pass
+        if !panel_rect.check_collision_point_rec(mouse_position) {
+            return HoverResult::Pass;
         }
+
+        let hovered_button: Option<RailButton> = [RailButton::Close, RailButton::New, RailButton::List]
+            .into_iter()
+            .find(|button| ChatPanel::rail_button_rect(panel_rect, *button).check_collision_point_rec(mouse_position));
+
+        let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
+        chat_panel.hovered_rail_button = hovered_button;
+
+        HoverResult::Consume
     }
 }
 
