@@ -2,7 +2,6 @@ use chrono::{DateTime, Utc};
 use dashmap::mapref::one::RefMut;
 use shared::schema::conversation::{
     ConversationMember, ConversationMemberChange, ConversationMemberChangeSerial,
-    ConversationMemberSerial,
 };
 use shared::schema::conversation_message::{ConversationMessage, ConversationMessageSerial};
 use uuid::Uuid;
@@ -26,15 +25,9 @@ pub fn handle_member_joined(change_serial: ConversationMemberChangeSerial) {
     let mut conversation_entry: RefMut<Uuid, Conversation> = STATE.conversation.conversations
         .entry(conversation_id)
         .or_insert_with(Conversation::new);
-    let account_id: Uuid = change_serial.account_id;
-    conversation_entry.members.entry(account_id).or_insert_with(|| {
-        ConversationMember::from(ConversationMemberSerial {
-            conversation_id: change_serial.conversation_id,
-            account_id: change_serial.account_id,
-            entered: change_serial.timestamp,
-            exited: None,
-        })
-    });
+    conversation_entry.members
+        .entry(change_serial.account_id)
+        .or_insert_with(|| ConversationMember::from(&change_serial));
 }
 
 pub fn handle_member_left(change_serial: ConversationMemberChangeSerial) {

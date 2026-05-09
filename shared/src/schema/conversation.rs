@@ -90,3 +90,15 @@ impl From<ConversationMemberSerial> for ConversationMember {
         }
     }
 }
+
+impl From<&ConversationMemberChangeSerial> for ConversationMember {
+    fn from(serial: &ConversationMemberChangeSerial) -> Self {
+        ConversationMember {
+            conversation_id: serial.conversation_id,
+            account_id: serial.account_id,
+            entered: serial.timestamp,
+            exited: None,
+            color_cached: None,
+        }
+    }
+}
