@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 #[derive(Debug)]
 pub struct ConversationState {
-    pub conversations: DashMap<Uuid, ConversationLog>,
+    pub conversations: DashMap<Uuid, Conversation>,
 }
 
 impl ConversationState {
@@ -19,7 +19,7 @@ impl ConversationState {
 }
 
 #[derive(Debug)]
-pub struct ConversationLog {
+pub struct Conversation {
     pub name: Option<String>,
     pub game_id: Option<Uuid>,
     pub created: Option<DateTime<Utc>>,
@@ -33,9 +33,9 @@ pub struct ConversationLog {
     pub unread_count: u32,
 }
 
-impl ConversationLog {
+impl Conversation {
     pub fn new() -> Self {
-        ConversationLog {
+        Conversation {
             name: None,
             game_id: None,
             created: None,

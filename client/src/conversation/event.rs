@@ -5,7 +5,7 @@ use shared::schema::conversation::{
 use shared::schema::conversation_message::{ConversationMessage, ConversationMessageSerial};
 use uuid::Uuid;
 
-use super::state::{ConversationEvent, ConversationEventKey, ConversationLog};
+use super::state::{ConversationEvent, ConversationEventKey, Conversation};
 use crate::state::STATE;
 
 pub fn handle_chat_event(message_serial: ConversationMessageSerial) {
@@ -23,7 +23,7 @@ pub fn handle_member_joined(change_serial: ConversationMemberChangeSerial) {
 
     let mut conversation_log = STATE.conversation.conversations
         .entry(conversation_id)
-        .or_insert_with(ConversationLog::new);
+        .or_insert_with(Conversation::new);
     let already_member: bool = conversation_log
         .members
         .iter()
@@ -59,7 +59,7 @@ fn insert_event(conversation_id: Uuid, event: ConversationEvent) {
 
     let mut conversation_log = STATE.conversation.conversations
         .entry(conversation_id)
-        .or_insert_with(ConversationLog::new);
+        .or_insert_with(Conversation::new);
 
     let is_new: bool = !conversation_log.events.contains_key(&event_key);
     conversation_log.events.insert(event_key, event);

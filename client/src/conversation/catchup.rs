@@ -5,7 +5,7 @@ use shared::schema::conversation_message::ConversationMessageSerial;
 use uuid::Uuid;
 
 use super::event;
-use super::state::ConversationLog;
+use super::state::Conversation;
 use crate::http;
 use crate::state::STATE;
 
@@ -96,7 +96,7 @@ async fn fetch_members(
 fn store_conversation_metadata(conversation_serial: &ConversationSerial) {
     let mut conversation_log = STATE.conversation.conversations
         .entry(conversation_serial.id)
-        .or_insert_with(ConversationLog::new);
+        .or_insert_with(Conversation::new);
     conversation_log.name = conversation_serial.name.clone();
     conversation_log.game_id = conversation_serial.game_id;
     conversation_log.created = Some(conversation_serial.created);
