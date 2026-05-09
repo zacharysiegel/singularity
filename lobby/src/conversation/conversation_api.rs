@@ -24,7 +24,7 @@ pub fn configurer(config: &mut web::ServiceConfig) {
             .route("", web::get().to(list_conversations))
             .route("/{conversation_id}", web::get().to(get_conversation))
             .route("/{conversation_id}/member", web::post().to(add_member))
-            .route("/{conversation_id}/members", web::get().to(get_members))
+            .route("/{conversation_id}/member", web::get().to(get_members))
             .route("/{conversation_id}/leave", web::post().to(leave_conversation))
             .configure(conversation_message_api::conversation_configurer),
     );
