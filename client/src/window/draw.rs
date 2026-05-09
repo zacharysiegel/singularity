@@ -1,4 +1,5 @@
 use crate::component::button::RectangularButton;
+use crate::component::icon::draw_close_x;
 use crate::state::STATE;
 use crate::window::{BUTTON_WIDTH, ErrorWindow, HexWindow, PauseWindow, Window};
 use raylib::RaylibThread;
@@ -6,19 +7,16 @@ use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::{Rectangle, Vector2};
 use shared::color::{
-    DIFF_HOVER_BUTTON, RED, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_INTERIOR_BORDER_COLOR,
+    DIFF_HOVER_BUTTON, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_INTERIOR_BORDER_COLOR,
 };
 use shared::map::RenderCoord;
 use shared::math;
-use shared::math::SIN_FRAC_PI_4;
 use std::f32::consts::SQRT_2;
 use std::sync::RwLockReadGuard;
 
 pub const BORDER_GAP: f32 = 10.;
 pub const BORDER_THICKNESS: f32 = 1.;
 pub const BUTTON_INTERNAL_MARGIN: Vector2 = Vector2 { x: 11., y: 11. };
-
-const X_VERTEX_N: usize = 8;
 
 /// These windows are considered part of the "game" and will be blurred when an overlay window is active
 pub fn draw_game_windows(rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
@@ -177,65 +175,4 @@ fn draw_side_button_accent(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
         },
     ];
     rl_draw.draw_line_ex(vertices[0], vertices[1], BORDER_THICKNESS, WINDOW_INTERIOR_BORDER_COLOR);
-}
-
-pub fn draw_close_x(rl_draw: &mut RaylibDrawHandle, center: Vector2, radius: f32, width: f32) {
-    let a: [Vector2; X_VERTEX_N] = create_close_x_segment(center, radius, width, false);
-    let b: [Vector2; X_VERTEX_N] = create_close_x_segment(center, radius, width, true);
-
-    rl_draw.draw_triangle_fan(&a, RED);
-    rl_draw.draw_triangle_fan(&b, RED);
-}
-
-fn create_close_x_segment(center: Vector2, radius: f32, width: f32, reflect: bool) -> [Vector2; X_VERTEX_N] {
-    let r_sin_frac_pi_4: f32 = radius * *SIN_FRAC_PI_4 as f32;
-    let point_hypotenuse: f32 = width / 2. / *SIN_FRAC_PI_4 as f32;
-
-    // Generate all vertices centered at (0, 0), then transform
-    let mut vertices: [Vector2; X_VERTEX_N] = [
-        Vector2 { x: 0., y: 0. },
-        Vector2 {
-            x: -r_sin_frac_pi_4,
-            y: -r_sin_frac_pi_4,
-        },
-        Vector2 {
-            x: -r_sin_frac_pi_4 + point_hypotenuse,
-            y: -r_sin_frac_pi_4,
-        },
-        Vector2 {
-            x: r_sin_frac_pi_4,
-            y: r_sin_frac_pi_4 - point_hypotenuse,
-        },
-        Vector2 {
-            x: r_sin_frac_pi_4,
-            y: r_sin_frac_pi_4,
-        },
-        Vector2 {
-            x: r_sin_frac_pi_4 - point_hypotenuse,
-            y: r_sin_frac_pi_4,
-        },
-        Vector2 {
-            x: -r_sin_frac_pi_4,
-            y: -r_sin_frac_pi_4 + point_hypotenuse,
-        },
-        Vector2 {
-            x: -r_sin_frac_pi_4,
-            y: -r_sin_frac_pi_4,
-        },
-    ];
-
-    if reflect {
-        for vertex in &mut vertices {
-            vertex.x = -vertex.x;
-        }
-    } else {
-        vertices.reverse();
-    }
-
-    for vertex in &mut vertices {
-        vertex.x = vertex.x + center.x;
-        vertex.y = vertex.y + center.y;
-    }
-
-    vertices
 }
