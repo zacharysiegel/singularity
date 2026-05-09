@@ -17,5 +17,8 @@ compose.yaml
 # IDE
 .idea/
 
+# Superpowers
+.superpowers/
+
 # Plans (symlinks to ~/.claude/plans/)
 plans/
