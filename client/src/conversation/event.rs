@@ -1,3 +1,5 @@
+use chrono::{DateTime, Utc};
+use dashmap::mapref::one::RefMut;
 use shared::schema::conversation::{
     ConversationMember, ConversationMemberChange, ConversationMemberChangeSerial,
     ConversationMemberSerial,
@@ -17,19 +19,19 @@ pub fn handle_message(message_serial: ConversationMessageSerial) {
 
 pub fn handle_member_joined(change_serial: ConversationMemberChangeSerial) {
     let conversation_id: Uuid = change_serial.conversation_id;
-    let change: ConversationMemberChange = ConversationMemberChange::from(change_serial.clone());
+    let change: ConversationMemberChange = ConversationMemberChange::from(&change_serial);
     let event: ConversationEvent = ConversationEvent::MemberJoined(change);
     insert_event(conversation_id, event);
 
-    let mut conversation_log = STATE.conversation.conversations
+    let mut conversation_entry: RefMut<Uuid, Conversation> = STATE.conversation.conversations
         .entry(conversation_id)
         .or_insert_with(Conversation::new);
-    let already_member: bool = conversation_log
+    let already_member: bool = conversation_entry
         .members
         .iter()
         .any(|member| member.account_id == change_serial.account_id);
     if !already_member {
-        conversation_log.members.push(ConversationMember::from(
+        conversation_entry.members.push(ConversationMember::from(
             ConversationMemberSerial {
                 conversation_id: change_serial.conversation_id,
                 account_id: change_serial.account_id,
@@ -42,7 +44,7 @@ pub fn handle_member_joined(change_serial: ConversationMemberChangeSerial) {
 
 pub fn handle_member_left(change_serial: ConversationMemberChangeSerial) {
     let conversation_id: Uuid = change_serial.conversation_id;
-    let change: ConversationMemberChange = ConversationMemberChange::from(change_serial.clone());
+    let change: ConversationMemberChange = ConversationMemberChange::from(&change_serial);
     let event: ConversationEvent = ConversationEvent::MemberLeft(change);
     insert_event(conversation_id, event);
 
@@ -55,21 +57,21 @@ pub fn handle_member_left(change_serial: ConversationMemberChangeSerial) {
 
 fn insert_event(conversation_id: Uuid, event: ConversationEvent) {
     let event_key: ConversationEventKey = ConversationEventKey::from(&event);
-    let event_timestamp: chrono::DateTime<chrono::Utc> = event_key.timestamp;
+    let event_timestamp: DateTime<Utc> = event_key.timestamp;
 
-    let mut conversation_log = STATE.conversation.conversations
+    let mut conversation_entry: RefMut<Uuid, Conversation> = STATE.conversation.conversations
         .entry(conversation_id)
         .or_insert_with(Conversation::new);
 
-    let is_new: bool = !conversation_log.events.contains_key(&event_key);
-    conversation_log.events.insert(event_key, event);
+    let is_new: bool = !conversation_entry.events.contains_key(&event_key);
+    conversation_entry.events.insert(event_key, event);
 
     if is_new {
-        let is_unread: bool = conversation_log
+        let is_unread: bool = conversation_entry
             .last_read
             .map_or(true, |last_read| event_timestamp > last_read);
         if is_unread {
-            conversation_log.unread_count += 1;
+            conversation_entry.unread_count += 1;
         }
     }
 }
