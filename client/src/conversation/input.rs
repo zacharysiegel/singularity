@@ -59,10 +59,10 @@ impl ClickHandler for ChatPanelInput {
 
 impl HoverHandler for ChatPanelInput {
     fn hover(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
-        let chat_panel: RwLockReadGuard<ChatPanel> = STATE.conversation.chat_panel.read().unwrap();
-        if !chat_panel.open {
+        if !STATE.conversation.chat_panel.read().unwrap().open {
             return HoverResult::Pass;
         }
+
         let panel_rect: Rectangle = ChatPanel::panel_rectangle(
             rl.get_screen_width() as f32,
             rl.get_screen_height() as f32,
