@@ -1,4 +1,3 @@
-use reqwest::header;
 use shared::environment::RuntimeEnvironment;
 use shared::error::AppErrorStatic;
 use shared::http;
@@ -69,7 +68,7 @@ async fn fetch_conversations(token: &str) -> Result<Vec<ConversationSerial>, App
     http::with_retry(MAX_RETRY_ATTEMPTS, || async {
         let response: reqwest::Response = HTTP_CLIENT
             .get(&url)
-            .header(header::AUTHORIZATION, format!("Bearer {token}"))
+            .bearer_auth(token)
             .send()
             .await
             .map_err(|error| AppErrorStatic::new(&error.to_string()))?;
@@ -100,7 +99,7 @@ async fn fetch_messages(
     http::with_retry(MAX_RETRY_ATTEMPTS, || async {
         let response: reqwest::Response = HTTP_CLIENT
             .get(&url)
-            .header(header::AUTHORIZATION, format!("Bearer {token}"))
+            .bearer_auth(token)
             .send()
             .await
             .map_err(|error| AppErrorStatic::new(&error.to_string()))?;
@@ -129,7 +128,7 @@ async fn fetch_members(
     http::with_retry(MAX_RETRY_ATTEMPTS, || async {
         let response: reqwest::Response = HTTP_CLIENT
             .get(&url)
-            .header(header::AUTHORIZATION, format!("Bearer {token}"))
+            .bearer_auth(token)
             .send()
             .await
             .map_err(|error| AppErrorStatic::new(&error.to_string()))?;
