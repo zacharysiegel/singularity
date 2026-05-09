@@ -49,8 +49,8 @@ fn insert_event(conversation_id: Uuid, event: ConversationEvent) {
         .entry(conversation_id)
         .or_insert_with(Conversation::new);
 
-    let is_new: bool = !conversation_entry.events.contains_key(&event_key);
-    conversation_entry.events.insert(event_key, event);
+    let previous_value: Option<ConversationEvent> = conversation_entry.events.insert(event_key, event);
+    let is_new: bool = previous_value.is_none();
 
     if is_new {
         let is_unread: bool = conversation_entry
