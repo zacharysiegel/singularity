@@ -56,7 +56,7 @@ pub async fn catch_up(token: &str) {
                         "Chat catch-up failed to fetch messages; [{}] [{error}]",
                         conversation_serial.id
                     );
-                    continue;
+                    Vec::new()
                 }
             };
 
