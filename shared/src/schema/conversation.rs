@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use raylib::color::Color;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -55,6 +56,27 @@ impl From<ConversationMemberChangeSerial> for ConversationMemberChange {
             conversation_id: serial.conversation_id,
             account_id: serial.account_id,
             timestamp: serial.timestamp,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ConversationMember {
+    pub conversation_id: Uuid,
+    pub account_id: Uuid,
+    pub entered: DateTime<Utc>,
+    pub exited: Option<DateTime<Utc>>,
+    pub cached_color: Option<Color>,
+}
+
+impl From<ConversationMemberSerial> for ConversationMember {
+    fn from(serial: ConversationMemberSerial) -> Self {
+        ConversationMember {
+            conversation_id: serial.conversation_id,
+            account_id: serial.account_id,
+            entered: serial.entered,
+            exited: serial.exited,
+            cached_color: None,
         }
     }
 }
