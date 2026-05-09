@@ -3,8 +3,6 @@ use shared::schema::conversation::{
     ConversationMemberSerial,
 };
 use shared::schema::conversation_message::{ConversationMessage, ConversationMessageSerial};
-use std::collections::HashMap;
-use std::sync::RwLockWriteGuard;
 use uuid::Uuid;
 
 use super::state::{ConversationEvent, ConversationEventKey, ConversationLog};
@@ -23,23 +21,22 @@ pub fn handle_member_joined(change_serial: ConversationMemberChangeSerial) {
     let event: ConversationEvent = ConversationEvent::MemberJoined(change);
     insert_event(conversation_id, event);
 
-    let mut conversations: RwLockWriteGuard<HashMap<Uuid, ConversationLog>> =
-        STATE.conversation.conversations.write().unwrap();
-    if let Some(conversation_log) = conversations.get_mut(&conversation_id) {
-        let already_member: bool = conversation_log
-            .members
-            .iter()
-            .any(|member| member.account_id == change_serial.account_id);
-        if !already_member {
-            conversation_log.members.push(ConversationMember::from(
-                ConversationMemberSerial {
-                    conversation_id: change_serial.conversation_id,
-                    account_id: change_serial.account_id,
-                    entered: change_serial.timestamp,
-                    exited: None,
-                },
-            ));
-        }
+    let mut conversation_log = STATE.conversation.conversations
+        .entry(conversation_id)
+        .or_insert_with(ConversationLog::new);
+    let already_member: bool = conversation_log
+        .members
+        .iter()
+        .any(|member| member.account_id == change_serial.account_id);
+    if !already_member {
+        conversation_log.members.push(ConversationMember::from(
+            ConversationMemberSerial {
+                conversation_id: change_serial.conversation_id,
+                account_id: change_serial.account_id,
+                entered: change_serial.timestamp,
+                exited: None,
+            },
+        ));
     }
 }
 
@@ -49,9 +46,7 @@ pub fn handle_member_left(change_serial: ConversationMemberChangeSerial) {
     let event: ConversationEvent = ConversationEvent::MemberLeft(change);
     insert_event(conversation_id, event);
 
-    let mut conversations: RwLockWriteGuard<HashMap<Uuid, ConversationLog>> =
-        STATE.conversation.conversations.write().unwrap();
-    if let Some(conversation_log) = conversations.get_mut(&conversation_id) {
+    if let Some(mut conversation_log) = STATE.conversation.conversations.get_mut(&conversation_id) {
         conversation_log
             .members
             .retain(|member| member.account_id != change_serial.account_id);
@@ -62,8 +57,7 @@ fn insert_event(conversation_id: Uuid, event: ConversationEvent) {
     let event_key: ConversationEventKey = ConversationEventKey::from(&event);
     let event_timestamp: chrono::DateTime<chrono::Utc> = event_key.timestamp;
 
-    let mut conversations: RwLockWriteGuard<HashMap<Uuid, ConversationLog>> = STATE.conversation.conversations.write().unwrap();
-    let conversation_log: &mut ConversationLog = conversations
+    let mut conversation_log = STATE.conversation.conversations
         .entry(conversation_id)
         .or_insert_with(ConversationLog::new);
 
@@ -79,4 +73,3 @@ fn insert_event(conversation_id: Uuid, event: ConversationEvent) {
         }
     }
 }
-

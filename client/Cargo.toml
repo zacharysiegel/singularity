@@ -20,4 +20,5 @@ reqwest = { workspace = true }
 http = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }
+dashmap = { workspace = true }
 dotenvy = { workspace = true }

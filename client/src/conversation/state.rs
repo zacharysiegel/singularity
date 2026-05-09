@@ -1,19 +1,19 @@
 use chrono::{DateTime, Utc};
+use dashmap::DashMap;
 use shared::schema::conversation::{ConversationMember, ConversationMemberChange};
 use shared::schema::conversation_message::ConversationMessage;
-use std::collections::{BTreeMap, HashMap};
-use std::sync::RwLock;
+use std::collections::BTreeMap;
 use uuid::Uuid;
 
 #[derive(Debug)]
 pub struct ConversationState {
-    pub conversations: RwLock<HashMap<Uuid, ConversationLog>>,
+    pub conversations: DashMap<Uuid, ConversationLog>,
 }
 
 impl ConversationState {
     pub fn new() -> Self {
         ConversationState {
-            conversations: RwLock::new(HashMap::new()),
+            conversations: DashMap::new(),
         }
     }
 }

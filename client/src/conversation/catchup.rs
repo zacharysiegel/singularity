@@ -2,8 +2,6 @@ use shared::environment::RuntimeEnvironment;
 use shared::error::AppErrorStatic;
 use shared::schema::conversation::{ConversationMemberChangeSerial, ConversationMemberSerial, ConversationSerial};
 use shared::schema::conversation_message::ConversationMessageSerial;
-use std::collections::HashMap;
-use std::sync::RwLockWriteGuard;
 use uuid::Uuid;
 
 use super::event;
@@ -96,9 +94,7 @@ async fn fetch_members(
 }
 
 fn store_conversation_metadata(conversation_serial: &ConversationSerial) {
-    let mut conversations: RwLockWriteGuard<HashMap<Uuid, ConversationLog>> =
-        STATE.conversation.conversations.write().unwrap();
-    let conversation_log: &mut ConversationLog = conversations
+    let mut conversation_log = STATE.conversation.conversations
         .entry(conversation_serial.id)
         .or_insert_with(ConversationLog::new);
     conversation_log.name = conversation_serial.name.clone();
