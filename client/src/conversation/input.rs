@@ -15,10 +15,10 @@ pub struct ChatPanelInput;
 
 impl ScrollHandler for ChatPanelInput {
     fn scroll(&mut self, rl: &mut RaylibHandle, _scroll_v: Vector2, mouse_position: RenderCoord) -> ScrollResult {
-        let chat_panel: RwLockReadGuard<ChatPanel> = STATE.conversation.chat_panel.read().unwrap();
-        if !chat_panel.open {
+        if !STATE.conversation.chat_panel.read().unwrap().open {
             return ScrollResult::Pass;
         }
+
         let panel_rect: Rectangle = ChatPanel::panel_rectangle(
             rl.get_screen_width() as f32,
             rl.get_screen_height() as f32,
@@ -107,17 +107,12 @@ impl KeyPressHandler for ChatPanelInput {
             return KeyPressResult::Consume;
         }
 
-        KeyPressResult::Consume
+        KeyPressResult::Pass
     }
 }
 
 impl CharPressHandler for ChatPanelInput {
     fn char_press(&mut self, _rl: &mut RaylibHandle, _ch: char) -> CharPressResult {
-        let chat_panel: RwLockReadGuard<ChatPanel> = STATE.conversation.chat_panel.read().unwrap();
-        if chat_panel.open {
-            CharPressResult::Consume
-        } else {
-            CharPressResult::Pass
-        }
+        CharPressResult::Pass
     }
 }
