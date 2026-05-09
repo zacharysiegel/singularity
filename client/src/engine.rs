@@ -1,7 +1,7 @@
 use crate::config::APPLICATION_NAME;
 use crate::stage::StageType;
 use crate::state::STATE;
-use crate::{input, network, shader, stage, texture, title, ws};
+use crate::{conversation, input, network, shader, stage, texture, title, ws};
 use raylib::callbacks::TraceLogLevel;
 use raylib::consts::KeyboardKey;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
@@ -35,6 +35,8 @@ fn draw(rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
     let current_stage: RwLockReadGuard<StageType> = STATE.stage.current();
     current_stage.draw(rl_draw, rl_thread);
     drop(current_stage);
+
+    conversation::draw::draw(rl_draw, rl_thread);
 
     if RuntimeEnvironment::default().is_debug() {
         rl_draw.draw_fps(10, 10);

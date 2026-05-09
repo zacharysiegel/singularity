@@ -179,7 +179,7 @@ fn draw_side_button_accent(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
     rl_draw.draw_line_ex(vertices[0], vertices[1], BORDER_THICKNESS, WINDOW_INTERIOR_BORDER_COLOR);
 }
 
-fn draw_close_x(rl_draw: &mut RaylibDrawHandle, center: Vector2, radius: f32, width: f32) {
+pub fn draw_close_x(rl_draw: &mut RaylibDrawHandle, center: Vector2, radius: f32, width: f32) {
     let a: [Vector2; X_VERTEX_N] = create_close_x_segment(center, radius, width, false);
     let b: [Vector2; X_VERTEX_N] = create_close_x_segment(center, radius, width, true);
 
