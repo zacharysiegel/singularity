@@ -48,16 +48,12 @@ fn insert_event(conversation_id: Uuid, event: ConversationEvent) {
     let mut conversation_entry: RefMut<Uuid, Conversation> = STATE.conversation.conversations
         .entry(conversation_id)
         .or_insert_with(Conversation::new);
-
     let previous_value: Option<ConversationEvent> = conversation_entry.events.insert(event_key, event);
-    let is_new: bool = previous_value.is_none();
 
-    if is_new {
+    if previous_value.is_none() {
         let is_unread: bool = conversation_entry
             .last_read
             .map_or(true, |last_read| event_timestamp > last_read);
-        if is_unread {
-            conversation_entry.unread_count += 1;
-        }
+        conversation_entry.unread_count += u32::from(is_unread);
     }
 }
