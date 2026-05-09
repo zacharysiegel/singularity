@@ -1,6 +1,7 @@
+use crate::component::icon::draw_close_x;
 use crate::conversation::panel::ChatPanel;
 use crate::state::STATE;
-use crate::window::{BORDER_THICKNESS, BUTTON_INTERNAL_MARGIN, BUTTON_WIDTH, draw_close_x};
+use crate::window::{BORDER_THICKNESS, BUTTON_INTERNAL_MARGIN, BUTTON_WIDTH};
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::{Rectangle, Vector2};
 use raylib::RaylibThread;
