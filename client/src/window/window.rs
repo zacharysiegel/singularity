@@ -26,6 +26,10 @@ pub trait Window: ScrollHandler + ClickHandler + HoverHandler + KeyPressHandler 
     fn close_button_mut(&mut self) -> &mut RectangularButton;
     fn draw_content(&self, rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread);
 
+    fn should_close_on_click_outside(&self) -> bool {
+        true
+    }
+
     #[allow(unused)]
     fn on_window_scroll(&mut self, rl: &mut RaylibHandle, scroll_v: Vector2) -> ScrollResult {
         ScrollResult::Consume
