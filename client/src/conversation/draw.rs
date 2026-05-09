@@ -78,7 +78,20 @@ fn draw_button_backgrounds(rl_draw: &mut RaylibDrawHandle, rectangles: &[Rectang
 
 fn draw_button_borders(rl_draw: &mut RaylibDrawHandle, rectangles: &[Rectangle]) {
     for rect in rectangles {
-        rl_draw.draw_rectangle_lines_ex(*rect, BORDER_THICKNESS, WINDOW_INTERIOR_BORDER_COLOR);
+        let vertices: [Vector2; 4] = [
+            Vector2 { x: rect.x, y: rect.y },
+            Vector2 { x: rect.x, y: rect.y + rect.height },
+            Vector2 { x: rect.x + rect.width, y: rect.y + rect.height },
+            Vector2 { x: rect.x + rect.width, y: rect.y },
+        ];
+        for i in 0..vertices.len() {
+            rl_draw.draw_line_ex(
+                vertices[i],
+                vertices[(i + 1) % vertices.len()],
+                BORDER_THICKNESS,
+                WINDOW_INTERIOR_BORDER_COLOR,
+            );
+        }
     }
 }
 
