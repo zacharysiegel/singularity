@@ -29,8 +29,7 @@ impl ScrollHandler for ChatPanelInput {
 }
 impl ClickHandler for ChatPanelInput {
     fn click(&mut self, rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
-        let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
-        if !chat_panel.open {
+        if !STATE.conversation.chat_panel.read().unwrap().open {
             return ClickResult::Pass;
         }
 
@@ -49,9 +48,11 @@ impl ClickHandler for ChatPanelInput {
             width: BUTTON_WIDTH,
             height: BUTTON_WIDTH,
         };
+
         if close_rect.check_collision_point_rec(press_position)
             && close_rect.check_collision_point_rec(release_position)
         {
+            let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
             chat_panel.open = false;
             return ClickResult::Consume;
         }
