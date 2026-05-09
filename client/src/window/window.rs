@@ -1,4 +1,4 @@
-use crate::button::RectangularButton;
+use crate::component::button::RectangularButton;
 use crate::input::{
     CharPressHandler, CharPressResult,
     ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult, ScrollHandler, ScrollResult,

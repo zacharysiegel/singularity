@@ -1,14 +1,14 @@
-use crate::button::RectangularButton;
+use crate::component::button::RectangularButton;
 use crate::component::scroll_region::VerticalScrollRegion;
 use crate::component::text::Text;
 use crate::state::{Loading, STATE};
-use crate::text_box::TextBox;
+use crate::component::text_input::TextInput;
 use std::sync::{RwLock, RwLockWriteGuard};
 
 #[derive(Debug)]
 pub struct TitleState {
     pub debug_button: DebugButton,
-    pub debug_text_box: RwLock<Option<TextBox>>,
+    pub debug_text_box: RwLock<Option<TextInput>>,
     pub debug_scroll_region: RwLock<Option<VerticalScrollRegion>>,
     pub main_buttons: [RwLock<RectangularButton>; 2],
 }

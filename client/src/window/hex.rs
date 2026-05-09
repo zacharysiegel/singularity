@@ -1,4 +1,4 @@
-use crate::button::RectangularButton;
+use crate::component::button::RectangularButton;
 use crate::input::ScrollResult;
 use crate::state::STATE;
 use crate::window;

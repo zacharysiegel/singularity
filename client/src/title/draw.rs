@@ -1,9 +1,9 @@
-use crate::button::RectangularButton;
+use crate::component::button::RectangularButton;
 use crate::component::scroll_region::VerticalScrollRegion;
 use crate::component::text_wrap;
 use crate::config::APPLICATION_NAME;
 use crate::state::STATE;
-use crate::text_box::TextBox;
+use crate::component::text_input::TextInput;
 use crate::title::{DEBUG_SCROLL_TEXT, TITLE_VERTICAL_MARGIN};
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
@@ -94,7 +94,7 @@ fn draw_debug_scroll_region(rl_draw: &mut RaylibDrawHandle) {
 }
 
 fn draw_debug_text_box(rl_draw: &mut RaylibDrawHandle) {
-    let text_box_guard: RwLockReadGuard<Option<TextBox>> = STATE.stage.title.debug_text_box.read().unwrap();
+    let text_box_guard: RwLockReadGuard<Option<TextInput>> = STATE.stage.title.debug_text_box.read().unwrap();
     let Some(text_box) = text_box_guard.as_ref() else {
         return;
     };

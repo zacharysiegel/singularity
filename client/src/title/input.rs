@@ -1,4 +1,4 @@
-use crate::button::RectangularButton;
+use crate::component::button::RectangularButton;
 use crate::component::scroll_region::VerticalScrollRegion;
 use crate::input::{
     CharPressHandler, CharPressResult,
@@ -6,7 +6,7 @@ use crate::input::{
     ScrollHandler, ScrollResult,
 };
 use crate::state::{Loading, STATE};
-use crate::text_box::TextBox;
+use crate::component::text_input::TextInput;
 use raylib::consts::KeyboardKey;
 use raylib::math::Vector2;
 use raylib::RaylibHandle;
@@ -34,7 +34,7 @@ impl ClickHandler for TitleInput {
             }
         }
 
-        let mut text_box_guard: RwLockWriteGuard<Option<TextBox>> = STATE.stage.title.debug_text_box.write().unwrap();
+        let mut text_box_guard: RwLockWriteGuard<Option<TextInput>> = STATE.stage.title.debug_text_box.write().unwrap();
         if let Some(text_box) = text_box_guard.as_mut() {
             if let ClickResult::Consume = text_box.click(rl, press_position, release_position) {
                 return ClickResult::Consume;
@@ -62,7 +62,7 @@ impl HoverHandler for TitleInput {
             }
         }
 
-        let mut text_box_guard: RwLockWriteGuard<Option<TextBox>> = STATE.stage.title.debug_text_box.write().unwrap();
+        let mut text_box_guard: RwLockWriteGuard<Option<TextInput>> = STATE.stage.title.debug_text_box.write().unwrap();
         if let Some(text_box) = text_box_guard.as_mut() {
             if let HoverResult::Consume = text_box.hover(rl, mouse_position) {
                 return HoverResult::Consume;
@@ -75,7 +75,7 @@ impl HoverHandler for TitleInput {
 
 impl KeyPressHandler for TitleInput {
     fn key_press(&mut self, rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
-        let mut text_box_guard: RwLockWriteGuard<Option<TextBox>> = STATE.stage.title.debug_text_box.write().unwrap();
+        let mut text_box_guard: RwLockWriteGuard<Option<TextInput>> = STATE.stage.title.debug_text_box.write().unwrap();
         if let Some(text_box) = text_box_guard.as_mut() {
             if let KeyPressResult::Consume = text_box.key_press(rl, key) {
                 return KeyPressResult::Consume;
@@ -87,7 +87,7 @@ impl KeyPressHandler for TitleInput {
 
 impl CharPressHandler for TitleInput {
     fn char_press(&mut self, rl: &mut RaylibHandle, ch: char) -> CharPressResult {
-        let mut text_box_guard: RwLockWriteGuard<Option<TextBox>> = STATE.stage.title.debug_text_box.write().unwrap();
+        let mut text_box_guard: RwLockWriteGuard<Option<TextInput>> = STATE.stage.title.debug_text_box.write().unwrap();
         if let Some(text_box) = text_box_guard.as_mut() {
             if let CharPressResult::Consume = text_box.char_press(rl, ch) {
                 return CharPressResult::Consume;

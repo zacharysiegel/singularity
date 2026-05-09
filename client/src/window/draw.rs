@@ -1,4 +1,4 @@
-use crate::button::RectangularButton;
+use crate::component::button::RectangularButton;
 use crate::state::STATE;
 use crate::window::{BUTTON_WIDTH, ErrorWindow, HexWindow, PauseWindow, Window};
 use raylib::RaylibThread;

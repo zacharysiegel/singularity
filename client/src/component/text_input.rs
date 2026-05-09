@@ -26,7 +26,7 @@ const CURSOR_THICKNESS: f32 = 2.;
 const GLYPH_OVERFLOW_MARGIN: f32 = 2.;
 
 #[derive(Debug)]
-pub struct TextBox {
+pub struct TextInput {
     pub rectangle: Rectangle,
     pub text: Text,
     pub focused: bool,
@@ -40,7 +40,7 @@ pub struct TextBox {
     last_input_at: Instant,
 }
 
-impl ClickHandler for TextBox {
+impl ClickHandler for TextInput {
     fn click(
         &mut self,
         _rl: &mut RaylibHandle,
@@ -59,7 +59,7 @@ impl ClickHandler for TextBox {
     }
 }
 
-impl HoverHandler for TextBox {
+impl HoverHandler for TextInput {
     fn hover(&mut self, _rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
         if self.rectangle.check_collision_point_rec(mouse_position) {
             self.hovered = true;
@@ -71,7 +71,7 @@ impl HoverHandler for TextBox {
     }
 }
 
-impl KeyPressHandler for TextBox {
+impl KeyPressHandler for TextInput {
     fn key_press(&mut self, rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
         if !self.focused {
             return KeyPressResult::Pass;
@@ -139,7 +139,7 @@ impl KeyPressHandler for TextBox {
     }
 }
 
-impl CharPressHandler for TextBox {
+impl CharPressHandler for TextInput {
     fn char_press(&mut self, rl: &mut RaylibHandle, ch: char) -> CharPressResult {
         if !self.focused {
             return CharPressResult::Pass;
@@ -153,9 +153,9 @@ impl CharPressHandler for TextBox {
     }
 }
 
-impl Default for TextBox {
+impl Default for TextInput {
     fn default() -> Self {
-        TextBox {
+        TextInput {
             rectangle: DEFAULT_RECTANGLE,
             text: Text {
                 content: String::new(),
@@ -174,9 +174,9 @@ impl Default for TextBox {
     }
 }
 
-impl TextBox {
+impl TextInput {
     pub fn new(rectangle: Rectangle, content: &str) -> Self {
-        let mut text_box: TextBox = TextBox::default();
+        let mut text_box: TextInput = TextInput::default();
         text_box.rectangle = rectangle;
         text_box.text.content = String::from(content);
         text_box.cursor_position = content.chars().count();

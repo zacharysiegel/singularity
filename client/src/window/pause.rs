@@ -1,4 +1,4 @@
-use crate::button::RectangularButton;
+use crate::component::button::RectangularButton;
 use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult};
 use crate::stage::StageType;
 use crate::state::STATE;
