@@ -30,13 +30,9 @@ impl<T: Window> ClickHandler for T {
             } else {
                 ClickResult::Pass
             };
-        }
-
-        if press_outside {
+        } else if press_outside && !release_outside {
             return ClickResult::Pass;
-        }
-
-        if release_outside {
+        } else if !press_outside && release_outside {
             return ClickResult::Consume;
         }
 
