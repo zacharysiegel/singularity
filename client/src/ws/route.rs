@@ -6,7 +6,7 @@ use crate::state::STATE;
 pub fn route_ws_event(connection_type: ConnectionType, ws_event: WsEvent) {
     match ws_event {
         WsEvent::Chat(message) => {
-            event::handle_chat_event(message);
+            event::handle_message(message);
         }
         WsEvent::MemberJoined(change) => {
             event::handle_member_joined(change);

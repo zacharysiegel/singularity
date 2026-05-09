@@ -63,7 +63,7 @@ pub async fn catch_up(token: &str) {
         conversation_count += i32::from(!message_serials.is_empty());
         message_count += message_serials.len() as i32;
         for message_serial in message_serials {
-            event::handle_chat_event(message_serial);
+            event::handle_message(message_serial);
         }
     }
 
