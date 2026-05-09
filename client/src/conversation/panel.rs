@@ -1,12 +1,13 @@
+use raylib::math::Rectangle;
 use uuid::Uuid;
 
 const PANEL_MAX_WIDTH: f32 = 600.;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ChatTab {
+    NewConversation,
     ConversationList,
     Conversation(Uuid),
-    NewConversation,
 }
 
 #[derive(Debug)]
@@ -33,12 +34,12 @@ impl ChatPanel {
     }
 
     pub fn panel_width(screen_width: f32) -> f32 {
-        screen_width.min(PANEL_MAX_WIDTH)
+        f32::min(screen_width, PANEL_MAX_WIDTH)
     }
 
-    pub fn panel_rectangle(screen_width: f32, screen_height: f32) -> raylib::math::Rectangle {
+    pub fn panel_rectangle(screen_width: f32, screen_height: f32) -> Rectangle {
         let width: f32 = Self::panel_width(screen_width);
-        raylib::math::Rectangle {
+        Rectangle {
             x: screen_width - width,
             y: 0.,
             width,
