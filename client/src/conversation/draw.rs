@@ -9,24 +9,22 @@ use shared::color::{
     TEXT_COLOR, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_INTERIOR_BORDER_COLOR,
 };
 use std::f32::consts::SQRT_2;
+use raylib::color::Color;
 
-const PANEL_BACKGROUND_ALPHA: u8 = 0xD0;
+const PANEL_BACKGROUND_ALPHA: u8 = 0xD8;
 
 pub fn draw(rl_draw: &mut RaylibDrawHandle, _rl_thread: &RaylibThread) {
     if !STATE.conversation.chat_panel.read().unwrap().open {
         return;
     }
 
-    let screen_width: f32 = rl_draw.get_screen_width() as f32;
-    let screen_height: f32 = rl_draw.get_screen_height() as f32;
-    let panel_rect: Rectangle = ChatPanel::panel_rectangle(screen_width, screen_height);
-
+    let panel_rect: Rectangle = ChatPanel::panel_rectangle(rl_draw.get_screen_width() as f32, rl_draw.get_screen_height() as f32);
     draw_panel_background(rl_draw, panel_rect);
     draw_rail_action_buttons(rl_draw, panel_rect);
 }
 
 fn draw_panel_background(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
-    let background_color: raylib::color::Color = raylib::color::Color {
+    let background_color: Color = Color {
         a: PANEL_BACKGROUND_ALPHA,
         ..WINDOW_BACKGROUND_COLOR
     };
