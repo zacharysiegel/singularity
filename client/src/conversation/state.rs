@@ -23,7 +23,9 @@ pub struct Conversation {
     pub name: Option<String>,
     pub game_id: Option<Uuid>,
     pub created: Option<DateTime<Utc>>,
-    pub members: Vec<ConversationMember>,
+    /// Keyed by account_id for O(1) deduplication and removal. BTreeMap maintains sorted order
+    /// by UUID, providing deterministic iteration for donut ring icon segment rendering.
+    pub members: BTreeMap<Uuid, ConversationMember>,
     /// Events are stored in a BTreeMap keyed by (timestamp, account_id) so they are always sorted
     /// chronologically. This avoids re-sorting on every render and provides natural deduplication
     /// when catching up via REST (inserting an already-present key is a no-op).
@@ -41,7 +43,7 @@ impl Conversation {
             name: None,
             game_id: None,
             created: None,
-            members: Vec::new(),
+            members: BTreeMap::new(),
             events: BTreeMap::new(),
             last_read: None,
             unread_count: 0,
