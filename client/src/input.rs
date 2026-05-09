@@ -14,6 +14,14 @@ use std::sync::{RwLock, RwLockWriteGuard};
 
 static MOUSE_PRESS_POSITION: RwLock<Option<RenderCoord>> = RwLock::new(None);
 
+macro_rules! return_if_consumed {
+    ($result:ident, $expression:expr) => {
+        if let $result::Consume = $expression {
+            return;
+        }
+    };
+}
+
 #[derive(PartialEq)]
 pub enum ScrollResult {
     Pass,
@@ -109,38 +117,28 @@ pub fn handle_user_input(rl: &mut RaylibHandle) {
 }
 
 fn scroll(rl: &mut RaylibHandle, scroll_v: Vector2, mouse_position: RenderCoord) {
-    if let ScrollResult::Consume = ChatPanelInput.scroll(rl, scroll_v, mouse_position) {
-        return;
-    }
-    StageInput.scroll(rl, scroll_v, mouse_position);
+    return_if_consumed!(ScrollResult, ChatPanelInput.scroll(rl, scroll_v, mouse_position));
+    return_if_consumed!(ScrollResult, StageInput.scroll(rl, scroll_v, mouse_position));
 }
 
 fn click(rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) {
-    if let ClickResult::Consume = ChatPanelInput.click(rl, press_position, release_position) {
-        return;
-    }
-    StageInput.click(rl, press_position, release_position);
+    return_if_consumed!(ClickResult, ChatPanelInput.click(rl, press_position, release_position));
+    return_if_consumed!(ClickResult, StageInput.click(rl, press_position, release_position));
 }
 
 fn hover(rl: &mut RaylibHandle, mouse_position: RenderCoord) {
-    if let HoverResult::Consume = ChatPanelInput.hover(rl, mouse_position) {
-        return;
-    }
-    StageInput.hover(rl, mouse_position);
+    return_if_consumed!(HoverResult, ChatPanelInput.hover(rl, mouse_position));
+    return_if_consumed!(HoverResult, StageInput.hover(rl, mouse_position));
 }
 
 fn key_press(rl: &mut RaylibHandle, key: KeyboardKey) {
-    if let KeyPressResult::Consume = ChatPanelInput.key_press(rl, key) {
-        return;
-    }
-    StageInput.key_press(rl, key);
+    return_if_consumed!(KeyPressResult, ChatPanelInput.key_press(rl, key));
+    return_if_consumed!(KeyPressResult, StageInput.key_press(rl, key));
 }
 
 fn char_press(rl: &mut RaylibHandle, ch: char) {
-    if let CharPressResult::Consume = ChatPanelInput.char_press(rl, ch) {
-        return;
-    }
-    StageInput.char_press(rl, ch);
+    return_if_consumed!(CharPressResult, ChatPanelInput.char_press(rl, ch));
+    return_if_consumed!(CharPressResult, StageInput.char_press(rl, ch));
 }
 
 pub fn noop_on_click(_rl: &mut RaylibHandle, _press_position: RenderCoord, _release_position: RenderCoord) -> ClickResult {
