@@ -60,8 +60,8 @@ pub struct ConversationMemberChange {
     pub timestamp: DateTime<Utc>,
 }
 
-impl From<ConversationMemberChangeSerial> for ConversationMemberChange {
-    fn from(serial: ConversationMemberChangeSerial) -> Self {
+impl From<&ConversationMemberChangeSerial> for ConversationMemberChange {
+    fn from(serial: &ConversationMemberChangeSerial) -> Self {
         ConversationMemberChange {
             conversation_id: serial.conversation_id,
             account_id: serial.account_id,
