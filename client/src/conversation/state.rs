@@ -24,7 +24,7 @@ pub struct Conversation {
     pub game_id: Option<Uuid>,
     pub created: Option<DateTime<Utc>>,
     /// Keyed by account_id for O(1) deduplication and removal. BTreeMap maintains sorted order
-    /// by UUID, providing deterministic iteration for donut ring icon segment rendering.
+    /// by UUID, providing deterministic iteration member list rendering.
     pub members: BTreeMap<Uuid, ConversationMember>,
     /// Events are stored in a BTreeMap keyed by (timestamp, account_id) so they are always sorted
     /// chronologically. This avoids re-sorting on every render and provides natural deduplication
