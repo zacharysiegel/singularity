@@ -1,15 +1,16 @@
 use crate::component::icon::{draw_close_x, draw_hamburger, draw_plus};
-use crate::conversation::panel::ChatPanel;
+use crate::conversation::panel::{ChatPanel, RailButton};
 use crate::state::STATE;
 use crate::window::{BORDER_GAP, BORDER_THICKNESS, BUTTON_INTERNAL_MARGIN, BUTTON_WIDTH};
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::{Rectangle, Vector2};
 use raylib::RaylibThread;
 use shared::color::{
-    TEXT_COLOR, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_INTERIOR_BORDER_COLOR,
+    DIFF_HOVER_BUTTON, TEXT_COLOR, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_INTERIOR_BORDER_COLOR,
 };
 use std::f32::consts::SQRT_2;
 use raylib::color::Color;
+use shared::math;
 
 const PANEL_BACKGROUND_ALPHA: u8 = 0xD8;
 
@@ -61,29 +62,19 @@ fn draw_interior_border(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
 }
 
 fn draw_rail_action_buttons(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
-    let rail_x: f32 = panel_rect.x + panel_rect.width - BUTTON_WIDTH - BORDER_GAP;
-    let rail_y: f32 = panel_rect.y + BORDER_GAP;
+    let hovered_button: Option<RailButton> = STATE.conversation.chat_panel.read().unwrap().hovered_rail_button;
 
-    let close_rect: Rectangle = Rectangle {
-        x: rail_x,
-        y: rail_y,
-        width: BUTTON_WIDTH,
-        height: BUTTON_WIDTH,
-    };
-    let new_rect: Rectangle = Rectangle {
-        x: rail_x,
-        y: rail_y + BUTTON_WIDTH,
-        width: BUTTON_WIDTH,
-        height: BUTTON_WIDTH,
-    };
-    let list_rect: Rectangle = Rectangle {
-        x: rail_x,
-        y: rail_y + BUTTON_WIDTH * 2.,
-        width: BUTTON_WIDTH,
-        height: BUTTON_WIDTH,
-    };
+    let close_rect: Rectangle = ChatPanel::rail_button_rect(panel_rect, RailButton::Close);
+    let new_rect: Rectangle = ChatPanel::rail_button_rect(panel_rect, RailButton::New);
+    let list_rect: Rectangle = ChatPanel::rail_button_rect(panel_rect, RailButton::List);
 
-    draw_button_backgrounds(rl_draw, &[close_rect, new_rect, list_rect]);
+    let buttons: [(Rectangle, RailButton); 3] = [
+        (close_rect, RailButton::Close),
+        (new_rect, RailButton::New),
+        (list_rect, RailButton::List),
+    ];
+
+    draw_button_backgrounds(rl_draw, &buttons, hovered_button);
     draw_close_x(
         rl_draw,
         Vector2 {
@@ -96,12 +87,22 @@ fn draw_rail_action_buttons(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangl
     draw_plus(rl_draw, new_rect, 2., TEXT_COLOR);
     draw_hamburger(rl_draw, list_rect, 2., TEXT_COLOR);
     draw_button_borders(rl_draw, &[close_rect, new_rect, list_rect]);
+
+    let rail_x: f32 = close_rect.x;
     draw_double_separator(rl_draw, rail_x, list_rect.y + list_rect.height);
 }
 
-fn draw_button_backgrounds(rl_draw: &mut RaylibDrawHandle, rectangles: &[Rectangle]) {
-    for rect in rectangles {
-        rl_draw.draw_rectangle_rec(*rect, WINDOW_BACKGROUND_COLOR);
+fn draw_button_backgrounds(
+    rl_draw: &mut RaylibDrawHandle,
+    buttons: &[(Rectangle, RailButton)],
+    hovered: Option<RailButton>,
+) {
+    for (rect, button) in buttons {
+        let mut background_color: Color = WINDOW_BACKGROUND_COLOR;
+        if hovered == Some(*button) {
+            background_color = math::color_add(&background_color, &DIFF_HOVER_BUTTON);
+        }
+        rl_draw.draw_rectangle_rec(*rect, background_color);
     }
 }
 
