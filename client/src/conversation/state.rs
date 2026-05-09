@@ -3,17 +3,22 @@ use dashmap::DashMap;
 use shared::schema::conversation::{ConversationMember, ConversationMemberChange};
 use shared::schema::conversation_message::ConversationMessage;
 use std::collections::BTreeMap;
+use std::sync::RwLock;
 use uuid::Uuid;
+
+use super::panel::ChatPanel;
 
 #[derive(Debug)]
 pub struct ConversationState {
     pub conversations: DashMap<Uuid, Conversation>,
+    pub chat_panel: RwLock<ChatPanel>,
 }
 
 impl ConversationState {
     pub fn new() -> Self {
         ConversationState {
             conversations: DashMap::new(),
+            chat_panel: RwLock::new(ChatPanel::new()),
         }
     }
 }
