@@ -13,7 +13,7 @@ pub enum ChatTab {
 pub struct ChatPanel {
     pub open: bool,
     pub active_tab: ChatTab,
-    /// Conversation IDs of open tabs in the rail, in display order.
+    /// Conversation IDs of open tabs in the rail, in top-down display order.
     pub conversation_tabs: Vec<Uuid>,
     pub expanded: bool,
 }
