@@ -124,7 +124,7 @@ async fn fetch_members(
     conversation_id: Uuid,
 ) -> Result<Vec<ConversationMemberSerial>, AppErrorStatic> {
     let lobby_http_origin: String = RuntimeEnvironment::default().lobby_http_origin();
-    let url: String = format!("{lobby_http_origin}/conversation/{conversation_id}/members");
+    let url: String = format!("{lobby_http_origin}/conversation/{conversation_id}/member");
 
     http::with_retry(MAX_RETRY_ATTEMPTS, || async {
         let response: reqwest::Response = HTTP_CLIENT
