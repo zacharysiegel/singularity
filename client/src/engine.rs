@@ -36,7 +36,7 @@ fn draw(rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
     current_stage.draw(rl_draw, rl_thread);
     drop(current_stage);
 
-    conversation::draw::draw(rl_draw, rl_thread);
+    conversation::draw(rl_draw, rl_thread);
 
     if RuntimeEnvironment::default().is_debug() {
         rl_draw.draw_fps(10, 10);
