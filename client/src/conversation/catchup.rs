@@ -1,16 +1,13 @@
-use serde::de::DeserializeOwned;
 use shared::environment::RuntimeEnvironment;
 use shared::error::AppErrorStatic;
-use shared::http;
 use shared::schema::conversation::{ConversationMemberSerial, ConversationSerial};
 use shared::schema::conversation_message::ConversationMessageSerial;
 use uuid::Uuid;
 
 use super::event;
-use crate::state::HTTP_CLIENT;
+use crate::http;
 
 const MESSAGE_LIMIT: i64 = 64;
-const MAX_RETRY_ATTEMPTS: u32 = 3;
 
 pub async fn catch_up(token: &str) {
     let conversation_serials: Vec<ConversationSerial> = match fetch_conversations(token).await {
@@ -65,7 +62,7 @@ pub async fn catch_up(token: &str) {
 async fn fetch_conversations(token: &str) -> Result<Vec<ConversationSerial>, AppErrorStatic> {
     let lobby_http_origin: String = RuntimeEnvironment::default().lobby_http_origin();
     let url: String = format!("{lobby_http_origin}/conversation");
-    fetch_authenticated(token, &url, "conversations").await
+    http::fetch_standard(token, &url, "conversations").await
 }
 
 async fn fetch_messages(
@@ -76,7 +73,7 @@ async fn fetch_messages(
     let url: String = format!(
         "{lobby_http_origin}/conversation/{conversation_id}/message?limit={MESSAGE_LIMIT}"
     );
-    fetch_authenticated(token, &url, &format!("messages; [{conversation_id}]")).await
+    http::fetch_standard(token, &url, &format!("messages; [{conversation_id}]")).await
 }
 
 async fn fetch_members(
@@ -85,32 +82,5 @@ async fn fetch_members(
 ) -> Result<Vec<ConversationMemberSerial>, AppErrorStatic> {
     let lobby_http_origin: String = RuntimeEnvironment::default().lobby_http_origin();
     let url: String = format!("{lobby_http_origin}/conversation/{conversation_id}/member");
-    fetch_authenticated(token, &url, &format!("members; [{conversation_id}]")).await
-}
-
-async fn fetch_authenticated<T: DeserializeOwned>(
-    token: &str,
-    url: &str,
-    description: &str,
-) -> Result<T, AppErrorStatic> {
-    http::with_retry(MAX_RETRY_ATTEMPTS, || async {
-        let response: reqwest::Response = HTTP_CLIENT
-            .get(url)
-            .bearer_auth(token)
-            .send()
-            .await
-            .map_err(|error| AppErrorStatic::new(&error.to_string()))?;
-
-        if !response.status().is_success() {
-            return Err(AppErrorStatic::new(&format!(
-                "fetch {description} failed; [{}]",
-                response.status()
-            )));
-        }
-
-        crate::http::deserialize_response(response)
-            .await
-            .map_err(AppErrorStatic::from)
-    })
-    .await
+    http::fetch_standard(token, &url, &format!("members; [{conversation_id}]")).await
 }
