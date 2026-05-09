@@ -26,20 +26,15 @@ pub fn handle_member_joined(change_serial: ConversationMemberChangeSerial) {
     let mut conversation_entry: RefMut<Uuid, Conversation> = STATE.conversation.conversations
         .entry(conversation_id)
         .or_insert_with(Conversation::new);
-    let already_member: bool = conversation_entry
-        .members
-        .iter()
-        .any(|member| member.account_id == change_serial.account_id);
-    if !already_member {
-        conversation_entry.members.push(ConversationMember::from(
-            ConversationMemberSerial {
-                conversation_id: change_serial.conversation_id,
-                account_id: change_serial.account_id,
-                entered: change_serial.timestamp,
-                exited: None,
-            },
-        ));
-    }
+    let account_id: Uuid = change_serial.account_id;
+    conversation_entry.members.entry(account_id).or_insert_with(|| {
+        ConversationMember::from(ConversationMemberSerial {
+            conversation_id: change_serial.conversation_id,
+            account_id: change_serial.account_id,
+            entered: change_serial.timestamp,
+            exited: None,
+        })
+    });
 }
 
 pub fn handle_member_left(change_serial: ConversationMemberChangeSerial) {
@@ -48,10 +43,8 @@ pub fn handle_member_left(change_serial: ConversationMemberChangeSerial) {
     let event: ConversationEvent = ConversationEvent::MemberLeft(change);
     insert_event(conversation_id, event);
 
-    if let Some(mut conversation_log) = STATE.conversation.conversations.get_mut(&conversation_id) {
-        conversation_log
-            .members
-            .retain(|member| member.account_id != change_serial.account_id);
+    if let Some(mut conversation_entry) = STATE.conversation.conversations.get_mut(&conversation_id) {
+        conversation_entry.members.remove(&change_serial.account_id);
     }
 }
 
