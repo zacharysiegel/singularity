@@ -24,7 +24,10 @@ pub async fn catch_up(token: &str) {
     let mut message_count: i32 = 0;
 
     for conversation_serial in &conversation_serials {
-        store_conversation_metadata(conversation_serial);
+        STATE.conversation.conversations
+            .entry(conversation_serial.id)
+            .or_insert_with(Conversation::new)
+            .set_metadata(conversation_serial);
 
         let member_serials: Vec<ConversationMemberSerial> =
             match fetch_members(token, conversation_serial.id).await {
@@ -91,13 +94,4 @@ async fn fetch_members(
     let lobby_http_origin: String = RuntimeEnvironment::default().lobby_http_origin();
     let url: String = format!("{lobby_http_origin}/conversation/{conversation_id}/member");
     http::fetch_standard(token, &url, &format!("members; [{conversation_id}]")).await
-}
-
-fn store_conversation_metadata(conversation_serial: &ConversationSerial) {
-    let mut conversation_log = STATE.conversation.conversations
-        .entry(conversation_serial.id)
-        .or_insert_with(Conversation::new);
-    conversation_log.name = conversation_serial.name.clone();
-    conversation_log.game_id = conversation_serial.game_id;
-    conversation_log.created = Some(conversation_serial.created);
 }
