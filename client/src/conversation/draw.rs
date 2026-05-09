@@ -61,23 +61,24 @@ fn draw_interior_border(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
 }
 
 fn draw_rail_action_buttons(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
-    let rail_x: f32 = panel_rect.x + panel_rect.width - BUTTON_WIDTH;
+    let rail_x: f32 = panel_rect.x + panel_rect.width - BUTTON_WIDTH - BORDER_GAP;
+    let rail_y: f32 = panel_rect.y + BORDER_GAP;
 
     let close_rect: Rectangle = Rectangle {
         x: rail_x,
-        y: panel_rect.y,
+        y: rail_y,
         width: BUTTON_WIDTH,
         height: BUTTON_WIDTH,
     };
     let new_rect: Rectangle = Rectangle {
         x: rail_x,
-        y: panel_rect.y + BUTTON_WIDTH,
+        y: rail_y + BUTTON_WIDTH,
         width: BUTTON_WIDTH,
         height: BUTTON_WIDTH,
     };
     let list_rect: Rectangle = Rectangle {
         x: rail_x,
-        y: panel_rect.y + BUTTON_WIDTH * 2.,
+        y: rail_y + BUTTON_WIDTH * 2.,
         width: BUTTON_WIDTH,
         height: BUTTON_WIDTH,
     };

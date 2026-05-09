@@ -4,7 +4,7 @@ use crate::input::{
     KeyPressHandler, KeyPressResult, ScrollHandler, ScrollResult,
 };
 use crate::state::STATE;
-use crate::window::BUTTON_WIDTH;
+use crate::window::{BORDER_GAP, BUTTON_WIDTH};
 use raylib::consts::KeyboardKey;
 use raylib::math::{Rectangle, Vector2};
 use raylib::RaylibHandle;
@@ -40,8 +40,8 @@ impl ClickHandler for ChatPanelInput {
         }
 
         let close_rect: Rectangle = Rectangle {
-            x: panel_rect.x + panel_rect.width - BUTTON_WIDTH,
-            y: panel_rect.y,
+            x: panel_rect.x + panel_rect.width - BUTTON_WIDTH - BORDER_GAP,
+            y: panel_rect.y + BORDER_GAP,
             width: BUTTON_WIDTH,
             height: BUTTON_WIDTH,
         };
