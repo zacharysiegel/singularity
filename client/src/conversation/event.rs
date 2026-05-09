@@ -69,21 +69,6 @@ pub fn store_conversation_metadata(conversation_serial: &ConversationSerial) {
     conversation_log.created = Some(conversation_serial.created);
 }
 
-pub fn store_conversation_members(
-    conversation_id: Uuid,
-    member_serials: Vec<ConversationMemberSerial>,
-) {
-    let mut conversations: RwLockWriteGuard<HashMap<Uuid, ConversationLog>> =
-        STATE.conversation.conversations.write().unwrap();
-    let conversation_log: &mut ConversationLog = conversations
-        .entry(conversation_id)
-        .or_insert_with(ConversationLog::new);
-    conversation_log.members = member_serials
-        .into_iter()
-        .map(ConversationMember::from)
-        .collect();
-}
-
 fn insert_event(conversation_id: Uuid, event: ConversationEvent) {
     let event_key: ConversationEventKey = ConversationEventKey::from(&event);
     let event_timestamp: chrono::DateTime<chrono::Utc> = event_key.timestamp;
@@ -105,3 +90,4 @@ fn insert_event(conversation_id: Uuid, event: ConversationEvent) {
         }
     }
 }
+

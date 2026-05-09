@@ -1,6 +1,6 @@
 use shared::environment::RuntimeEnvironment;
 use shared::error::AppErrorStatic;
-use shared::schema::conversation::{ConversationMemberSerial, ConversationSerial};
+use shared::schema::conversation::{ConversationMemberChangeSerial, ConversationMemberSerial, ConversationSerial};
 use shared::schema::conversation_message::ConversationMessageSerial;
 use uuid::Uuid;
 
@@ -35,7 +35,13 @@ pub async fn catch_up(token: &str) {
                     Vec::new()
                 }
             };
-        event::store_conversation_members(conversation_serial.id, member_serials);
+        for member_serial in member_serials {
+            event::handle_member_joined(ConversationMemberChangeSerial {
+                conversation_id: member_serial.conversation_id,
+                account_id: member_serial.account_id,
+                timestamp: member_serial.entered,
+            });
+        }
 
         let message_serials: Vec<ConversationMessageSerial> =
             match fetch_messages(token, conversation_serial.id).await {
