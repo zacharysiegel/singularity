@@ -40,12 +40,8 @@ pub async fn catch_up(token: &str) {
                     Vec::new()
                 }
             };
-        for member_serial in member_serials {
-            event::handle_member_joined(ConversationMemberChangeSerial {
-                conversation_id: member_serial.conversation_id,
-                account_id: member_serial.account_id,
-                timestamp: member_serial.entered,
-            });
+        for member_serial in &member_serials {
+            event::handle_member_joined(ConversationMemberChangeSerial::from(member_serial));
         }
 
         let message_serials: Vec<ConversationMessageSerial> =
