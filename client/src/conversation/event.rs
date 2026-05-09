@@ -1,6 +1,6 @@
 use shared::schema::conversation::{
     ConversationMember, ConversationMemberChange, ConversationMemberChangeSerial,
-    ConversationMemberSerial, ConversationSerial,
+    ConversationMemberSerial,
 };
 use shared::schema::conversation_message::{ConversationMessage, ConversationMessageSerial};
 use std::collections::HashMap;
@@ -56,17 +56,6 @@ pub fn handle_member_left(change_serial: ConversationMemberChangeSerial) {
             .members
             .retain(|member| member.account_id != change_serial.account_id);
     }
-}
-
-pub fn store_conversation_metadata(conversation_serial: &ConversationSerial) {
-    let mut conversations: RwLockWriteGuard<HashMap<Uuid, ConversationLog>> =
-        STATE.conversation.conversations.write().unwrap();
-    let conversation_log: &mut ConversationLog = conversations
-        .entry(conversation_serial.id)
-        .or_insert_with(ConversationLog::new);
-    conversation_log.name = conversation_serial.name.clone();
-    conversation_log.game_id = conversation_serial.game_id;
-    conversation_log.created = Some(conversation_serial.created);
 }
 
 fn insert_event(conversation_id: Uuid, event: ConversationEvent) {

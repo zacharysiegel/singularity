@@ -2,10 +2,14 @@ use shared::environment::RuntimeEnvironment;
 use shared::error::AppErrorStatic;
 use shared::schema::conversation::{ConversationMemberChangeSerial, ConversationMemberSerial, ConversationSerial};
 use shared::schema::conversation_message::ConversationMessageSerial;
+use std::collections::HashMap;
+use std::sync::RwLockWriteGuard;
 use uuid::Uuid;
 
 use super::event;
+use super::state::ConversationLog;
 use crate::http;
+use crate::state::STATE;
 
 const MESSAGE_LIMIT: i64 = 64;
 
@@ -22,7 +26,7 @@ pub async fn catch_up(token: &str) {
     let mut message_count: i32 = 0;
 
     for conversation_serial in &conversation_serials {
-        event::store_conversation_metadata(conversation_serial);
+        store_conversation_metadata(conversation_serial);
 
         let member_serials: Vec<ConversationMemberSerial> =
             match fetch_members(token, conversation_serial.id).await {
@@ -89,4 +93,15 @@ async fn fetch_members(
     let lobby_http_origin: String = RuntimeEnvironment::default().lobby_http_origin();
     let url: String = format!("{lobby_http_origin}/conversation/{conversation_id}/member");
     http::fetch_standard(token, &url, &format!("members; [{conversation_id}]")).await
+}
+
+fn store_conversation_metadata(conversation_serial: &ConversationSerial) {
+    let mut conversations: RwLockWriteGuard<HashMap<Uuid, ConversationLog>> =
+        STATE.conversation.conversations.write().unwrap();
+    let conversation_log: &mut ConversationLog = conversations
+        .entry(conversation_serial.id)
+        .or_insert_with(ConversationLog::new);
+    conversation_log.name = conversation_serial.name.clone();
+    conversation_log.game_id = conversation_serial.game_id;
+    conversation_log.created = Some(conversation_serial.created);
 }
