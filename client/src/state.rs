@@ -1,4 +1,4 @@
-use crate::conversation::state::ConversationState;
+use crate::conversation::ConversationState;
 use crate::stage::StageState;
 use crate::texture::ScreenRenderTexture;
 use crate::ws::state::WsState;

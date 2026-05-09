@@ -3,7 +3,7 @@
 //! Return `Consume` to stop propagation to subsequent handlers, or `Pass` to allow it.
 //! Contrast with `on_*` callbacks/methods where the caller has already verified relevance.
 
-use crate::conversation::input::ChatPanelInput;
+use crate::conversation::ChatPanelInput;
 use crate::stage::StageInput;
 use raylib::consts::{KeyboardKey, MouseButton};
 use raylib::math::Vector2;
