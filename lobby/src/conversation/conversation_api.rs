@@ -24,6 +24,7 @@ pub fn configurer(config: &mut web::ServiceConfig) {
             .route("", web::get().to(list_conversations))
             .route("/{conversation_id}", web::get().to(get_conversation))
             .route("/{conversation_id}/member", web::post().to(add_member))
+            .route("/{conversation_id}/members", web::get().to(get_members))
             .route("/{conversation_id}/leave", web::post().to(leave_conversation))
             .configure(conversation_message_api::conversation_configurer),
     );
@@ -157,6 +158,33 @@ async fn leave_conversation(
         true => Ok(HttpResponse::Ok().finish()),
         false => Err(LobbyError::not_found("active membership")),
     }
+}
+
+async fn get_members(
+    request: HttpRequest,
+    pool: web::Data<PgPool>,
+    path: web::Path<(String,)>,
+    auth: AuthenticatedAccount,
+) -> Result<HttpResponse, LobbyError> {
+    let (conversation_id_string,): (String,) = path.into_inner();
+    let conversation_id: Uuid = Uuid::parse_str(&conversation_id_string).or_bad_request()?;
+
+    let caller_member: Option<ConversationMemberEntity> =
+        conversation_db::get_member(pool.get_ref(), conversation_id, auth.account_id).await?;
+    caller_member.or_forbidden("not a member of this conversation")?;
+
+    let member_entities: Vec<ConversationMemberEntity> =
+        conversation_db::get_active_members(pool.get_ref(), conversation_id).await?;
+
+    let member_serials: Vec<ConversationMemberSerial> = member_entities
+        .into_iter()
+        .map(|entity| {
+            let member: ConversationMember = ConversationMember::from(entity);
+            ConversationMemberSerial::from(&member)
+        })
+        .collect();
+
+    Ok(http::serialize_response(&request, &member_serials))
 }
 
 async fn list_game_conversations(
