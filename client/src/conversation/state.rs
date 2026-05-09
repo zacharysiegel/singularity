@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use shared::schema::conversation::ConversationMemberChange;
+use shared::schema::conversation::{ConversationMember, ConversationMemberChange};
 use shared::schema::conversation_message::ConversationMessage;
 use std::collections::{BTreeMap, HashMap};
 use std::sync::RwLock;
@@ -20,17 +20,29 @@ impl ConversationState {
 
 #[derive(Debug)]
 pub struct ConversationLog {
+    pub name: Option<String>,
+    pub game_id: Option<Uuid>,
+    pub created: Option<DateTime<Utc>>,
+    pub members: Vec<ConversationMember>,
     /// Events are stored in a BTreeMap keyed by (timestamp, account_id) so they are always sorted
     /// chronologically. This avoids re-sorting on every render and provides natural deduplication
     /// when catching up via REST (inserting an already-present key is a no-op).
     /// The secondary account_id key prevents duplicate timestamp collision.
     pub events: BTreeMap<ConversationEventKey, ConversationEvent>,
+    pub last_read: Option<DateTime<Utc>>,
+    pub unread_count: u32,
 }
 
 impl ConversationLog {
     pub fn new() -> Self {
         ConversationLog {
+            name: None,
+            game_id: None,
+            created: None,
+            members: Vec::new(),
             events: BTreeMap::new(),
+            last_read: None,
+            unread_count: 0,
         }
     }
 }
