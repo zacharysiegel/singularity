@@ -27,8 +27,6 @@ impl<T: Window> ClickHandler for T {
             return if self.is_open() && self.should_close_on_click_outside() {
                 self.close();
                 ClickResult::Consume
-            } else if self.is_open() {
-                ClickResult::Consume
             } else {
                 ClickResult::Pass
             };
