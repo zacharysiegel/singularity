@@ -8,7 +8,7 @@ use uuid::Uuid;
 use super::state::{ConversationEvent, ConversationEventKey, Conversation};
 use crate::state::STATE;
 
-pub fn handle_chat_event(message_serial: ConversationMessageSerial) {
+pub fn handle_message(message_serial: ConversationMessageSerial) {
     let conversation_id: Uuid = message_serial.conversation_id;
     let message: ConversationMessage = ConversationMessage::from(message_serial);
     let event: ConversationEvent = ConversationEvent::Chat(message);
