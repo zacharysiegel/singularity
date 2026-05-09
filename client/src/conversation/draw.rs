@@ -1,4 +1,4 @@
-use crate::component::icon::draw_close_x;
+use crate::component::icon::{draw_close_x, draw_hamburger, draw_plus};
 use crate::conversation::panel::ChatPanel;
 use crate::state::STATE;
 use crate::window::{BORDER_THICKNESS, BUTTON_INTERNAL_MARGIN, BUTTON_WIDTH};
@@ -58,12 +58,7 @@ fn draw_rail_action_buttons(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangl
         height: BUTTON_WIDTH,
     };
 
-    // Backgrounds
-    for rect in [close_rect, new_rect, list_rect] {
-        rl_draw.draw_rectangle_rec(rect, WINDOW_BACKGROUND_COLOR);
-    }
-
-    // Close X icon
+    draw_button_backgrounds(rl_draw, &[close_rect, new_rect, list_rect]);
     draw_close_x(
         rl_draw,
         Vector2 {
@@ -73,55 +68,34 @@ fn draw_rail_action_buttons(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangl
         (BUTTON_WIDTH / 2. - BUTTON_INTERNAL_MARGIN.x) * SQRT_2,
         4.5,
     );
+    draw_plus(rl_draw, new_rect, 2., TEXT_COLOR);
+    draw_hamburger(rl_draw, list_rect, 2., TEXT_COLOR);
+    draw_button_borders(rl_draw, &[close_rect, new_rect, list_rect]);
+    draw_double_separator(rl_draw, rail_x, list_rect.y + list_rect.height);
+}
 
-    // Plus icon
-    let plus_center: Vector2 = Vector2 {
-        x: new_rect.x + new_rect.width / 2.,
-        y: new_rect.y + new_rect.height / 2.,
-    };
-    let plus_size: f32 = 10.;
-    rl_draw.draw_line_ex(
-        Vector2 { x: plus_center.x - plus_size, y: plus_center.y },
-        Vector2 { x: plus_center.x + plus_size, y: plus_center.y },
-        2.,
-        TEXT_COLOR,
-    );
-    rl_draw.draw_line_ex(
-        Vector2 { x: plus_center.x, y: plus_center.y - plus_size },
-        Vector2 { x: plus_center.x, y: plus_center.y + plus_size },
-        2.,
-        TEXT_COLOR,
-    );
-
-    // Hamburger icon (≡)
-    let hamburger_x: f32 = list_rect.x + 12.;
-    let hamburger_width: f32 = list_rect.width - 24.;
-    for i in 0..3 {
-        let line_y: f32 = list_rect.y + 14. + (i as f32 * 7.);
-        rl_draw.draw_line_ex(
-            Vector2 { x: hamburger_x, y: line_y },
-            Vector2 { x: hamburger_x + hamburger_width, y: line_y },
-            2.,
-            TEXT_COLOR,
-        );
+fn draw_button_backgrounds(rl_draw: &mut RaylibDrawHandle, rectangles: &[Rectangle]) {
+    for rect in rectangles {
+        rl_draw.draw_rectangle_rec(*rect, WINDOW_BACKGROUND_COLOR);
     }
+}
 
-    // Borders (no margin between buttons)
-    for rect in [close_rect, new_rect, list_rect] {
-        rl_draw.draw_rectangle_lines_ex(rect, BORDER_THICKNESS, WINDOW_INTERIOR_BORDER_COLOR);
+fn draw_button_borders(rl_draw: &mut RaylibDrawHandle, rectangles: &[Rectangle]) {
+    for rect in rectangles {
+        rl_draw.draw_rectangle_lines_ex(*rect, BORDER_THICKNESS, WINDOW_INTERIOR_BORDER_COLOR);
     }
+}
 
-    // Double border separator below action buttons
-    let separator_y: f32 = list_rect.y + list_rect.height;
+fn draw_double_separator(rl_draw: &mut RaylibDrawHandle, x: f32, y: f32) {
     rl_draw.draw_line_ex(
-        Vector2 { x: rail_x, y: separator_y },
-        Vector2 { x: rail_x + BUTTON_WIDTH, y: separator_y },
+        Vector2 { x, y },
+        Vector2 { x: x + BUTTON_WIDTH, y },
         BORDER_THICKNESS,
         WINDOW_INTERIOR_BORDER_COLOR,
     );
     rl_draw.draw_line_ex(
-        Vector2 { x: rail_x, y: separator_y + 3. },
-        Vector2 { x: rail_x + BUTTON_WIDTH, y: separator_y + 3. },
+        Vector2 { x, y: y + 3. },
+        Vector2 { x: x + BUTTON_WIDTH, y: y + 3. },
         BORDER_THICKNESS,
         WINDOW_INTERIOR_BORDER_COLOR,
     );
