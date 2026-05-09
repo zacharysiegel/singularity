@@ -24,8 +24,10 @@ impl<T: Window> ClickHandler for T {
         let release_outside: bool = !window_contains_render_coord(self, release_position);
 
         if press_outside && release_outside {
-            return if self.is_open() {
+            return if self.is_open() && self.should_close_on_click_outside() {
                 self.close();
+                ClickResult::Consume
+            } else if self.is_open() {
                 ClickResult::Consume
             } else {
                 ClickResult::Pass
