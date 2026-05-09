@@ -66,7 +66,7 @@ pub struct ConversationMember {
     pub account_id: Uuid,
     pub entered: DateTime<Utc>,
     pub exited: Option<DateTime<Utc>>,
-    pub cached_color: Option<Color>,
+    pub color_cached: Option<Color>,
 }
 
 impl From<ConversationMemberSerial> for ConversationMember {
@@ -76,7 +76,7 @@ impl From<ConversationMemberSerial> for ConversationMember {
             account_id: serial.account_id,
             entered: serial.entered,
             exited: serial.exited,
-            cached_color: None,
+            color_cached: None,
         }
     }
 }
