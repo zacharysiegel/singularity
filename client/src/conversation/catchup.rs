@@ -1,3 +1,4 @@
+use serde::de::DeserializeOwned;
 use shared::environment::RuntimeEnvironment;
 use shared::error::AppErrorStatic;
 use shared::http;
@@ -64,27 +65,7 @@ pub async fn catch_up(token: &str) {
 async fn fetch_conversations(token: &str) -> Result<Vec<ConversationSerial>, AppErrorStatic> {
     let lobby_http_origin: String = RuntimeEnvironment::default().lobby_http_origin();
     let url: String = format!("{lobby_http_origin}/conversation");
-
-    http::with_retry(MAX_RETRY_ATTEMPTS, || async {
-        let response: reqwest::Response = HTTP_CLIENT
-            .get(&url)
-            .bearer_auth(token)
-            .send()
-            .await
-            .map_err(|error| AppErrorStatic::new(&error.to_string()))?;
-
-        if !response.status().is_success() {
-            return Err(AppErrorStatic::new(&format!(
-                "fetch conversations failed; [{}]",
-                response.status()
-            )));
-        }
-
-        crate::http::deserialize_response(response)
-            .await
-            .map_err(AppErrorStatic::from)
-    })
-    .await
+    fetch_authenticated(token, &url, "conversations").await
 }
 
 async fn fetch_messages(
@@ -93,29 +74,9 @@ async fn fetch_messages(
 ) -> Result<Vec<ConversationMessageSerial>, AppErrorStatic> {
     let lobby_http_origin: String = RuntimeEnvironment::default().lobby_http_origin();
     let url: String = format!(
-        "{lobby_http_origin}/conversation/{conversation_id}/messages?limit={MESSAGE_LIMIT}"
+        "{lobby_http_origin}/conversation/{conversation_id}/message?limit={MESSAGE_LIMIT}"
     );
-
-    http::with_retry(MAX_RETRY_ATTEMPTS, || async {
-        let response: reqwest::Response = HTTP_CLIENT
-            .get(&url)
-            .bearer_auth(token)
-            .send()
-            .await
-            .map_err(|error| AppErrorStatic::new(&error.to_string()))?;
-
-        if !response.status().is_success() {
-            return Err(AppErrorStatic::new(&format!(
-                "fetch messages failed; [{conversation_id}] [{}]",
-                response.status()
-            )));
-        }
-
-        crate::http::deserialize_response(response)
-            .await
-            .map_err(AppErrorStatic::from)
-    })
-    .await
+    fetch_authenticated(token, &url, &format!("messages; [{conversation_id}]")).await
 }
 
 async fn fetch_members(
@@ -124,10 +85,17 @@ async fn fetch_members(
 ) -> Result<Vec<ConversationMemberSerial>, AppErrorStatic> {
     let lobby_http_origin: String = RuntimeEnvironment::default().lobby_http_origin();
     let url: String = format!("{lobby_http_origin}/conversation/{conversation_id}/member");
+    fetch_authenticated(token, &url, &format!("members; [{conversation_id}]")).await
+}
 
+async fn fetch_authenticated<T: DeserializeOwned>(
+    token: &str,
+    url: &str,
+    description: &str,
+) -> Result<T, AppErrorStatic> {
     http::with_retry(MAX_RETRY_ATTEMPTS, || async {
         let response: reqwest::Response = HTTP_CLIENT
-            .get(&url)
+            .get(url)
             .bearer_auth(token)
             .send()
             .await
@@ -135,7 +103,7 @@ async fn fetch_members(
 
         if !response.status().is_success() {
             return Err(AppErrorStatic::new(&format!(
-                "fetch members failed; [{conversation_id}] [{}]",
+                "fetch {description} failed; [{}]",
                 response.status()
             )));
         }
