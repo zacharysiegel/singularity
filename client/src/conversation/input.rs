@@ -33,17 +33,14 @@ impl ClickHandler for ChatPanelInput {
             return ClickResult::Pass;
         }
 
-        let screen_width: f32 = rl.get_screen_width() as f32;
-        let screen_height: f32 = rl.get_screen_height() as f32;
-        let panel_rect: Rectangle = ChatPanel::panel_rectangle(screen_width, screen_height);
-
+        let panel_rect: Rectangle = ChatPanel::panel_rectangle(rl.get_screen_width() as f32, rl.get_screen_height() as f32);
+        // Releasing outside after pressing inside should not propagate to underlying handlers.
         if !panel_rect.check_collision_point_rec(press_position) {
             return ClickResult::Pass;
         }
 
-        let rail_x: f32 = panel_rect.x + panel_rect.width - BUTTON_WIDTH;
         let close_rect: Rectangle = Rectangle {
-            x: rail_x,
+            x: panel_rect.x + panel_rect.width - BUTTON_WIDTH,
             y: panel_rect.y,
             width: BUTTON_WIDTH,
             height: BUTTON_WIDTH,
@@ -54,7 +51,6 @@ impl ClickHandler for ChatPanelInput {
         {
             let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
             chat_panel.open = false;
-            return ClickResult::Consume;
         }
 
         ClickResult::Consume

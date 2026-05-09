@@ -33,6 +33,7 @@ impl<T: Window> ClickHandler for T {
         } else if press_outside && !release_outside {
             return ClickResult::Pass;
         } else if !press_outside && release_outside {
+            // Releasing outside after pressing inside should not propagate to underlying handlers.
             return ClickResult::Consume;
         }
 
