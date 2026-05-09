@@ -43,6 +43,16 @@ pub struct ConversationMemberChangeSerial {
     pub timestamp: DateTime<Utc>,
 }
 
+impl From<&ConversationMemberSerial> for ConversationMemberChangeSerial {
+    fn from(member: &ConversationMemberSerial) -> Self {
+        ConversationMemberChangeSerial {
+            conversation_id: member.conversation_id,
+            account_id: member.account_id,
+            timestamp: member.entered,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct ConversationMemberChange {
     pub conversation_id: Uuid,
