@@ -122,7 +122,18 @@ fn draw_button_borders(rl_draw: &mut RaylibDrawHandle, rectangles: &[Rectangle])
                 WINDOW_INTERIOR_BORDER_COLOR,
             );
         }
+        draw_button_accent(rl_draw, *rect);
     }
+}
+
+fn draw_button_accent(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
+    const ACCENT_HEIGHT: f32 = 10.;
+    rl_draw.draw_line_ex(
+        Vector2 { x: rect.x + rect.width, y: rect.y + rect.height - ACCENT_HEIGHT },
+        Vector2 { x: rect.x + rect.width - ACCENT_HEIGHT, y: rect.y + rect.height },
+        BORDER_THICKNESS,
+        WINDOW_INTERIOR_BORDER_COLOR,
+    );
 }
 
 fn draw_double_separator(rl_draw: &mut RaylibDrawHandle, x: f32, y: f32) {
