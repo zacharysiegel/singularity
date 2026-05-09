@@ -19,18 +19,14 @@ impl ScrollHandler for ChatPanelInput {
             return ScrollResult::Pass;
         }
 
-        let panel_rect: Rectangle = ChatPanel::panel_rectangle(
-            rl.get_screen_width() as f32,
-            rl.get_screen_height() as f32,
-        );
-        if panel_rect.check_collision_point_rec(mouse_position) {
-            ScrollResult::Consume
-        } else {
-            ScrollResult::Pass
+        let mouse_hovered: bool = ChatPanel::panel_rectangle(rl.get_screen_width() as f32, rl.get_screen_height() as f32)
+            .check_collision_point_rec(mouse_position);
+        match mouse_hovered {
+            true => ScrollResult::Consume,
+            false => ScrollResult::Pass,
         }
     }
 }
-
 impl ClickHandler for ChatPanelInput {
     fn click(&mut self, rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
         let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
