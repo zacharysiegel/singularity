@@ -63,12 +63,12 @@ impl ClickHandler for ChatPanelInput {
 fn on_content_click(panel_rect: Rectangle, release_position: RenderCoord) {
     let active_tab: ChatTab = STATE.conversation.chat_panel.read().unwrap().active_tab.clone();
     match active_tab {
-        ChatTab::ConversationList => handle_conversation_list_click(panel_rect, release_position),
+        ChatTab::ConversationList => on_conversation_list_click(panel_rect, release_position),
         _ => {}
     }
 }
 
-fn handle_conversation_list_click(panel_rect: Rectangle, release_position: RenderCoord) {
+fn on_conversation_list_click(panel_rect: Rectangle, release_position: RenderCoord) {
     let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
     let click_y: f32 = release_position.y - content_rect.y - HEADER_HEIGHT;
     if click_y < 0. {
