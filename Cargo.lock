@@ -640,6 +640,7 @@ dependencies = [
  "serde_json",
  "shared",
  "socket2 0.6.1",
+ "strum",
  "tokio",
  "tokio-tungstenite",
  "uuid",
