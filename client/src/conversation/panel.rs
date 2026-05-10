@@ -61,14 +61,9 @@ impl ChatPanel {
     pub fn rail_button_rect(panel_rect: Rectangle, button: RailButton) -> Rectangle {
         let rail_x: f32 = panel_rect.x + panel_rect.width - BUTTON_WIDTH - BORDER_GAP;
         let rail_y: f32 = panel_rect.y + BORDER_GAP;
-        let index: f32 = match button {
-            RailButton::Close => 0.,
-            RailButton::New => 1.,
-            RailButton::List => 2.,
-        };
         Rectangle {
             x: rail_x,
-            y: rail_y + BUTTON_WIDTH * index,
+            y: rail_y + BUTTON_WIDTH * button as u8 as f32,
             width: BUTTON_WIDTH,
             height: BUTTON_WIDTH,
         }
