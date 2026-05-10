@@ -10,7 +10,6 @@ use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
 use raylib::{RaylibHandle, RaylibThread};
 use shared::map::RenderCoord;
-use std::sync::RwLockWriteGuard;
 
 const PAUSE_WIDTH: f32 = 350.;
 const PAUSE_HEIGHT: f32 = 400.;
@@ -107,9 +106,9 @@ mod draw {
     use crate::shader::{ExitIconShader, SHADER_STORE};
     use crate::state::STATE;
     use crate::texture::ScreenRenderTexture;
-    use crate::window;
     use crate::window::pause::PAUSE_INTERNAL_MARGIN;
     use crate::window::{PauseWindow, BORDER_GAP, BUTTON_INTERNAL_MARGIN};
+    use crate::component;
     use raylib::drawing::{RaylibDraw, RaylibDrawHandle, RaylibShaderModeExt, RaylibTextureModeExt};
     use raylib::math::{Rectangle, Vector2};
     use raylib::texture::RaylibTexture2D;
@@ -141,7 +140,7 @@ mod draw {
         }
 
         fn draw_exit_button(&self, rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
-            window::draw_side_button(rl_draw, &self.exit_button);
+            component::draw_side_button_frame(rl_draw, self.exit_button.rectangle, self.exit_button.is_hovered());
 
             let mut screen_texture: RwLockWriteGuard<ScreenRenderTexture> = STATE.screen_texture.write().unwrap();
             rl_draw.draw_texture_mode(rl_thread, &mut screen_texture, |mut t| {
