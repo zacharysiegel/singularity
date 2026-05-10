@@ -13,7 +13,7 @@ use raylib::color::Color;
 use shared::math;
 use strum::IntoEnumIterator;
 
-const PANEL_BACKGROUND_ALPHA: u8 = 0xE0;
+const PANEL_BACKGROUND_ALPHA: u8 = 0xE8;
 
 pub fn draw(rl_draw: &mut RaylibDrawHandle, _rl_thread: &RaylibThread) {
     if !STATE.conversation.chat_panel.read().unwrap().open {
