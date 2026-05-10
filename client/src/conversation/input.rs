@@ -71,7 +71,7 @@ impl HoverHandler for ChatPanelInput {
             return HoverResult::Pass;
         }
 
-        let hovered_button: Option<RailButton> = [RailButton::Close, RailButton::New, RailButton::List]
+        let hovered_button: Option<RailButton> = RailButton::ALL
             .into_iter()
             .find(|button| ChatPanel::rail_button_rect(panel_rect, *button).check_collision_point_rec(mouse_position));
 
