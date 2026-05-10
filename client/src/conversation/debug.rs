@@ -1,15 +1,15 @@
+// todo: remove this module
 use crate::conversation::state::Conversation;
 use crate::state::STATE;
 use chrono::Utc;
-use shared::random;
 use uuid::Uuid;
 
 pub fn seed_debug_conversations() {
     let conversation_ids: [Uuid; 4] = [
-        random::random_uuid(),
-        random::random_uuid(),
-        random::random_uuid(),
-        random::random_uuid(),
+        Uuid::now_v7(),
+        Uuid::now_v7(),
+        Uuid::now_v7(),
+        Uuid::now_v7(),
     ];
 
     let mut conversation_a: Conversation = Conversation::new();
