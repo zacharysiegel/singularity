@@ -72,6 +72,8 @@ impl ChatPanel {
         }
     }
 
+    /// The area to the left of the rail buttons, inside the panel border. Used for rendering
+    /// conversation list entries, message views, etc.
     pub fn content_rectangle(panel_rect: Rectangle) -> Rectangle {
         Rectangle {
             x: panel_rect.x + BORDER_GAP,
