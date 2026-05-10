@@ -5,7 +5,7 @@ use shared::color::{DIFF_HOVER_BUTTON, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_CO
 use shared::math;
 
 pub const BORDER_GAP: f32 = 10.;
-pub const BORDER_THICKNESS: f32 = 2.;
+pub const BORDER_THICKNESS: f32 = 1.;
 pub const ACCENT_HEIGHT: f32 = 10.;
 
 pub fn draw_window_frame(rl_draw: &mut RaylibDrawHandle, rect: Rectangle, background_color: Color) {
