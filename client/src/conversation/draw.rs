@@ -1,5 +1,6 @@
 use crate::component::frame::{BORDER_THICKNESS, draw_side_button_frame, draw_window_frame};
 use crate::component::icon::{draw_close_x, draw_hamburger, draw_plus};
+use crate::component::text::Text;
 use crate::component::text_truncate;
 use crate::conversation::panel::{ChatPanel, ChatTab, RailButton, ENTRY_HEIGHT, HEADER_HEIGHT};
 use crate::conversation::state::Conversation;
@@ -119,7 +120,13 @@ fn draw_conversation_entry(
 
     let name_x: f32 = content_rect.x + CONTENT_PADDING;
     let name_max_width: f32 = content_rect.width - CONTENT_PADDING * 2. - 80.;
-    let truncated_name: String = text_truncate::truncate_text(name, &font, NAME_FONT_SIZE, 2., name_max_width);
+    let name_text: Text = Text {
+        content: name.to_string(),
+        font_size: NAME_FONT_SIZE,
+        font_spacing: 2.,
+        color: TEXT_COLOR,
+    };
+    let truncated_name: String = text_truncate::truncate_text(&name_text, &font, name_max_width);
 
     rl_draw.draw_text_ex(
         rl_draw.get_font_default(),

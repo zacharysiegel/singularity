@@ -1,4 +1,5 @@
 pub mod catchup;
+pub mod debug;
 
 mod draw;
 pub use draw::*;
