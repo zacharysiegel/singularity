@@ -53,14 +53,14 @@ impl ClickHandler for ChatPanelInput {
         if content_rect.check_collision_point_rec(press_position)
             && content_rect.check_collision_point_rec(release_position)
         {
-            handle_content_click(panel_rect, release_position);
+            on_content_click(panel_rect, release_position);
         }
 
         ClickResult::Consume
     }
 }
 
-fn handle_content_click(panel_rect: Rectangle, release_position: RenderCoord) {
+fn on_content_click(panel_rect: Rectangle, release_position: RenderCoord) {
     let active_tab: ChatTab = STATE.conversation.chat_panel.read().unwrap().active_tab.clone();
     match active_tab {
         ChatTab::ConversationList => handle_conversation_list_click(panel_rect, release_position),
