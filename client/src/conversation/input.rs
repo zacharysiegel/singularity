@@ -4,13 +4,14 @@ use crate::input::{
     KeyPressHandler, KeyPressResult, ScrollHandler, ScrollResult,
 };
 use crate::state::STATE;
-use crate::window::{BORDER_GAP, BUTTON_WIDTH};
+use chrono::Utc;
 use raylib::consts::KeyboardKey;
 use raylib::math::{Rectangle, Vector2};
 use raylib::RaylibHandle;
 use shared::map::RenderCoord;
 use std::sync::RwLockWriteGuard;
 use strum::IntoEnumIterator;
+use uuid::Uuid;
 
 pub struct ChatPanelInput;
 
@@ -40,21 +41,62 @@ impl ClickHandler for ChatPanelInput {
             return ClickResult::Pass;
         }
 
-        let close_rect: Rectangle = Rectangle {
-            x: panel_rect.x + panel_rect.width - BUTTON_WIDTH - BORDER_GAP,
-            y: panel_rect.y + BORDER_GAP,
-            width: BUTTON_WIDTH,
-            height: BUTTON_WIDTH,
-        };
-
+        let close_rect: Rectangle = ChatPanel::rail_button_rect(panel_rect, RailButton::Close);
         if close_rect.check_collision_point_rec(press_position)
             && close_rect.check_collision_point_rec(release_position)
         {
-            let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
-            chat_panel.open = false;
+            STATE.conversation.chat_panel.write().unwrap().open = false;
+            return ClickResult::Consume;
+        }
+
+        let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
+        if content_rect.check_collision_point_rec(release_position) {
+            handle_content_click(panel_rect, release_position);
         }
 
         ClickResult::Consume
+    }
+}
+
+fn handle_content_click(panel_rect: Rectangle, release_position: RenderCoord) {
+    let active_tab: ChatTab = STATE.conversation.chat_panel.read().unwrap().active_tab.clone();
+    match active_tab {
+        ChatTab::ConversationList => handle_conversation_list_click(panel_rect, release_position),
+        _ => {}
+    }
+}
+
+const HEADER_HEIGHT: f32 = 36.;
+const ENTRY_HEIGHT: f32 = 44.;
+
+fn handle_conversation_list_click(panel_rect: Rectangle, release_position: RenderCoord) {
+    let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
+    let click_y: f32 = release_position.y - content_rect.y - HEADER_HEIGHT;
+    if click_y < 0. {
+        return;
+    }
+
+    let entry_index: usize = (click_y / ENTRY_HEIGHT) as usize;
+
+    let conversation_id: Option<Uuid> = STATE.conversation.conversations
+        .iter()
+        .nth(entry_index)
+        .map(|entry| *entry.key());
+
+    let Some(conversation_id) = conversation_id else {
+        return;
+    };
+
+    let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
+    if !chat_panel.conversation_tabs.contains(&conversation_id) {
+        chat_panel.conversation_tabs.push(conversation_id);
+    }
+    chat_panel.active_tab = ChatTab::Conversation(conversation_id);
+    drop(chat_panel);
+
+    if let Some(mut conversation) = STATE.conversation.conversations.get_mut(&conversation_id) {
+        conversation.last_read = Some(Utc::now());
+        conversation.unread_count = 0;
     }
 }
 
