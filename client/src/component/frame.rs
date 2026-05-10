@@ -17,26 +17,50 @@ pub fn draw_window_frame(rl_draw: &mut RaylibDrawHandle, rect: Rectangle, backgr
 
 fn draw_window_interior_border(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
     rl_draw.draw_line_ex(
-        Vector2 { x: rect.x, y: rect.y + BORDER_GAP },
-        Vector2 { x: rect.x + rect.width, y: rect.y + BORDER_GAP },
+        Vector2 {
+            x: rect.x,
+            y: rect.y + BORDER_GAP,
+        },
+        Vector2 {
+            x: rect.x + rect.width,
+            y: rect.y + BORDER_GAP,
+        },
         BORDER_THICKNESS,
         WINDOW_INTERIOR_BORDER_COLOR,
     );
     rl_draw.draw_line_ex(
-        Vector2 { x: rect.x, y: rect.y + rect.height - BORDER_GAP },
-        Vector2 { x: rect.x + rect.width, y: rect.y + rect.height - BORDER_GAP },
+        Vector2 {
+            x: rect.x,
+            y: rect.y + rect.height - BORDER_GAP,
+        },
+        Vector2 {
+            x: rect.x + rect.width,
+            y: rect.y + rect.height - BORDER_GAP,
+        },
         BORDER_THICKNESS,
         WINDOW_INTERIOR_BORDER_COLOR,
     );
     rl_draw.draw_line_ex(
-        Vector2 { x: rect.x + BORDER_GAP, y: rect.y },
-        Vector2 { x: rect.x + BORDER_GAP, y: rect.y + rect.height },
+        Vector2 {
+            x: rect.x + BORDER_GAP,
+            y: rect.y,
+        },
+        Vector2 {
+            x: rect.x + BORDER_GAP,
+            y: rect.y + rect.height,
+        },
         BORDER_THICKNESS,
         WINDOW_INTERIOR_BORDER_COLOR,
     );
     rl_draw.draw_line_ex(
-        Vector2 { x: rect.x + rect.width - BORDER_GAP, y: rect.y },
-        Vector2 { x: rect.x + rect.width - BORDER_GAP, y: rect.y + rect.height },
+        Vector2 {
+            x: rect.x + rect.width - BORDER_GAP,
+            y: rect.y,
+        },
+        Vector2 {
+            x: rect.x + rect.width - BORDER_GAP,
+            y: rect.y + rect.height,
+        },
         BORDER_THICKNESS,
         WINDOW_INTERIOR_BORDER_COLOR,
     );
@@ -55,9 +79,18 @@ pub fn draw_side_button_frame(rl_draw: &mut RaylibDrawHandle, rect: Rectangle, h
 fn draw_side_button_border(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
     let vertices: [Vector2; 4] = [
         Vector2 { x: rect.x, y: rect.y },
-        Vector2 { x: rect.x, y: rect.y + rect.height },
-        Vector2 { x: rect.x + rect.width, y: rect.y + rect.height },
-        Vector2 { x: rect.x + rect.width, y: rect.y },
+        Vector2 {
+            x: rect.x,
+            y: rect.y + rect.height,
+        },
+        Vector2 {
+            x: rect.x + rect.width,
+            y: rect.y + rect.height,
+        },
+        Vector2 {
+            x: rect.x + rect.width,
+            y: rect.y,
+        },
     ];
     for i in 0..vertices.len() {
         rl_draw.draw_line_ex(
@@ -71,10 +104,15 @@ fn draw_side_button_border(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
 
 fn draw_side_button_accent(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
     rl_draw.draw_line_ex(
-        Vector2 { x: rect.x + rect.width, y: rect.y + rect.height - ACCENT_HEIGHT },
-        Vector2 { x: rect.x + rect.width - ACCENT_HEIGHT, y: rect.y + rect.height },
+        Vector2 {
+            x: rect.x + rect.width,
+            y: rect.y + rect.height - ACCENT_HEIGHT,
+        },
+        Vector2 {
+            x: rect.x + rect.width - ACCENT_HEIGHT,
+            y: rect.y + rect.height,
+        },
         BORDER_THICKNESS,
         WINDOW_INTERIOR_BORDER_COLOR,
     );
 }
-
