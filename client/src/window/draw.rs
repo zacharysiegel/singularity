@@ -11,7 +11,6 @@ use shared::map::RenderCoord;
 use std::sync::RwLockReadGuard;
 
 pub use crate::component::frame::{BORDER_GAP, BORDER_THICKNESS};
-pub use crate::component::icon::SIDE_BUTTON_ICON_PADDING;
 
 /// These windows are considered part of the "game" and will be blurred when an overlay window is active
 pub fn draw_game_windows(rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
@@ -51,8 +50,4 @@ fn draw_close_button(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
     let button: &RectangularButton = window.close_button();
     draw_side_button_frame(rl_draw, button.rectangle, button.is_hovered());
     draw_close_x(rl_draw, button.rectangle, 4.5, shared::color::RED);
-}
-
-pub fn draw_side_button_lines(rl_draw: &mut RaylibDrawHandle, button: &RectangularButton) {
-    draw_side_button_frame(rl_draw, button.rectangle, false);
 }

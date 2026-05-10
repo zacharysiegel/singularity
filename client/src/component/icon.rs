@@ -4,8 +4,6 @@ use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::{Rectangle, Vector2};
 use shared::math::SIN_FRAC_PI_4;
 
-pub const SIDE_BUTTON_ICON_PADDING: f32 = 11.;
-
 const X_VERTEX_N: usize = 8;
 
 pub fn draw_close_x(rl_draw: &mut RaylibDrawHandle, bounds: Rectangle, thickness: f32, color: Color) {
