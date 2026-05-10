@@ -24,6 +24,7 @@ pub struct ChatPanel {
     pub hovered_rail_button: Option<RailButton>,
 }
 
+/// Variant order determines top-to-bottom position in the rail via discriminant cast.
 #[derive(Debug, Clone, Copy, PartialEq, EnumIter)]
 #[repr(u8)]
 pub enum RailButton {
