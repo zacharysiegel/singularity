@@ -10,6 +10,7 @@ use raylib::math::{Rectangle, Vector2};
 use raylib::RaylibHandle;
 use shared::map::RenderCoord;
 use std::sync::RwLockWriteGuard;
+use strum::IntoEnumIterator;
 
 pub struct ChatPanelInput;
 
@@ -71,8 +72,7 @@ impl HoverHandler for ChatPanelInput {
             return HoverResult::Pass;
         }
 
-        let hovered_button: Option<RailButton> = RailButton::ALL
-            .into_iter()
+        let hovered_button: Option<RailButton> = RailButton::iter()
             .find(|button| ChatPanel::rail_button_rect(panel_rect, *button).check_collision_point_rec(mouse_position));
 
         let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
