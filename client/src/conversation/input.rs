@@ -53,33 +53,39 @@ impl ClickHandler for ChatPanelInput {
         if content_rect.check_collision_point_rec(press_position)
             && content_rect.check_collision_point_rec(release_position)
         {
-            on_content_click(panel_rect, release_position);
+            on_content_click(panel_rect, press_position, release_position);
         }
 
         ClickResult::Consume
     }
 }
 
-fn on_content_click(panel_rect: Rectangle, release_position: RenderCoord) {
+fn on_content_click(panel_rect: Rectangle, press_position: RenderCoord, release_position: RenderCoord) {
     let active_tab: ChatTab = STATE.conversation.chat_panel.read().unwrap().active_tab.clone();
     match active_tab {
-        ChatTab::ConversationList => on_conversation_list_click(panel_rect, release_position),
+        ChatTab::ConversationList => on_conversation_list_click(panel_rect, press_position, release_position),
         _ => {}
     }
 }
 
-fn on_conversation_list_click(panel_rect: Rectangle, release_position: RenderCoord) {
+fn on_conversation_list_click(panel_rect: Rectangle, press_position: RenderCoord, release_position: RenderCoord) {
     let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
-    let click_y: f32 = release_position.y - content_rect.y - HEADER_HEIGHT;
-    if click_y < 0. {
+
+    let press_y: f32 = press_position.y - content_rect.y - HEADER_HEIGHT;
+    let release_y: f32 = release_position.y - content_rect.y - HEADER_HEIGHT;
+    if press_y < 0. || release_y < 0. {
         return;
     }
 
-    let entry_index: usize = (click_y / ENTRY_HEIGHT) as usize;
+    let press_index: usize = (press_y / ENTRY_HEIGHT) as usize;
+    let release_index: usize = (release_y / ENTRY_HEIGHT) as usize;
+    if press_index != release_index {
+        return;
+    }
 
     let conversation_id: Option<Uuid> = STATE.conversation.conversations
         .iter()
-        .nth(entry_index)
+        .nth(release_index)
         .map(|entry| *entry.key());
 
     let Some(conversation_id) = conversation_id else {
