@@ -1,17 +1,13 @@
 use crate::component::button::RectangularButton;
-use crate::component::frame::draw_window_frame;
+use crate::component::frame::{draw_side_button_frame, draw_window_frame};
 use crate::component::icon::draw_close_x;
 use crate::state::STATE;
 use crate::window::{BUTTON_WIDTH, ErrorWindow, HexWindow, PauseWindow, Window};
 use raylib::RaylibThread;
-use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::{Rectangle, Vector2};
-use shared::color::{
-    DIFF_HOVER_BUTTON, WINDOW_BACKGROUND_COLOR, WINDOW_INTERIOR_BORDER_COLOR,
-};
+use shared::color::WINDOW_BACKGROUND_COLOR;
 use shared::map::RenderCoord;
-use shared::math;
 use std::f32::consts::SQRT_2;
 use std::sync::RwLockReadGuard;
 
@@ -67,62 +63,9 @@ fn draw_close_button(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
 }
 
 pub fn draw_side_button(rl_draw: &mut RaylibDrawHandle, button: &RectangularButton) {
-    draw_side_button_background(rl_draw, button);
-    draw_side_button_border(rl_draw, button.rectangle);
-    draw_side_button_accent(rl_draw, button.rectangle);
+    draw_side_button_frame(rl_draw, button.rectangle, button.is_hovered());
 }
 
 pub fn draw_side_button_lines(rl_draw: &mut RaylibDrawHandle, button: &RectangularButton) {
-    draw_side_button_border(rl_draw, button.rectangle);
-    draw_side_button_accent(rl_draw, button.rectangle);
-}
-
-fn draw_side_button_background(rl_draw: &mut RaylibDrawHandle, button: &RectangularButton) {
-    let mut background_color: Color = WINDOW_BACKGROUND_COLOR.clone();
-    if button.is_hovered() {
-        background_color = math::color_add(&background_color, &DIFF_HOVER_BUTTON);
-    }
-    rl_draw.draw_rectangle_rec(button.rectangle, background_color);
-}
-
-fn draw_side_button_border(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
-    let vertices: &[Vector2; 4] = &[
-        Vector2 { x: rect.x, y: rect.y },
-        Vector2 {
-            x: rect.x,
-            y: rect.y + rect.height,
-        },
-        Vector2 {
-            x: rect.x + rect.width,
-            y: rect.y + rect.height,
-        },
-        Vector2 {
-            x: rect.x + rect.width,
-            y: rect.y,
-        },
-    ];
-
-    for i in 0..vertices.len() {
-        rl_draw.draw_line_ex(
-            vertices[i],
-            vertices[(i + 1) % vertices.len()],
-            BORDER_THICKNESS,
-            WINDOW_INTERIOR_BORDER_COLOR,
-        );
-    }
-}
-
-fn draw_side_button_accent(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
-    const ACCENT_HEIGHT: f32 = 10.0;
-    let vertices: &[Vector2; 2] = &[
-        Vector2 {
-            x: rect.x + rect.width,
-            y: rect.y + rect.height - ACCENT_HEIGHT,
-        },
-        Vector2 {
-            x: rect.x + rect.width - ACCENT_HEIGHT,
-            y: rect.y + rect.height,
-        },
-    ];
-    rl_draw.draw_line_ex(vertices[0], vertices[1], BORDER_THICKNESS, WINDOW_INTERIOR_BORDER_COLOR);
+    draw_side_button_frame(rl_draw, button.rectangle, false);
 }
