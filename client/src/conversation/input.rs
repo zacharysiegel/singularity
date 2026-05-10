@@ -73,7 +73,10 @@ impl HoverHandler for ChatPanelInput {
         }
 
         let hovered_button: Option<RailButton> = RailButton::iter()
-            .find(|button| ChatPanel::rail_button_rect(panel_rect, *button).check_collision_point_rec(mouse_position));
+            .find(|button| {
+                ChatPanel::rail_button_rect(panel_rect, *button)
+                    .check_collision_point_rec(mouse_position)
+            });
 
         let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
         chat_panel.hovered_rail_button = hovered_button;

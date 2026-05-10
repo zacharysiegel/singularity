@@ -11,21 +11,11 @@ const ACCENT_HEIGHT: f32 = 10.;
 
 pub fn draw_window_frame(rl_draw: &mut RaylibDrawHandle, rect: Rectangle, background_color: Color) {
     rl_draw.draw_rectangle_rec(rect, background_color);
-    draw_interior_border(rl_draw, rect);
+    draw_window_interior_border(rl_draw, rect);
     rl_draw.draw_rectangle_lines_ex(rect, BORDER_THICKNESS, WINDOW_BORDER_COLOR);
 }
 
-pub fn draw_side_button_frame(rl_draw: &mut RaylibDrawHandle, rect: Rectangle, hovered: bool) {
-    let mut background_color: Color = WINDOW_BACKGROUND_COLOR;
-    if hovered {
-        background_color = math::color_add(&background_color, &DIFF_HOVER_BUTTON);
-    }
-    rl_draw.draw_rectangle_rec(rect, background_color);
-    draw_side_button_border(rl_draw, rect);
-    draw_side_button_accent(rl_draw, rect);
-}
-
-fn draw_interior_border(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
+fn draw_window_interior_border(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
     rl_draw.draw_line_ex(
         Vector2 { x: rect.x, y: rect.y + BORDER_GAP },
         Vector2 { x: rect.x + rect.width, y: rect.y + BORDER_GAP },
@@ -50,6 +40,16 @@ fn draw_interior_border(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
         BORDER_THICKNESS,
         WINDOW_INTERIOR_BORDER_COLOR,
     );
+}
+
+pub fn draw_side_button_frame(rl_draw: &mut RaylibDrawHandle, rect: Rectangle, hovered: bool) {
+    let mut background_color: Color = WINDOW_BACKGROUND_COLOR;
+    if hovered {
+        background_color = math::color_add(&background_color, &DIFF_HOVER_BUTTON);
+    }
+    rl_draw.draw_rectangle_rec(rect, background_color);
+    draw_side_button_border(rl_draw, rect);
+    draw_side_button_accent(rl_draw, rect);
 }
 
 fn draw_side_button_border(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
