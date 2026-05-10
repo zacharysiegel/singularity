@@ -1,7 +1,7 @@
 use crate::component::frame::{BORDER_THICKNESS, draw_side_button_frame, draw_window_frame};
 use crate::component::icon::{draw_close_x, draw_hamburger, draw_plus};
 use crate::component::text_truncate;
-use crate::conversation::panel::{ChatPanel, ChatTab, RailButton};
+use crate::conversation::panel::{ChatPanel, ChatTab, RailButton, ENTRY_HEIGHT, HEADER_HEIGHT};
 use crate::conversation::state::Conversation;
 use crate::state::STATE;
 use crate::window::BUTTON_WIDTH;
@@ -14,8 +14,6 @@ use shared::color::{GREEN, TEXT_COLOR, WINDOW_BACKGROUND_COLOR, WINDOW_INTERIOR_
 use strum::IntoEnumIterator;
 
 const PANEL_BACKGROUND_ALPHA: u8 = 0xE8;
-const HEADER_HEIGHT: f32 = 36.;
-const ENTRY_HEIGHT: f32 = 44.;
 const CONTENT_PADDING: f32 = 12.;
 const NAME_FONT_SIZE: f32 = 14.;
 const DETAIL_FONT_SIZE: f32 = 10.;

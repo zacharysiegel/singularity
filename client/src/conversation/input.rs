@@ -1,4 +1,4 @@
-use crate::conversation::panel::{ChatPanel, ChatTab, RailButton};
+use crate::conversation::panel::{ChatPanel, ChatTab, RailButton, ENTRY_HEIGHT, HEADER_HEIGHT};
 use crate::input::{
     CharPressHandler, CharPressResult, ClickHandler, ClickResult, HoverHandler, HoverResult,
     KeyPressHandler, KeyPressResult, ScrollHandler, ScrollResult,
@@ -65,9 +65,6 @@ fn handle_content_click(panel_rect: Rectangle, release_position: RenderCoord) {
         _ => {}
     }
 }
-
-const HEADER_HEIGHT: f32 = 36.;
-const ENTRY_HEIGHT: f32 = 44.;
 
 fn handle_conversation_list_click(panel_rect: Rectangle, release_position: RenderCoord) {
     let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
