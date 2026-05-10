@@ -69,4 +69,13 @@ impl ChatPanel {
             height: BUTTON_WIDTH,
         }
     }
+
+    pub fn content_rectangle(panel_rect: Rectangle) -> Rectangle {
+        Rectangle {
+            x: panel_rect.x + BORDER_GAP,
+            y: panel_rect.y + BORDER_GAP,
+            width: panel_rect.width - BUTTON_WIDTH - BORDER_GAP * 3.,
+            height: panel_rect.height - BORDER_GAP * 2.,
+        }
+    }
 }
