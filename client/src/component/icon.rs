@@ -13,7 +13,9 @@ pub fn draw_close_x(rl_draw: &mut RaylibDrawHandle, bounds: Rectangle, thickness
         x: bounds.x + bounds.width / 2.,
         y: bounds.y + bounds.height / 2.,
     };
-    let radius: f32 = (bounds.width / 2. - SIDE_BUTTON_ICON_PADDING) * f32::consts::SQRT_2;
+    let size: f32 = bounds.width.min(bounds.height);
+    let padding: f32 = size * 0.262;
+    let radius: f32 = (size / 2. - padding) * f32::consts::SQRT_2;
 
     let a: [Vector2; X_VERTEX_N] = create_close_x_segment(center, radius, thickness, false);
     let b: [Vector2; X_VERTEX_N] = create_close_x_segment(center, radius, thickness, true);
