@@ -64,17 +64,15 @@ fn draw_interior_border(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
 fn draw_rail_action_buttons(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
     let hovered_button: Option<RailButton> = STATE.conversation.chat_panel.read().unwrap().hovered_rail_button;
 
-    let close_rect: Rectangle = ChatPanel::rail_button_rect(panel_rect, RailButton::Close);
-    let new_rect: Rectangle = ChatPanel::rail_button_rect(panel_rect, RailButton::New);
-    let list_rect: Rectangle = ChatPanel::rail_button_rect(panel_rect, RailButton::List);
-
-    let buttons: [(Rectangle, RailButton); 3] = [
-        (close_rect, RailButton::Close),
-        (new_rect, RailButton::New),
-        (list_rect, RailButton::List),
-    ];
+    let buttons: [(Rectangle, RailButton); 3] = RailButton::ALL
+        .map(|button| (ChatPanel::rail_button_rect(panel_rect, button), button));
 
     draw_button_backgrounds(rl_draw, &buttons, hovered_button);
+
+    let close_rect: Rectangle = buttons[0].0;
+    let new_rect: Rectangle = buttons[1].0;
+    let list_rect: Rectangle = buttons[2].0;
+
     draw_close_x(
         rl_draw,
         Vector2 {
@@ -86,10 +84,10 @@ fn draw_rail_action_buttons(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangl
     );
     draw_plus(rl_draw, new_rect, 2., TEXT_COLOR);
     draw_hamburger(rl_draw, list_rect, 2., TEXT_COLOR);
-    draw_button_borders(rl_draw, &[close_rect, new_rect, list_rect]);
 
-    let rail_x: f32 = close_rect.x;
-    draw_double_separator(rl_draw, rail_x, list_rect.y + list_rect.height);
+    let rectangles: [Rectangle; 3] = buttons.map(|(rect, _)| rect);
+    draw_button_borders(rl_draw, &rectangles);
+    draw_double_separator(rl_draw, close_rect.x, list_rect.y + list_rect.height);
 }
 
 fn draw_button_backgrounds(

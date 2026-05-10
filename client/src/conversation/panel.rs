@@ -28,6 +28,10 @@ pub enum RailButton {
     List,
 }
 
+impl RailButton {
+    pub const ALL: [RailButton; 3] = [RailButton::Close, RailButton::New, RailButton::List];
+}
+
 impl ChatPanel {
     pub fn new() -> Self {
         ChatPanel {
