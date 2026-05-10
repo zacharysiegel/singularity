@@ -40,7 +40,7 @@ fn draw_rail_action_buttons(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangl
     let new_rect: Rectangle = buttons[1].0;
     let list_rect: Rectangle = buttons[2].0;
 
-    draw_close_x(rl_draw, close_rect, shared::color::RED);
+    draw_close_x(rl_draw, close_rect, 4.5, shared::color::RED);
     draw_plus(rl_draw, new_rect, 2., TEXT_COLOR);
     draw_hamburger(rl_draw, list_rect, 2., TEXT_COLOR);
     draw_double_separator(rl_draw, close_rect.x, list_rect.y + list_rect.height);

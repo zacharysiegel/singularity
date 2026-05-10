@@ -50,7 +50,7 @@ fn draw_background(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
 fn draw_close_button(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
     let button: &RectangularButton = window.close_button();
     draw_side_button_frame(rl_draw, button.rectangle, button.is_hovered());
-    draw_close_x(rl_draw, button.rectangle, shared::color::RED);
+    draw_close_x(rl_draw, button.rectangle, 4.5, shared::color::RED);
 }
 
 pub fn draw_side_button_lines(rl_draw: &mut RaylibDrawHandle, button: &RectangularButton) {
