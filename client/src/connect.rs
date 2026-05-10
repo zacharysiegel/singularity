@@ -6,14 +6,15 @@ use std::time::Duration;
 use crate::route;
 use shared::environment::RuntimeEnvironment;
 use shared::error::AppError;
-use shared::srtp::connection::{Connection, ConnectionReader, ConnectionWriter, WriteBufferT, BUFFER_SIZE};
+use shared::srtp;
+use shared::srtp::connection::{BUFFER_SIZE, Connection, ConnectionReader, ConnectionWriter, WriteBufferT};
 use shared::srtp::protocol::Register;
 use shared::srtp::ring_buffer::RingBuffer;
 use shared::srtp::{protocol, socket};
-use shared::{srtp, random};
 use socket2::{SockAddr, Socket};
 use tokio::net::TcpStream;
 use tokio::sync::{Notify, RwLock};
+use uuid::Uuid;
 // todo: close connection during engine::destroy
 
 pub fn connect() -> Result<WriteBufferT, AppError> {
@@ -60,7 +61,7 @@ fn spawn_writer(writer: ConnectionWriter, shutdown: Arc<Notify>) {
 
 fn send_register(write_buffer: WriteBufferT) {
     let message = Register {
-        user_id: random::random_uuid(),
+        user_id: Uuid::now_v7(),
         client_debug: RuntimeEnvironment::default().is_debug(),
     };
     tokio::spawn(async move { protocol::enqueue_message(write_buffer, message).await });

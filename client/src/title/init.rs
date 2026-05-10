@@ -52,7 +52,7 @@ pub fn init_title(rl: &mut RaylibHandle) {
             STATE.stage.title.debug_scroll_region.write().unwrap();
         *debug_scroll_region = Some(create_debug_scroll_region(rl));
 
-        crate::conversation::debug::seed_debug_conversations();
+        crate::conversation::debug::seed_debug_conversations(); // todo: remove
     }
 
     let mut games_button: RwLockWriteGuard<RectangularButton> = STATE.stage.title.main_buttons[GAMES_BUTTON_INDEX].write().unwrap();
