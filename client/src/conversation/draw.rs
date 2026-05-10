@@ -2,13 +2,12 @@ use crate::component::frame::{BORDER_THICKNESS, draw_side_button_frame, draw_win
 use crate::component::icon::{draw_close_x, draw_hamburger, draw_plus};
 use crate::conversation::panel::{ChatPanel, RailButton};
 use crate::state::STATE;
-use crate::window::{BUTTON_INTERNAL_MARGIN, BUTTON_WIDTH};
+use crate::window::BUTTON_WIDTH;
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::{Rectangle, Vector2};
 use raylib::RaylibThread;
 use shared::color::{TEXT_COLOR, WINDOW_BACKGROUND_COLOR, WINDOW_INTERIOR_BORDER_COLOR};
-use std::f32::consts::SQRT_2;
 use strum::IntoEnumIterator;
 
 const PANEL_BACKGROUND_ALPHA: u8 = 0xE8;
@@ -41,15 +40,7 @@ fn draw_rail_action_buttons(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangl
     let new_rect: Rectangle = buttons[1].0;
     let list_rect: Rectangle = buttons[2].0;
 
-    draw_close_x(
-        rl_draw,
-        Vector2 {
-            x: close_rect.x + close_rect.width / 2.,
-            y: close_rect.y + close_rect.height / 2.,
-        },
-        (BUTTON_WIDTH / 2. - BUTTON_INTERNAL_MARGIN.x) * SQRT_2,
-        4.5,
-    );
+    draw_close_x(rl_draw, close_rect, shared::color::RED);
     draw_plus(rl_draw, new_rect, 2., TEXT_COLOR);
     draw_hamburger(rl_draw, list_rect, 2., TEXT_COLOR);
     draw_double_separator(rl_draw, close_rect.x, list_rect.y + list_rect.height);

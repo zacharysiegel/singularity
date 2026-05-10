@@ -1,17 +1,26 @@
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::{Rectangle, Vector2};
-use shared::color::RED;
 use shared::math::SIN_FRAC_PI_4;
 
+use crate::component::frame::ACCENT_HEIGHT;
+
 const X_VERTEX_N: usize = 8;
+const X_ARM_WIDTH: f32 = 4.5;
 
-pub fn draw_close_x(rl_draw: &mut RaylibDrawHandle, center: Vector2, radius: f32, width: f32) {
-    let a: [Vector2; X_VERTEX_N] = create_close_x_segment(center, radius, width, false);
-    let b: [Vector2; X_VERTEX_N] = create_close_x_segment(center, radius, width, true);
+pub fn draw_close_x(rl_draw: &mut RaylibDrawHandle, bounds: Rectangle, color: Color) {
+    let center: Vector2 = Vector2 {
+        x: bounds.x + bounds.width / 2.,
+        y: bounds.y + bounds.height / 2.,
+    };
+    let padding: f32 = ACCENT_HEIGHT;
+    let radius: f32 = (bounds.width / 2. - padding) * std::f32::consts::SQRT_2;
 
-    rl_draw.draw_triangle_fan(&a, RED);
-    rl_draw.draw_triangle_fan(&b, RED);
+    let a: [Vector2; X_VERTEX_N] = create_close_x_segment(center, radius, X_ARM_WIDTH, false);
+    let b: [Vector2; X_VERTEX_N] = create_close_x_segment(center, radius, X_ARM_WIDTH, true);
+
+    rl_draw.draw_triangle_fan(&a, color);
+    rl_draw.draw_triangle_fan(&b, color);
 }
 
 pub fn draw_plus(rl_draw: &mut RaylibDrawHandle, bounds: Rectangle, thickness: f32, color: Color) {
