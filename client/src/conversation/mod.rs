@@ -1,5 +1,5 @@
 pub mod catchup;
-pub mod debug;
+pub mod debug; // todo: remove
 
 mod draw;
 pub use draw::*;

@@ -1,10 +1,9 @@
 use crate::route::route_frame;
 use futures::future;
 use futures::future::Either;
-use srtp::monitor;
 use shared::srtp;
 use shared::srtp::connection::Connection;
-use shared::random::random_uuid;
+use srtp::monitor;
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::pin;
@@ -54,7 +53,7 @@ pub struct Game {
 impl Game {
     pub fn new() -> Self {
         Game {
-            id: random_uuid(),
+            id: Uuid::now_v7(),
             channel: GameChannel(MpscChannel::new(128)),
         }
     }
