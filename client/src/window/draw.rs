@@ -2,13 +2,12 @@ use crate::component::button::RectangularButton;
 use crate::component::frame::{draw_side_button_frame, draw_window_frame};
 use crate::component::icon::draw_close_x;
 use crate::state::STATE;
-use crate::window::{ErrorWindow, HexWindow, PauseWindow, Window, BUTTON_WIDTH};
+use crate::window::{ErrorWindow, HexWindow, PauseWindow, Window};
 use raylib::drawing::RaylibDrawHandle;
 use raylib::math::{Rectangle, Vector2};
 use raylib::RaylibThread;
 use shared::color::WINDOW_BACKGROUND_COLOR;
 use shared::map::RenderCoord;
-use std::f32::consts::SQRT_2;
 use std::sync::RwLockReadGuard;
 
 pub use crate::component::frame::{BORDER_GAP, BORDER_THICKNESS};
@@ -51,15 +50,7 @@ fn draw_background(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
 fn draw_close_button(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
     let button: &RectangularButton = window.close_button();
     draw_side_button_frame(rl_draw, button.rectangle, button.is_hovered());
-    draw_close_x(
-        rl_draw,
-        Vector2 {
-            x: button.rectangle.x + button.rectangle.width / 2.,
-            y: button.rectangle.y + button.rectangle.height / 2.,
-        },
-        (BUTTON_WIDTH / 2. - BUTTON_INTERNAL_MARGIN.x) * SQRT_2,
-        4.5,
-    )
+    draw_close_x(rl_draw, button.rectangle, shared::color::RED);
 }
 
 pub fn draw_side_button_lines(rl_draw: &mut RaylibDrawHandle, button: &RectangularButton) {
