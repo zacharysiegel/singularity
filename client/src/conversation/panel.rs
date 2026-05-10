@@ -1,5 +1,6 @@
 use crate::window::{BORDER_GAP, BUTTON_WIDTH};
 use raylib::math::Rectangle;
+use strum::EnumIter;
 use uuid::Uuid;
 
 const PANEL_MAX_WIDTH: f32 = 600.;
@@ -21,15 +22,11 @@ pub struct ChatPanel {
     pub hovered_rail_button: Option<RailButton>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, EnumIter)]
 pub enum RailButton {
     Close,
     New,
     List,
-}
-
-impl RailButton {
-    pub const ALL: [RailButton; 3] = [RailButton::Close, RailButton::New, RailButton::List];
 }
 
 impl ChatPanel {

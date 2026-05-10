@@ -11,6 +11,7 @@ use shared::color::{
 use std::f32::consts::SQRT_2;
 use raylib::color::Color;
 use shared::math;
+use strum::IntoEnumIterator;
 
 const PANEL_BACKGROUND_ALPHA: u8 = 0xD8;
 
@@ -64,8 +65,9 @@ fn draw_interior_border(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
 fn draw_rail_action_buttons(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
     let hovered_button: Option<RailButton> = STATE.conversation.chat_panel.read().unwrap().hovered_rail_button;
 
-    let buttons: [(Rectangle, RailButton); 3] = RailButton::ALL
-        .map(|button| (ChatPanel::rail_button_rect(panel_rect, button), button));
+    let buttons: Vec<(Rectangle, RailButton)> = RailButton::iter()
+        .map(|button| (ChatPanel::rail_button_rect(panel_rect, button), button))
+        .collect();
 
     draw_button_backgrounds(rl_draw, &buttons, hovered_button);
 
@@ -85,7 +87,7 @@ fn draw_rail_action_buttons(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangl
     draw_plus(rl_draw, new_rect, 2., TEXT_COLOR);
     draw_hamburger(rl_draw, list_rect, 2., TEXT_COLOR);
 
-    let rectangles: [Rectangle; 3] = buttons.map(|(rect, _)| rect);
+    let rectangles: Vec<Rectangle> = buttons.iter().map(|(rect, _)| *rect).collect();
     draw_button_borders(rl_draw, &rectangles);
     draw_double_separator(rl_draw, close_rect.x, list_rect.y + list_rect.height);
 }
