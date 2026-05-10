@@ -50,7 +50,9 @@ impl ClickHandler for ChatPanelInput {
         }
 
         let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
-        if content_rect.check_collision_point_rec(release_position) {
+        if content_rect.check_collision_point_rec(press_position)
+            && content_rect.check_collision_point_rec(release_position)
+        {
             handle_content_click(panel_rect, release_position);
         }
 
