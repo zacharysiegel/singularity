@@ -23,6 +23,7 @@ pub struct ChatPanel {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, EnumIter)]
+#[repr(u8)]
 pub enum RailButton {
     Close,
     New,
