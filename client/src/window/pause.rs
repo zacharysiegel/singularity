@@ -107,8 +107,9 @@ mod draw {
     use crate::state::STATE;
     use crate::texture::ScreenRenderTexture;
     use crate::window::pause::PAUSE_INTERNAL_MARGIN;
-    use crate::window::{PauseWindow, BORDER_GAP, SIDE_BUTTON_ICON_PADDING};
+    use crate::window::{PauseWindow, BORDER_GAP};
     use crate::component;
+
     use raylib::drawing::{RaylibDraw, RaylibDrawHandle, RaylibShaderModeExt, RaylibTextureModeExt};
     use raylib::math::{Rectangle, Vector2};
     use raylib::texture::RaylibTexture2D;
@@ -117,6 +118,8 @@ mod draw {
     use shared::math;
     use std::rc::Rc;
     use std::sync::RwLockWriteGuard;
+
+    const EXIT_ICON_PADDING: f32 = 11.;
 
     impl PauseWindow {
         pub fn draw_title(&self, rl_draw: &mut RaylibDrawHandle) {
@@ -160,10 +163,10 @@ mod draw {
                 ..self.exit_button.rectangle
             };
             let dest = Rectangle {
-                x: self.exit_button.rectangle.x + SIDE_BUTTON_ICON_PADDING,
-                y: self.exit_button.rectangle.y + SIDE_BUTTON_ICON_PADDING,
-                width: self.exit_button.rectangle.width - SIDE_BUTTON_ICON_PADDING * 2.,
-                height: self.exit_button.rectangle.height - SIDE_BUTTON_ICON_PADDING * 2.,
+                x: self.exit_button.rectangle.x + EXIT_ICON_PADDING,
+                y: self.exit_button.rectangle.y + EXIT_ICON_PADDING,
+                width: self.exit_button.rectangle.width - EXIT_ICON_PADDING * 2.,
+                height: self.exit_button.rectangle.height - EXIT_ICON_PADDING * 2.,
             };
 
             let exit_icon: Rc<ExitIconShader> =
