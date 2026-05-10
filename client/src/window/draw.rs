@@ -1,4 +1,5 @@
 use crate::component::button::RectangularButton;
+use crate::component::frame::draw_window_frame;
 use crate::component::icon::draw_close_x;
 use crate::state::STATE;
 use crate::window::{BUTTON_WIDTH, ErrorWindow, HexWindow, PauseWindow, Window};
@@ -7,15 +8,14 @@ use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::{Rectangle, Vector2};
 use shared::color::{
-    DIFF_HOVER_BUTTON, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_INTERIOR_BORDER_COLOR,
+    DIFF_HOVER_BUTTON, WINDOW_BACKGROUND_COLOR, WINDOW_INTERIOR_BORDER_COLOR,
 };
 use shared::map::RenderCoord;
 use shared::math;
 use std::f32::consts::SQRT_2;
 use std::sync::RwLockReadGuard;
 
-pub const BORDER_GAP: f32 = 10.;
-pub const BORDER_THICKNESS: f32 = 1.;
+pub use crate::component::frame::{BORDER_GAP, BORDER_THICKNESS};
 pub const BUTTON_INTERNAL_MARGIN: Vector2 = Vector2 { x: 11., y: 11. };
 
 /// These windows are considered part of the "game" and will be blurred when an overlay window is active
@@ -49,57 +49,7 @@ fn draw_background(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
         width: window.dimensions().x,
         height: window.dimensions().y,
     };
-
-    rl_draw.draw_rectangle_rec(full, WINDOW_BACKGROUND_COLOR);
-    rl_draw.draw_line_ex(
-        Vector2 {
-            x: origin.x,
-            y: origin.y + BORDER_GAP,
-        },
-        Vector2 {
-            x: origin.x + window.dimensions().x,
-            y: origin.y + BORDER_GAP,
-        },
-        BORDER_THICKNESS,
-        WINDOW_INTERIOR_BORDER_COLOR,
-    );
-    rl_draw.draw_line_ex(
-        Vector2 {
-            x: origin.x,
-            y: origin.y + window.dimensions().y - BORDER_GAP,
-        },
-        Vector2 {
-            x: origin.x + window.dimensions().x,
-            y: origin.y + window.dimensions().y - BORDER_GAP,
-        },
-        BORDER_THICKNESS,
-        WINDOW_INTERIOR_BORDER_COLOR,
-    );
-    rl_draw.draw_line_ex(
-        Vector2 {
-            x: origin.x + BORDER_GAP,
-            y: origin.y,
-        },
-        Vector2 {
-            x: origin.x + BORDER_GAP,
-            y: origin.y + window.dimensions().y,
-        },
-        BORDER_THICKNESS,
-        WINDOW_INTERIOR_BORDER_COLOR,
-    );
-    rl_draw.draw_line_ex(
-        Vector2 {
-            x: origin.x + window.dimensions().x - BORDER_GAP,
-            y: origin.y,
-        },
-        Vector2 {
-            x: origin.x + window.dimensions().x - BORDER_GAP,
-            y: origin.y + window.dimensions().y,
-        },
-        BORDER_THICKNESS,
-        WINDOW_INTERIOR_BORDER_COLOR,
-    );
-    rl_draw.draw_rectangle_lines_ex(full, BORDER_THICKNESS, WINDOW_BORDER_COLOR);
+    draw_window_frame(rl_draw, full, WINDOW_BACKGROUND_COLOR);
 }
 
 fn draw_close_button(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {

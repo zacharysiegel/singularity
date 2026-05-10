@@ -1,12 +1,13 @@
+use crate::component::frame::draw_window_frame;
 use crate::component::icon::{draw_close_x, draw_hamburger, draw_plus};
 use crate::conversation::panel::{ChatPanel, RailButton};
 use crate::state::STATE;
-use crate::window::{BORDER_GAP, BORDER_THICKNESS, BUTTON_INTERNAL_MARGIN, BUTTON_WIDTH};
+use crate::window::{BORDER_THICKNESS, BUTTON_INTERNAL_MARGIN, BUTTON_WIDTH};
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::{Rectangle, Vector2};
 use raylib::RaylibThread;
 use shared::color::{
-    DIFF_HOVER_BUTTON, TEXT_COLOR, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_INTERIOR_BORDER_COLOR,
+    DIFF_HOVER_BUTTON, TEXT_COLOR, WINDOW_BACKGROUND_COLOR, WINDOW_INTERIOR_BORDER_COLOR,
 };
 use std::f32::consts::SQRT_2;
 use raylib::color::Color;
@@ -30,36 +31,7 @@ fn draw_panel_background(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) 
         a: PANEL_BACKGROUND_ALPHA,
         ..WINDOW_BACKGROUND_COLOR
     };
-    rl_draw.draw_rectangle_rec(panel_rect, background_color);
-    draw_interior_border(rl_draw, panel_rect);
-    rl_draw.draw_rectangle_lines_ex(panel_rect, BORDER_THICKNESS, WINDOW_BORDER_COLOR);
-}
-
-fn draw_interior_border(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
-    rl_draw.draw_line_ex(
-        Vector2 { x: rect.x, y: rect.y + BORDER_GAP },
-        Vector2 { x: rect.x + rect.width, y: rect.y + BORDER_GAP },
-        BORDER_THICKNESS,
-        WINDOW_INTERIOR_BORDER_COLOR,
-    );
-    rl_draw.draw_line_ex(
-        Vector2 { x: rect.x, y: rect.y + rect.height - BORDER_GAP },
-        Vector2 { x: rect.x + rect.width, y: rect.y + rect.height - BORDER_GAP },
-        BORDER_THICKNESS,
-        WINDOW_INTERIOR_BORDER_COLOR,
-    );
-    rl_draw.draw_line_ex(
-        Vector2 { x: rect.x + BORDER_GAP, y: rect.y },
-        Vector2 { x: rect.x + BORDER_GAP, y: rect.y + rect.height },
-        BORDER_THICKNESS,
-        WINDOW_INTERIOR_BORDER_COLOR,
-    );
-    rl_draw.draw_line_ex(
-        Vector2 { x: rect.x + rect.width - BORDER_GAP, y: rect.y },
-        Vector2 { x: rect.x + rect.width - BORDER_GAP, y: rect.y + rect.height },
-        BORDER_THICKNESS,
-        WINDOW_INTERIOR_BORDER_COLOR,
-    );
+    draw_window_frame(rl_draw, panel_rect, background_color);
 }
 
 fn draw_rail_action_buttons(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
