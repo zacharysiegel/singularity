@@ -15,7 +15,7 @@ use std::f32::consts::SQRT_2;
 use std::sync::RwLockReadGuard;
 
 pub const BORDER_GAP: f32 = 10.;
-pub const BORDER_THICKNESS: f32 = 2.;
+pub const BORDER_THICKNESS: f32 = 1.;
 pub const BUTTON_INTERNAL_MARGIN: Vector2 = Vector2 { x: 11., y: 11. };
 
 /// These windows are considered part of the "game" and will be blurred when an overlay window is active
