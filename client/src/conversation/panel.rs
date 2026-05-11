@@ -22,6 +22,7 @@ pub struct ChatPanel {
     pub conversation_tabs: Vec<Uuid>,
     pub expanded: bool,
     pub hovered_rail_button: Option<RailButton>,
+    pub hovered_list_entry: Option<usize>,
 }
 
 /// Variant order determines top-to-bottom position in the rail via discriminant cast.
@@ -41,6 +42,7 @@ impl ChatPanel {
             conversation_tabs: Vec::new(),
             expanded: false,
             hovered_rail_button: None,
+            hovered_list_entry: None,
         }
     }
 

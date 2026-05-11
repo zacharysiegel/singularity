@@ -125,8 +125,21 @@ impl HoverHandler for ChatPanelInput {
                     .check_collision_point_rec(mouse_position)
             });
 
+        let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
+        let hovered_list_entry: Option<usize> = if content_rect.check_collision_point_rec(mouse_position) {
+            let entry_y: f32 = mouse_position.y - content_rect.y - HEADER_HEIGHT;
+            if entry_y >= 0. {
+                Some((entry_y / ENTRY_HEIGHT) as usize)
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
         let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
         chat_panel.hovered_rail_button = hovered_button;
+        chat_panel.hovered_list_entry = hovered_list_entry;
 
         HoverResult::Consume
     }

@@ -57,7 +57,11 @@ fn draw_rail_action_buttons(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangl
     draw_close_x(rl_draw, close_rect, 4.5, shared::color::RED);
     draw_plus(rl_draw, new_rect, 2., TEXT_COLOR);
     draw_hamburger(rl_draw, list_rect, 2., TEXT_COLOR);
-    draw_double_separator(rl_draw, close_rect.x, list_rect.y + list_rect.height);
+
+    let has_conversation_tabs: bool = !STATE.conversation.chat_panel.read().unwrap().conversation_tabs.is_empty();
+    if has_conversation_tabs {
+        draw_double_separator(rl_draw, close_rect.x, list_rect.y + list_rect.height);
+    }
 }
 
 fn draw_double_separator(rl_draw: &mut RaylibDrawHandle, x: f32, y: f32) {
@@ -77,15 +81,17 @@ fn draw_double_separator(rl_draw: &mut RaylibDrawHandle, x: f32, y: f32) {
 
 fn draw_conversation_list(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
     let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
+    let hovered_list_entry: Option<usize> = STATE.conversation.chat_panel.read().unwrap().hovered_list_entry;
 
     draw_conversation_list_header(rl_draw, content_rect);
 
     let mut y: f32 = content_rect.y + HEADER_HEIGHT;
-    for entry in STATE.conversation.conversations.iter() {
+    for (index, entry) in STATE.conversation.conversations.iter().enumerate() {
         if y + ENTRY_HEIGHT > content_rect.y + content_rect.height {
             break;
         }
-        draw_conversation_entry(rl_draw, content_rect, y, entry.value());
+        let hovered: bool = hovered_list_entry == Some(index);
+        draw_conversation_entry(rl_draw, content_rect, y, entry.value(), hovered);
         y += ENTRY_HEIGHT;
     }
 }
@@ -112,7 +118,18 @@ fn draw_conversation_entry(
     content_rect: Rectangle,
     y: f32,
     conversation: &Conversation,
+    hovered: bool,
 ) {
+    if hovered {
+        let hover_rect: Rectangle = Rectangle {
+            x: content_rect.x,
+            y,
+            width: content_rect.width,
+            height: ENTRY_HEIGHT,
+        };
+        rl_draw.draw_rectangle_rec(hover_rect, shared::math::color_add(&WINDOW_BACKGROUND_COLOR, &shared::color::DIFF_HOVER_BUTTON));
+    }
+
     let font = rl_draw.get_font_default();
     let name: &str = conversation.name.as_deref().unwrap_or("Unnamed");
     let member_count: usize = conversation.members.len();
