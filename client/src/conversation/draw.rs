@@ -93,7 +93,7 @@ fn draw_double_separator(rl_draw: &mut RaylibDrawHandle, x: f32, y: f32) {
 
 fn draw_conversation_list(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
     let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
-    let conversation_order: std::sync::RwLockReadGuard<Vec<Uuid>> = STATE.conversation.display_order();
+    let conversation_order: RwLockReadGuard<Vec<Uuid>> = STATE.conversation.display_order();
     let hovered_list_entry: Option<usize> = STATE.conversation.chat_panel.read().unwrap().hovered_list_entry;
 
     draw_conversation_list_header(rl_draw, content_rect);
