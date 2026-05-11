@@ -2,6 +2,8 @@ use raylib::math::Vector2;
 use raylib::prelude::WeakFont;
 use raylib::text::RaylibFont;
 
+use crate::component::text_truncate::find_break_point_ltr;
+
 /// Wraps text into lines that fit within `max_length` pixels. Preserves original whitespace
 /// between words. Newlines in the input produce explicit line breaks. Falls back to
 /// character-level wrapping for segments wider than `max_length`.
@@ -102,38 +104,9 @@ fn wrap_long_token(
 
     while start < chars.len() {
         let remaining: &[char] = &chars[start..];
-        let break_point: usize = find_break_point(remaining, font, font_size, font_spacing, max_length).max(1);
+        let break_point: usize = find_break_point_ltr(remaining, font, font_size, font_spacing, max_length).max(1);
         let fragment: String = remaining[..break_point].iter().collect();
         wrapped_lines.push(fragment);
         start += break_point;
     }
-}
-
-/// Binary search for the largest prefix of `chars` which fits within `max_length`.
-/// Assumes width increases monotonically with character count (not RTL-safe).
-pub fn find_break_point(
-    chars: &[char],
-    font: &WeakFont,
-    font_size: f32,
-    font_spacing: f32,
-    max_length: f32,
-) -> usize {
-    let mut low: usize = 0;
-    let mut high: usize = chars.len();
-
-    while low < high {
-        // Ceiling division ensures mid > low. Without it, `low = mid` would not advance
-        // when high = low + 1, causing an infinite loop.
-        let mid: usize = (low + high).div_ceil(2);
-        let prefix: String = chars[..mid].iter().collect();
-        let measure: f32 = font.measure_text(&prefix, font_size, font_spacing).x;
-
-        if measure <= max_length {
-            low = mid;
-        } else {
-            high = mid - 1;
-        }
-    }
-
-    low
 }
