@@ -13,7 +13,7 @@ use super::panel::ChatPanel;
 pub struct ConversationState {
     pub conversations: DashMap<Uuid, Conversation>,
     pub chat_panel: RwLock<ChatPanel>,
-    pub display_order: RwLock<Vec<Uuid>>,
+    display_order: RwLock<Vec<Uuid>>,
     display_order_dirty: RwLock<bool>,
 }
 
@@ -47,7 +47,12 @@ impl ConversationState {
         *self.display_order_dirty.write().unwrap() = true;
     }
 
-    pub fn refresh_display_order_if_dirty(&self) {
+    pub fn display_order(&self) -> std::sync::RwLockReadGuard<'_, Vec<Uuid>> {
+        self.refresh_display_order_if_dirty();
+        self.display_order.read().unwrap()
+    }
+
+    fn refresh_display_order_if_dirty(&self) {
         let dirty: bool = *self.display_order_dirty.read().unwrap();
         if !dirty {
             return;

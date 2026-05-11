@@ -98,7 +98,7 @@ fn on_conversation_list_click(panel_rect: Rectangle, press_position: RenderCoord
         return;
     }
 
-    let conversation_id: Option<Uuid> = STATE.conversation.display_order.read().unwrap()
+    let conversation_id: Option<Uuid> = STATE.conversation.display_order()
         .get(release_index)
         .copied();
     let Some(conversation_id) = conversation_id else {
@@ -130,7 +130,7 @@ impl HoverHandler for ChatPanelInput {
             });
 
         let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
-        let display_order_count: usize = STATE.conversation.display_order.read().unwrap().len();
+        let display_order_count: usize = STATE.conversation.display_order().len();
         let hovered_list_entry: Option<usize> = if content_rect.check_collision_point_rec(mouse_position) {
             let mouse_offset_from_entries: f32 = mouse_position.y - content_rect.y - HEADER_HEIGHT;
             if mouse_offset_from_entries >= 0. {
