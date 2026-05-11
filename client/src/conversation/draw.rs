@@ -99,11 +99,19 @@ fn draw_conversation_list(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle)
 
 fn draw_conversation_list_header(rl_draw: &mut RaylibDrawHandle, content_rect: Rectangle) {
     let double_border_separation: f32 = 4.;
+    let header_text_area_height: f32 = HEADER_HEIGHT - double_border_separation;
 
+    let header_center: Vector2 = Vector2 {
+        x: content_rect.x + CONTENT_PADDING,
+        y: content_rect.y + header_text_area_height / 2.,
+    };
+    let header_origin: Vector2 = shared::math::centered_text_origin(
+        header_center, "Conversations", rl_draw.get_font_default(), HEADER_FONT_SIZE, 2.,
+    );
     rl_draw.draw_text_ex(
         rl_draw.get_font_default(),
         "Conversations",
-        Vector2 { x: content_rect.x + CONTENT_PADDING, y: content_rect.y + 10. },
+        Vector2 { x: content_rect.x + CONTENT_PADDING, y: header_origin.y },
         HEADER_FONT_SIZE,
         2.,
         TEXT_COLOR,
@@ -185,10 +193,14 @@ fn draw_conversation_entry(
     };
     let truncated_name: String = text_truncate::truncate_text(&name_text, &font, name_max_width);
 
+    let line_gap: f32 = 4.;
+    let total_text_height: f32 = NAME_FONT_SIZE + DETAIL_FONT_SIZE + line_gap;
+    let text_top: f32 = y + (ENTRY_HEIGHT - total_text_height) / 2.;
+
     rl_draw.draw_text_ex(
         rl_draw.get_font_default(),
         &truncated_name,
-        Vector2 { x: name_x, y: y + 6. },
+        Vector2 { x: name_x, y: text_top },
         NAME_FONT_SIZE,
         2.,
         TEXT_COLOR,
@@ -198,7 +210,7 @@ fn draw_conversation_entry(
     rl_draw.draw_text_ex(
         rl_draw.get_font_default(),
         &member_text,
-        Vector2 { x: name_x, y: y + 24. },
+        Vector2 { x: name_x, y: text_top + NAME_FONT_SIZE + line_gap },
         DETAIL_FONT_SIZE,
         1.,
         WINDOW_INTERIOR_BORDER_COLOR,
@@ -212,7 +224,7 @@ fn draw_conversation_entry(
             &unread_text,
             Vector2 {
                 x: content_rect.x + content_rect.width - CONTENT_PADDING - unread_measure.x,
-                y: y + 6.,
+                y: text_top,
             },
             DETAIL_FONT_SIZE,
             1.,
