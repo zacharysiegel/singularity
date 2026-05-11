@@ -4,7 +4,6 @@ use crate::input::{
     KeyPressHandler, KeyPressResult, ScrollHandler, ScrollResult,
 };
 use crate::state::STATE;
-use chrono::Utc;
 use raylib::consts::KeyboardKey;
 use raylib::math::{Rectangle, Vector2};
 use raylib::RaylibHandle;
@@ -106,17 +105,8 @@ fn on_conversation_list_click(panel_rect: Rectangle, press_position: RenderCoord
         return;
     };
 
-    let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
-    if !chat_panel.conversation_tabs.contains(&conversation_id) {
-        chat_panel.conversation_tabs.push(conversation_id);
-    }
-    chat_panel.active_tab = ChatTab::Conversation(conversation_id);
-    drop(chat_panel);
-
-    if let Some(mut conversation) = STATE.conversation.conversations.get_mut(&conversation_id) {
-        conversation.last_read = Some(Utc::now());
-        conversation.unread_count = 0;
-    }
+    STATE.conversation.chat_panel.write().unwrap().open_conversation(conversation_id);
+    STATE.conversation.mark_as_read(conversation_id);
 }
 
 impl HoverHandler for ChatPanelInput {
