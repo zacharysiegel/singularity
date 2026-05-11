@@ -102,7 +102,7 @@ fn draw_conversation_list_header(rl_draw: &mut RaylibDrawHandle, content_rect: R
     let header_text_area_height: f32 = HEADER_HEIGHT - double_border_separation;
 
     let text_height: f32 = rl_draw.get_font_default().measure_text("Conversations", HEADER_FONT_SIZE, 2.).y;
-    let header_text_y: f32 = content_rect.y + (header_text_area_height - text_height) / 2.;
+    let header_text_y: f32 = shared::math::center_vertically(content_rect.y, header_text_area_height, text_height);
     rl_draw.draw_text_ex(
         rl_draw.get_font_default(),
         "Conversations",
@@ -190,7 +190,7 @@ fn draw_conversation_entry(
 
     let line_gap: f32 = 4.;
     let total_text_height: f32 = NAME_FONT_SIZE + DETAIL_FONT_SIZE + line_gap;
-    let text_top: f32 = y + (ENTRY_HEIGHT - total_text_height) / 2.;
+    let text_top: f32 = shared::math::center_vertically(y, ENTRY_HEIGHT, total_text_height);
 
     rl_draw.draw_text_ex(
         rl_draw.get_font_default(),
