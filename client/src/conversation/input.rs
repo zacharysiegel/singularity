@@ -49,6 +49,22 @@ impl ClickHandler for ChatPanelInput {
             return ClickResult::Consume;
         }
 
+        let list_rect: Rectangle = ChatPanel::rail_button_rect(panel_rect, RailButton::List);
+        if list_rect.check_collision_point_rec(press_position)
+            && list_rect.check_collision_point_rec(release_position)
+        {
+            STATE.conversation.chat_panel.write().unwrap().active_tab = ChatTab::ConversationList;
+            return ClickResult::Consume;
+        }
+
+        let new_rect: Rectangle = ChatPanel::rail_button_rect(panel_rect, RailButton::New);
+        if new_rect.check_collision_point_rec(press_position)
+            && new_rect.check_collision_point_rec(release_position)
+        {
+            STATE.conversation.chat_panel.write().unwrap().active_tab = ChatTab::NewConversation;
+            return ClickResult::Consume;
+        }
+
         let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
         if content_rect.check_collision_point_rec(press_position)
             && content_rect.check_collision_point_rec(release_position)
