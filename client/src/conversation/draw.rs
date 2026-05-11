@@ -101,17 +101,12 @@ fn draw_conversation_list_header(rl_draw: &mut RaylibDrawHandle, content_rect: R
     let double_border_separation: f32 = 4.;
     let header_text_area_height: f32 = HEADER_HEIGHT - double_border_separation;
 
-    let header_center: Vector2 = Vector2 {
-        x: content_rect.x + CONTENT_PADDING,
-        y: content_rect.y + header_text_area_height / 2.,
-    };
-    let header_origin: Vector2 = shared::math::centered_text_origin(
-        header_center, "Conversations", rl_draw.get_font_default(), HEADER_FONT_SIZE, 2.,
-    );
+    let text_height: f32 = rl_draw.get_font_default().measure_text("Conversations", HEADER_FONT_SIZE, 2.).y;
+    let header_text_y: f32 = content_rect.y + (header_text_area_height - text_height) / 2.;
     rl_draw.draw_text_ex(
         rl_draw.get_font_default(),
         "Conversations",
-        Vector2 { x: content_rect.x + CONTENT_PADDING, y: header_origin.y },
+        Vector2 { x: content_rect.x + CONTENT_PADDING, y: header_text_y },
         HEADER_FONT_SIZE,
         2.,
         TEXT_COLOR,
