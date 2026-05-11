@@ -1,4 +1,4 @@
-use crate::component::frame::{BORDER_THICKNESS, draw_side_button_frame, draw_window_frame};
+use crate::component::frame::{BORDER_THICKNESS, draw_side_button_accent_filled, draw_side_button_frame, draw_window_frame};
 use crate::component::icon::{draw_close_x, draw_hamburger, draw_plus};
 use crate::component::text::Text;
 use crate::component::text_truncate;
@@ -57,7 +57,7 @@ fn draw_rail_action_buttons(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangl
     for (rect, button) in &buttons {
         draw_side_button_frame(rl_draw, *rect, hovered_button == Some(*button));
         if active_rail_button == Some(*button) {
-            rl_draw.draw_rectangle_lines_ex(*rect, BORDER_THICKNESS, shared::color::WINDOW_BORDER_FOCUSED_COLOR);
+            draw_side_button_accent_filled(rl_draw, *rect, shared::color::WINDOW_BORDER_FOCUSED_COLOR);
         }
     }
 
