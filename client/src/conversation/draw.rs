@@ -129,6 +129,12 @@ fn draw_conversation_entry(
         };
         rl_draw.draw_rectangle_rec(hover_rect, shared::math::color_add(&WINDOW_BACKGROUND_COLOR, &shared::color::DIFF_HOVER_BUTTON));
         rl_draw.draw_line_ex(
+            Vector2 { x: content_rect.x, y },
+            Vector2 { x: content_rect.x, y: y + ENTRY_HEIGHT },
+            BORDER_THICKNESS,
+            WINDOW_INTERIOR_BORDER_COLOR,
+        );
+        rl_draw.draw_line_ex(
             Vector2 { x: content_rect.x + content_rect.width, y },
             Vector2 { x: content_rect.x + content_rect.width, y: y + ENTRY_HEIGHT },
             BORDER_THICKNESS,
