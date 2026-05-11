@@ -1,3 +1,4 @@
+use std::sync::RwLockReadGuard;
 use crate::component::frame::{BORDER_THICKNESS, draw_side_button_accent_filled, draw_side_button_frame, draw_window_frame};
 use crate::component::icon::{draw_close_x, draw_hamburger, draw_plus};
 use crate::component::text::Text;
@@ -30,7 +31,7 @@ pub fn draw(rl_draw: &mut RaylibDrawHandle, _rl_thread: &RaylibThread) {
         a: PANEL_BACKGROUND_ALPHA,
         ..WINDOW_BACKGROUND_COLOR
     });
-    draw_rail_action_buttons(rl_draw, panel_rect);
+    draw_rail_buttons(rl_draw, panel_rect);
 
     let active_tab: ChatTab = STATE.conversation.chat_panel.read().unwrap().active_tab.clone();
     match active_tab {
@@ -40,8 +41,8 @@ pub fn draw(rl_draw: &mut RaylibDrawHandle, _rl_thread: &RaylibThread) {
     }
 }
 
-fn draw_rail_action_buttons(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
-    let chat_panel = STATE.conversation.chat_panel.read().unwrap();
+fn draw_rail_buttons(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
+    let chat_panel: RwLockReadGuard<ChatPanel> = STATE.conversation.chat_panel.read().unwrap();
     let hovered_button: Option<RailButton> = chat_panel.hovered_rail_button;
     let active_rail_button: Option<RailButton> = match &chat_panel.active_tab {
         ChatTab::ConversationList => Some(RailButton::List),
@@ -92,9 +93,7 @@ fn draw_double_separator(rl_draw: &mut RaylibDrawHandle, x: f32, y: f32) {
 
 fn draw_conversation_list(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
     let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
-
-    STATE.conversation.refresh_display_order_if_dirty();
-    let conversation_order: Vec<Uuid> = STATE.conversation.display_order.read().unwrap().clone();
+    let conversation_order: std::sync::RwLockReadGuard<Vec<Uuid>> = STATE.conversation.display_order();
     let hovered_list_entry: Option<usize> = STATE.conversation.chat_panel.read().unwrap().hovered_list_entry;
 
     draw_conversation_list_header(rl_draw, content_rect);
