@@ -1,3 +1,4 @@
+use crate::component::scroll_region::VerticalScrollRegion;
 use crate::window::{BORDER_GAP, BUTTON_WIDTH};
 use raylib::math::Rectangle;
 use strum::EnumIter;
@@ -23,6 +24,7 @@ pub struct ChatPanel {
     pub expanded: bool,
     pub hovered_rail_button: Option<RailButton>,
     pub hovered_list_entry: Option<usize>,
+    pub list_scroll_region: VerticalScrollRegion,
 }
 
 /// Variant order determines top-to-bottom position in the rail via discriminant cast.
@@ -43,6 +45,7 @@ impl ChatPanel {
             expanded: false,
             hovered_rail_button: None,
             hovered_list_entry: None,
+            list_scroll_region: VerticalScrollRegion::new(Rectangle { x: 0., y: 0., width: 0., height: 0. }),
         }
     }
 
@@ -90,6 +93,16 @@ impl ChatPanel {
             y: panel_rect.y + BORDER_GAP,
             width: panel_rect.width - BUTTON_WIDTH - BORDER_GAP * 3.,
             height: panel_rect.height - BORDER_GAP * 2.,
+        }
+    }
+
+    /// The scrollable area below the header within the content rectangle.
+    pub fn list_scroll_viewport(content_rect: Rectangle) -> Rectangle {
+        Rectangle {
+            x: content_rect.x,
+            y: content_rect.y + HEADER_HEIGHT,
+            width: content_rect.width,
+            height: content_rect.height - HEADER_HEIGHT,
         }
     }
 }

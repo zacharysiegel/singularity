@@ -7,7 +7,7 @@ use crate::conversation::panel::{ChatPanel, ChatTab, RailButton, ENTRY_HEIGHT, H
 use crate::state::STATE;
 use crate::window::BUTTON_WIDTH;
 use raylib::color::Color;
-use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
+use raylib::drawing::{RaylibDraw, RaylibDrawHandle, RaylibScissorModeExt};
 use raylib::math::{Rectangle, Vector2};
 use raylib::text::RaylibFont;
 use raylib::RaylibThread;
@@ -98,21 +98,44 @@ fn draw_conversation_list(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle)
 
     draw_conversation_list_header(rl_draw, content_rect);
 
-    let mut y: f32 = content_rect.y + HEADER_HEIGHT;
-    for (index, conversation_id) in conversation_order.iter().enumerate() {
-        if y + ENTRY_HEIGHT > content_rect.y + content_rect.height {
-            break;
-        }
-        let hovered: bool = hovered_list_entry == Some(index);
-        if let Some(conversation) = STATE.conversation.conversations.get(conversation_id) {
-            let name: String = conversation.name.clone().unwrap_or_else(|| "Unnamed".to_string());
-            let member_count: usize = conversation.members.len();
-            let unread_count: u32 = conversation.unread_count;
-            drop(conversation);
-            draw_conversation_entry(rl_draw, content_rect, y, &name, member_count, unread_count, hovered);
-        }
-        y += ENTRY_HEIGHT;
+    let scroll_viewport: Rectangle = ChatPanel::list_scroll_viewport(content_rect);
+    let conversation_count: usize = conversation_order.len();
+    let content_height: f32 = conversation_count as f32 * ENTRY_HEIGHT;
+
+    {
+        let mut chat_panel = STATE.conversation.chat_panel.write().unwrap();
+        chat_panel.list_scroll_region.viewport = scroll_viewport;
+        chat_panel.list_scroll_region.content_height = content_height;
     }
+
+    let scroll_offset: f32 = STATE.conversation.chat_panel.read().unwrap().list_scroll_region.scroll_offset;
+
+    rl_draw.draw_scissor_mode(
+        scroll_viewport.x as i32,
+        scroll_viewport.y as i32,
+        scroll_viewport.width as i32,
+        scroll_viewport.height as i32,
+        |mut scissor_draw| {
+            let mut y: f32 = scroll_viewport.y - scroll_offset;
+            for (index, conversation_id) in conversation_order.iter().enumerate() {
+                let entry_bottom: f32 = y + ENTRY_HEIGHT;
+                if y > scroll_viewport.y + scroll_viewport.height {
+                    break;
+                }
+                if entry_bottom > scroll_viewport.y {
+                    let hovered: bool = hovered_list_entry == Some(index);
+                    if let Some(conversation) = STATE.conversation.conversations.get(conversation_id) {
+                        let name: String = conversation.name.clone().unwrap_or_else(|| "Unnamed".to_string());
+                        let member_count: usize = conversation.members.len();
+                        let unread_count: u32 = conversation.unread_count;
+                        drop(conversation);
+                        draw_conversation_entry(&mut scissor_draw, content_rect, y, &name, member_count, unread_count, hovered);
+                    }
+                }
+                y += ENTRY_HEIGHT;
+            }
+        },
+    );
 }
 
 fn draw_conversation_list_header(rl_draw: &mut RaylibDrawHandle, content_rect: Rectangle) {
@@ -146,7 +169,7 @@ fn draw_conversation_list_header(rl_draw: &mut RaylibDrawHandle, content_rect: R
 }
 
 fn draw_conversation_entry(
-    rl_draw: &mut RaylibDrawHandle,
+    rl_draw: &mut impl RaylibDraw,
     content_rect: Rectangle,
     y: f32,
     name: &str,
@@ -179,8 +202,6 @@ fn draw_conversation_entry(
         );
     }
 
-    let font = rl_draw.get_font_default();
-
     let name_x: f32 = content_rect.x + CONTENT_PADDING;
     let name_max_width: f32 = content_rect.width - CONTENT_PADDING * 2. - 80.;
     let name_text: Text = Text {
@@ -189,14 +210,15 @@ fn draw_conversation_entry(
         font_spacing: 2.,
         color: TEXT_COLOR,
     };
-    let truncated_name: String = text_truncate::truncate_text(&name_text, &font, name_max_width);
+    let font = || unsafe { raylib::prelude::WeakFont::from_raw(raylib::ffi::GetFontDefault()) };
+    let truncated_name: String = text_truncate::truncate_text(&name_text, &font(), name_max_width);
 
     let line_gap: f32 = 4.;
     let total_text_height: f32 = NAME_FONT_SIZE + DETAIL_FONT_SIZE + line_gap;
     let text_top: f32 = shared::math::center_vertically(y, ENTRY_HEIGHT, total_text_height);
 
     rl_draw.draw_text_ex(
-        rl_draw.get_font_default(),
+        font(),
         &truncated_name,
         Vector2 { x: name_x, y: text_top },
         NAME_FONT_SIZE,
@@ -206,7 +228,7 @@ fn draw_conversation_entry(
 
     let member_text: String = format!("{member_count} members");
     rl_draw.draw_text_ex(
-        rl_draw.get_font_default(),
+        font(),
         &member_text,
         Vector2 { x: name_x, y: text_top + NAME_FONT_SIZE + line_gap },
         DETAIL_FONT_SIZE,
@@ -216,9 +238,9 @@ fn draw_conversation_entry(
 
     if unread_count > 0 {
         let unread_text: String = format!("{unread_count} unread");
-        let unread_measure: Vector2 = font.measure_text(&unread_text, DETAIL_FONT_SIZE, 1.);
+        let unread_measure: Vector2 = font().measure_text(&unread_text, DETAIL_FONT_SIZE, 1.);
         rl_draw.draw_text_ex(
-            rl_draw.get_font_default(),
+            font(),
             &unread_text,
             Vector2 {
                 x: content_rect.x + content_rect.width - CONTENT_PADDING - unread_measure.x,
