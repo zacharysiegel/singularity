@@ -17,6 +17,7 @@ use strum::IntoEnumIterator;
 const PANEL_BACKGROUND_ALPHA: u8 = 0xE8;
 const CONTENT_PADDING: f32 = 12.;
 const NAME_FONT_SIZE: f32 = 14.;
+const HEADER_FONT_SIZE: f32 = NAME_FONT_SIZE + 4.;
 const DETAIL_FONT_SIZE: f32 = 10.;
 
 pub fn draw(rl_draw: &mut RaylibDrawHandle, _rl_thread: &RaylibThread) {
@@ -97,22 +98,30 @@ fn draw_conversation_list(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle)
 }
 
 fn draw_conversation_list_header(rl_draw: &mut RaylibDrawHandle, content_rect: Rectangle) {
+    let double_border_separation: f32 = 4.;
+
     rl_draw.draw_text_ex(
         rl_draw.get_font_default(),
         "Conversations",
         Vector2 { x: content_rect.x + CONTENT_PADDING, y: content_rect.y + 10. },
-        NAME_FONT_SIZE + 2.,
+        HEADER_FONT_SIZE,
         2.,
         TEXT_COLOR,
     );
     rl_draw.draw_line_ex(
-        Vector2 { x: content_rect.x, y: content_rect.y + HEADER_HEIGHT - 3. },
-        Vector2 { x: content_rect.x + content_rect.width, y: content_rect.y + HEADER_HEIGHT - 3. },
+        Vector2 { x: content_rect.x, y: content_rect.y + HEADER_HEIGHT - double_border_separation },
+        Vector2 { x: content_rect.x + content_rect.width, y: content_rect.y + HEADER_HEIGHT - double_border_separation },
         BORDER_THICKNESS,
         WINDOW_INTERIOR_BORDER_COLOR,
     );
     rl_draw.draw_line_ex(
         Vector2 { x: content_rect.x, y: content_rect.y + HEADER_HEIGHT },
+        Vector2 { x: content_rect.x + content_rect.width, y: content_rect.y + HEADER_HEIGHT },
+        BORDER_THICKNESS,
+        WINDOW_INTERIOR_BORDER_COLOR,
+    );
+    rl_draw.draw_line_ex(
+        Vector2 { x: content_rect.x + content_rect.width, y: content_rect.y + HEADER_HEIGHT - double_border_separation },
         Vector2 { x: content_rect.x + content_rect.width, y: content_rect.y + HEADER_HEIGHT },
         BORDER_THICKNESS,
         WINDOW_INTERIOR_BORDER_COLOR,
