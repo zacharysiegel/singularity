@@ -1,4 +1,4 @@
-use std::sync::RwLockReadGuard;
+use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 use crate::component::frame::{BORDER_THICKNESS, draw_side_button_accent_filled, draw_side_button_frame, draw_window_frame};
 use crate::component::icon::{draw_close_x, draw_hamburger, draw_plus};
 use crate::component::text::Text;
@@ -102,11 +102,10 @@ fn draw_conversation_list(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle)
     let conversation_count: usize = conversation_order.len();
     let content_height: f32 = conversation_count as f32 * ENTRY_HEIGHT;
 
-    {
-        let mut chat_panel = STATE.conversation.chat_panel.write().unwrap();
-        chat_panel.list_scroll_region.viewport = scroll_viewport;
-        chat_panel.list_scroll_region.content_height = content_height;
-    }
+    let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
+    chat_panel.list_scroll_region.viewport = scroll_viewport;
+    chat_panel.list_scroll_region.content_height = content_height;
+    drop(chat_panel);
 
     let scroll_offset: f32 = STATE.conversation.chat_panel.read().unwrap().list_scroll_region.scroll_offset;
 
