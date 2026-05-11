@@ -23,15 +23,32 @@ pub fn truncate_text(
     }
 
     let chars: Vec<char> = text.content.chars().collect();
-    let mut truncated: String = String::new();
-    for ch in &chars {
-        let candidate: String = format!("{truncated}{ch}");
-        let measure: f32 = font.measure_text(&candidate, text.font_size, text.font_spacing).x;
-        if measure > available_width {
-            break;
+    let break_point: usize = find_break_point(&chars, font, text.font_size, text.font_spacing, available_width);
+    let truncated: String = chars[..break_point].iter().collect();
+    format!("{truncated}{ELLIPSIS}")
+}
+
+fn find_break_point(
+    chars: &[char],
+    font: &WeakFont,
+    font_size: f32,
+    font_spacing: f32,
+    max_width: f32,
+) -> usize {
+    let mut low: usize = 0;
+    let mut high: usize = chars.len();
+
+    while low < high {
+        let mid: usize = (low + high).div_ceil(2);
+        let prefix: String = chars[..mid].iter().collect();
+        let measure: f32 = font.measure_text(&prefix, font_size, font_spacing).x;
+
+        if measure <= max_width {
+            low = mid;
+        } else {
+            high = mid - 1;
         }
-        truncated = candidate;
     }
 
-    format!("{truncated}{ELLIPSIS}")
+    low
 }
