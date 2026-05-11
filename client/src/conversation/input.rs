@@ -87,14 +87,14 @@ fn on_content_click(panel_rect: Rectangle, press_position: RenderCoord, release_
 fn on_conversation_list_click(panel_rect: Rectangle, press_position: RenderCoord, release_position: RenderCoord) {
     let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
 
-    let press_y: f32 = press_position.y - content_rect.y - HEADER_HEIGHT;
-    let release_y: f32 = release_position.y - content_rect.y - HEADER_HEIGHT;
-    if press_y < 0. || release_y < 0. {
+    let press_offset_from_entries: f32 = press_position.y - content_rect.y - HEADER_HEIGHT;
+    let release_offset_from_entries: f32 = release_position.y - content_rect.y - HEADER_HEIGHT;
+    if press_offset_from_entries < 0. || release_offset_from_entries < 0. {
         return;
     }
 
-    let press_index: usize = (press_y / ENTRY_HEIGHT) as usize;
-    let release_index: usize = (release_y / ENTRY_HEIGHT) as usize;
+    let press_index: usize = (press_offset_from_entries / ENTRY_HEIGHT) as usize;
+    let release_index: usize = (release_offset_from_entries / ENTRY_HEIGHT) as usize;
     if press_index != release_index {
         return;
     }
