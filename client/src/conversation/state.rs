@@ -12,6 +12,8 @@ use super::panel::ChatPanel;
 pub struct ConversationState {
     pub conversations: DashMap<Uuid, Conversation>,
     pub chat_panel: RwLock<ChatPanel>,
+    pub display_order: RwLock<Vec<Uuid>>,
+    display_order_dirty: RwLock<bool>,
 }
 
 impl ConversationState {
@@ -19,7 +21,28 @@ impl ConversationState {
         ConversationState {
             conversations: DashMap::new(),
             chat_panel: RwLock::new(ChatPanel::new()),
+            display_order: RwLock::new(Vec::new()),
+            display_order_dirty: RwLock::new(true),
         }
+    }
+
+    pub fn mark_display_order_dirty(&self) {
+        *self.display_order_dirty.write().unwrap() = true;
+    }
+
+    pub fn refresh_display_order_if_dirty(&self) {
+        let dirty: bool = *self.display_order_dirty.read().unwrap();
+        if !dirty {
+            return;
+        }
+        let mut conversation_ids: Vec<Uuid> = self.conversations
+            .iter()
+            .map(|entry| *entry.key())
+            .collect();
+        // Newest first (v7 UUIDs encode timestamp in high bits)
+        conversation_ids.sort_by(|a, b| b.cmp(a));
+        *self.display_order.write().unwrap() = conversation_ids;
+        *self.display_order_dirty.write().unwrap() = false;
     }
 }
 

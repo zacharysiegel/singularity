@@ -93,20 +93,9 @@ fn draw_double_separator(rl_draw: &mut RaylibDrawHandle, x: f32, y: f32) {
 fn draw_conversation_list(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
     let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
 
-    let mut chat_panel = STATE.conversation.chat_panel.write().unwrap();
-    if chat_panel.displayed_conversation_order_dirty {
-        let mut conversation_ids: Vec<Uuid> = STATE.conversation.conversations
-            .iter()
-            .map(|entry| *entry.key())
-            .collect();
-        // Newest first (v7 UUIDs encode timestamp in high bits)
-        conversation_ids.sort_by(|a, b| b.cmp(a));
-        chat_panel.displayed_conversation_order = conversation_ids;
-        chat_panel.displayed_conversation_order_dirty = false;
-    }
-    let conversation_order: Vec<Uuid> = chat_panel.displayed_conversation_order.clone();
-    let hovered_list_entry: Option<usize> = chat_panel.hovered_list_entry;
-    drop(chat_panel);
+    STATE.conversation.refresh_display_order_if_dirty();
+    let conversation_order: Vec<Uuid> = STATE.conversation.display_order.read().unwrap().clone();
+    let hovered_list_entry: Option<usize> = STATE.conversation.chat_panel.read().unwrap().hovered_list_entry;
 
     draw_conversation_list_header(rl_draw, content_rect);
 
