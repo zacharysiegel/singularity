@@ -23,8 +23,8 @@ pub struct ChatPanel {
     pub expanded: bool,
     pub hovered_rail_button: Option<RailButton>,
     pub hovered_list_entry: Option<usize>,
-    /// Stable ordering of conversation IDs as rendered in the list. Refreshed when conversations
-    /// change (insert/remove) so that click handling indexes into the same order the user sees.
+    /// Stable ordering of conversation IDs as rendered in the list. Refreshed when
+    /// `displayed_conversation_order_dirty` is set by event handlers on membership changes.
     pub displayed_conversation_order: Vec<Uuid>,
     pub displayed_conversation_order_dirty: bool,
 }
