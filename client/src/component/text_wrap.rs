@@ -102,7 +102,7 @@ fn wrap_long_token(
 
     while start < chars.len() {
         let remaining: &[char] = &chars[start..];
-        let break_point: usize = find_break_point(remaining, font, font_size, font_spacing, max_length);
+        let break_point: usize = find_break_point(remaining, font, font_size, font_spacing, max_length).max(1);
         let fragment: String = remaining[..break_point].iter().collect();
         wrapped_lines.push(fragment);
         start += break_point;
@@ -111,14 +111,14 @@ fn wrap_long_token(
 
 /// Binary search for the largest prefix of `chars` which fits within `max_length`.
 /// Assumes width increases monotonically with character count (not RTL-safe).
-fn find_break_point(
+pub fn find_break_point(
     chars: &[char],
     font: &WeakFont,
     font_size: f32,
     font_spacing: f32,
     max_length: f32,
 ) -> usize {
-    let mut low: usize = 1;
+    let mut low: usize = 0;
     let mut high: usize = chars.len();
 
     while low < high {
@@ -135,5 +135,5 @@ fn find_break_point(
         }
     }
 
-    low.max(1)
+    low
 }
