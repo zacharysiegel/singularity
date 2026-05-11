@@ -5,7 +5,6 @@ use shared::schema::conversation_message::ConversationMessageSerial;
 use uuid::Uuid;
 
 use super::event;
-use super::state::Conversation;
 use crate::http;
 use crate::state::STATE;
 
@@ -24,9 +23,7 @@ pub async fn catch_up(token: &str) {
     let mut message_count: i32 = 0;
 
     for conversation_serial in &conversation_serials {
-        STATE.conversation.conversations
-            .entry(conversation_serial.id)
-            .or_insert_with(Conversation::new)
+        STATE.conversation.get_or_create(conversation_serial.id)
             .set_metadata(conversation_serial);
 
         let member_serials: Vec<ConversationMemberSerial> =
