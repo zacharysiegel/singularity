@@ -15,17 +15,20 @@ use uuid::Uuid;
 pub struct ChatPanelInput;
 
 impl ScrollHandler for ChatPanelInput {
-    fn scroll(&mut self, rl: &mut RaylibHandle, _scroll_v: Vector2, mouse_position: RenderCoord) -> ScrollResult {
+    fn scroll(&mut self, rl: &mut RaylibHandle, scroll_v: Vector2, mouse_position: RenderCoord) -> ScrollResult {
         if !STATE.conversation.chat_panel.read().unwrap().open {
             return ScrollResult::Pass;
         }
 
-        let mouse_hovered: bool = ChatPanel::panel_rectangle(rl.get_screen_width() as f32, rl.get_screen_height() as f32)
-            .check_collision_point_rec(mouse_position);
-        match mouse_hovered {
-            true => ScrollResult::Consume,
-            false => ScrollResult::Pass,
+        let panel_rect: Rectangle = ChatPanel::panel_rectangle(rl.get_screen_width() as f32, rl.get_screen_height() as f32);
+        if !panel_rect.check_collision_point_rec(mouse_position) {
+            return ScrollResult::Pass;
         }
+
+        let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
+        chat_panel.list_scroll_region.scroll(rl, scroll_v, mouse_position);
+
+        ScrollResult::Consume
     }
 }
 impl ClickHandler for ChatPanelInput {
