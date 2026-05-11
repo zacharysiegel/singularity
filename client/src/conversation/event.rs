@@ -24,12 +24,13 @@ pub fn handle_member_joined(change_serial: ConversationMemberChangeSerial) {
 
     let mut conversation_entry: RefMut<Uuid, Conversation> = STATE.conversation.conversations
         .entry(conversation_id)
-        .or_insert_with(Conversation::new);
+        .or_insert_with(|| {
+            STATE.conversation.mark_display_order_dirty();
+            Conversation::new()
+        });
     conversation_entry.members
         .entry(change_serial.account_id)
         .or_insert_with(|| ConversationMember::from(&change_serial));
-
-    STATE.conversation.mark_display_order_dirty();
 }
 
 pub fn handle_member_left(change_serial: ConversationMemberChangeSerial) {
@@ -41,8 +42,6 @@ pub fn handle_member_left(change_serial: ConversationMemberChangeSerial) {
     if let Some(mut conversation_entry) = STATE.conversation.conversations.get_mut(&conversation_id) {
         conversation_entry.members.remove(&change_serial.account_id);
     }
-
-    STATE.conversation.mark_display_order_dirty();
 }
 
 fn insert_event(conversation_id: Uuid, event: ConversationEvent) {
@@ -51,7 +50,11 @@ fn insert_event(conversation_id: Uuid, event: ConversationEvent) {
 
     let mut conversation_entry: RefMut<Uuid, Conversation> = STATE.conversation.conversations
         .entry(conversation_id)
-        .or_insert_with(Conversation::new);
+        .or_insert_with(|| {
+            STATE.conversation.mark_display_order_dirty();
+            Conversation::new()
+        });
+
     let previous_value: Option<ConversationEvent> = conversation_entry.events.insert(event_key, event);
 
     if previous_value.is_none() {
