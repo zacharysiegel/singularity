@@ -4,7 +4,7 @@ use strum::EnumIter;
 use uuid::Uuid;
 
 const PANEL_MAX_WIDTH: f32 = 600.;
-pub const HEADER_HEIGHT: f32 = 39.;
+pub const HEADER_HEIGHT: f32 = 46.;
 pub const ENTRY_HEIGHT: f32 = 44.;
 
 #[derive(Debug, Clone, PartialEq)]
