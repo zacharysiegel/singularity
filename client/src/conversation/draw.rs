@@ -99,7 +99,8 @@ fn draw_conversation_list(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle)
             .iter()
             .map(|entry| *entry.key())
             .collect();
-        conversation_ids.sort();
+        // Newest first (v7 UUIDs encode timestamp in high bits)
+        conversation_ids.sort_by(|a, b| b.cmp(a));
         chat_panel.displayed_conversation_order = conversation_ids;
         chat_panel.displayed_conversation_order_dirty = false;
     }
