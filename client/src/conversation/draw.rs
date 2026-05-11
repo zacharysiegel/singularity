@@ -3,7 +3,6 @@ use crate::component::icon::{draw_close_x, draw_hamburger, draw_plus};
 use crate::component::text::Text;
 use crate::component::text_truncate;
 use crate::conversation::panel::{ChatPanel, ChatTab, RailButton, ENTRY_HEIGHT, HEADER_HEIGHT};
-use crate::conversation::state::Conversation;
 use crate::state::STATE;
 use crate::window::BUTTON_WIDTH;
 use raylib::color::Color;
@@ -13,6 +12,7 @@ use raylib::text::RaylibFont;
 use raylib::RaylibThread;
 use shared::color::{GREEN, TEXT_COLOR, WINDOW_BACKGROUND_COLOR, WINDOW_INTERIOR_BORDER_COLOR};
 use strum::IntoEnumIterator;
+use uuid::Uuid;
 
 const PANEL_BACKGROUND_ALPHA: u8 = 0xE8;
 const CONTENT_PADDING: f32 = 12.;
@@ -92,17 +92,34 @@ fn draw_double_separator(rl_draw: &mut RaylibDrawHandle, x: f32, y: f32) {
 
 fn draw_conversation_list(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
     let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
-    let hovered_list_entry: Option<usize> = STATE.conversation.chat_panel.read().unwrap().hovered_list_entry;
+
+    let mut chat_panel = STATE.conversation.chat_panel.write().unwrap();
+    if chat_panel.displayed_conversation_order_dirty {
+        chat_panel.displayed_conversation_order = STATE.conversation.conversations
+            .iter()
+            .map(|entry| *entry.key())
+            .collect();
+        chat_panel.displayed_conversation_order_dirty = false;
+    }
+    let conversation_order: Vec<Uuid> = chat_panel.displayed_conversation_order.clone();
+    let hovered_list_entry: Option<usize> = chat_panel.hovered_list_entry;
+    drop(chat_panel);
 
     draw_conversation_list_header(rl_draw, content_rect);
 
     let mut y: f32 = content_rect.y + HEADER_HEIGHT;
-    for (index, entry) in STATE.conversation.conversations.iter().enumerate() {
+    for (index, conversation_id) in conversation_order.iter().enumerate() {
         if y + ENTRY_HEIGHT > content_rect.y + content_rect.height {
             break;
         }
         let hovered: bool = hovered_list_entry == Some(index);
-        draw_conversation_entry(rl_draw, content_rect, y, entry.value(), hovered);
+        if let Some(conversation) = STATE.conversation.conversations.get(conversation_id) {
+            let name: String = conversation.name.clone().unwrap_or_else(|| "Unnamed".to_string());
+            let member_count: usize = conversation.members.len();
+            let unread_count: u32 = conversation.unread_count;
+            drop(conversation);
+            draw_conversation_entry(rl_draw, content_rect, y, &name, member_count, unread_count, hovered);
+        }
         y += ENTRY_HEIGHT;
     }
 }
@@ -141,7 +158,9 @@ fn draw_conversation_entry(
     rl_draw: &mut RaylibDrawHandle,
     content_rect: Rectangle,
     y: f32,
-    conversation: &Conversation,
+    name: &str,
+    member_count: usize,
+    unread_count: u32,
     hovered: bool,
 ) {
     if hovered {
@@ -170,9 +189,6 @@ fn draw_conversation_entry(
     }
 
     let font = rl_draw.get_font_default();
-    let name: &str = conversation.name.as_deref().unwrap_or("Unnamed");
-    let member_count: usize = conversation.members.len();
-    let unread_count: u32 = conversation.unread_count;
 
     let name_x: f32 = content_rect.x + CONTENT_PADDING;
     let name_max_width: f32 = content_rect.width - CONTENT_PADDING * 2. - 80.;
