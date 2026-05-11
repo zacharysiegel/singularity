@@ -128,6 +128,12 @@ fn draw_conversation_entry(
             height: ENTRY_HEIGHT,
         };
         rl_draw.draw_rectangle_rec(hover_rect, shared::math::color_add(&WINDOW_BACKGROUND_COLOR, &shared::color::DIFF_HOVER_BUTTON));
+        rl_draw.draw_line_ex(
+            Vector2 { x: content_rect.x + content_rect.width, y },
+            Vector2 { x: content_rect.x + content_rect.width, y: y + ENTRY_HEIGHT },
+            BORDER_THICKNESS,
+            WINDOW_INTERIOR_BORDER_COLOR,
+        );
     }
 
     let font = rl_draw.get_font_default();
