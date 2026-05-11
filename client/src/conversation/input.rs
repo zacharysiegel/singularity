@@ -143,9 +143,9 @@ impl HoverHandler for ChatPanelInput {
 
         let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
         let hovered_list_entry: Option<usize> = if content_rect.check_collision_point_rec(mouse_position) {
-            let entry_y: f32 = mouse_position.y - content_rect.y - HEADER_HEIGHT;
-            if entry_y >= 0. {
-                Some((entry_y / ENTRY_HEIGHT) as usize)
+            let mouse_offset_from_entries: f32 = mouse_position.y - content_rect.y - HEADER_HEIGHT;
+            if mouse_offset_from_entries >= 0. {
+                Some((mouse_offset_from_entries / ENTRY_HEIGHT) as usize)
             } else {
                 None
             }
