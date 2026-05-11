@@ -115,3 +115,12 @@ fn draw_side_button_accent(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
         WINDOW_INTERIOR_BORDER_COLOR,
     );
 }
+
+pub fn draw_side_button_accent_filled(rl_draw: &mut RaylibDrawHandle, rect: Rectangle, color: Color) {
+    rl_draw.draw_triangle(
+        Vector2 { x: rect.x + rect.width, y: rect.y + rect.height - ACCENT_HEIGHT },
+        Vector2 { x: rect.x + rect.width, y: rect.y + rect.height },
+        Vector2 { x: rect.x + rect.width - ACCENT_HEIGHT, y: rect.y + rect.height },
+        color,
+    );
+}
