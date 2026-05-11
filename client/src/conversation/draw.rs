@@ -95,10 +95,12 @@ fn draw_conversation_list(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle)
 
     let mut chat_panel = STATE.conversation.chat_panel.write().unwrap();
     if chat_panel.displayed_conversation_order_dirty {
-        chat_panel.displayed_conversation_order = STATE.conversation.conversations
+        let mut conversation_ids: Vec<Uuid> = STATE.conversation.conversations
             .iter()
             .map(|entry| *entry.key())
             .collect();
+        conversation_ids.sort();
+        chat_panel.displayed_conversation_order = conversation_ids;
         chat_panel.displayed_conversation_order_dirty = false;
     }
     let conversation_order: Vec<Uuid> = chat_panel.displayed_conversation_order.clone();
