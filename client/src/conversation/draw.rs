@@ -41,7 +41,14 @@ pub fn draw(rl_draw: &mut RaylibDrawHandle, _rl_thread: &RaylibThread) {
 }
 
 fn draw_rail_action_buttons(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
-    let hovered_button: Option<RailButton> = STATE.conversation.chat_panel.read().unwrap().hovered_rail_button;
+    let chat_panel = STATE.conversation.chat_panel.read().unwrap();
+    let hovered_button: Option<RailButton> = chat_panel.hovered_rail_button;
+    let active_rail_button: Option<RailButton> = match &chat_panel.active_tab {
+        ChatTab::ConversationList => Some(RailButton::List),
+        ChatTab::NewConversation => Some(RailButton::New),
+        ChatTab::Conversation(_) => None,
+    };
+    drop(chat_panel);
 
     let buttons: Vec<(Rectangle, RailButton)> = RailButton::iter()
         .map(|button| (ChatPanel::rail_button_rect(panel_rect, button), button))
@@ -49,6 +56,9 @@ fn draw_rail_action_buttons(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangl
 
     for (rect, button) in &buttons {
         draw_side_button_frame(rl_draw, *rect, hovered_button == Some(*button));
+        if active_rail_button == Some(*button) {
+            rl_draw.draw_rectangle_lines_ex(*rect, BORDER_THICKNESS, shared::color::WINDOW_BORDER_FOCUSED_COLOR);
+        }
     }
 
     let close_rect: Rectangle = buttons[0].0;
