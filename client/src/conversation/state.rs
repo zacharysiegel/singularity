@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use dashmap::DashMap;
+use dashmap::mapref::one::RefMut;
 use shared::schema::conversation::{ConversationMember, ConversationMemberChange};
 use shared::schema::conversation_message::ConversationMessage;
 use std::collections::BTreeMap;
@@ -24,6 +25,15 @@ impl ConversationState {
             display_order: RwLock::new(Vec::new()),
             display_order_dirty: RwLock::new(true),
         }
+    }
+
+    pub fn get_or_create(&self, conversation_id: Uuid) -> RefMut<'_, Uuid, Conversation> {
+        self.conversations
+            .entry(conversation_id)
+            .or_insert_with(|| {
+                self.mark_display_order_dirty();
+                Conversation::new()
+            })
     }
 
     pub fn mark_display_order_dirty(&self) {

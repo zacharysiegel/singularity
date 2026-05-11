@@ -22,12 +22,7 @@ pub fn handle_member_joined(change_serial: ConversationMemberChangeSerial) {
     let event: ConversationEvent = ConversationEvent::MemberJoined(change);
     insert_event(conversation_id, event);
 
-    let mut conversation_entry: RefMut<Uuid, Conversation> = STATE.conversation.conversations
-        .entry(conversation_id)
-        .or_insert_with(|| {
-            STATE.conversation.mark_display_order_dirty();
-            Conversation::new()
-        });
+    let mut conversation_entry: RefMut<Uuid, Conversation> = STATE.conversation.get_or_create(conversation_id);
     conversation_entry.members
         .entry(change_serial.account_id)
         .or_insert_with(|| ConversationMember::from(&change_serial));
@@ -48,12 +43,7 @@ fn insert_event(conversation_id: Uuid, event: ConversationEvent) {
     let event_key: ConversationEventKey = ConversationEventKey::from(&event);
     let event_timestamp: DateTime<Utc> = event_key.timestamp;
 
-    let mut conversation_entry: RefMut<Uuid, Conversation> = STATE.conversation.conversations
-        .entry(conversation_id)
-        .or_insert_with(|| {
-            STATE.conversation.mark_display_order_dirty();
-            Conversation::new()
-        });
+    let mut conversation_entry: RefMut<Uuid, Conversation> = STATE.conversation.get_or_create(conversation_id);
 
     let previous_value: Option<ConversationEvent> = conversation_entry.events.insert(event_key, event);
 
