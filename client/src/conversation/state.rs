@@ -39,7 +39,7 @@ impl ConversationState {
             .iter()
             .map(|entry| *entry.key())
             .collect();
-        // Newest first (v7 UUIDs encode timestamp in high bits)
+        // Deterministic ordering for stable draw/click correspondence (descending = newest first)
         conversation_ids.sort_by(|a, b| b.cmp(a));
         *self.display_order.write().unwrap() = conversation_ids;
         *self.display_order_dirty.write().unwrap() = false;
