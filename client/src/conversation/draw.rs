@@ -111,21 +111,17 @@ fn draw_conversation_list_header(rl_draw: &mut RaylibDrawHandle, content_rect: R
         2.,
         TEXT_COLOR,
     );
-    rl_draw.draw_line_ex(
-        Vector2 { x: content_rect.x, y: content_rect.y + HEADER_HEIGHT - double_border_separation },
-        Vector2 { x: content_rect.x + content_rect.width, y: content_rect.y + HEADER_HEIGHT - double_border_separation },
-        BORDER_THICKNESS,
-        WINDOW_INTERIOR_BORDER_COLOR,
-    );
-    rl_draw.draw_line_ex(
-        Vector2 { x: content_rect.x, y: content_rect.y + HEADER_HEIGHT },
-        Vector2 { x: content_rect.x + content_rect.width, y: content_rect.y + HEADER_HEIGHT },
-        BORDER_THICKNESS,
-        WINDOW_INTERIOR_BORDER_COLOR,
-    );
-    rl_draw.draw_line_ex(
-        Vector2 { x: content_rect.x + content_rect.width, y: content_rect.y + HEADER_HEIGHT - double_border_separation },
-        Vector2 { x: content_rect.x + content_rect.width, y: content_rect.y + HEADER_HEIGHT },
+    let top_y: f32 = content_rect.y + HEADER_HEIGHT - double_border_separation;
+    let bottom_y: f32 = content_rect.y + HEADER_HEIGHT;
+    let left_x: f32 = content_rect.x;
+    let right_x: f32 = content_rect.x + content_rect.width;
+    rl_draw.draw_spline_linear(
+        &[
+            Vector2 { x: left_x, y: top_y },
+            Vector2 { x: right_x, y: top_y },
+            Vector2 { x: right_x, y: bottom_y },
+            Vector2 { x: left_x, y: bottom_y },
+        ],
         BORDER_THICKNESS,
         WINDOW_INTERIOR_BORDER_COLOR,
     );
@@ -147,27 +143,17 @@ fn draw_conversation_entry(
         };
         rl_draw.draw_rectangle_rec(hover_rect, shared::math::color_add(&WINDOW_BACKGROUND_COLOR, &shared::color::DIFF_HOVER_BUTTON));
         // Redraw borders that the hover tint painted over
-        rl_draw.draw_line_ex(
-            Vector2 { x: content_rect.x, y },
-            Vector2 { x: content_rect.x, y: y + ENTRY_HEIGHT },
-            BORDER_THICKNESS,
-            WINDOW_INTERIOR_BORDER_COLOR,
-        );
-        rl_draw.draw_line_ex(
-            Vector2 { x: content_rect.x + content_rect.width, y },
-            Vector2 { x: content_rect.x + content_rect.width, y: y + ENTRY_HEIGHT },
-            BORDER_THICKNESS,
-            WINDOW_INTERIOR_BORDER_COLOR,
-        );
-        rl_draw.draw_line_ex(
-            Vector2 { x: content_rect.x, y },
-            Vector2 { x: content_rect.x + content_rect.width, y },
-            BORDER_THICKNESS,
-            WINDOW_INTERIOR_BORDER_COLOR,
-        );
-        rl_draw.draw_line_ex(
-            Vector2 { x: content_rect.x, y: y + ENTRY_HEIGHT },
-            Vector2 { x: content_rect.x + content_rect.width, y: y + ENTRY_HEIGHT },
+        let left_x: f32 = content_rect.x;
+        let right_x: f32 = content_rect.x + content_rect.width;
+        let bottom_y: f32 = y + ENTRY_HEIGHT;
+        rl_draw.draw_spline_linear(
+            &[
+                Vector2 { x: left_x, y },
+                Vector2 { x: right_x, y },
+                Vector2 { x: right_x, y: bottom_y },
+                Vector2 { x: left_x, y: bottom_y },
+                Vector2 { x: left_x, y },
+            ],
             BORDER_THICKNESS,
             WINDOW_INTERIOR_BORDER_COLOR,
         );
