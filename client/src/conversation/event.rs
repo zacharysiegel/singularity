@@ -29,7 +29,7 @@ pub fn handle_member_joined(change_serial: ConversationMemberChangeSerial) {
         .entry(change_serial.account_id)
         .or_insert_with(|| ConversationMember::from(&change_serial));
 
-    STATE.conversation.chat_panel.write().unwrap().displayed_conversation_order_dirty = true;
+    STATE.conversation.mark_display_order_dirty();
 }
 
 pub fn handle_member_left(change_serial: ConversationMemberChangeSerial) {
@@ -42,7 +42,7 @@ pub fn handle_member_left(change_serial: ConversationMemberChangeSerial) {
         conversation_entry.members.remove(&change_serial.account_id);
     }
 
-    STATE.conversation.chat_panel.write().unwrap().displayed_conversation_order_dirty = true;
+    STATE.conversation.mark_display_order_dirty();
 }
 
 fn insert_event(conversation_id: Uuid, event: ConversationEvent) {

@@ -99,8 +99,7 @@ fn on_conversation_list_click(panel_rect: Rectangle, press_position: RenderCoord
         return;
     }
 
-    let conversation_id: Option<Uuid> = STATE.conversation.chat_panel.read().unwrap()
-        .displayed_conversation_order
+    let conversation_id: Option<Uuid> = STATE.conversation.display_order.read().unwrap()
         .get(release_index)
         .copied();
     let Some(conversation_id) = conversation_id else {
