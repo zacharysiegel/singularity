@@ -50,6 +50,13 @@ impl ChatPanel {
         self.open = !self.open;
     }
 
+    pub fn open_conversation(&mut self, conversation_id: Uuid) {
+        if !self.conversation_tabs.contains(&conversation_id) {
+            self.conversation_tabs.push(conversation_id);
+        }
+        self.active_tab = ChatTab::Conversation(conversation_id);
+    }
+
     pub fn panel_width(screen_width: f32) -> f32 {
         f32::min(screen_width, PANEL_MAX_WIDTH)
     }

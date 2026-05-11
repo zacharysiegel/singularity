@@ -36,6 +36,13 @@ impl ConversationState {
             })
     }
 
+    pub fn mark_as_read(&self, conversation_id: Uuid) {
+        if let Some(mut conversation) = self.conversations.get_mut(&conversation_id) {
+            conversation.last_read = Some(chrono::Utc::now());
+            conversation.unread_count = 0;
+        }
+    }
+
     pub fn mark_display_order_dirty(&self) {
         *self.display_order_dirty.write().unwrap() = true;
     }
