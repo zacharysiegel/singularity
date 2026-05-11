@@ -35,12 +35,14 @@ impl ConversationState {
         if !dirty {
             return;
         }
+
         let mut conversation_ids: Vec<Uuid> = self.conversations
             .iter()
             .map(|entry| *entry.key())
             .collect();
         // Deterministic ordering for stable draw/click correspondence (descending = newest first)
         conversation_ids.sort_by(|a, b| b.cmp(a));
+
         *self.display_order.write().unwrap() = conversation_ids;
         *self.display_order_dirty.write().unwrap() = false;
     }
