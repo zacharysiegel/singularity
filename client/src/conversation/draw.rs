@@ -111,6 +111,12 @@ fn draw_conversation_list_header(rl_draw: &mut RaylibDrawHandle, content_rect: R
         BORDER_THICKNESS,
         WINDOW_INTERIOR_BORDER_COLOR,
     );
+    rl_draw.draw_line_ex(
+        Vector2 { x: content_rect.x, y: content_rect.y + HEADER_HEIGHT + 3. },
+        Vector2 { x: content_rect.x + content_rect.width, y: content_rect.y + HEADER_HEIGHT + 3. },
+        BORDER_THICKNESS,
+        WINDOW_INTERIOR_BORDER_COLOR,
+    );
 }
 
 fn draw_conversation_entry(
