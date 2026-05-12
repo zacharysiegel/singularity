@@ -112,7 +112,7 @@ fn draw_conversation_list(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle)
     rl_draw.draw_scissor_mode(
         scroll_viewport.x as i32,
         scroll_viewport.y as i32,
-        scroll_viewport.width as i32,
+        scroll_viewport.width as i32 + 1, // prevent scissor from clipping the right border pixel
         scroll_viewport.height as i32,
         |mut scissor_draw| {
             let mut y: f32 = scroll_viewport.y - scroll_offset;
