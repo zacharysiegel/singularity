@@ -88,9 +88,10 @@ fn on_content_click(panel_rect: Rectangle, press_position: RenderCoord, release_
 
 fn on_conversation_list_click(panel_rect: Rectangle, press_position: RenderCoord, release_position: RenderCoord) {
     let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
+    let scroll_offset: f32 = STATE.conversation.chat_panel.read().unwrap().list_scroll_region.scroll_offset;
 
-    let press_offset_from_entries: f32 = press_position.y - content_rect.y - HEADER_HEIGHT;
-    let release_offset_from_entries: f32 = release_position.y - content_rect.y - HEADER_HEIGHT;
+    let press_offset_from_entries: f32 = press_position.y - content_rect.y - HEADER_HEIGHT + scroll_offset;
+    let release_offset_from_entries: f32 = release_position.y - content_rect.y - HEADER_HEIGHT + scroll_offset;
     if press_offset_from_entries < 0. || release_offset_from_entries < 0. {
         return;
     }
@@ -133,9 +134,10 @@ impl HoverHandler for ChatPanelInput {
             });
 
         let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
+        let scroll_offset: f32 = STATE.conversation.chat_panel.read().unwrap().list_scroll_region.scroll_offset;
         let display_order_count: usize = STATE.conversation.display_order().len();
         let hovered_list_entry: Option<usize> = if content_rect.check_collision_point_rec(mouse_position) {
-            let mouse_offset_from_entries: f32 = mouse_position.y - content_rect.y - HEADER_HEIGHT;
+            let mouse_offset_from_entries: f32 = mouse_position.y - content_rect.y - HEADER_HEIGHT + scroll_offset;
             if mouse_offset_from_entries >= 0. {
                 let index: usize = (mouse_offset_from_entries / ENTRY_HEIGHT) as usize;
                 if index < display_order_count { Some(index) } else { None }
