@@ -45,7 +45,7 @@ impl ChatPanel {
             expanded: false,
             hovered_rail_button: None,
             hovered_list_entry: None,
-            list_scroll_region: VerticalScrollRegion::new(Rectangle { x: 0., y: 0., width: 0., height: 0. }),
+            list_scroll_region: VerticalScrollRegion::new(Rectangle::default()),
         }
     }
 
