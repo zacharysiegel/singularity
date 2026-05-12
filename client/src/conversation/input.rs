@@ -68,8 +68,9 @@ impl ClickHandler for ChatPanelInput {
         }
 
         let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
-        if content_rect.check_collision_point_rec(press_position)
-            && content_rect.check_collision_point_rec(release_position)
+        let scroll_viewport: Rectangle = ChatPanel::list_scroll_viewport(content_rect);
+        if scroll_viewport.check_collision_point_rec(press_position)
+            && scroll_viewport.check_collision_point_rec(release_position)
         {
             on_content_click(panel_rect, press_position, release_position);
         }
@@ -134,10 +135,11 @@ impl HoverHandler for ChatPanelInput {
             });
 
         let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
+        let scroll_viewport: Rectangle = ChatPanel::list_scroll_viewport(content_rect);
         let scroll_offset: f32 = STATE.conversation.chat_panel.read().unwrap().list_scroll_region.scroll_offset;
         let display_order_count: usize = STATE.conversation.display_order().len();
-        let hovered_list_entry: Option<usize> = if content_rect.check_collision_point_rec(mouse_position) {
-            let mouse_offset_from_entries: f32 = mouse_position.y - content_rect.y - HEADER_HEIGHT + scroll_offset;
+        let hovered_list_entry: Option<usize> = if scroll_viewport.check_collision_point_rec(mouse_position) {
+            let mouse_offset_from_entries: f32 = mouse_position.y - scroll_viewport.y + scroll_offset;
             if mouse_offset_from_entries >= 0. {
                 let index: usize = (mouse_offset_from_entries / ENTRY_HEIGHT) as usize;
                 if index < display_order_count { Some(index) } else { None }
