@@ -110,24 +110,24 @@ fn draw_conversation_list(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle)
         padding: None,
     });
     chat_panel.list_scroll_region.draw(rl_draw, |mut scissor_draw, y_offset| {
-        let mut y: f32 = scroll_viewport.y + y_offset;
+        let mut entry_top: f32 = scroll_viewport.y + y_offset;
         for (index, conversation_id) in conversation_order.iter().enumerate() {
-            if y > scroll_viewport.y + scroll_viewport.height {
+            if entry_top > scroll_viewport.y + scroll_viewport.height {
                 break;
             }
 
-            let entry_bottom: f32 = y + ENTRY_HEIGHT;
-            if entry_bottom > scroll_viewport.y {
+            if entry_top + ENTRY_HEIGHT > scroll_viewport.y {
                 let hovered: bool = hovered_list_entry == Some(index);
                 if let Some(conversation) = STATE.conversation.conversations.get(conversation_id) {
                     let name: String = conversation.name.clone().unwrap_or_else(|| "Unnamed".to_string());
                     let member_count: usize = conversation.members.len();
                     let unread_count: u32 = conversation.unread_count;
                     drop(conversation);
-                    draw_conversation_entry(&mut scissor_draw, content_rect, y, &name, member_count, unread_count, hovered);
+                    draw_conversation_entry(&mut scissor_draw, content_rect, entry_top, &name, member_count, unread_count, hovered);
                 }
             }
-            y += ENTRY_HEIGHT;
+
+            entry_top += ENTRY_HEIGHT;
         }
     });
 }
