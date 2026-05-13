@@ -233,3 +233,31 @@ impl CharPressHandler for ChatPanelInput {
         CharPressResult::Pass
     }
 }
+
+impl ChatPanelInput {
+    pub fn middle_click(rl: &mut RaylibHandle, position: RenderCoord) -> ClickResult {
+        if !STATE.conversation.chat_panel.read().unwrap().open {
+            return ClickResult::Pass;
+        }
+
+        let panel_rect: Rectangle = ChatPanel::panel_rectangle(
+            rl.get_screen_width() as f32,
+            rl.get_screen_height() as f32,
+        );
+        if !panel_rect.check_collision_point_rec(position) {
+            return ClickResult::Pass;
+        }
+
+        let conversation_tabs: Vec<Uuid> =
+            STATE.conversation.chat_panel.read().unwrap().conversation_tabs.clone();
+        for (index, conversation_id) in conversation_tabs.iter().enumerate() {
+            let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, index);
+            if tab_rect.check_collision_point_rec(position) {
+                STATE.conversation.chat_panel.write().unwrap().dismiss_conversation_tab(*conversation_id);
+                return ClickResult::Consume;
+            }
+        }
+
+        ClickResult::Consume
+    }
+}

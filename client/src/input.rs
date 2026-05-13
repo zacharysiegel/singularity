@@ -103,8 +103,11 @@ pub fn handle_user_input(rl: &mut RaylibHandle) {
         *press_position = None;
     }
 
-    if RuntimeEnvironment::default().is_debug() && rl.is_mouse_button_released(MouseButton::MOUSE_BUTTON_MIDDLE) {
-        log::debug!("Position: ({}, {})", mouse_position.x, mouse_position.y);
+    if rl.is_mouse_button_released(MouseButton::MOUSE_BUTTON_MIDDLE) {
+        let middle_result: ClickResult = ChatPanelInput::middle_click(rl, mouse_position);
+        if middle_result == ClickResult::Pass && RuntimeEnvironment::default().is_debug() {
+            log::debug!("Position: ({}, {})", mouse_position.x, mouse_position.y);
+        }
     }
 
     while let Some(key) = rl.get_key_pressed() {
