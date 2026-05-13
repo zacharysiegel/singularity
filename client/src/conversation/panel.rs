@@ -26,6 +26,7 @@ pub struct ChatPanel {
     pub hovered_list_entry: Option<usize>,
     pub hovered_conversation_tab: Option<usize>,
     pub hovered_conversation_tab_close: Option<usize>,
+    pub hovered_tooltip: bool,
     pub list_scroll_region: VerticalScrollRegion,
 }
 
@@ -39,6 +40,8 @@ pub enum RailButton {
 }
 
 impl ChatPanel {
+    pub const TOOLTIP_WIDTH: f32 = 200.;
+
     pub fn new() -> Self {
         ChatPanel {
             open: false,
@@ -48,6 +51,7 @@ impl ChatPanel {
             hovered_list_entry: None,
             hovered_conversation_tab: None,
             hovered_conversation_tab_close: None,
+            hovered_tooltip: false,
             list_scroll_region: VerticalScrollRegion::new(Rectangle::default(), 0.),
         }
     }
@@ -103,6 +107,16 @@ impl ChatPanel {
             y: tab_area_y_start + BUTTON_WIDTH * index as f32,
             width: BUTTON_WIDTH,
             height: BUTTON_WIDTH,
+        }
+    }
+
+    pub fn tooltip_name_area_rect(panel_rect: Rectangle, tab_index: usize) -> Rectangle {
+        let tab_rect: Rectangle = Self::conversation_tab_rect(panel_rect, tab_index);
+        Rectangle {
+            x: tab_rect.x - Self::TOOLTIP_WIDTH,
+            y: tab_rect.y,
+            width: Self::TOOLTIP_WIDTH,
+            height: tab_rect.height,
         }
     }
 
