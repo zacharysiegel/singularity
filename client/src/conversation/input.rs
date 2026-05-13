@@ -81,9 +81,13 @@ fn on_left_click(panel_rect: Rectangle, press_position: RenderCoord, release_pos
         STATE.conversation.chat_panel.read().unwrap().conversation_tabs.clone();
     for (index, conversation_id) in conversation_tabs.iter().enumerate() {
         let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, index);
-        if !(tab_rect.check_collision_point_rec(press_position)
-            && tab_rect.check_collision_point_rec(release_position))
-        {
+        let tooltip_rect: Rectangle = ChatPanel::tooltip_name_area_rect(panel_rect, index);
+        let rect_contains_both = |r: Rectangle| -> bool {
+            r.check_collision_point_rec(press_position) && r.check_collision_point_rec(release_position)
+        };
+        let clicked_tab: bool = rect_contains_both(tab_rect);
+        let clicked_tooltip: bool = rect_contains_both(tooltip_rect);
+        if !clicked_tab && !clicked_tooltip {
             continue;
         }
 
@@ -205,7 +209,10 @@ impl HoverHandler for ChatPanelInput {
 
         let conversation_tab_count: usize = STATE.conversation.chat_panel.read().unwrap().conversation_tabs.len();
         let hovered_conversation_tab: Option<usize> = (0..conversation_tab_count).find(|index| {
-            ChatPanel::conversation_tab_rect(panel_rect, *index).check_collision_point_rec(mouse_position)
+            let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, *index);
+            let tooltip_rect: Rectangle = ChatPanel::tooltip_name_area_rect(panel_rect, *index);
+            tab_rect.check_collision_point_rec(mouse_position)
+                || tooltip_rect.check_collision_point_rec(mouse_position)
         });
         let hovered_conversation_tab_close: Option<usize> = match hovered_conversation_tab {
             Some(index) => {
@@ -219,12 +226,18 @@ impl HoverHandler for ChatPanelInput {
             }
             None => None,
         };
+        let hovered_tooltip: bool = match hovered_conversation_tab {
+            Some(index) => ChatPanel::tooltip_name_area_rect(panel_rect, index)
+                .check_collision_point_rec(mouse_position),
+            None => false,
+        };
 
         let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
         chat_panel.hovered_rail_button = hovered_button;
         chat_panel.hovered_list_entry = hovered_list_entry;
         chat_panel.hovered_conversation_tab = hovered_conversation_tab;
         chat_panel.hovered_conversation_tab_close = hovered_conversation_tab_close;
+        chat_panel.hovered_tooltip = hovered_tooltip;
 
         HoverResult::Consume
     }
