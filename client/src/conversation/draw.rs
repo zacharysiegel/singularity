@@ -114,17 +114,79 @@ fn draw_conversation_tabs(
         let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, index);
         let is_active: bool = active_conversation_id == Some(*conversation_id);
         let is_hovered: bool = hovered_index == Some(index);
+        let name: String = STATE.conversation.conversations
+            .get(conversation_id)
+            .map(|conversation| conversation.name.clone().unwrap_or_else(|| "Unnamed".to_string()))
+            .unwrap_or_default();
 
-        draw_side_button_frame(rl_draw, tab_rect, is_hovered);
-        if is_active {
-            draw_side_button_accent_filled(rl_draw, tab_rect, shared::color::WINDOW_BORDER_FOCUSED_COLOR);
-        }
+        draw_conversation_tab_row(
+            rl_draw,
+            tab_rect,
+            None,
+            &name,
+            is_active,
+            is_hovered,
+            is_hovered && close_hovered_index == Some(index),
+        );
+    }
+}
 
-        draw_donut_ring(rl_draw, tab_rect, DONUT_PLACEHOLDER_COLOR);
+/// Unified renderer used by both the rail tab (collapsed, icon only) and rows that show
+/// the conversation name alongside the icon (tooltip in 5.2, expanded rail in 5.3).
+/// When `name_area_rect` is `None`, only the icon slot is rendered.
+pub fn draw_conversation_tab_row(
+    rl_draw: &mut RaylibDrawHandle,
+    icon_rect: Rectangle,
+    name_area_rect: Option<Rectangle>,
+    name: &str,
+    active: bool,
+    row_hovered: bool,
+    mini_close_hovered: bool,
+) {
+    let full_rect: Rectangle = match name_area_rect {
+        Some(name_rect) => Rectangle {
+            x: name_rect.x,
+            y: icon_rect.y,
+            width: name_rect.width + icon_rect.width,
+            height: icon_rect.height,
+        },
+        None => icon_rect,
+    };
 
-        if is_hovered {
-            draw_tab_mini_close(rl_draw, tab_rect, close_hovered_index == Some(index));
-        }
+    draw_side_button_frame(rl_draw, full_rect, row_hovered);
+    if active {
+        draw_side_button_accent_filled(rl_draw, full_rect, shared::color::WINDOW_BORDER_FOCUSED_COLOR);
+    }
+
+    draw_donut_ring(rl_draw, icon_rect, DONUT_PLACEHOLDER_COLOR);
+
+    if let Some(name_rect) = name_area_rect {
+        let name_text: Text = Text {
+            content: name.to_string(),
+            font_size: NAME_FONT_SIZE,
+            font_spacing: 2.,
+            color: TEXT_COLOR,
+        };
+        let font = || unsafe { WeakFont::from_raw(raylib::ffi::GetFontDefault()) };
+        let name_max_width: f32 = name_rect.width - CONTENT_PADDING * 2.;
+        let truncated_name: String = text_truncate::truncate_text(&name_text, &font(), name_max_width);
+        let text_height: f32 = NAME_FONT_SIZE;
+        let text_y: f32 = math::center_vertically(name_rect.y, name_rect.height, text_height);
+        rl_draw.draw_text_ex(
+            font(),
+            &truncated_name,
+            Vector2 {
+                x: name_rect.x + CONTENT_PADDING,
+                y: text_y,
+            },
+            NAME_FONT_SIZE,
+            2.,
+            TEXT_COLOR,
+        );
+    }
+
+    if row_hovered {
+        draw_tab_mini_close(rl_draw, icon_rect, mini_close_hovered);
     }
 }
 
