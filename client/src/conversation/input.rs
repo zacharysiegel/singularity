@@ -67,6 +67,29 @@ impl ClickHandler for ChatPanelInput {
             return ClickResult::Consume;
         }
 
+        let conversation_tabs: Vec<Uuid> =
+            STATE.conversation.chat_panel.read().unwrap().conversation_tabs.clone();
+        for (index, conversation_id) in conversation_tabs.iter().enumerate() {
+            let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, index);
+            if !(tab_rect.check_collision_point_rec(press_position)
+                && tab_rect.check_collision_point_rec(release_position))
+            {
+                continue;
+            }
+
+            let close_rect: Rectangle = crate::conversation::draw::tab_mini_close_rect(tab_rect);
+            if close_rect.check_collision_point_rec(press_position)
+                && close_rect.check_collision_point_rec(release_position)
+            {
+                STATE.conversation.chat_panel.write().unwrap().dismiss_conversation_tab(*conversation_id);
+                return ClickResult::Consume;
+            }
+
+            STATE.conversation.chat_panel.write().unwrap().open_conversation(*conversation_id);
+            STATE.conversation.mark_as_read(*conversation_id);
+            return ClickResult::Consume;
+        }
+
         let scroll_viewport: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
         if scroll_viewport.check_collision_point_rec(press_position)
             && scroll_viewport.check_collision_point_rec(release_position)
