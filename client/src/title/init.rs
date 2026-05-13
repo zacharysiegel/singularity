@@ -117,7 +117,7 @@ fn create_debug_scroll_region(rl: &mut RaylibHandle) -> VerticalScrollRegion {
         height: scroll_height,
     });
     scroll_region.padding = padding;
-    scroll_region.content_height = content_height;
+    scroll_region.set_dimensions(scroll_region.viewport(), content_height);
     scroll_region
 }
 
