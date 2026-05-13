@@ -191,21 +191,6 @@ impl HoverHandler for ChatPanelInput {
         let scroll_viewport: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
         let scroll_offset: f32 = STATE.conversation.chat_panel.read().unwrap().list_scroll_region.scroll_offset();
         let entry_count: usize = STATE.conversation.display_order().len();
-        let hovered_list_entry: Option<usize> = if scroll_viewport.check_collision_point_rec(mouse_position) {
-            let mouse_offset_from_body: f32 = mouse_position.y - scroll_viewport.y + scroll_offset;
-            if mouse_offset_from_body >= 0. {
-                let index: usize = (mouse_offset_from_body / ENTRY_HEIGHT) as usize;
-                if index < entry_count {
-                    Some(index)
-                } else {
-                    None
-                }
-            } else {
-                None
-            }
-        } else {
-            None
-        };
 
         let conversation_tab_count: usize = STATE.conversation.chat_panel.read().unwrap().conversation_tabs.len();
         let previous_hovered_conversation_tab: Option<usize> =
@@ -243,13 +228,27 @@ impl HoverHandler for ChatPanelInput {
             None => false,
         };
 
+        let hovered_list_entry: Option<usize> = if hovered_conversation_tab.is_none()
+            && scroll_viewport.check_collision_point_rec(mouse_position)
+        {
+            let mouse_offset_from_body: f32 = mouse_position.y - scroll_viewport.y + scroll_offset;
+            if mouse_offset_from_body >= 0. {
+                let index: usize = (mouse_offset_from_body / ENTRY_HEIGHT) as usize;
+                if index < entry_count {
+                    Some(index)
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
         let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
         chat_panel.hovered_rail_button = hovered_button;
-        chat_panel.hovered_list_entry = if hovered_conversation_tab.is_some() {
-            None
-        } else {
-            hovered_list_entry
-        };
+        chat_panel.hovered_list_entry = hovered_list_entry;
         chat_panel.hovered_conversation_tab = hovered_conversation_tab;
         chat_panel.hovered_conversation_tab_close = hovered_conversation_tab_close;
         chat_panel.hovered_tooltip = hovered_tooltip;
