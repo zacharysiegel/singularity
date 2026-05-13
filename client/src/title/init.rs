@@ -1,5 +1,5 @@
 use crate::component::button::RectangularButton;
-use crate::component::scroll_region::{VerticalScrollRegionUpdate, VerticalScrollRegion};
+use crate::component::vertical_scroll_region::{VerticalScrollRegionUpdate, VerticalScrollRegion};
 use crate::component::text::Text;
 use crate::component::text::DEFAULT_FONT_SPACING;
 use crate::input::ClickResult;
