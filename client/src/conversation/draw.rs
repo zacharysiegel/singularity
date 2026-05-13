@@ -7,13 +7,14 @@ use crate::conversation::panel::{ChatPanel, ChatTab, RailButton, ENTRY_HEIGHT, H
 use crate::state::STATE;
 use crate::window::BUTTON_WIDTH;
 use raylib::color::Color;
-use raylib::drawing::{RaylibDraw, RaylibDrawHandle, RaylibScissorModeExt};
+use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::{Rectangle, Vector2};
 use raylib::text::RaylibFont;
 use raylib::RaylibThread;
 use shared::color::{GREEN, TEXT_COLOR, WINDOW_BACKGROUND_COLOR, WINDOW_INTERIOR_BORDER_COLOR};
 use strum::IntoEnumIterator;
 use uuid::Uuid;
+use crate::component::scroll_region::VerticalScrollRegionUpdate;
 
 const PANEL_BACKGROUND_ALPHA: u8 = 0xE8;
 const CONTENT_PADDING: f32 = 12.;
@@ -103,41 +104,31 @@ fn draw_conversation_list(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle)
     let logical_height: f32 = conversation_count as f32 * ENTRY_HEIGHT;
 
     let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
-    chat_panel.list_scroll_region.update(crate::component::scroll_region::VerticalScrollRegionUpdate {
+    chat_panel.list_scroll_region.update(VerticalScrollRegionUpdate {
         viewport: Some(scroll_viewport),
         content_height: Some(logical_height),
         padding: None,
     });
-    drop(chat_panel);
-
-    let scroll_offset: f32 = STATE.conversation.chat_panel.read().unwrap().list_scroll_region.scroll_offset();
-
-    rl_draw.draw_scissor_mode(
-        scroll_viewport.x as i32,
-        scroll_viewport.y as i32,
-        scroll_viewport.width as i32 + 1, // prevent scissor from clipping the right border pixel
-        scroll_viewport.height as i32,
-        |mut scissor_draw| {
-            let mut y: f32 = scroll_viewport.y - scroll_offset;
-            for (index, conversation_id) in conversation_order.iter().enumerate() {
-                let entry_bottom: f32 = y + ENTRY_HEIGHT;
-                if y > scroll_viewport.y + scroll_viewport.height {
-                    break;
-                }
-                if entry_bottom > scroll_viewport.y {
-                    let hovered: bool = hovered_list_entry == Some(index);
-                    if let Some(conversation) = STATE.conversation.conversations.get(conversation_id) {
-                        let name: String = conversation.name.clone().unwrap_or_else(|| "Unnamed".to_string());
-                        let member_count: usize = conversation.members.len();
-                        let unread_count: u32 = conversation.unread_count;
-                        drop(conversation);
-                        draw_conversation_entry(&mut scissor_draw, content_rect, y, &name, member_count, unread_count, hovered);
-                    }
-                }
-                y += ENTRY_HEIGHT;
+    chat_panel.list_scroll_region.draw(rl_draw, |mut scissor_draw, y_offset| {
+        let mut y: f32 = scroll_viewport.y + y_offset;
+        for (index, conversation_id) in conversation_order.iter().enumerate() {
+            let entry_bottom: f32 = y + ENTRY_HEIGHT;
+            if y > scroll_viewport.y + scroll_viewport.height {
+                break;
             }
-        },
-    );
+            if entry_bottom > scroll_viewport.y {
+                let hovered: bool = hovered_list_entry == Some(index);
+                if let Some(conversation) = STATE.conversation.conversations.get(conversation_id) {
+                    let name: String = conversation.name.clone().unwrap_or_else(|| "Unnamed".to_string());
+                    let member_count: usize = conversation.members.len();
+                    let unread_count: u32 = conversation.unread_count;
+                    drop(conversation);
+                    draw_conversation_entry(&mut scissor_draw, content_rect, y, &name, member_count, unread_count, hovered);
+                }
+            }
+            y += ENTRY_HEIGHT;
+        }
+    });
 }
 
 fn draw_conversation_list_header(rl_draw: &mut RaylibDrawHandle, content_rect: Rectangle) {
