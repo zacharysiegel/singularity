@@ -72,8 +72,8 @@ impl VerticalScrollRegion {
         rl_draw.draw_scissor_mode(
             self.viewport.x as i32,
             self.viewport.y as i32,
-            self.viewport.width.ceil() as i32,
-            self.viewport.height.ceil() as i32,
+            self.viewport.width.floor() as i32 + 1, // Hacky adjustment to allow borders to render correctly with default OpenGL antialiasing/smoothing
+            self.viewport.height.floor() as i32 + 1,
             |scissor_draw: RaylibScissorMode<RaylibDrawHandle>| {
                 draw_fn(scissor_draw, y_offset);
             },

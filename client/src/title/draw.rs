@@ -1,5 +1,5 @@
 use crate::component::button::RectangularButton;
-use crate::component::scroll_region::VerticalScrollRegion;
+use crate::component::vertical_scroll_region::VerticalScrollRegion;
 use crate::component::text_wrap;
 use crate::config::APPLICATION_NAME;
 use crate::state::STATE;

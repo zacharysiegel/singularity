@@ -1,4 +1,4 @@
-use crate::component::scroll_region::VerticalScrollRegion;
+use crate::component::vertical_scroll_region::VerticalScrollRegion;
 use crate::window::{BORDER_GAP, BUTTON_WIDTH};
 use raylib::math::Rectangle;
 use strum::EnumIter;
