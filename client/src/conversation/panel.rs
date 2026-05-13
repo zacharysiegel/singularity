@@ -7,6 +7,7 @@ use uuid::Uuid;
 const PANEL_MAX_WIDTH: f32 = 600.;
 pub const HEADER_HEIGHT: f32 = 46.;
 pub const ENTRY_HEIGHT: f32 = 44.;
+pub const RAIL_SEPARATOR_GAP: f32 = 6.;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ChatTab {
@@ -24,6 +25,8 @@ pub struct ChatPanel {
     pub expanded: bool,
     pub hovered_rail_button: Option<RailButton>,
     pub hovered_list_entry: Option<usize>,
+    pub hovered_conversation_tab: Option<usize>,
+    pub hovered_conversation_tab_close: bool,
     pub list_scroll_region: VerticalScrollRegion,
 }
 
@@ -45,6 +48,8 @@ impl ChatPanel {
             expanded: false,
             hovered_rail_button: None,
             hovered_list_entry: None,
+            hovered_conversation_tab: None,
+            hovered_conversation_tab_close: false,
             list_scroll_region: VerticalScrollRegion::new(Rectangle::default(), 0.),
         }
     }
@@ -80,6 +85,17 @@ impl ChatPanel {
         Rectangle {
             x: rail_x,
             y: rail_y + BUTTON_WIDTH * button as u8 as f32,
+            width: BUTTON_WIDTH,
+            height: BUTTON_WIDTH,
+        }
+    }
+
+    pub fn conversation_tab_rect(panel_rect: Rectangle, index: usize) -> Rectangle {
+        let list_rect: Rectangle = Self::rail_button_rect(panel_rect, RailButton::List);
+        let tab_area_y_start: f32 = list_rect.y + list_rect.height + RAIL_SEPARATOR_GAP;
+        Rectangle {
+            x: list_rect.x,
+            y: tab_area_y_start + BUTTON_WIDTH * index as f32,
             width: BUTTON_WIDTH,
             height: BUTTON_WIDTH,
         }
