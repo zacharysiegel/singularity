@@ -208,12 +208,23 @@ impl HoverHandler for ChatPanelInput {
         };
 
         let conversation_tab_count: usize = STATE.conversation.chat_panel.read().unwrap().conversation_tabs.len();
-        let hovered_conversation_tab: Option<usize> = (0..conversation_tab_count).find(|index| {
-            let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, *index);
-            let tooltip_rect: Rectangle = ChatPanel::tooltip_name_area_rect(panel_rect, *index);
-            tab_rect.check_collision_point_rec(mouse_position)
-                || tooltip_rect.check_collision_point_rec(mouse_position)
+        let previous_hovered_conversation_tab: Option<usize> =
+            STATE.conversation.chat_panel.read().unwrap().hovered_conversation_tab;
+        let tab_under_cursor: Option<usize> = (0..conversation_tab_count).find(|index| {
+            ChatPanel::conversation_tab_rect(panel_rect, *index).check_collision_point_rec(mouse_position)
         });
+        let hovered_conversation_tab: Option<usize> = match (tab_under_cursor, previous_hovered_conversation_tab) {
+            (Some(index), _) => Some(index),
+            (None, Some(previous_index)) => {
+                let tooltip_rect: Rectangle = ChatPanel::tooltip_name_area_rect(panel_rect, previous_index);
+                if tooltip_rect.check_collision_point_rec(mouse_position) {
+                    Some(previous_index)
+                } else {
+                    None
+                }
+            }
+            (None, None) => None,
+        };
         let hovered_conversation_tab_close: Option<usize> = match hovered_conversation_tab {
             Some(index) => {
                 let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, index);
