@@ -182,78 +182,102 @@ impl HoverHandler for ChatPanelInput {
             return HoverResult::Pass;
         }
 
-        let hovered_button: Option<RailButton> = RailButton::iter()
-            .find(|button| {
-                ChatPanel::rail_button_rect(panel_rect, *button)
-                    .check_collision_point_rec(mouse_position)
-            });
-
-        let scroll_viewport: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
-        let scroll_offset: f32 = STATE.conversation.chat_panel.read().unwrap().list_scroll_region.scroll_offset();
-        let entry_count: usize = STATE.conversation.display_order().len();
-
-        let conversation_tab_count: usize = STATE.conversation.chat_panel.read().unwrap().conversation_tabs.len();
-        let previous_hovered_conversation_tab: Option<usize> =
-            STATE.conversation.chat_panel.read().unwrap().hovered_conversation_tab;
-        let tab_under_cursor: Option<usize> = (0..conversation_tab_count).find(|index| {
-            ChatPanel::conversation_tab_rect(panel_rect, *index).check_collision_point_rec(mouse_position)
-        });
-        let hovered_conversation_tab: Option<usize> = match (tab_under_cursor, previous_hovered_conversation_tab) {
-            (Some(index), _) => Some(index),
-            (None, Some(previous_index)) => {
-                let tooltip_rect: Rectangle = ChatPanel::tooltip_name_area_rect(panel_rect, previous_index);
-                if tooltip_rect.check_collision_point_rec(mouse_position) {
-                    Some(previous_index)
-                } else {
-                    None
-                }
-            }
-            (None, None) => None,
-        };
-        let hovered_conversation_tab_close: Option<usize> = match hovered_conversation_tab {
-            Some(index) => {
-                let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, index);
-                let close_rect: Rectangle = draw::tab_mini_close_rect(tab_rect);
-                if close_rect.check_collision_point_rec(mouse_position) {
-                    Some(index)
-                } else {
-                    None
-                }
-            }
-            None => None,
-        };
-        let hovered_tooltip: bool = match hovered_conversation_tab {
-            Some(index) => ChatPanel::tooltip_name_area_rect(panel_rect, index)
-                .check_collision_point_rec(mouse_position),
-            None => false,
-        };
-
-        let hovered_list_entry: Option<usize> = if hovered_conversation_tab.is_none()
-            && scroll_viewport.check_collision_point_rec(mouse_position)
-        {
-            let mouse_offset_from_body: f32 = mouse_position.y - scroll_viewport.y + scroll_offset;
-            if mouse_offset_from_body >= 0. {
-                let index: usize = (mouse_offset_from_body / ENTRY_HEIGHT) as usize;
-                if index < entry_count {
-                    Some(index)
-                } else {
-                    None
-                }
-            } else {
-                None
-            }
+        let hovered_rail_button: Option<RailButton> = on_rail_button_hover(panel_rect, mouse_position);
+        let (hovered_conversation_tab, hovered_conversation_tab_close, hovered_tooltip): (Option<usize>, Option<usize>, bool) =
+            on_conversation_tab_hover(panel_rect, mouse_position);
+        let hovered_list_entry: Option<usize> = if hovered_conversation_tab.is_none() {
+            on_content_hover(panel_rect, mouse_position)
         } else {
             None
         };
 
         let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
-        chat_panel.hovered_rail_button = hovered_button;
-        chat_panel.hovered_list_entry = hovered_list_entry;
+        chat_panel.hovered_rail_button = hovered_rail_button;
         chat_panel.hovered_conversation_tab = hovered_conversation_tab;
         chat_panel.hovered_conversation_tab_close = hovered_conversation_tab_close;
         chat_panel.hovered_tooltip = hovered_tooltip;
+        chat_panel.hovered_list_entry = hovered_list_entry;
 
         HoverResult::Consume
+    }
+}
+
+fn on_rail_button_hover(panel_rect: Rectangle, mouse_position: RenderCoord) -> Option<RailButton> {
+    RailButton::iter().find(|button| {
+        ChatPanel::rail_button_rect(panel_rect, *button).check_collision_point_rec(mouse_position)
+    })
+}
+
+fn on_conversation_tab_hover(
+    panel_rect: Rectangle,
+    mouse_position: RenderCoord,
+) -> (Option<usize>, Option<usize>, bool) {
+    let chat_panel: std::sync::RwLockReadGuard<ChatPanel> = STATE.conversation.chat_panel.read().unwrap();
+    let conversation_tab_count: usize = chat_panel.conversation_tabs.len();
+    let previous_hovered_conversation_tab: Option<usize> = chat_panel.hovered_conversation_tab;
+    drop(chat_panel);
+
+    let tab_under_cursor: Option<usize> = (0..conversation_tab_count).find(|index| {
+        ChatPanel::conversation_tab_rect(panel_rect, *index).check_collision_point_rec(mouse_position)
+    });
+    let hovered_conversation_tab: Option<usize> = match (tab_under_cursor, previous_hovered_conversation_tab) {
+        (Some(index), _) => Some(index),
+        (None, Some(previous_index)) => {
+            let tooltip_rect: Rectangle = ChatPanel::tooltip_name_area_rect(panel_rect, previous_index);
+            if tooltip_rect.check_collision_point_rec(mouse_position) {
+                Some(previous_index)
+            } else {
+                None
+            }
+        }
+        (None, None) => None,
+    };
+
+    let (hovered_conversation_tab_close, hovered_tooltip): (Option<usize>, bool) = match hovered_conversation_tab {
+        Some(index) => {
+            let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, index);
+            let close_rect: Rectangle = crate::conversation::draw::tab_mini_close_rect(tab_rect);
+            let tooltip_rect: Rectangle = ChatPanel::tooltip_name_area_rect(panel_rect, index);
+            let close_hovered: Option<usize> = if close_rect.check_collision_point_rec(mouse_position) {
+                Some(index)
+            } else {
+                None
+            };
+            (
+                close_hovered,
+                tooltip_rect.check_collision_point_rec(mouse_position),
+            )
+        }
+        None => (None, false),
+    };
+
+    (hovered_conversation_tab, hovered_conversation_tab_close, hovered_tooltip)
+}
+
+fn on_content_hover(panel_rect: Rectangle, mouse_position: RenderCoord) -> Option<usize> {
+    let active_tab: ChatTab = STATE.conversation.chat_panel.read().unwrap().active_tab.clone();
+    match active_tab {
+        ChatTab::ConversationList => on_conversation_list_hover(panel_rect, mouse_position),
+        _ => None,
+    }
+}
+
+fn on_conversation_list_hover(panel_rect: Rectangle, mouse_position: RenderCoord) -> Option<usize> {
+    let scroll_viewport: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
+    if !scroll_viewport.check_collision_point_rec(mouse_position) {
+        return None;
+    }
+    let scroll_offset: f32 = STATE.conversation.chat_panel.read().unwrap().list_scroll_region.scroll_offset();
+    let entry_count: usize = STATE.conversation.display_order().len();
+    let mouse_offset_from_body: f32 = mouse_position.y - scroll_viewport.y + scroll_offset;
+    if mouse_offset_from_body < 0. {
+        return None;
+    }
+    let index: usize = (mouse_offset_from_body / ENTRY_HEIGHT) as usize;
+    if index < entry_count {
+        Some(index)
+    } else {
+        None
     }
 }
 
