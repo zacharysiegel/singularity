@@ -59,6 +59,24 @@ pub fn draw_hamburger(rl_draw: &mut RaylibDrawHandle, bounds: Rectangle, thickne
     }
 }
 
+pub fn draw_donut_ring(rl_draw: &mut RaylibDrawHandle, bounds: Rectangle, color: Color) {
+    let center: Vector2 = Vector2 {
+        x: bounds.x + bounds.width / 2.,
+        y: bounds.y + bounds.height / 2.,
+    };
+    let outer_radius: f32 = bounds.width.min(bounds.height) * 0.34;
+    let inner_radius: f32 = outer_radius * 0.3;
+    rl_draw.draw_ring(
+        center,
+        inner_radius,
+        outer_radius,
+        0.,
+        360.,
+        64,
+        color,
+    );
+}
+
 fn create_close_x_segment(center: Vector2, radius: f32, width: f32, reflect: bool) -> [Vector2; X_VERTEX_N] {
     let r_sin_frac_pi_4: f32 = radius * *SIN_FRAC_PI_4 as f32;
     let point_hypotenuse: f32 = width / 2. / *SIN_FRAC_PI_4 as f32;
