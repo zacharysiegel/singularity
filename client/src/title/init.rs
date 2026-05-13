@@ -1,5 +1,5 @@
 use crate::component::button::RectangularButton;
-use crate::component::scroll_region::VerticalScrollRegion;
+use crate::component::scroll_region::{VerticalScrollRegionUpdate, VerticalScrollRegion};
 use crate::component::text::Text;
 use crate::component::text::DEFAULT_FONT_SPACING;
 use crate::input::ClickResult;
@@ -18,6 +18,7 @@ use raylib::RaylibHandle;
 use shared::environment::RuntimeEnvironment;
 use shared::map::RenderCoord;
 use std::sync::{LazyLock, RwLockWriteGuard};
+use crate::conversation;
 
 const BUTTON_DIMENSIONS: LazyLock<Vector2> = LazyLock::new(|| {
     let mut max_measure: Vector2 = Vector2 {
@@ -52,7 +53,7 @@ pub fn init_title(rl: &mut RaylibHandle) {
             STATE.stage.title.debug_scroll_region.write().unwrap();
         *debug_scroll_region = Some(create_debug_scroll_region(rl));
 
-        crate::conversation::debug::seed_debug_conversations(); // todo: remove
+        conversation::debug::seed_debug_conversations(); // todo: remove
     }
 
     let mut games_button: RwLockWriteGuard<RectangularButton> = STATE.stage.title.main_buttons[GAMES_BUTTON_INDEX].write().unwrap();
@@ -110,13 +111,16 @@ fn create_debug_scroll_region(rl: &mut RaylibHandle) -> VerticalScrollRegion {
     ).len();
     let content_height: f32 = wrapped_line_count as f32 * line_height;
 
-    let mut scroll_region: VerticalScrollRegion = VerticalScrollRegion::new(Rectangle {
-        x: rl.get_screen_width() as f32 - SCREEN_MARGIN - viewport_width,
-        y: text_box_y - gap - scroll_height,
-        width: viewport_width,
-        height: scroll_height,
-    }, padding);
-    scroll_region.set_dimensions(crate::component::scroll_region::ScrollRegionDimensions {
+    let mut scroll_region: VerticalScrollRegion = VerticalScrollRegion::new(
+        Rectangle {
+            x: rl.get_screen_width() as f32 - SCREEN_MARGIN - viewport_width,
+            y: text_box_y - gap - scroll_height,
+            width: viewport_width,
+            height: scroll_height,
+        },
+        padding,
+    );
+    scroll_region.update(VerticalScrollRegionUpdate {
         viewport: None,
         content_height: Some(content_height),
         padding: None,

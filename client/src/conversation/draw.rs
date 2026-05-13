@@ -103,7 +103,7 @@ fn draw_conversation_list(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle)
     let logical_height: f32 = conversation_count as f32 * ENTRY_HEIGHT;
 
     let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
-    chat_panel.list_scroll_region.set_dimensions(crate::component::scroll_region::ScrollRegionDimensions {
+    chat_panel.list_scroll_region.update(crate::component::scroll_region::VerticalScrollRegionUpdate {
         viewport: Some(scroll_viewport),
         content_height: Some(logical_height),
         padding: None,
