@@ -7,7 +7,7 @@ use shared::map::RenderCoord;
 const SCROLL_SPEED: f32 = 8.;
 
 #[derive(Debug)]
-pub struct ScrollRegionDimensions {
+pub struct VerticalScrollRegionUpdate {
     pub viewport: Option<Rectangle>,
     pub content_height: Option<f32>,
     pub padding: Option<f32>,
@@ -31,14 +31,14 @@ impl VerticalScrollRegion {
         }
     }
 
-    pub fn set_dimensions(&mut self, dimensions: ScrollRegionDimensions) {
-        if let Some(viewport) = dimensions.viewport {
+    pub fn update(&mut self, update: VerticalScrollRegionUpdate) {
+        if let Some(viewport) = update.viewport {
             self.viewport = viewport;
         }
-        if let Some(content_height) = dimensions.content_height {
+        if let Some(content_height) = update.content_height {
             self.content_height = content_height;
         }
-        if let Some(padding) = dimensions.padding {
+        if let Some(padding) = update.padding {
             self.padding = padding;
         }
     }
