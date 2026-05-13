@@ -9,7 +9,7 @@ use crate::window::BUTTON_WIDTH;
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::{Rectangle, Vector2};
-use raylib::text::RaylibFont;
+use raylib::text::{RaylibFont, WeakFont};
 use raylib::RaylibThread;
 use shared::color::{GREEN, TEXT_COLOR, WINDOW_BACKGROUND_COLOR, WINDOW_INTERIOR_BORDER_COLOR};
 use strum::IntoEnumIterator;
@@ -201,14 +201,15 @@ fn draw_conversation_entry(
     }
 
     let name_x: f32 = content_rect.x + CONTENT_PADDING;
-    let name_max_width: f32 = content_rect.width - CONTENT_PADDING * 2. - 80.;
+    let name_max_width: f32 = content_rect.width - CONTENT_PADDING * 2. - 80.; // Subtract additional end margin
     let name_text: Text = Text {
         content: name.to_string(),
         font_size: NAME_FONT_SIZE,
         font_spacing: 2.,
         color: TEXT_COLOR,
     };
-    let font = || unsafe { raylib::prelude::WeakFont::from_raw(raylib::ffi::GetFontDefault()) };
+    // RaylibDraw does not provide get_font_default. This will need to change soon anyway when we use our own fonts.
+    let font = || unsafe { WeakFont::from_raw(raylib::ffi::GetFontDefault()) };
     let truncated_name: String = text_truncate::truncate_text(&name_text, &font(), name_max_width);
 
     let line_gap: f32 = 4.;
@@ -224,10 +225,10 @@ fn draw_conversation_entry(
         TEXT_COLOR,
     );
 
-    let member_text: String = format!("{member_count} members");
+    let detail_text: String = format!("{member_count} members");
     rl_draw.draw_text_ex(
         font(),
-        &member_text,
+        &detail_text,
         Vector2 { x: name_x, y: text_top + NAME_FONT_SIZE + line_gap },
         DETAIL_FONT_SIZE,
         1.,
@@ -250,6 +251,7 @@ fn draw_conversation_entry(
         );
     }
 
+    // Border bottom
     rl_draw.draw_line_ex(
         Vector2 { x: content_rect.x, y: y + ENTRY_HEIGHT },
         Vector2 { x: content_rect.x + content_rect.width, y: y + ENTRY_HEIGHT },
