@@ -14,6 +14,7 @@ use raylib::RaylibThread;
 use shared::color::{GREEN, TEXT_COLOR, WINDOW_BACKGROUND_COLOR, WINDOW_INTERIOR_BORDER_COLOR};
 use strum::IntoEnumIterator;
 use uuid::Uuid;
+use shared::math;
 use crate::component::vertical_scroll_region::VerticalScrollRegionUpdate;
 
 const PANEL_BACKGROUND_ALPHA: u8 = 0xE8;
@@ -97,7 +98,7 @@ fn draw_conversation_list(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle)
     let conversation_order: RwLockReadGuard<Vec<Uuid>> = STATE.conversation.display_order();
     let hovered_list_entry: Option<usize> = STATE.conversation.chat_panel.read().unwrap().hovered_list_entry;
 
-    draw_conversation_list_header(rl_draw, content_rect);
+    draw_panel_header(rl_draw, content_rect, "Conversations");
 
     let scroll_viewport: Rectangle = ChatPanel::content_body_rectangle(content_rect);
     let conversation_count: usize = conversation_order.len();
@@ -132,20 +133,23 @@ fn draw_conversation_list(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle)
     });
 }
 
-fn draw_conversation_list_header(rl_draw: &mut RaylibDrawHandle, content_rect: Rectangle) {
+/// Renders a panel section header: a vertically centered title text, followed by a double border line.
+/// Used by all chat panel tab views (conversation list, message view, new conversation).
+pub fn draw_panel_header(rl_draw: &mut RaylibDrawHandle, content_rect: Rectangle, title: &str) {
     let double_border_separation: f32 = 4.;
     let header_text_area_height: f32 = HEADER_HEIGHT - double_border_separation;
 
-    let text_height: f32 = rl_draw.get_font_default().measure_text("Conversations", HEADER_FONT_SIZE, 2.).y;
-    let header_text_y: f32 = shared::math::center_vertically(content_rect.y, header_text_area_height, text_height);
+    let text_height: f32 = rl_draw.get_font_default().measure_text(title, HEADER_FONT_SIZE, 2.).y;
+    let header_text_y: f32 = math::center_vertically(content_rect.y, header_text_area_height, text_height);
     rl_draw.draw_text_ex(
         rl_draw.get_font_default(),
-        "Conversations",
+        title,
         Vector2 { x: content_rect.x + CONTENT_PADDING, y: header_text_y },
         HEADER_FONT_SIZE,
         2.,
         TEXT_COLOR,
     );
+
     let top_y: f32 = content_rect.y + HEADER_HEIGHT - double_border_separation;
     let bottom_y: f32 = content_rect.y + HEADER_HEIGHT;
     let left_x: f32 = content_rect.x;
@@ -178,7 +182,7 @@ fn draw_conversation_entry(
             width: content_rect.width,
             height: ENTRY_HEIGHT,
         };
-        rl_draw.draw_rectangle_rec(hover_rect, shared::math::color_add(&WINDOW_BACKGROUND_COLOR, &shared::color::DIFF_HOVER_BUTTON));
+        rl_draw.draw_rectangle_rec(hover_rect, math::color_add(&WINDOW_BACKGROUND_COLOR, &shared::color::DIFF_HOVER_BUTTON));
         // Redraw borders that the hover tint painted over
         let left_x: f32 = content_rect.x;
         let right_x: f32 = content_rect.x + content_rect.width;
@@ -209,7 +213,7 @@ fn draw_conversation_entry(
 
     let line_gap: f32 = 4.;
     let total_text_height: f32 = NAME_FONT_SIZE + DETAIL_FONT_SIZE + line_gap;
-    let text_top: f32 = shared::math::center_vertically(y, ENTRY_HEIGHT, total_text_height);
+    let text_top: f32 = math::center_vertically(y, ENTRY_HEIGHT, total_text_height);
 
     rl_draw.draw_text_ex(
         font(),
