@@ -245,7 +245,11 @@ impl HoverHandler for ChatPanelInput {
 
         let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
         chat_panel.hovered_rail_button = hovered_button;
-        chat_panel.hovered_list_entry = hovered_list_entry;
+        chat_panel.hovered_list_entry = if hovered_conversation_tab.is_some() {
+            None
+        } else {
+            hovered_list_entry
+        };
         chat_panel.hovered_conversation_tab = hovered_conversation_tab;
         chat_panel.hovered_conversation_tab_close = hovered_conversation_tab_close;
         chat_panel.hovered_tooltip = hovered_tooltip;
