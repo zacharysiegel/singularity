@@ -141,7 +141,7 @@ fn draw_conversation_tab_tooltip(
     let Some(tab_index) = chat_panel.hovered_conversation_tab else {
         return;
     };
-    let close_hovered: bool = chat_panel.hovered_conversation_tab_close;
+    let close_hovered_index: Option<usize> = chat_panel.hovered_conversation_tab_close;
     let active_conversation_id: Option<Uuid> = match chat_panel.active_tab {
         ChatTab::Conversation(id) => Some(id),
         _ => None,
@@ -151,13 +151,10 @@ fn draw_conversation_tab_tooltip(
     let Some(conversation_id) = conversation_tabs.get(tab_index).copied() else {
         return;
     };
-    let (unread_count, name): (u32, String) = STATE.conversation.conversations
+    let name: String = STATE.conversation.conversations
         .get(&conversation_id)
-        .map(|conversation| (
-            conversation.unread_count,
-            conversation.name.clone().unwrap_or_else(|| "Unnamed".to_string()),
-        ))
-        .unwrap_or((0, String::new()));
+        .map(|conversation| conversation.name.clone().unwrap_or_else(|| "Unnamed".to_string()))
+        .unwrap_or_default();
 
     let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, tab_index);
     let name_area_rect: Rectangle = ChatPanel::tooltip_name_area_rect(panel_rect, tab_index);
@@ -168,9 +165,8 @@ fn draw_conversation_tab_tooltip(
         Some(name_area_rect),
         &name,
         active_conversation_id == Some(conversation_id),
-        unread_count,
         true,
-        close_hovered,
+        close_hovered_index == Some(tab_index),
     );
 }
 
