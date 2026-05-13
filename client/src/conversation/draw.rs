@@ -1,6 +1,6 @@
 use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 use crate::component::frame::{BORDER_THICKNESS, draw_side_button_accent_filled, draw_side_button_frame, draw_window_frame};
-use crate::component::icon::{draw_close_x, draw_hamburger, draw_plus};
+use crate::component::icon::{draw_close_x, draw_donut_ring, draw_hamburger, draw_plus};
 use crate::component::text::Text;
 use crate::component::text_truncate;
 use crate::conversation::panel::{ChatPanel, ChatTab, RailButton, ENTRY_HEIGHT, HEADER_HEIGHT};
@@ -72,10 +72,11 @@ fn draw_rail_buttons(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
     draw_plus(rl_draw, new_rect, 2., TEXT_COLOR);
     draw_hamburger(rl_draw, list_rect, 2., TEXT_COLOR);
 
-    let has_conversation_tabs: bool = !STATE.conversation.chat_panel.read().unwrap().conversation_tabs.is_empty();
-    if has_conversation_tabs {
+    let conversation_tabs: Vec<Uuid> = STATE.conversation.chat_panel.read().unwrap().conversation_tabs.clone();
+    if !conversation_tabs.is_empty() {
         draw_rail_separator(rl_draw, close_rect.x, list_rect.y + list_rect.height);
     }
+    draw_conversation_tabs(rl_draw, panel_rect, &conversation_tabs);
 }
 
 fn draw_rail_separator(rl_draw: &mut RaylibDrawHandle, x: f32, y: f32) {
@@ -91,6 +92,68 @@ fn draw_rail_separator(rl_draw: &mut RaylibDrawHandle, x: f32, y: f32) {
         BORDER_THICKNESS,
         WINDOW_INTERIOR_BORDER_COLOR,
     );
+}
+
+const DONUT_PLACEHOLDER_COLOR: Color = Color { r: 0xa0, g: 0xa0, b: 0xa0, a: 0xff };
+const TAB_MINI_CLOSE_SIZE: f32 = 12.;
+
+fn draw_conversation_tabs(
+    rl_draw: &mut RaylibDrawHandle,
+    panel_rect: Rectangle,
+    conversation_tabs: &[Uuid],
+) {
+    let chat_panel: RwLockReadGuard<ChatPanel> = STATE.conversation.chat_panel.read().unwrap();
+    let active_conversation_id: Option<Uuid> = match chat_panel.active_tab {
+        ChatTab::Conversation(id) => Some(id),
+        _ => None,
+    };
+    let hovered_index: Option<usize> = chat_panel.hovered_conversation_tab;
+    let close_hovered: bool = chat_panel.hovered_conversation_tab_close;
+    drop(chat_panel);
+
+    for (index, conversation_id) in conversation_tabs.iter().enumerate() {
+        let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, index);
+        let is_active: bool = active_conversation_id == Some(*conversation_id);
+        let is_hovered: bool = hovered_index == Some(index);
+        let unread_count: u32 = STATE.conversation.conversations
+            .get(conversation_id)
+            .map(|conversation| conversation.unread_count)
+            .unwrap_or(0);
+
+        draw_side_button_frame(rl_draw, tab_rect, is_hovered);
+        if is_active {
+            draw_side_button_accent_filled(rl_draw, tab_rect, shared::color::WINDOW_BORDER_FOCUSED_COLOR);
+        } else if unread_count > 0 {
+            draw_side_button_accent_filled(rl_draw, tab_rect, shared::color::TEXT_COLOR);
+        }
+
+        draw_donut_ring(rl_draw, tab_rect, DONUT_PLACEHOLDER_COLOR);
+
+        if is_hovered {
+            draw_tab_mini_close(rl_draw, tab_rect, close_hovered);
+        }
+    }
+}
+
+fn draw_tab_mini_close(rl_draw: &mut RaylibDrawHandle, tab_rect: Rectangle, hovered: bool) {
+    let close_rect: Rectangle = tab_mini_close_rect(tab_rect);
+    let background_color: Color = if hovered {
+        math::color_add(&WINDOW_BACKGROUND_COLOR, &shared::color::DIFF_HOVER_BUTTON)
+    } else {
+        WINDOW_BACKGROUND_COLOR
+    };
+    rl_draw.draw_rectangle_rec(close_rect, background_color);
+    rl_draw.draw_rectangle_lines_ex(close_rect, BORDER_THICKNESS, WINDOW_INTERIOR_BORDER_COLOR);
+    draw_close_x(rl_draw, close_rect, 1.5, shared::color::RED);
+}
+
+pub fn tab_mini_close_rect(tab_rect: Rectangle) -> Rectangle {
+    Rectangle {
+        x: tab_rect.x + tab_rect.width - TAB_MINI_CLOSE_SIZE - 2.,
+        y: tab_rect.y + 2.,
+        width: TAB_MINI_CLOSE_SIZE,
+        height: TAB_MINI_CLOSE_SIZE,
+    }
 }
 
 /// Renders a panel section header: a vertically centered title text, followed by a double border line.
