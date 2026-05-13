@@ -98,13 +98,12 @@ fn draw_conversation_list(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle)
 
     draw_conversation_list_header(rl_draw, content_rect);
 
-    let scroll_viewport: Rectangle = ChatPanel::list_scroll_viewport(content_rect);
+    let scroll_viewport: Rectangle = ChatPanel::content_body_rectangle(content_rect);
     let conversation_count: usize = conversation_order.len();
-    let content_height: f32 = conversation_count as f32 * ENTRY_HEIGHT;
+    let logical_height: f32 = conversation_count as f32 * ENTRY_HEIGHT;
 
     let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
-    chat_panel.list_scroll_region.viewport = scroll_viewport;
-    chat_panel.list_scroll_region.content_height = content_height;
+    chat_panel.list_scroll_region.set_dimensions(scroll_viewport, logical_height);
     drop(chat_panel);
 
     let scroll_offset: f32 = STATE.conversation.chat_panel.read().unwrap().list_scroll_region.scroll_offset;

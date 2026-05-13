@@ -8,8 +8,8 @@ const SCROLL_SPEED: f32 = 8.;
 
 #[derive(Debug)]
 pub struct VerticalScrollRegion {
-    pub viewport: Rectangle,
-    pub content_height: f32,
+    viewport: Rectangle,
+    content_height: f32,
     pub padding: f32,
     pub scroll_offset: f32,
 }
@@ -22,6 +22,15 @@ impl VerticalScrollRegion {
             padding: 0.,
             scroll_offset: 0.,
         }
+    }
+
+    pub fn set_dimensions(&mut self, viewport: Rectangle, content_height: f32) {
+        self.viewport = viewport;
+        self.content_height = content_height;
+    }
+
+    pub fn viewport(&self) -> Rectangle {
+        self.viewport
     }
 
     pub fn max_scroll(&self) -> f32 {
