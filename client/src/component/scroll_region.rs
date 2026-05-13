@@ -72,7 +72,7 @@ impl VerticalScrollRegion {
         rl_draw.draw_scissor_mode(
             self.viewport.x as i32,
             self.viewport.y as i32,
-            self.viewport.width as i32,
+            self.viewport.width as i32 + 1, // prevent scissor from clipping the right border pixel
             self.viewport.height as i32,
             |scissor_draw: RaylibScissorMode<RaylibDrawHandle>| {
                 draw_fn(scissor_draw, y_offset);
