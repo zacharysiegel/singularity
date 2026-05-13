@@ -74,11 +74,11 @@ fn draw_rail_buttons(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
 
     let has_conversation_tabs: bool = !STATE.conversation.chat_panel.read().unwrap().conversation_tabs.is_empty();
     if has_conversation_tabs {
-        draw_double_separator(rl_draw, close_rect.x, list_rect.y + list_rect.height);
+        draw_rail_separator(rl_draw, close_rect.x, list_rect.y + list_rect.height);
     }
 }
 
-fn draw_double_separator(rl_draw: &mut RaylibDrawHandle, x: f32, y: f32) {
+fn draw_rail_separator(rl_draw: &mut RaylibDrawHandle, x: f32, y: f32) {
     rl_draw.draw_line_ex(
         Vector2 { x, y },
         Vector2 { x: x + BUTTON_WIDTH, y },
@@ -88,6 +88,39 @@ fn draw_double_separator(rl_draw: &mut RaylibDrawHandle, x: f32, y: f32) {
     rl_draw.draw_line_ex(
         Vector2 { x, y: y + 3. },
         Vector2 { x: x + BUTTON_WIDTH, y: y + 3. },
+        BORDER_THICKNESS,
+        WINDOW_INTERIOR_BORDER_COLOR,
+    );
+}
+
+/// Renders a panel section header: a vertically centered title text, followed by a double border line.
+/// Used by all chat panel tab views (conversation list, message view, new conversation).
+pub fn draw_panel_header(rl_draw: &mut RaylibDrawHandle, content_rect: Rectangle, title: &str) {
+    let double_border_separation: f32 = 4.;
+    let header_text_area_height: f32 = HEADER_HEIGHT - double_border_separation;
+
+    let text_height: f32 = rl_draw.get_font_default().measure_text(title, HEADER_FONT_SIZE, 2.).y;
+    let header_text_y: f32 = math::center_vertically(content_rect.y, header_text_area_height, text_height);
+    rl_draw.draw_text_ex(
+        rl_draw.get_font_default(),
+        title,
+        Vector2 { x: content_rect.x + CONTENT_PADDING, y: header_text_y },
+        HEADER_FONT_SIZE,
+        2.,
+        TEXT_COLOR,
+    );
+
+    let top_y: f32 = content_rect.y + HEADER_HEIGHT - double_border_separation;
+    let bottom_y: f32 = content_rect.y + HEADER_HEIGHT;
+    let left_x: f32 = content_rect.x;
+    let right_x: f32 = content_rect.x + content_rect.width;
+    rl_draw.draw_spline_linear(
+        &[
+            Vector2 { x: left_x, y: top_y },
+            Vector2 { x: right_x, y: top_y },
+            Vector2 { x: right_x, y: bottom_y },
+            Vector2 { x: left_x, y: bottom_y },
+        ],
         BORDER_THICKNESS,
         WINDOW_INTERIOR_BORDER_COLOR,
     );
@@ -131,39 +164,6 @@ fn draw_conversation_list(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle)
             entry_top += ENTRY_HEIGHT;
         }
     });
-}
-
-/// Renders a panel section header: a vertically centered title text, followed by a double border line.
-/// Used by all chat panel tab views (conversation list, message view, new conversation).
-pub fn draw_panel_header(rl_draw: &mut RaylibDrawHandle, content_rect: Rectangle, title: &str) {
-    let double_border_separation: f32 = 4.;
-    let header_text_area_height: f32 = HEADER_HEIGHT - double_border_separation;
-
-    let text_height: f32 = rl_draw.get_font_default().measure_text(title, HEADER_FONT_SIZE, 2.).y;
-    let header_text_y: f32 = math::center_vertically(content_rect.y, header_text_area_height, text_height);
-    rl_draw.draw_text_ex(
-        rl_draw.get_font_default(),
-        title,
-        Vector2 { x: content_rect.x + CONTENT_PADDING, y: header_text_y },
-        HEADER_FONT_SIZE,
-        2.,
-        TEXT_COLOR,
-    );
-
-    let top_y: f32 = content_rect.y + HEADER_HEIGHT - double_border_separation;
-    let bottom_y: f32 = content_rect.y + HEADER_HEIGHT;
-    let left_x: f32 = content_rect.x;
-    let right_x: f32 = content_rect.x + content_rect.width;
-    rl_draw.draw_spline_linear(
-        &[
-            Vector2 { x: left_x, y: top_y },
-            Vector2 { x: right_x, y: top_y },
-            Vector2 { x: right_x, y: bottom_y },
-            Vector2 { x: left_x, y: bottom_y },
-        ],
-        BORDER_THICKNESS,
-        WINDOW_INTERIOR_BORDER_COLOR,
-    );
 }
 
 fn draw_conversation_entry(
