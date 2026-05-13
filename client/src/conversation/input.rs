@@ -153,9 +153,24 @@ impl HoverHandler for ChatPanelInput {
             None
         };
 
+        let conversation_tab_count: usize = STATE.conversation.chat_panel.read().unwrap().conversation_tabs.len();
+        let hovered_conversation_tab: Option<usize> = (0..conversation_tab_count).find(|index| {
+            ChatPanel::conversation_tab_rect(panel_rect, *index).check_collision_point_rec(mouse_position)
+        });
+        let hovered_conversation_tab_close: bool = match hovered_conversation_tab {
+            Some(index) => {
+                let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, index);
+                crate::conversation::draw::tab_mini_close_rect(tab_rect)
+                    .check_collision_point_rec(mouse_position)
+            }
+            None => false,
+        };
+
         let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
         chat_panel.hovered_rail_button = hovered_button;
         chat_panel.hovered_list_entry = hovered_list_entry;
+        chat_panel.hovered_conversation_tab = hovered_conversation_tab;
+        chat_panel.hovered_conversation_tab_close = hovered_conversation_tab_close;
 
         HoverResult::Consume
     }
