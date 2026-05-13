@@ -74,7 +74,7 @@ fn draw_debug_scroll_region(rl_draw: &mut RaylibDrawHandle) {
     let font_size: f32 = 14.;
     let font_spacing: f32 = 1.;
     let line_height: f32 = 18.;
-    let wrap_width: f32 = scroll_region.viewport().width - scroll_region.padding * 2.;
+    let wrap_width: f32 = scroll_region.viewport().width - scroll_region.padding() * 2.;
     let font = rl_draw.get_font_default();
     let wrapped_lines: Vec<String> = text_wrap::wrap_text(sample_text, &font, font_size, font_spacing, wrap_width);
 
@@ -84,7 +84,7 @@ fn draw_debug_scroll_region(rl_draw: &mut RaylibDrawHandle) {
             scissor_draw.draw_text_ex(
                 scissor_draw.get_font_default(),
                 line,
-                Vector2 { x: scroll_region.viewport().x + scroll_region.padding, y: line_y },
+                Vector2 { x: scroll_region.viewport().x + scroll_region.padding(), y: line_y },
                 font_size,
                 font_spacing,
                 TEXT_COLOR,
