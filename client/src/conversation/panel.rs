@@ -97,7 +97,8 @@ impl ChatPanel {
     }
 
     /// The content rectangle less the header
-    pub fn content_body_rectangle(content_rect: Rectangle) -> Rectangle {
+    pub fn content_body_rectangle(panel_rect: Rectangle) -> Rectangle {
+        let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
         Rectangle {
             x: content_rect.x,
             y: content_rect.y + HEADER_HEIGHT,
