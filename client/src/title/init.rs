@@ -115,9 +115,12 @@ fn create_debug_scroll_region(rl: &mut RaylibHandle) -> VerticalScrollRegion {
         y: text_box_y - gap - scroll_height,
         width: viewport_width,
         height: scroll_height,
+    }, padding);
+    scroll_region.set_dimensions(crate::component::scroll_region::ScrollRegionDimensions {
+        viewport: None,
+        content_height: Some(content_height),
+        padding: None,
     });
-    scroll_region.padding = padding;
-    scroll_region.set_dimensions(scroll_region.viewport(), content_height);
     scroll_region
 }
 

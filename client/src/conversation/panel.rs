@@ -45,7 +45,7 @@ impl ChatPanel {
             expanded: false,
             hovered_rail_button: None,
             hovered_list_entry: None,
-            list_scroll_region: VerticalScrollRegion::new(Rectangle::default()),
+            list_scroll_region: VerticalScrollRegion::new(Rectangle::default(), 0.),
         }
     }
 
@@ -96,8 +96,8 @@ impl ChatPanel {
         }
     }
 
-    /// The scrollable area below the header within the content rectangle.
-    pub fn list_scroll_viewport(content_rect: Rectangle) -> Rectangle {
+    /// The content rectangle less the header
+    pub fn content_body_rectangle(content_rect: Rectangle) -> Rectangle {
         Rectangle {
             x: content_rect.x,
             y: content_rect.y + HEADER_HEIGHT,
