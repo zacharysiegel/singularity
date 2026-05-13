@@ -133,7 +133,7 @@ fn draw_conversation_list(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle)
 
     draw_panel_header(rl_draw, content_rect, "Conversations");
 
-    let scroll_viewport: Rectangle = ChatPanel::content_body_rectangle(content_rect);
+    let scroll_viewport: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
     let conversation_count: usize = conversation_order.len();
     let logical_height: f32 = conversation_count as f32 * ENTRY_HEIGHT;
 

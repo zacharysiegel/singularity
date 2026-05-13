@@ -67,8 +67,7 @@ impl ClickHandler for ChatPanelInput {
             return ClickResult::Consume;
         }
 
-        let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
-        let scroll_viewport: Rectangle = ChatPanel::content_body_rectangle(content_rect);
+        let scroll_viewport: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
         if scroll_viewport.check_collision_point_rec(press_position)
             && scroll_viewport.check_collision_point_rec(release_position)
         {
@@ -91,13 +90,13 @@ fn on_conversation_list_click(panel_rect: Rectangle, press_position: RenderCoord
     let content_body_rect: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
     let scroll_offset: f32 = STATE.conversation.chat_panel.read().unwrap().list_scroll_region.scroll_offset();
 
-    let press_offset_from_entries: f32 = press_position.y - content_body_rect.y + scroll_offset;
+    let press_offset_from_body: f32 = press_position.y - content_body_rect.y + scroll_offset;
     let release_offset_from_entries: f32 = release_position.y - content_body_rect.y + scroll_offset;
-    if press_offset_from_entries < 0. || release_offset_from_entries < 0. {
+    if press_offset_from_body < 0. || release_offset_from_entries < 0. {
         return;
     }
 
-    let press_index: usize = (press_offset_from_entries / ENTRY_HEIGHT) as usize;
+    let press_index: usize = (press_offset_from_body / ENTRY_HEIGHT) as usize;
     let release_index: usize = (release_offset_from_entries / ENTRY_HEIGHT) as usize;
     if press_index != release_index {
         return;
@@ -107,6 +106,7 @@ fn on_conversation_list_click(panel_rect: Rectangle, press_position: RenderCoord
         .get(release_index)
         .copied();
     let Some(conversation_id) = conversation_id else {
+        log::error!("Conversation not found; [{release_index}]");
         return;
     };
 
@@ -134,15 +134,18 @@ impl HoverHandler for ChatPanelInput {
                     .check_collision_point_rec(mouse_position)
             });
 
-        let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
-        let scroll_viewport: Rectangle = ChatPanel::content_body_rectangle(content_rect);
+        let scroll_viewport: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
         let scroll_offset: f32 = STATE.conversation.chat_panel.read().unwrap().list_scroll_region.scroll_offset();
-        let display_order_count: usize = STATE.conversation.display_order().len();
+        let entry_count: usize = STATE.conversation.display_order().len();
         let hovered_list_entry: Option<usize> = if scroll_viewport.check_collision_point_rec(mouse_position) {
-            let mouse_offset_from_entries: f32 = mouse_position.y - scroll_viewport.y + scroll_offset;
-            if mouse_offset_from_entries >= 0. {
-                let index: usize = (mouse_offset_from_entries / ENTRY_HEIGHT) as usize;
-                if index < display_order_count { Some(index) } else { None }
+            let mouse_offset_from_body: f32 = mouse_position.y - scroll_viewport.y + scroll_offset;
+            if mouse_offset_from_body >= 0. {
+                let index: usize = (mouse_offset_from_body / ENTRY_HEIGHT) as usize;
+                if index < entry_count {
+                    Some(index)
+                } else {
+                    None
+                }
             } else {
                 None
             }
