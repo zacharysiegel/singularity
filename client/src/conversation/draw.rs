@@ -43,6 +43,9 @@ pub fn draw(rl_draw: &mut RaylibDrawHandle, _rl_thread: &RaylibThread) {
         ChatTab::Conversation(_) => {}
         ChatTab::NewConversation => {}
     }
+
+    let conversation_tabs: Vec<Uuid> = STATE.conversation.chat_panel.read().unwrap().conversation_tabs.clone();
+    draw_conversation_tab_tooltip(rl_draw, panel_rect, &conversation_tabs);
 }
 
 fn draw_rail_buttons(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
@@ -79,7 +82,6 @@ fn draw_rail_buttons(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
         draw_rail_separator(rl_draw, close_rect.x, list_rect.y + list_rect.height);
     }
     draw_conversation_tabs(rl_draw, panel_rect, &conversation_tabs);
-    draw_conversation_tab_tooltip(rl_draw, panel_rect, &conversation_tabs);
 }
 
 fn draw_rail_separator(rl_draw: &mut RaylibDrawHandle, x: f32, y: f32) {
