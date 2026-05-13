@@ -79,14 +79,19 @@ fn on_left_click(panel_rect: Rectangle, press_position: RenderCoord, release_pos
 
     let conversation_tabs: Vec<Uuid> =
         STATE.conversation.chat_panel.read().unwrap().conversation_tabs.clone();
+    let tooltip_visible_for: Option<usize> =
+        STATE.conversation.chat_panel.read().unwrap().hovered_conversation_tab;
     for (index, conversation_id) in conversation_tabs.iter().enumerate() {
         let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, index);
-        let tooltip_rect: Rectangle = ChatPanel::tooltip_name_area_rect(panel_rect, index);
         let rect_contains_both = |r: Rectangle| -> bool {
             r.check_collision_point_rec(press_position) && r.check_collision_point_rec(release_position)
         };
         let clicked_tab: bool = rect_contains_both(tab_rect);
-        let clicked_tooltip: bool = rect_contains_both(tooltip_rect);
+        let clicked_tooltip: bool = if tooltip_visible_for == Some(index) {
+            rect_contains_both(ChatPanel::tooltip_name_area_rect(panel_rect, index))
+        } else {
+            false
+        };
         if !clicked_tab && !clicked_tooltip {
             continue;
         }
