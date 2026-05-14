@@ -1,4 +1,5 @@
-use crate::conversation::panel::{ChatPanel, ChatTab, RailButton, ENTRY_HEIGHT, HEADER_HEIGHT};
+use crate::conversation::draw;
+use crate::conversation::panel::{ChatPanel, ChatTab, RailButton, ENTRY_HEIGHT};
 use crate::input::{
     CharPressHandler, CharPressResult, ClickButton, ClickHandler, ClickResult, HoverHandler, HoverResult,
     KeyPressHandler, KeyPressResult, ScrollHandler, ScrollResult,
@@ -48,7 +49,6 @@ impl ClickHandler for ChatPanelInput {
 }
 
 fn on_left_click(panel_rect: Rectangle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
-    // Releasing outside after pressing inside should not propagate to underlying handlers.
     if !panel_rect.check_collision_point_rec(press_position) {
         return ClickResult::Pass;
     }
@@ -87,7 +87,7 @@ fn on_left_click(panel_rect: Rectangle, press_position: RenderCoord, release_pos
             continue;
         }
 
-        let close_rect: Rectangle = crate::conversation::draw::tab_mini_close_rect(tab_rect);
+        let close_rect: Rectangle = draw::tab_mini_close_rect(tab_rect);
         if close_rect.check_collision_point_rec(press_position)
             && close_rect.check_collision_point_rec(release_position)
         {
@@ -210,7 +210,7 @@ impl HoverHandler for ChatPanelInput {
         let hovered_conversation_tab_close: Option<usize> = match hovered_conversation_tab {
             Some(index) => {
                 let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, index);
-                let close_rect: Rectangle = crate::conversation::draw::tab_mini_close_rect(tab_rect);
+                let close_rect: Rectangle = draw::tab_mini_close_rect(tab_rect);
                 if close_rect.check_collision_point_rec(mouse_position) {
                     Some(index)
                 } else {
