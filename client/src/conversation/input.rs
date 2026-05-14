@@ -40,14 +40,14 @@ impl ClickHandler for ChatPanelInput {
         let panel_rect: Rectangle = ChatPanel::panel_rect(rl.get_screen_width() as f32, rl.get_screen_height() as f32);
 
         match button {
-            ClickButton::Left => on_left_click(panel_rect, press_position, release_position),
-            ClickButton::Middle => on_middle_click(panel_rect, release_position),
+            ClickButton::Left => handle_left_click(panel_rect, press_position, release_position),
+            ClickButton::Middle => handle_middle_click(panel_rect, release_position),
             ClickButton::Right => ClickResult::Pass,
         }
     }
 }
 
-fn on_left_click(panel_rect: Rectangle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
+fn handle_left_click(panel_rect: Rectangle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
     if !panel_rect.check_collision_point_rec(press_position) {
         return ClickResult::Pass;
     }
@@ -119,7 +119,7 @@ fn on_left_click(panel_rect: Rectangle, press_position: RenderCoord, release_pos
     ClickResult::Consume
 }
 
-fn on_middle_click(panel_rect: Rectangle, position: RenderCoord) -> ClickResult {
+fn handle_middle_click(panel_rect: Rectangle, position: RenderCoord) -> ClickResult {
     if !panel_rect.check_collision_point_rec(position) {
         return ClickResult::Pass;
     }
