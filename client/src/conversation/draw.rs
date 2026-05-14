@@ -22,6 +22,8 @@ const CONTENT_PADDING: f32 = 12.;
 const NAME_FONT_SIZE: f32 = 14.;
 const HEADER_FONT_SIZE: f32 = NAME_FONT_SIZE + 4.;
 const DETAIL_FONT_SIZE: f32 = 10.;
+const DONUT_PLACEHOLDER_COLOR: Color = Color { r: 0xa0, g: 0xa0, b: 0xa0, a: 0xff };
+const TAB_MINI_CLOSE_SIZE: f32 = 12.;
 
 pub fn draw(rl_draw: &mut RaylibDrawHandle, _rl_thread: &RaylibThread) {
     if !STATE.conversation.chat_panel.read().unwrap().open {
@@ -93,9 +95,6 @@ fn draw_rail_separator(rl_draw: &mut RaylibDrawHandle, x: f32, y: f32) {
         WINDOW_INTERIOR_BORDER_COLOR,
     );
 }
-
-const DONUT_PLACEHOLDER_COLOR: Color = Color { r: 0xa0, g: 0xa0, b: 0xa0, a: 0xff };
-const TAB_MINI_CLOSE_SIZE: f32 = 12.;
 
 fn draw_conversation_tabs(
     rl_draw: &mut RaylibDrawHandle,
