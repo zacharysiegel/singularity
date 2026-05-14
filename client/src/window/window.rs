@@ -1,7 +1,7 @@
 use crate::component::button::RectangularButton;
 use crate::input::{
     CharPressHandler, CharPressResult,
-    ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult, ScrollHandler, ScrollResult,
+    ClickButton, ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult, ScrollHandler, ScrollResult,
 };
 use crate::window;
 use crate::window::draw::BORDER_GAP;
@@ -36,7 +36,7 @@ pub trait Window: ScrollHandler + ClickHandler + HoverHandler + KeyPressHandler 
     }
 
     #[allow(unused)]
-    fn on_window_click(&mut self, rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
+    fn on_window_click(&mut self, rl: &mut RaylibHandle, button: ClickButton, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
         ClickResult::Consume
     }
 
