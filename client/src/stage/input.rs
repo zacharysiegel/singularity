@@ -1,7 +1,7 @@
 use crate::browser::BrowserInput;
 use crate::game::GameInput;
 use crate::input::{
-    CharPressHandler, CharPressResult, ClickHandler, ClickResult, HoverHandler, HoverResult,
+    CharPressHandler, CharPressResult, ClickButton, ClickHandler, ClickResult, HoverHandler, HoverResult,
     KeyPressHandler, KeyPressResult, ScrollHandler, ScrollResult,
 };
 use crate::stage::StageType;
@@ -31,11 +31,11 @@ impl ScrollHandler for StageInput {
 }
 
 impl ClickHandler for StageInput {
-    fn click(&mut self, rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
+    fn click(&mut self, rl: &mut RaylibHandle, button: ClickButton, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
         match Self::current_stage() {
-            StageType::Title => TitleInput.click(rl, press_position, release_position),
-            StageType::Game => GameInput.click(rl, press_position, release_position),
-            StageType::Browser => BrowserInput.click(rl, press_position, release_position),
+            StageType::Title => TitleInput.click(rl, button, press_position, release_position),
+            StageType::Game => GameInput.click(rl, button, press_position, release_position),
+            StageType::Browser => BrowserInput.click(rl, button, press_position, release_position),
         }
     }
 }

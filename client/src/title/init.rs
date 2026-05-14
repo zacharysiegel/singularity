@@ -2,7 +2,7 @@ use crate::component::button::RectangularButton;
 use crate::component::vertical_scroll_region::{VerticalScrollRegionUpdate, VerticalScrollRegion};
 use crate::component::text::Text;
 use crate::component::text::DEFAULT_FONT_SPACING;
-use crate::input::ClickResult;
+use crate::input::{ClickButton, ClickResult};
 use crate::stage::StageType;
 use crate::state::{Loading, STATE};
 use crate::component::text_input::TextInput;
@@ -78,7 +78,7 @@ fn create_debug_button(rl: &mut RaylibHandle) -> RectangularButton {
         Text::from_str_default(label),
     );
 
-    fn on_click(_rl: &mut RaylibHandle, _press_position: RenderCoord, _release_position: RenderCoord) -> ClickResult {
+    fn on_click(_rl: &mut RaylibHandle, _button: ClickButton, _press_position: RenderCoord, _release_position: RenderCoord) -> ClickResult {
         STATE.stage.register_next(StageType::Game);
         ClickResult::Consume
     }
@@ -144,7 +144,7 @@ fn create_games_button(rl: &mut RaylibHandle) -> RectangularButton {
         Text::from_str_default(BUTTON_TEXT_ARRAY[GAMES_BUTTON_INDEX]),
     );
     button.on_click = on_click;
-    fn on_click(_rl: &mut RaylibHandle, _press_position: RenderCoord, _release_position: RenderCoord) -> ClickResult {
+    fn on_click(_rl: &mut RaylibHandle, _button: ClickButton, _press_position: RenderCoord, _release_position: RenderCoord) -> ClickResult {
         STATE.stage.register_next(StageType::Browser);
         ClickResult::Consume
     }

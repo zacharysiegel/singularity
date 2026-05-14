@@ -1,6 +1,6 @@
 use crate::input::{
     CharPressHandler, CharPressResult,
-    ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult, ScrollHandler, ScrollResult,
+    ClickButton, ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult, ScrollHandler, ScrollResult,
 };
 use crate::window::Window;
 use raylib::RaylibHandle;
@@ -19,7 +19,11 @@ impl<T: Window> ScrollHandler for T {
 }
 
 impl<T: Window> ClickHandler for T {
-    fn click(&mut self, rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
+    fn click(&mut self, rl: &mut RaylibHandle, button: ClickButton, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
+        if button != ClickButton::Left {
+            return ClickResult::Pass;
+        }
+
         let press_outside: bool = !window_contains_render_coord(self, press_position);
         let release_outside: bool = !window_contains_render_coord(self, release_position);
 
@@ -37,7 +41,7 @@ impl<T: Window> ClickHandler for T {
             return ClickResult::Consume;
         }
 
-        if let ClickResult::Consume = self.close_button_mut().click(rl, press_position, release_position) {
+        if let ClickResult::Consume = self.close_button_mut().click(rl, button, press_position, release_position) {
             self.close();
             return ClickResult::Consume;
         }

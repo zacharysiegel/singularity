@@ -12,7 +12,36 @@ use shared::environment::RuntimeEnvironment;
 use shared::map::RenderCoord;
 use std::sync::{RwLock, RwLockWriteGuard};
 
-static MOUSE_PRESS_POSITION: RwLock<Option<RenderCoord>> = RwLock::new(None);
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ClickButton {
+    Left,
+    Middle,
+    Right,
+}
+
+impl ClickButton {
+    fn raylib(self) -> MouseButton {
+        match self {
+            ClickButton::Left => MouseButton::MOUSE_BUTTON_LEFT,
+            ClickButton::Middle => MouseButton::MOUSE_BUTTON_MIDDLE,
+            ClickButton::Right => MouseButton::MOUSE_BUTTON_RIGHT,
+        }
+    }
+}
+
+const CLICK_BUTTONS: [ClickButton; 3] = [ClickButton::Left, ClickButton::Middle, ClickButton::Right];
+
+static MOUSE_LEFT_PRESS_POSITION: RwLock<Option<RenderCoord>> = RwLock::new(None);
+static MOUSE_MIDDLE_PRESS_POSITION: RwLock<Option<RenderCoord>> = RwLock::new(None);
+static MOUSE_RIGHT_PRESS_POSITION: RwLock<Option<RenderCoord>> = RwLock::new(None);
+
+fn press_position_store(button: ClickButton) -> &'static RwLock<Option<RenderCoord>> {
+    match button {
+        ClickButton::Left => &MOUSE_LEFT_PRESS_POSITION,
+        ClickButton::Middle => &MOUSE_MIDDLE_PRESS_POSITION,
+        ClickButton::Right => &MOUSE_RIGHT_PRESS_POSITION,
+    }
+}
 
 macro_rules! return_if_consumed {
     ($result:ident, $expression:expr) => {
@@ -43,7 +72,7 @@ pub enum ClickResult {
 /// Handle semantics: the implementor must determine whether the click applies to it
 /// (e.g. by checking if both press and release positions are within its bounds).
 pub trait ClickHandler {
-    fn click(&mut self, rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult;
+    fn click(&mut self, rl: &mut RaylibHandle, button: ClickButton, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult;
 }
 
 #[derive(PartialEq)]
@@ -90,23 +119,28 @@ pub fn handle_user_input(rl: &mut RaylibHandle) {
     scroll(rl, scroll_v, mouse_position);
     hover(rl, mouse_position);
 
-    if rl.is_mouse_button_pressed(MouseButton::MOUSE_BUTTON_LEFT) {
-        let mut press_position: RwLockWriteGuard<Option<RenderCoord>> = MOUSE_PRESS_POSITION.write().unwrap();
-        *press_position = Some(mouse_position);
-    }
-
-    if rl.is_mouse_button_released(MouseButton::MOUSE_BUTTON_LEFT) {
-        let mut press_position: RwLockWriteGuard<Option<RenderCoord>> = MOUSE_PRESS_POSITION.write().unwrap();
-        if let Some(press) = *press_position {
-            click(rl, press, mouse_position);
+    for button in CLICK_BUTTONS {
+        if rl.is_mouse_button_pressed(button.raylib()) {
+            let mut press_position: RwLockWriteGuard<Option<RenderCoord>> =
+                press_position_store(button).write().unwrap();
+            *press_position = Some(mouse_position);
         }
-        *press_position = None;
-    }
 
-    if rl.is_mouse_button_released(MouseButton::MOUSE_BUTTON_MIDDLE) {
-        let middle_result: ClickResult = ChatPanelInput::middle_click(rl, mouse_position);
-        if middle_result == ClickResult::Pass && RuntimeEnvironment::default().is_debug() {
-            log::debug!("Position: ({}, {})", mouse_position.x, mouse_position.y);
+        if rl.is_mouse_button_released(button.raylib()) {
+            let mut press_position: RwLockWriteGuard<Option<RenderCoord>> =
+                press_position_store(button).write().unwrap();
+            let press: Option<RenderCoord> = *press_position;
+            *press_position = None;
+            drop(press_position);
+            if let Some(press) = press {
+                let result: ClickResult = click(rl, button, press, mouse_position);
+                if button == ClickButton::Middle
+                    && result == ClickResult::Pass
+                    && RuntimeEnvironment::default().is_debug()
+                {
+                    log::debug!("Position: ({}, {})", mouse_position.x, mouse_position.y);
+                }
+            }
         }
     }
 
@@ -124,9 +158,14 @@ fn scroll(rl: &mut RaylibHandle, scroll_v: Vector2, mouse_position: RenderCoord)
     return_if_consumed!(ScrollResult, StageInput.scroll(rl, scroll_v, mouse_position));
 }
 
-fn click(rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) {
-    return_if_consumed!(ClickResult, ChatPanelInput.click(rl, press_position, release_position));
-    return_if_consumed!(ClickResult, StageInput.click(rl, press_position, release_position));
+fn click(rl: &mut RaylibHandle, button: ClickButton, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
+    if ChatPanelInput.click(rl, button, press_position, release_position) == ClickResult::Consume {
+        return ClickResult::Consume;
+    }
+    if StageInput.click(rl, button, press_position, release_position) == ClickResult::Consume {
+        return ClickResult::Consume;
+    }
+    ClickResult::Pass
 }
 
 fn hover(rl: &mut RaylibHandle, mouse_position: RenderCoord) {
@@ -144,7 +183,7 @@ fn char_press(rl: &mut RaylibHandle, ch: char) {
     return_if_consumed!(CharPressResult, StageInput.char_press(rl, ch));
 }
 
-pub fn noop_on_click(_rl: &mut RaylibHandle, _press_position: RenderCoord, _release_position: RenderCoord) -> ClickResult {
+pub fn noop_on_click(_rl: &mut RaylibHandle, _button: ClickButton, _press_position: RenderCoord, _release_position: RenderCoord) -> ClickResult {
     ClickResult::Consume
 }
 

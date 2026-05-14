@@ -2,7 +2,7 @@ use crate::component::button::RectangularButton;
 use crate::component::vertical_scroll_region::VerticalScrollRegion;
 use crate::input::{
     CharPressHandler, CharPressResult,
-    ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult,
+    ClickButton, ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult,
     ScrollHandler, ScrollResult,
 };
 use crate::state::{Loading, STATE};
@@ -16,19 +16,19 @@ use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 pub struct TitleInput;
 
 impl ClickHandler for TitleInput {
-    fn click(&mut self, rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
+    fn click(&mut self, rl: &mut RaylibHandle, button: ClickButton, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
         let mut debug_button: RwLockWriteGuard<Option<RectangularButton>> =
             STATE.stage.title.debug_button.button.write().unwrap();
         let debug_ready: RwLockReadGuard<Loading> = STATE.stage.title.debug_button.loading.read().unwrap();
         if debug_button.is_some() && *debug_ready == Loading::Complete {
-            if let ClickResult::Consume = debug_button.as_mut().unwrap().click(rl, press_position, release_position) {
+            if let ClickResult::Consume = debug_button.as_mut().unwrap().click(rl, button, press_position, release_position) {
                 return ClickResult::Consume;
             }
         }
 
         for button_l in &STATE.stage.title.main_buttons {
-            let mut button: RwLockWriteGuard<RectangularButton> = button_l.write().unwrap();
-            let result: ClickResult = button.click(rl, press_position, release_position);
+            let mut rect_button: RwLockWriteGuard<RectangularButton> = button_l.write().unwrap();
+            let result: ClickResult = rect_button.click(rl, button, press_position, release_position);
             if let ClickResult::Consume = result {
                 return ClickResult::Consume;
             }
@@ -36,7 +36,7 @@ impl ClickHandler for TitleInput {
 
         let mut text_box_guard: RwLockWriteGuard<Option<TextInput>> = STATE.stage.title.debug_text_box.write().unwrap();
         if let Some(text_box) = text_box_guard.as_mut() {
-            if let ClickResult::Consume = text_box.click(rl, press_position, release_position) {
+            if let ClickResult::Consume = text_box.click(rl, button, press_position, release_position) {
                 return ClickResult::Consume;
             }
         }

@@ -1,6 +1,6 @@
 use crate::conversation::panel::{ChatPanel, ChatTab, RailButton, ENTRY_HEIGHT, HEADER_HEIGHT};
 use crate::input::{
-    CharPressHandler, CharPressResult, ClickHandler, ClickResult, HoverHandler, HoverResult,
+    CharPressHandler, CharPressResult, ClickButton, ClickHandler, ClickResult, HoverHandler, HoverResult,
     KeyPressHandler, KeyPressResult, ScrollHandler, ScrollResult,
 };
 use crate::state::STATE;
@@ -32,73 +32,100 @@ impl ScrollHandler for ChatPanelInput {
     }
 }
 impl ClickHandler for ChatPanelInput {
-    fn click(&mut self, rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
+    fn click(&mut self, rl: &mut RaylibHandle, button: ClickButton, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
         if !STATE.conversation.chat_panel.read().unwrap().open {
             return ClickResult::Pass;
         }
 
         let panel_rect: Rectangle = ChatPanel::panel_rectangle(rl.get_screen_width() as f32, rl.get_screen_height() as f32);
-        // Releasing outside after pressing inside should not propagate to underlying handlers.
-        if !panel_rect.check_collision_point_rec(press_position) {
-            return ClickResult::Pass;
+
+        match button {
+            ClickButton::Left => on_left_click(panel_rect, press_position, release_position),
+            ClickButton::Middle => on_middle_click(panel_rect, release_position),
+            ClickButton::Right => ClickResult::Pass,
+        }
+    }
+}
+
+fn on_left_click(panel_rect: Rectangle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
+    // Releasing outside after pressing inside should not propagate to underlying handlers.
+    if !panel_rect.check_collision_point_rec(press_position) {
+        return ClickResult::Pass;
+    }
+
+    let close_rect: Rectangle = ChatPanel::rail_button_rect(panel_rect, RailButton::Close);
+    if close_rect.check_collision_point_rec(press_position)
+        && close_rect.check_collision_point_rec(release_position)
+    {
+        STATE.conversation.chat_panel.write().unwrap().open = false;
+        return ClickResult::Consume;
+    }
+
+    let list_rect: Rectangle = ChatPanel::rail_button_rect(panel_rect, RailButton::List);
+    if list_rect.check_collision_point_rec(press_position)
+        && list_rect.check_collision_point_rec(release_position)
+    {
+        STATE.conversation.chat_panel.write().unwrap().active_tab = ChatTab::ConversationList;
+        return ClickResult::Consume;
+    }
+
+    let new_rect: Rectangle = ChatPanel::rail_button_rect(panel_rect, RailButton::New);
+    if new_rect.check_collision_point_rec(press_position)
+        && new_rect.check_collision_point_rec(release_position)
+    {
+        STATE.conversation.chat_panel.write().unwrap().active_tab = ChatTab::NewConversation;
+        return ClickResult::Consume;
+    }
+
+    let conversation_tabs: Vec<Uuid> =
+        STATE.conversation.chat_panel.read().unwrap().conversation_tabs.clone();
+    for (index, conversation_id) in conversation_tabs.iter().enumerate() {
+        let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, index);
+        if !(tab_rect.check_collision_point_rec(press_position)
+            && tab_rect.check_collision_point_rec(release_position))
+        {
+            continue;
         }
 
-        let close_rect: Rectangle = ChatPanel::rail_button_rect(panel_rect, RailButton::Close);
+        let close_rect: Rectangle = crate::conversation::draw::tab_mini_close_rect(tab_rect);
         if close_rect.check_collision_point_rec(press_position)
             && close_rect.check_collision_point_rec(release_position)
         {
-            STATE.conversation.chat_panel.write().unwrap().open = false;
+            STATE.conversation.chat_panel.write().unwrap().dismiss_conversation_tab(*conversation_id);
             return ClickResult::Consume;
         }
 
-        let list_rect: Rectangle = ChatPanel::rail_button_rect(panel_rect, RailButton::List);
-        if list_rect.check_collision_point_rec(press_position)
-            && list_rect.check_collision_point_rec(release_position)
-        {
-            STATE.conversation.chat_panel.write().unwrap().active_tab = ChatTab::ConversationList;
-            return ClickResult::Consume;
-        }
-
-        let new_rect: Rectangle = ChatPanel::rail_button_rect(panel_rect, RailButton::New);
-        if new_rect.check_collision_point_rec(press_position)
-            && new_rect.check_collision_point_rec(release_position)
-        {
-            STATE.conversation.chat_panel.write().unwrap().active_tab = ChatTab::NewConversation;
-            return ClickResult::Consume;
-        }
-
-        let conversation_tabs: Vec<Uuid> =
-            STATE.conversation.chat_panel.read().unwrap().conversation_tabs.clone();
-        for (index, conversation_id) in conversation_tabs.iter().enumerate() {
-            let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, index);
-            if !(tab_rect.check_collision_point_rec(press_position)
-                && tab_rect.check_collision_point_rec(release_position))
-            {
-                continue;
-            }
-
-            let close_rect: Rectangle = crate::conversation::draw::tab_mini_close_rect(tab_rect);
-            if close_rect.check_collision_point_rec(press_position)
-                && close_rect.check_collision_point_rec(release_position)
-            {
-                STATE.conversation.chat_panel.write().unwrap().dismiss_conversation_tab(*conversation_id);
-                return ClickResult::Consume;
-            }
-
-            STATE.conversation.chat_panel.write().unwrap().open_conversation(*conversation_id);
-            STATE.conversation.mark_as_read(*conversation_id);
-            return ClickResult::Consume;
-        }
-
-        let scroll_viewport: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
-        if scroll_viewport.check_collision_point_rec(press_position)
-            && scroll_viewport.check_collision_point_rec(release_position)
-        {
-            on_content_click(panel_rect, press_position, release_position);
-        }
-
-        ClickResult::Consume
+        STATE.conversation.chat_panel.write().unwrap().open_conversation(*conversation_id);
+        STATE.conversation.mark_as_read(*conversation_id);
+        return ClickResult::Consume;
     }
+
+    let scroll_viewport: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
+    if scroll_viewport.check_collision_point_rec(press_position)
+        && scroll_viewport.check_collision_point_rec(release_position)
+    {
+        on_content_click(panel_rect, press_position, release_position);
+    }
+
+    ClickResult::Consume
+}
+
+fn on_middle_click(panel_rect: Rectangle, position: RenderCoord) -> ClickResult {
+    if !panel_rect.check_collision_point_rec(position) {
+        return ClickResult::Pass;
+    }
+
+    let conversation_tabs: Vec<Uuid> =
+        STATE.conversation.chat_panel.read().unwrap().conversation_tabs.clone();
+    for (index, conversation_id) in conversation_tabs.iter().enumerate() {
+        let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, index);
+        if tab_rect.check_collision_point_rec(position) {
+            STATE.conversation.chat_panel.write().unwrap().dismiss_conversation_tab(*conversation_id);
+            return ClickResult::Consume;
+        }
+    }
+
+    ClickResult::Consume
 }
 
 fn on_content_click(panel_rect: Rectangle, press_position: RenderCoord, release_position: RenderCoord) {
@@ -231,33 +258,5 @@ impl KeyPressHandler for ChatPanelInput {
 impl CharPressHandler for ChatPanelInput {
     fn char_press(&mut self, _rl: &mut RaylibHandle, _ch: char) -> CharPressResult {
         CharPressResult::Pass
-    }
-}
-
-impl ChatPanelInput {
-    pub fn middle_click(rl: &mut RaylibHandle, position: RenderCoord) -> ClickResult {
-        if !STATE.conversation.chat_panel.read().unwrap().open {
-            return ClickResult::Pass;
-        }
-
-        let panel_rect: Rectangle = ChatPanel::panel_rectangle(
-            rl.get_screen_width() as f32,
-            rl.get_screen_height() as f32,
-        );
-        if !panel_rect.check_collision_point_rec(position) {
-            return ClickResult::Pass;
-        }
-
-        let conversation_tabs: Vec<Uuid> =
-            STATE.conversation.chat_panel.read().unwrap().conversation_tabs.clone();
-        for (index, conversation_id) in conversation_tabs.iter().enumerate() {
-            let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, index);
-            if tab_rect.check_collision_point_rec(position) {
-                STATE.conversation.chat_panel.write().unwrap().dismiss_conversation_tab(*conversation_id);
-                return ClickResult::Consume;
-            }
-        }
-
-        ClickResult::Consume
     }
 }

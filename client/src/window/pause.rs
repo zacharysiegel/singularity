@@ -1,5 +1,5 @@
 use crate::component::button::RectangularButton;
-use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult};
+use crate::input::{ClickButton, ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult};
 use crate::stage::StageType;
 use crate::state::STATE;
 use crate::window;
@@ -58,7 +58,7 @@ impl Window for PauseWindow {
     }
 
     fn on_window_click(&mut self, rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
-        self.exit_button.click(rl, press_position, release_position)
+        self.exit_button.click(rl, ClickButton::Left, press_position, release_position)
     }
 
     fn on_window_hover(&mut self, rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult {
@@ -96,7 +96,7 @@ impl PauseWindow {
     }
 }
 
-fn on_click(_rl: &mut RaylibHandle, _press_position: RenderCoord, _release_position: RenderCoord) -> ClickResult {
+fn on_click(_rl: &mut RaylibHandle, _button: ClickButton, _press_position: RenderCoord, _release_position: RenderCoord) -> ClickResult {
     STATE.stage.register_next(StageType::Title);
     ClickResult::Consume
 }
