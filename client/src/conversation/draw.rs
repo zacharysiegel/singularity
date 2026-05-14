@@ -30,7 +30,7 @@ pub fn draw(rl_draw: &mut RaylibDrawHandle, _rl_thread: &RaylibThread) {
         return;
     }
 
-    let panel_rect: Rectangle = ChatPanel::panel_rectangle(rl_draw.get_screen_width() as f32, rl_draw.get_screen_height() as f32);
+    let panel_rect: Rectangle = ChatPanel::panel_rect(rl_draw.get_screen_width() as f32, rl_draw.get_screen_height() as f32);
     draw_window_frame(rl_draw, panel_rect, Color {
         a: PANEL_BACKGROUND_ALPHA,
         ..WINDOW_BACKGROUND_COLOR
@@ -172,9 +172,9 @@ fn draw_conversation_tab_tooltip(
     );
 }
 
-/// Unified renderer used by both the rail tab (collapsed, icon only) and rows that show
-/// the conversation name alongside the icon (tooltip in 5.2, expanded rail in 5.3).
-/// When `name_area_rect` is `None`, only the icon slot is rendered.
+/// Renders a conversation tab row. With `name_area_rect = None`, draws only the icon slot
+/// (the rail tab). With `Some(rect)`, draws the icon alongside the conversation name in the
+/// given rect (the hover tooltip).
 pub fn draw_conversation_tab_row(
     rl_draw: &mut RaylibDrawHandle,
     icon_rect: Rectangle,
