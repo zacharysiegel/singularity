@@ -22,7 +22,6 @@ pub struct ChatPanel {
     pub active_tab: ChatTab,
     /// Conversation IDs of open tabs in the rail, in top-down display order.
     pub conversation_tabs: Vec<Uuid>,
-    pub expanded: bool,
     pub hovered_rail_button: Option<RailButton>,
     pub hovered_list_entry: Option<usize>,
     pub hovered_conversation_tab: Option<usize>,
@@ -45,7 +44,6 @@ impl ChatPanel {
             open: false,
             active_tab: ChatTab::ConversationList,
             conversation_tabs: Vec::new(),
-            expanded: false,
             hovered_rail_button: None,
             hovered_list_entry: None,
             hovered_conversation_tab: None,
