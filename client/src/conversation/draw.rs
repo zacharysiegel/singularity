@@ -107,7 +107,7 @@ fn draw_conversation_tabs(
         _ => None,
     };
     let hovered_index: Option<usize> = chat_panel.hovered_conversation_tab;
-    let close_hovered: bool = chat_panel.hovered_conversation_tab_close;
+    let close_hovered_index: Option<usize> = chat_panel.hovered_conversation_tab_close;
     drop(chat_panel);
 
     for (index, conversation_id) in conversation_tabs.iter().enumerate() {
@@ -129,7 +129,7 @@ fn draw_conversation_tabs(
         draw_donut_ring(rl_draw, tab_rect, DONUT_PLACEHOLDER_COLOR);
 
         if is_hovered {
-            draw_tab_mini_close(rl_draw, tab_rect, close_hovered);
+            draw_tab_mini_close(rl_draw, tab_rect, close_hovered_index == Some(index));
         }
     }
 }
