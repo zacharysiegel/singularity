@@ -20,23 +20,22 @@ impl<T: Window> ScrollHandler for T {
 
 impl<T: Window> ClickHandler for T {
     fn click(&mut self, rl: &mut RaylibHandle, button: ClickButton, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
-        if button != ClickButton::Left {
-            return ClickResult::Pass;
-        }
-
         let press_outside: bool = !window_contains_render_coord(self, press_position);
         let release_outside: bool = !window_contains_render_coord(self, release_position);
 
         if press_outside && release_outside {
-            return if self.is_open() && self.should_close_on_click_outside() {
+            if button == ClickButton::Left && self.is_open() && self.should_close_on_click_outside() {
                 self.close();
-                ClickResult::Consume
-            } else {
-                ClickResult::Pass
-            };
-        } else if press_outside && !release_outside {
+                return ClickResult::Consume;
+            }
             return ClickResult::Pass;
-        } else if !press_outside && release_outside {
+        }
+
+        if press_outside && !release_outside {
+            return ClickResult::Pass;
+        }
+
+        if !press_outside && release_outside {
             // Releasing outside after pressing inside should not propagate to underlying handlers.
             return ClickResult::Consume;
         }
