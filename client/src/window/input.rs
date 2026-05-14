@@ -46,7 +46,7 @@ impl<T: Window> ClickHandler for T {
             return ClickResult::Consume;
         }
 
-        self.on_window_click(rl, press_position, release_position);
+        self.on_window_click(rl, button, press_position, release_position);
         ClickResult::Consume
     }
 }
