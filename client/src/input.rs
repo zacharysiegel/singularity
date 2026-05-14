@@ -131,12 +131,11 @@ pub fn handle_user_input(rl: &mut RaylibHandle) {
             let press: Option<RenderCoord> = *press_position;
             *press_position = None;
             drop(press_position);
+
             if let Some(press) = press {
-                let result: ClickResult = click(rl, button, press, mouse_position);
-                if button == ClickButton::Middle
-                    && result == ClickResult::Pass
-                    && RuntimeEnvironment::default().is_debug()
-                {
+                click(rl, button, press, mouse_position);
+
+                if RuntimeEnvironment::default().is_debug() && button == ClickButton::Middle {
                     log::debug!("Position: ({}, {})", mouse_position.x, mouse_position.y);
                 }
             }
@@ -157,14 +156,9 @@ fn scroll(rl: &mut RaylibHandle, scroll_v: Vector2, mouse_position: RenderCoord)
     return_if_consumed!(ScrollResult, StageInput.scroll(rl, scroll_v, mouse_position));
 }
 
-fn click(rl: &mut RaylibHandle, button: ClickButton, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
-    if ChatPanelInput.click(rl, button, press_position, release_position) == ClickResult::Consume {
-        return ClickResult::Consume;
-    }
-    if StageInput.click(rl, button, press_position, release_position) == ClickResult::Consume {
-        return ClickResult::Consume;
-    }
-    ClickResult::Pass
+fn click(rl: &mut RaylibHandle, button: ClickButton, press_position: RenderCoord, release_position: RenderCoord) {
+    return_if_consumed!(ClickResult, ChatPanelInput.click(rl, button, press_position, release_position));
+    return_if_consumed!(ClickResult, StageInput.click(rl, button, press_position, release_position));
 }
 
 fn hover(rl: &mut RaylibHandle, mouse_position: RenderCoord) {
