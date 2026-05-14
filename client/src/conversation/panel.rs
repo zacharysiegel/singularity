@@ -25,7 +25,7 @@ pub struct ChatPanel {
     pub hovered_rail_button: Option<RailButton>,
     pub hovered_list_entry: Option<usize>,
     pub hovered_conversation_tab: Option<usize>,
-    pub hovered_conversation_tab_close: bool,
+    pub hovered_conversation_tab_close: Option<usize>,
     pub list_scroll_region: VerticalScrollRegion,
 }
 
@@ -47,7 +47,7 @@ impl ChatPanel {
             hovered_rail_button: None,
             hovered_list_entry: None,
             hovered_conversation_tab: None,
-            hovered_conversation_tab_close: false,
+            hovered_conversation_tab_close: None,
             list_scroll_region: VerticalScrollRegion::new(Rectangle::default(), 0.),
         }
     }

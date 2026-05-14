@@ -207,13 +207,17 @@ impl HoverHandler for ChatPanelInput {
         let hovered_conversation_tab: Option<usize> = (0..conversation_tab_count).find(|index| {
             ChatPanel::conversation_tab_rect(panel_rect, *index).check_collision_point_rec(mouse_position)
         });
-        let hovered_conversation_tab_close: bool = match hovered_conversation_tab {
+        let hovered_conversation_tab_close: Option<usize> = match hovered_conversation_tab {
             Some(index) => {
                 let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, index);
-                crate::conversation::draw::tab_mini_close_rect(tab_rect)
-                    .check_collision_point_rec(mouse_position)
+                let close_rect: Rectangle = crate::conversation::draw::tab_mini_close_rect(tab_rect);
+                if close_rect.check_collision_point_rec(mouse_position) {
+                    Some(index)
+                } else {
+                    None
+                }
             }
-            None => false,
+            None => None,
         };
 
         let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
