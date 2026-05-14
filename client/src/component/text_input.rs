@@ -51,6 +51,7 @@ impl ClickHandler for TextInput {
         if button != ClickButton::Left {
             return ClickResult::Pass;
         }
+
         if self.rectangle.check_collision_point_rec(press_position)
             && self.rectangle.check_collision_point_rec(release_position)
         {
