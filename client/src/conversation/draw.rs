@@ -114,16 +114,10 @@ fn draw_conversation_tabs(
         let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, index);
         let is_active: bool = active_conversation_id == Some(*conversation_id);
         let is_hovered: bool = hovered_index == Some(index);
-        let unread_count: u32 = STATE.conversation.conversations
-            .get(conversation_id)
-            .map(|conversation| conversation.unread_count)
-            .unwrap_or(0);
 
         draw_side_button_frame(rl_draw, tab_rect, is_hovered);
         if is_active {
             draw_side_button_accent_filled(rl_draw, tab_rect, shared::color::WINDOW_BORDER_FOCUSED_COLOR);
-        } else if unread_count > 0 {
-            draw_side_button_accent_filled(rl_draw, tab_rect, shared::color::TEXT_COLOR);
         }
 
         draw_donut_ring(rl_draw, tab_rect, DONUT_PLACEHOLDER_COLOR);
