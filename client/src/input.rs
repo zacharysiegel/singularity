@@ -11,8 +11,9 @@ use raylib::RaylibHandle;
 use shared::environment::RuntimeEnvironment;
 use shared::map::RenderCoord;
 use std::sync::{RwLock, RwLockWriteGuard};
+use strum::{EnumIter, IntoEnumIterator};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumIter)]
 pub enum ClickButton {
     Left,
     Middle,
@@ -28,8 +29,6 @@ impl ClickButton {
         }
     }
 }
-
-const CLICK_BUTTONS: [ClickButton; 3] = [ClickButton::Left, ClickButton::Middle, ClickButton::Right];
 
 static MOUSE_LEFT_PRESS_POSITION: RwLock<Option<RenderCoord>> = RwLock::new(None);
 static MOUSE_MIDDLE_PRESS_POSITION: RwLock<Option<RenderCoord>> = RwLock::new(None);
@@ -119,7 +118,7 @@ pub fn handle_user_input(rl: &mut RaylibHandle) {
     scroll(rl, scroll_v, mouse_position);
     hover(rl, mouse_position);
 
-    for button in CLICK_BUTTONS {
+    for button in ClickButton::iter() {
         if rl.is_mouse_button_pressed(button.raylib()) {
             let mut press_position: RwLockWriteGuard<Option<RenderCoord>> =
                 press_position_store(button).write().unwrap();
