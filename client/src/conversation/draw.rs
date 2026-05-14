@@ -158,7 +158,7 @@ fn draw_conversation_tab_tooltip(
         .unwrap_or_default();
 
     let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, tab_index);
-    let name_area_rect: Rectangle = ChatPanel::tooltip_name_area_rect(panel_rect, tab_index);
+    let name_area_rect: Rectangle = ChatPanel::tooltip_rect(panel_rect, tab_index);
 
     draw_conversation_tab(
         rl_draw,

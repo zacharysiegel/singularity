@@ -88,7 +88,7 @@ fn handle_left_click(panel_rect: Rectangle, press_position: RenderCoord, release
 
         let clicked_tab: bool = rect_pressed_and_released(tab_rect);
         let clicked_tooltip: bool = if hovered_conversation_tab == Some(index) {
-            rect_pressed_and_released(ChatPanel::tooltip_name_area_rect(panel_rect, index))
+            rect_pressed_and_released(ChatPanel::tooltip_rect(panel_rect, index))
         } else {
             false
         };
@@ -228,7 +228,7 @@ fn find_conversation_tab_hover_state(
     let hovered_conversation_tab: Option<usize> = match (tab_under_cursor, previous_hovered_conversation_tab) {
         (Some(index), _) => Some(index),
         (None, Some(previous_index)) => {
-            let tooltip_rect: Rectangle = ChatPanel::tooltip_name_area_rect(panel_rect, previous_index);
+            let tooltip_rect: Rectangle = ChatPanel::tooltip_rect(panel_rect, previous_index);
             if tooltip_rect.check_collision_point_rec(mouse_position) {
                 Some(previous_index)
             } else {
@@ -242,7 +242,7 @@ fn find_conversation_tab_hover_state(
         Some(index) => {
             let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, index);
             let close_rect: Rectangle = ChatPanel::tab_mini_close_rect(tab_rect);
-            let tooltip_rect: Rectangle = ChatPanel::tooltip_name_area_rect(panel_rect, index);
+            let tooltip_rect: Rectangle = ChatPanel::tooltip_rect(panel_rect, index);
             let close_hovered: Option<usize> = if close_rect.check_collision_point_rec(mouse_position) {
                 Some(index)
             } else {
