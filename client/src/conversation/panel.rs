@@ -112,7 +112,7 @@ impl ChatPanel {
         }
     }
 
-    pub fn tooltip_name_area_rect(panel_rect: Rectangle, tab_index: usize) -> Rectangle {
+    pub fn tooltip_rect(panel_rect: Rectangle, tab_index: usize) -> Rectangle {
         let tab_rect: Rectangle = Self::conversation_tab_rect(panel_rect, tab_index);
         Rectangle {
             x: tab_rect.x - Self::TOOLTIP_WIDTH,
