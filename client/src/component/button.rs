@@ -1,6 +1,6 @@
 use crate::component::text::Text;
 use crate::input;
-use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult};
+use crate::input::{ClickButton, ClickHandler, ClickResult, HoverHandler, HoverResult};
 use raylib::RaylibHandle;
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
@@ -14,7 +14,7 @@ use shared::math;
 pub struct RectangularButton {
     pub rectangle: Rectangle,
     pub text: Option<Text>,
-    pub on_click: fn(rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult,
+    pub on_click: fn(rl: &mut RaylibHandle, button: ClickButton, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult,
     pub on_hover: fn(rl: &mut RaylibHandle, mouse_position: RenderCoord) -> HoverResult,
 
     hovered: bool,
@@ -24,15 +24,19 @@ impl ClickHandler for RectangularButton {
     fn click(
         &mut self,
         rl: &mut RaylibHandle,
+        button: ClickButton,
         press_position: RenderCoord,
         release_position: RenderCoord,
     ) -> ClickResult {
+        if button != ClickButton::Left {
+            return ClickResult::Pass;
+        }
         if !self.rectangle.check_collision_point_rec(press_position)
             || !self.rectangle.check_collision_point_rec(release_position)
         {
             return ClickResult::Pass;
         }
-        (self.on_click)(rl, press_position, release_position)
+        (self.on_click)(rl, button, press_position, release_position)
     }
 }
 

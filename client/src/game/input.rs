@@ -1,5 +1,5 @@
 use crate::input::{
-    CharPressHandler, CharPressResult, ClickHandler, ClickResult, HoverHandler, HoverResult,
+    CharPressHandler, CharPressResult, ClickButton, ClickHandler, ClickResult, HoverHandler, HoverResult,
     KeyPressHandler, KeyPressResult, ScrollHandler, ScrollResult,
 };
 use crate::map::MapInput;
@@ -28,16 +28,16 @@ impl ScrollHandler for GameInput {
 }
 
 impl ClickHandler for GameInput {
-    fn click(&mut self, rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
+    fn click(&mut self, rl: &mut RaylibHandle, button: ClickButton, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
         for window in window_layers() {
             let mut window: RwLockWriteGuard<dyn Window> = window.write().unwrap();
-            match window.click(rl, press_position, release_position) {
+            match window.click(rl, button, press_position, release_position) {
                 ClickResult::Pass => continue,
                 ClickResult::Consume => return ClickResult::Consume,
             }
         }
 
-        MapInput.click(rl, press_position, release_position)
+        MapInput.click(rl, button, press_position, release_position)
     }
 }
 

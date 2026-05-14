@@ -1,6 +1,6 @@
 use crate::component::text::{DEFAULT_FONT_SPACING, Text};
 use crate::input::{
-    CharPressHandler, CharPressResult, ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler,
+    CharPressHandler, CharPressResult, ClickButton, ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler,
     KeyPressResult,
 };
 use raylib::RaylibHandle;
@@ -44,9 +44,13 @@ impl ClickHandler for TextInput {
     fn click(
         &mut self,
         _rl: &mut RaylibHandle,
+        button: ClickButton,
         press_position: RenderCoord,
         release_position: RenderCoord,
     ) -> ClickResult {
+        if button != ClickButton::Left {
+            return ClickResult::Pass;
+        }
         if self.rectangle.check_collision_point_rec(press_position)
             && self.rectangle.check_collision_point_rec(release_position)
         {

@@ -1,4 +1,4 @@
-use crate::input::{ClickHandler, ClickResult, HoverHandler, HoverResult, ScrollHandler, ScrollResult};
+use crate::input::{ClickButton, ClickHandler, ClickResult, HoverHandler, HoverResult, ScrollHandler, ScrollResult};
 use crate::state::STATE;
 use crate::window;
 use crate::window::HexWindow;
@@ -21,7 +21,11 @@ impl ScrollHandler for MapInput {
 }
 
 impl ClickHandler for MapInput {
-    fn click(&mut self, rl: &mut RaylibHandle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
+    fn click(&mut self, rl: &mut RaylibHandle, button: ClickButton, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
+        if button != ClickButton::Left {
+            return ClickResult::Pass;
+        }
+
         let map_origin: RwLockReadGuard<MapCoord> = STATE.stage.game.map.map_origin.read().unwrap();
         let press_hex: HexCoord = press_position.containing_hex(&*map_origin);
         let release_hex: HexCoord = release_position.containing_hex(&*map_origin);

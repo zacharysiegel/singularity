@@ -1,6 +1,6 @@
 use crate::browser::{BrowserDomain, BrowserDomainTrait};
 use crate::input::{
-    ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult,
+    ClickButton, ClickHandler, ClickResult, HoverHandler, HoverResult, KeyPressHandler, KeyPressResult,
 };
 use crate::stage::StageType;
 use crate::state::STATE;
@@ -12,7 +12,7 @@ use std::sync::RwLockReadGuard;
 pub struct BrowserInput;
 
 impl ClickHandler for BrowserInput {
-    fn click(&mut self, _rl: &mut RaylibHandle, _press_position: RenderCoord, _release_position: RenderCoord) -> ClickResult {
+    fn click(&mut self, _rl: &mut RaylibHandle, _button: ClickButton, _press_position: RenderCoord, _release_position: RenderCoord) -> ClickResult {
         ClickResult::Consume
     }
 }
