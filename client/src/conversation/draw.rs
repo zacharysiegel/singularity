@@ -23,7 +23,6 @@ const NAME_FONT_SIZE: f32 = 14.;
 const HEADER_FONT_SIZE: f32 = NAME_FONT_SIZE + 4.;
 const DETAIL_FONT_SIZE: f32 = 10.;
 const DONUT_PLACEHOLDER_COLOR: Color = Color { r: 0xa0, g: 0xa0, b: 0xa0, a: 0xff };
-const TAB_MINI_CLOSE_SIZE: f32 = 12.;
 
 pub fn draw(rl_draw: &mut RaylibDrawHandle, _rl_thread: &RaylibThread) {
     if !STATE.conversation.chat_panel.read().unwrap().open {
@@ -122,7 +121,7 @@ fn draw_conversation_tabs(
             .map(|conversation| conversation.name.clone().unwrap_or_else(|| "Unnamed".to_string()))
             .unwrap_or_default();
 
-        draw_conversation_tab_row(
+        draw_conversation_tab(
             rl_draw,
             tab_rect,
             None,
@@ -161,7 +160,7 @@ fn draw_conversation_tab_tooltip(
     let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, tab_index);
     let name_area_rect: Rectangle = ChatPanel::tooltip_name_area_rect(panel_rect, tab_index);
 
-    draw_conversation_tab_row(
+    draw_conversation_tab(
         rl_draw,
         tab_rect,
         Some(name_area_rect),
@@ -172,10 +171,10 @@ fn draw_conversation_tab_tooltip(
     );
 }
 
-/// Renders a conversation tab row. With `name_area_rect = None`, draws only the icon slot
-/// (the rail tab). With `Some(rect)`, draws the icon alongside the conversation name in the
-/// given rect (the hover tooltip).
-pub fn draw_conversation_tab_row(
+/// Renders a conversation tab. With `name_area_rect = None`, draws only the icon slot (rail
+/// tab). With `Some(rect)`, widens the tab's frame to include the name label in that rect
+/// (hover tooltip presentation).
+pub fn draw_conversation_tab(
     rl_draw: &mut RaylibDrawHandle,
     icon_rect: Rectangle,
     name_area_rect: Option<Rectangle>,
@@ -232,7 +231,7 @@ pub fn draw_conversation_tab_row(
 }
 
 fn draw_tab_mini_close(rl_draw: &mut RaylibDrawHandle, tab_rect: Rectangle, hovered: bool) {
-    let close_rect: Rectangle = tab_mini_close_rect(tab_rect);
+    let close_rect: Rectangle = ChatPanel::tab_mini_close_rect(tab_rect);
     let background_color: Color = if hovered {
         math::color_add(&WINDOW_BACKGROUND_COLOR, &shared::color::DIFF_HOVER_BUTTON)
     } else {
@@ -241,15 +240,6 @@ fn draw_tab_mini_close(rl_draw: &mut RaylibDrawHandle, tab_rect: Rectangle, hove
     rl_draw.draw_rectangle_rec(close_rect, background_color);
     rl_draw.draw_rectangle_lines_ex(close_rect, BORDER_THICKNESS, WINDOW_INTERIOR_BORDER_COLOR);
     draw_close_x(rl_draw, close_rect, 1.5, shared::color::RED);
-}
-
-pub fn tab_mini_close_rect(tab_rect: Rectangle) -> Rectangle {
-    Rectangle {
-        x: tab_rect.x + tab_rect.width - TAB_MINI_CLOSE_SIZE - 2.,
-        y: tab_rect.y + 2.,
-        width: TAB_MINI_CLOSE_SIZE,
-        height: TAB_MINI_CLOSE_SIZE,
-    }
 }
 
 /// Renders a panel section header: a vertically centered title text, followed by a double border line.

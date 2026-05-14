@@ -8,6 +8,8 @@ const PANEL_MAX_WIDTH: f32 = 600.;
 pub const HEADER_HEIGHT: f32 = 46.;
 pub const ENTRY_HEIGHT: f32 = 44.;
 pub const RAIL_SEPARATOR_GAP: f32 = 6.;
+pub const TAB_MINI_CLOSE_SIZE: f32 = 12.;
+pub const TAB_MINI_CLOSE_MARGIN: f32 = 2.;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ChatTab {
@@ -78,7 +80,7 @@ impl ChatPanel {
         f32::min(screen_width, PANEL_MAX_WIDTH)
     }
 
-    pub fn panel_rectangle(screen_width: f32, screen_height: f32) -> Rectangle {
+    pub fn panel_rect(screen_width: f32, screen_height: f32) -> Rectangle {
         let width: f32 = Self::panel_width(screen_width);
         Rectangle {
             x: screen_width - width,
@@ -117,6 +119,15 @@ impl ChatPanel {
             y: tab_rect.y,
             width: Self::TOOLTIP_WIDTH,
             height: tab_rect.height,
+        }
+    }
+
+    pub fn tab_mini_close_rect(tab_rect: Rectangle) -> Rectangle {
+        Rectangle {
+            x: tab_rect.x + tab_rect.width - TAB_MINI_CLOSE_SIZE - TAB_MINI_CLOSE_MARGIN,
+            y: tab_rect.y + TAB_MINI_CLOSE_MARGIN,
+            width: TAB_MINI_CLOSE_SIZE,
+            height: TAB_MINI_CLOSE_SIZE,
         }
     }
 

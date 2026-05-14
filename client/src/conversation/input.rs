@@ -1,4 +1,3 @@
-use crate::conversation::draw;
 use crate::conversation::panel::{ChatPanel, ChatTab, RailButton, ENTRY_HEIGHT};
 use crate::input::{
     CharPressHandler, CharPressResult, ClickButton, ClickHandler, ClickResult, HoverHandler, HoverResult,
@@ -21,7 +20,7 @@ impl ScrollHandler for ChatPanelInput {
             return ScrollResult::Pass;
         }
 
-        let panel_rect: Rectangle = ChatPanel::panel_rectangle(rl.get_screen_width() as f32, rl.get_screen_height() as f32);
+        let panel_rect: Rectangle = ChatPanel::panel_rect(rl.get_screen_width() as f32, rl.get_screen_height() as f32);
         if !panel_rect.check_collision_point_rec(mouse_position) {
             return ScrollResult::Pass;
         }
@@ -38,7 +37,7 @@ impl ClickHandler for ChatPanelInput {
             return ClickResult::Pass;
         }
 
-        let panel_rect: Rectangle = ChatPanel::panel_rectangle(rl.get_screen_width() as f32, rl.get_screen_height() as f32);
+        let panel_rect: Rectangle = ChatPanel::panel_rect(rl.get_screen_width() as f32, rl.get_screen_height() as f32);
 
         match button {
             ClickButton::Left => on_left_click(panel_rect, press_position, release_position),
@@ -79,16 +78,17 @@ fn on_left_click(panel_rect: Rectangle, press_position: RenderCoord, release_pos
 
     let conversation_tabs: Vec<Uuid> =
         STATE.conversation.chat_panel.read().unwrap().conversation_tabs.clone();
-    let tooltip_visible_for: Option<usize> =
+    let hovered_conversation_tab: Option<usize> =
         STATE.conversation.chat_panel.read().unwrap().hovered_conversation_tab;
     for (index, conversation_id) in conversation_tabs.iter().enumerate() {
         let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, index);
-        let rect_contains_both = |r: Rectangle| -> bool {
+        let rect_pressed_and_released = |r: Rectangle| -> bool {
             r.check_collision_point_rec(press_position) && r.check_collision_point_rec(release_position)
         };
-        let clicked_tab: bool = rect_contains_both(tab_rect);
-        let clicked_tooltip: bool = if tooltip_visible_for == Some(index) {
-            rect_contains_both(ChatPanel::tooltip_name_area_rect(panel_rect, index))
+
+        let clicked_tab: bool = rect_pressed_and_released(tab_rect);
+        let clicked_tooltip: bool = if hovered_conversation_tab == Some(index) {
+            rect_pressed_and_released(ChatPanel::tooltip_name_area_rect(panel_rect, index))
         } else {
             false
         };
@@ -96,7 +96,7 @@ fn on_left_click(panel_rect: Rectangle, press_position: RenderCoord, release_pos
             continue;
         }
 
-        let close_rect: Rectangle = draw::tab_mini_close_rect(tab_rect);
+        let close_rect: Rectangle = ChatPanel::tab_mini_close_rect(tab_rect);
         if close_rect.check_collision_point_rec(press_position)
             && close_rect.check_collision_point_rec(release_position)
         {
@@ -179,7 +179,7 @@ impl HoverHandler for ChatPanelInput {
             return HoverResult::Pass;
         }
 
-        let panel_rect: Rectangle = ChatPanel::panel_rectangle(
+        let panel_rect: Rectangle = ChatPanel::panel_rect(
             rl.get_screen_width() as f32,
             rl.get_screen_height() as f32,
         );
@@ -187,11 +187,11 @@ impl HoverHandler for ChatPanelInput {
             return HoverResult::Pass;
         }
 
-        let hovered_rail_button: Option<RailButton> = on_rail_button_hover(panel_rect, mouse_position);
+        let hovered_rail_button: Option<RailButton> = find_hovered_rail_button(panel_rect, mouse_position);
         let (hovered_conversation_tab, hovered_conversation_tab_close, hovered_tooltip): (Option<usize>, Option<usize>, bool) =
-            on_conversation_tab_hover(panel_rect, mouse_position);
+            find_conversation_tab_hover_state(panel_rect, mouse_position);
         let hovered_list_entry: Option<usize> = if hovered_conversation_tab.is_none() {
-            on_content_hover(panel_rect, mouse_position)
+            find_hovered_content_entry(panel_rect, mouse_position)
         } else {
             None
         };
@@ -207,13 +207,13 @@ impl HoverHandler for ChatPanelInput {
     }
 }
 
-fn on_rail_button_hover(panel_rect: Rectangle, mouse_position: RenderCoord) -> Option<RailButton> {
+fn find_hovered_rail_button(panel_rect: Rectangle, mouse_position: RenderCoord) -> Option<RailButton> {
     RailButton::iter().find(|button| {
         ChatPanel::rail_button_rect(panel_rect, *button).check_collision_point_rec(mouse_position)
     })
 }
 
-fn on_conversation_tab_hover(
+fn find_conversation_tab_hover_state(
     panel_rect: Rectangle,
     mouse_position: RenderCoord,
 ) -> (Option<usize>, Option<usize>, bool) {
@@ -241,7 +241,7 @@ fn on_conversation_tab_hover(
     let (hovered_conversation_tab_close, hovered_tooltip): (Option<usize>, bool) = match hovered_conversation_tab {
         Some(index) => {
             let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, index);
-            let close_rect: Rectangle = crate::conversation::draw::tab_mini_close_rect(tab_rect);
+            let close_rect: Rectangle = ChatPanel::tab_mini_close_rect(tab_rect);
             let tooltip_rect: Rectangle = ChatPanel::tooltip_name_area_rect(panel_rect, index);
             let close_hovered: Option<usize> = if close_rect.check_collision_point_rec(mouse_position) {
                 Some(index)
@@ -259,15 +259,15 @@ fn on_conversation_tab_hover(
     (hovered_conversation_tab, hovered_conversation_tab_close, hovered_tooltip)
 }
 
-fn on_content_hover(panel_rect: Rectangle, mouse_position: RenderCoord) -> Option<usize> {
+fn find_hovered_content_entry(panel_rect: Rectangle, mouse_position: RenderCoord) -> Option<usize> {
     let active_tab: ChatTab = STATE.conversation.chat_panel.read().unwrap().active_tab.clone();
     match active_tab {
-        ChatTab::ConversationList => on_conversation_list_hover(panel_rect, mouse_position),
+        ChatTab::ConversationList => find_hovered_list_entry(panel_rect, mouse_position),
         _ => None,
     }
 }
 
-fn on_conversation_list_hover(panel_rect: Rectangle, mouse_position: RenderCoord) -> Option<usize> {
+fn find_hovered_list_entry(panel_rect: Rectangle, mouse_position: RenderCoord) -> Option<usize> {
     let scroll_viewport: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
     if !scroll_viewport.check_collision_point_rec(mouse_position) {
         return None;
