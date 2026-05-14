@@ -49,7 +49,6 @@ impl ClickHandler for ChatPanelInput {
 }
 
 fn on_left_click(panel_rect: Rectangle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
-    // Releasing outside after pressing inside should not propagate to underlying handlers.
     if !panel_rect.check_collision_point_rec(press_position) {
         return ClickResult::Pass;
     }
