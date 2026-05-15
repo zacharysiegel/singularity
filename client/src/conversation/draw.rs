@@ -58,7 +58,7 @@ fn draw_rail_buttons(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
     drop(chat_panel);
 
     let buttons: Vec<(Rectangle, RailButton)> = RailButton::iter()
-        .map(|button| (ChatPanel::rail_button_rect(panel_rect, button), button))
+        .map(|button| (ChatPanel::rail_control_rect(panel_rect, button), button))
         .collect();
 
     for (rect, button) in &buttons {
@@ -231,7 +231,7 @@ pub fn draw_conversation_tab(
 }
 
 fn draw_tab_mini_close(rl_draw: &mut RaylibDrawHandle, tab_rect: Rectangle, hovered: bool) {
-    let close_rect: Rectangle = ChatPanel::rail_button_close_rect(tab_rect);
+    let close_rect: Rectangle = ChatPanel::rail_conversation_close_rect(tab_rect);
     let background_color: Color = if hovered {
         math::color_add(&WINDOW_BACKGROUND_COLOR, &shared::color::DIFF_HOVER_BUTTON)
     } else {

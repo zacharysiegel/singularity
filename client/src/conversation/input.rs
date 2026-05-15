@@ -52,7 +52,7 @@ fn handle_left_click(panel_rect: Rectangle, press_position: RenderCoord, release
         return ClickResult::Pass;
     }
 
-    let close_rect: Rectangle = ChatPanel::rail_button_rect(panel_rect, RailButton::Close);
+    let close_rect: Rectangle = ChatPanel::rail_control_rect(panel_rect, RailButton::Close);
     if close_rect.check_collision_point_rec(press_position)
         && close_rect.check_collision_point_rec(release_position)
     {
@@ -60,7 +60,7 @@ fn handle_left_click(panel_rect: Rectangle, press_position: RenderCoord, release
         return ClickResult::Consume;
     }
 
-    let list_rect: Rectangle = ChatPanel::rail_button_rect(panel_rect, RailButton::List);
+    let list_rect: Rectangle = ChatPanel::rail_control_rect(panel_rect, RailButton::List);
     if list_rect.check_collision_point_rec(press_position)
         && list_rect.check_collision_point_rec(release_position)
     {
@@ -68,7 +68,7 @@ fn handle_left_click(panel_rect: Rectangle, press_position: RenderCoord, release
         return ClickResult::Consume;
     }
 
-    let new_rect: Rectangle = ChatPanel::rail_button_rect(panel_rect, RailButton::New);
+    let new_rect: Rectangle = ChatPanel::rail_control_rect(panel_rect, RailButton::New);
     if new_rect.check_collision_point_rec(press_position)
         && new_rect.check_collision_point_rec(release_position)
     {
@@ -96,7 +96,7 @@ fn handle_left_click(panel_rect: Rectangle, press_position: RenderCoord, release
             continue;
         }
 
-        let close_rect: Rectangle = ChatPanel::rail_button_close_rect(tab_rect);
+        let close_rect: Rectangle = ChatPanel::rail_conversation_close_rect(tab_rect);
         if close_rect.check_collision_point_rec(press_position)
             && close_rect.check_collision_point_rec(release_position)
         {
@@ -209,7 +209,7 @@ impl HoverHandler for ChatPanelInput {
 
 fn find_hovered_rail_button(panel_rect: Rectangle, mouse_position: RenderCoord) -> Option<RailButton> {
     RailButton::iter().find(|button| {
-        ChatPanel::rail_button_rect(panel_rect, *button).check_collision_point_rec(mouse_position)
+        ChatPanel::rail_control_rect(panel_rect, *button).check_collision_point_rec(mouse_position)
     })
 }
 
@@ -241,7 +241,7 @@ fn find_conversation_tab_hover_state(
     let (hovered_conversation_tab_close, hovered_tooltip): (Option<usize>, bool) = match hovered_conversation_tab {
         Some(index) => {
             let tab_rect: Rectangle = ChatPanel::rail_conversation_rect(panel_rect, index);
-            let close_rect: Rectangle = ChatPanel::rail_button_close_rect(tab_rect);
+            let close_rect: Rectangle = ChatPanel::rail_conversation_close_rect(tab_rect);
             let tooltip_rect: Rectangle = ChatPanel::tooltip_rect(panel_rect, index);
             let close_hovered: Option<usize> = if close_rect.check_collision_point_rec(mouse_position) {
                 Some(index)
