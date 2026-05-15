@@ -81,7 +81,7 @@ fn handle_left_click(panel_rect: Rectangle, press_position: RenderCoord, release
     let hovered_conversation_tab: Option<usize> =
         STATE.conversation.chat_panel.read().unwrap().hovered_conversation_tab;
     for (index, conversation_id) in conversation_tabs.iter().enumerate() {
-        let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, index);
+        let tab_rect: Rectangle = ChatPanel::rail_conversation_rect(panel_rect, index);
         let rect_pressed_and_released = |r: Rectangle| -> bool {
             r.check_collision_point_rec(press_position) && r.check_collision_point_rec(release_position)
         };
@@ -96,7 +96,7 @@ fn handle_left_click(panel_rect: Rectangle, press_position: RenderCoord, release
             continue;
         }
 
-        let close_rect: Rectangle = ChatPanel::tab_mini_close_rect(tab_rect);
+        let close_rect: Rectangle = ChatPanel::rail_button_close_rect(tab_rect);
         if close_rect.check_collision_point_rec(press_position)
             && close_rect.check_collision_point_rec(release_position)
         {
@@ -127,7 +127,7 @@ fn handle_middle_click(panel_rect: Rectangle, position: RenderCoord) -> ClickRes
     let conversation_tabs: Vec<Uuid> =
         STATE.conversation.chat_panel.read().unwrap().conversation_tabs.clone();
     for (index, conversation_id) in conversation_tabs.iter().enumerate() {
-        let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, index);
+        let tab_rect: Rectangle = ChatPanel::rail_conversation_rect(panel_rect, index);
         if tab_rect.check_collision_point_rec(position) {
             STATE.conversation.chat_panel.write().unwrap().dismiss_conversation_tab(*conversation_id);
             return ClickResult::Consume;
@@ -223,7 +223,7 @@ fn find_conversation_tab_hover_state(
     drop(chat_panel);
 
     let tab_under_cursor: Option<usize> = (0..conversation_tab_count).find(|index| {
-        ChatPanel::conversation_tab_rect(panel_rect, *index).check_collision_point_rec(mouse_position)
+        ChatPanel::rail_conversation_rect(panel_rect, *index).check_collision_point_rec(mouse_position)
     });
     let hovered_conversation_tab: Option<usize> = match (tab_under_cursor, previous_hovered_conversation_tab) {
         (Some(index), _) => Some(index),
@@ -240,8 +240,8 @@ fn find_conversation_tab_hover_state(
 
     let (hovered_conversation_tab_close, hovered_tooltip): (Option<usize>, bool) = match hovered_conversation_tab {
         Some(index) => {
-            let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, index);
-            let close_rect: Rectangle = ChatPanel::tab_mini_close_rect(tab_rect);
+            let tab_rect: Rectangle = ChatPanel::rail_conversation_rect(panel_rect, index);
+            let close_rect: Rectangle = ChatPanel::rail_button_close_rect(tab_rect);
             let tooltip_rect: Rectangle = ChatPanel::tooltip_rect(panel_rect, index);
             let close_hovered: Option<usize> = if close_rect.check_collision_point_rec(mouse_position) {
                 Some(index)
