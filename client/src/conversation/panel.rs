@@ -90,6 +90,7 @@ impl ChatPanel {
         }
     }
 
+    /// Button rectangle for persistent rail buttons (e.g. close, new)
     pub fn rail_button_rect(panel_rect: Rectangle, button: RailButton) -> Rectangle {
         let rail_x: f32 = panel_rect.x + panel_rect.width - BUTTON_WIDTH - BORDER_GAP;
         let rail_y: f32 = panel_rect.y + BORDER_GAP;
@@ -101,7 +102,8 @@ impl ChatPanel {
         }
     }
 
-    pub fn conversation_tab_rect(panel_rect: Rectangle, index: usize) -> Rectangle {
+    /// Affordance rectangle for conversation rail buttons
+    pub fn rail_conversation_rect(panel_rect: Rectangle, index: usize) -> Rectangle {
         let list_rect: Rectangle = Self::rail_button_rect(panel_rect, RailButton::List);
         let tab_area_y_start: f32 = list_rect.y + list_rect.height + RAIL_SEPARATOR_GAP;
         Rectangle {
@@ -113,7 +115,7 @@ impl ChatPanel {
     }
 
     pub fn tooltip_rect(panel_rect: Rectangle, tab_index: usize) -> Rectangle {
-        let tab_rect: Rectangle = Self::conversation_tab_rect(panel_rect, tab_index);
+        let tab_rect: Rectangle = Self::rail_conversation_rect(panel_rect, tab_index);
         Rectangle {
             x: tab_rect.x - Self::TOOLTIP_WIDTH,
             y: tab_rect.y,
@@ -122,7 +124,7 @@ impl ChatPanel {
         }
     }
 
-    pub fn tab_mini_close_rect(tab_rect: Rectangle) -> Rectangle {
+    pub fn rail_button_close_rect(tab_rect: Rectangle) -> Rectangle {
         Rectangle {
             x: tab_rect.x + tab_rect.width - TAB_MINI_CLOSE_SIZE - TAB_MINI_CLOSE_MARGIN,
             y: tab_rect.y + TAB_MINI_CLOSE_MARGIN,

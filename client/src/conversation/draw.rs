@@ -113,7 +113,7 @@ fn draw_conversation_tabs(
     drop(chat_panel);
 
     for (index, conversation_id) in conversation_tabs.iter().enumerate() {
-        let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, index);
+        let tab_rect: Rectangle = ChatPanel::rail_conversation_rect(panel_rect, index);
         let is_active: bool = active_conversation_id == Some(*conversation_id);
         let is_hovered: bool = hovered_index == Some(index);
         let name: String = STATE.conversation.conversations
@@ -157,7 +157,7 @@ fn draw_conversation_tab_tooltip(
         .map(|conversation| conversation.name.clone().unwrap_or_else(|| "Unnamed".to_string()))
         .unwrap_or_default();
 
-    let tab_rect: Rectangle = ChatPanel::conversation_tab_rect(panel_rect, tab_index);
+    let tab_rect: Rectangle = ChatPanel::rail_conversation_rect(panel_rect, tab_index);
     let name_area_rect: Rectangle = ChatPanel::tooltip_rect(panel_rect, tab_index);
 
     draw_conversation_tab(
@@ -231,7 +231,7 @@ pub fn draw_conversation_tab(
 }
 
 fn draw_tab_mini_close(rl_draw: &mut RaylibDrawHandle, tab_rect: Rectangle, hovered: bool) {
-    let close_rect: Rectangle = ChatPanel::tab_mini_close_rect(tab_rect);
+    let close_rect: Rectangle = ChatPanel::rail_button_close_rect(tab_rect);
     let background_color: Color = if hovered {
         math::color_add(&WINDOW_BACKGROUND_COLOR, &shared::color::DIFF_HOVER_BUTTON)
     } else {
