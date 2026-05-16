@@ -119,8 +119,7 @@ fn draw_conversation_tabs(
             .get(conversation_id)
             .map(|conversation| conversation.name.clone().unwrap_or_else(|| UNNAMED_CONVERSATION_PLACEHOLDER.to_string()))
             .unwrap_or_default();
-
-        let name_area_rect: Option<Rectangle> = if is_hovered {
+        let tooltip_rect: Option<Rectangle> = if is_hovered {
             Some(ChatPanel::tooltip_rect(panel_rect, index))
         } else {
             None
@@ -129,7 +128,7 @@ fn draw_conversation_tabs(
         draw_conversation_tab(
             rl_draw,
             tab_rect,
-            name_area_rect,
+            tooltip_rect,
             &name,
             is_active,
             is_hovered,
@@ -138,24 +137,22 @@ fn draw_conversation_tabs(
     }
 }
 
-/// Renders a conversation tab. With `name_area_rect = None`, draws only the icon slot (rail
+/// Renders a conversation tab. With `tooltip_rect = None`, draws only the icon slot (rail
 /// tab). With `Some(rect)`, widens the tab's frame to include the name label in that rect
 /// (hover tooltip presentation).
 pub fn draw_conversation_tab(
     rl_draw: &mut RaylibDrawHandle,
     icon_rect: Rectangle,
-    name_area_rect: Option<Rectangle>,
+    tooltip_rect: Option<Rectangle>,
     name: &str,
     active: bool,
     row_hovered: bool,
     mini_close_hovered: bool,
 ) {
-    let full_rect: Rectangle = match name_area_rect {
-        Some(name_rect) => Rectangle {
-            x: name_rect.x,
-            y: icon_rect.y,
-            width: name_rect.width + icon_rect.width,
-            height: icon_rect.height,
+    let full_rect: Rectangle = match tooltip_rect {
+        Some(tooltip_rect) => Rectangle {
+            width: tooltip_rect.width + icon_rect.width,
+            ..tooltip_rect
         },
         None => icon_rect,
     };
@@ -167,7 +164,7 @@ pub fn draw_conversation_tab(
 
     draw_donut_ring(rl_draw, icon_rect, DONUT_PLACEHOLDER_COLOR);
 
-    if let Some(name_rect) = name_area_rect {
+    if let Some(name_rect) = tooltip_rect {
         let name_text: Text = Text {
             content: name.to_string(),
             font_size: NAME_FONT_SIZE,
