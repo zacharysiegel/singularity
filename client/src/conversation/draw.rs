@@ -23,6 +23,7 @@ const NAME_FONT_SIZE: f32 = 14.;
 const HEADER_FONT_SIZE: f32 = NAME_FONT_SIZE + 4.;
 const DETAIL_FONT_SIZE: f32 = 10.;
 const DONUT_PLACEHOLDER_COLOR: Color = Color { r: 0xa0, g: 0xa0, b: 0xa0, a: 0xff };
+const UNNAMED_CONVERSATION_PLACEHOLDER: &str = "Unnamed";
 
 pub fn draw(rl_draw: &mut RaylibDrawHandle, _rl_thread: &RaylibThread) {
     if !STATE.conversation.chat_panel.read().unwrap().open {
@@ -34,7 +35,7 @@ pub fn draw(rl_draw: &mut RaylibDrawHandle, _rl_thread: &RaylibThread) {
         a: PANEL_BACKGROUND_ALPHA,
         ..WINDOW_BACKGROUND_COLOR
     });
-    draw_rail_buttons(rl_draw, panel_rect);
+    draw_rail(rl_draw, panel_rect);
 
     let active_tab: ChatTab = STATE.conversation.chat_panel.read().unwrap().active_tab.clone();
     match active_tab {
@@ -47,7 +48,7 @@ pub fn draw(rl_draw: &mut RaylibDrawHandle, _rl_thread: &RaylibThread) {
     draw_conversation_tab_tooltip(rl_draw, panel_rect, &conversation_tabs);
 }
 
-fn draw_rail_buttons(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
+fn draw_rail(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
     let chat_panel: RwLockReadGuard<ChatPanel> = STATE.conversation.chat_panel.read().unwrap();
     let hovered_button: Option<RailButton> = chat_panel.hovered_rail_button;
     let active_rail_button: Option<RailButton> = match &chat_panel.active_tab {
@@ -118,7 +119,7 @@ fn draw_conversation_tabs(
         let is_hovered: bool = hovered_index == Some(index);
         let name: String = STATE.conversation.conversations
             .get(conversation_id)
-            .map(|conversation| conversation.name.clone().unwrap_or_else(|| "Unnamed".to_string()))
+            .map(|conversation| conversation.name.clone().unwrap_or_else(|| UNNAMED_CONVERSATION_PLACEHOLDER.to_string()))
             .unwrap_or_default();
 
         draw_conversation_tab(
@@ -154,7 +155,7 @@ fn draw_conversation_tab_tooltip(
     };
     let name: String = STATE.conversation.conversations
         .get(&conversation_id)
-        .map(|conversation| conversation.name.clone().unwrap_or_else(|| "Unnamed".to_string()))
+        .map(|conversation| conversation.name.clone().unwrap_or_else(|| UNNAMED_CONVERSATION_PLACEHOLDER.to_string()))
         .unwrap_or_default();
 
     let tab_rect: Rectangle = ChatPanel::rail_conversation_rect(panel_rect, tab_index);
@@ -302,7 +303,7 @@ fn draw_conversation_list(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle)
             if entry_top + ENTRY_HEIGHT > scroll_viewport.y {
                 let hovered: bool = hovered_list_entry == Some(index);
                 if let Some(conversation) = STATE.conversation.conversations.get(conversation_id) {
-                    let name: String = conversation.name.clone().unwrap_or_else(|| "Unnamed".to_string());
+                    let name: String = conversation.name.clone().unwrap_or_else(|| UNNAMED_CONVERSATION_PLACEHOLDER.to_string());
                     let member_count: usize = conversation.members.len();
                     let unread_count: u32 = conversation.unread_count;
                     drop(conversation);
