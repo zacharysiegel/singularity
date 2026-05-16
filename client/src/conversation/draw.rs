@@ -35,7 +35,6 @@ pub fn draw(rl_draw: &mut RaylibDrawHandle, _rl_thread: &RaylibThread) {
         a: PANEL_BACKGROUND_ALPHA,
         ..WINDOW_BACKGROUND_COLOR
     });
-    draw_rail(rl_draw, panel_rect);
 
     let active_tab: ChatTab = STATE.conversation.chat_panel.read().unwrap().active_tab.clone();
     match active_tab {
@@ -44,8 +43,7 @@ pub fn draw(rl_draw: &mut RaylibDrawHandle, _rl_thread: &RaylibThread) {
         ChatTab::NewConversation => {}
     }
 
-    let conversation_tabs: Vec<Uuid> = STATE.conversation.chat_panel.read().unwrap().conversation_tabs.clone();
-    draw_conversation_tab_tooltip(rl_draw, panel_rect, &conversation_tabs);
+    draw_rail(rl_draw, panel_rect);
 }
 
 fn draw_rail(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
@@ -82,6 +80,7 @@ fn draw_rail(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
         draw_rail_separator(rl_draw, close_rect.x, list_rect.y + list_rect.height);
     }
     draw_conversation_tabs(rl_draw, panel_rect, &conversation_tabs);
+    draw_conversation_tab_tooltip(rl_draw, panel_rect, &conversation_tabs);
 }
 
 fn draw_rail_separator(rl_draw: &mut RaylibDrawHandle, x: f32, y: f32) {
