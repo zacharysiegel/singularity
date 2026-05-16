@@ -80,7 +80,6 @@ fn draw_rail(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
         draw_rail_separator(rl_draw, close_rect.x, list_rect.y + list_rect.height);
     }
     draw_conversation_tabs(rl_draw, panel_rect, &conversation_tabs);
-    draw_conversation_tab_tooltip(rl_draw, panel_rect, &conversation_tabs);
 }
 
 fn draw_rail_separator(rl_draw: &mut RaylibDrawHandle, x: f32, y: f32) {
@@ -121,54 +120,22 @@ fn draw_conversation_tabs(
             .map(|conversation| conversation.name.clone().unwrap_or_else(|| UNNAMED_CONVERSATION_PLACEHOLDER.to_string()))
             .unwrap_or_default();
 
+        let name_area_rect: Option<Rectangle> = if is_hovered {
+            Some(ChatPanel::tooltip_rect(panel_rect, index))
+        } else {
+            None
+        };
+
         draw_conversation_tab(
             rl_draw,
             tab_rect,
-            None,
+            name_area_rect,
             &name,
             is_active,
             is_hovered,
             is_hovered && close_hovered_index == Some(index),
         );
     }
-}
-
-fn draw_conversation_tab_tooltip(
-    rl_draw: &mut RaylibDrawHandle,
-    panel_rect: Rectangle,
-    conversation_tabs: &[Uuid],
-) {
-    let chat_panel: RwLockReadGuard<ChatPanel> = STATE.conversation.chat_panel.read().unwrap();
-    let Some(tab_index) = chat_panel.hovered_conversation_tab else {
-        return;
-    };
-    let close_hovered_index: Option<usize> = chat_panel.hovered_conversation_tab_close;
-    let active_conversation_id: Option<Uuid> = match chat_panel.active_tab {
-        ChatTab::Conversation(id) => Some(id),
-        _ => None,
-    };
-    drop(chat_panel);
-
-    let Some(conversation_id) = conversation_tabs.get(tab_index).copied() else {
-        return;
-    };
-    let name: String = STATE.conversation.conversations
-        .get(&conversation_id)
-        .map(|conversation| conversation.name.clone().unwrap_or_else(|| UNNAMED_CONVERSATION_PLACEHOLDER.to_string()))
-        .unwrap_or_default();
-
-    let tab_rect: Rectangle = ChatPanel::rail_conversation_rect(panel_rect, tab_index);
-    let name_area_rect: Rectangle = ChatPanel::tooltip_rect(panel_rect, tab_index);
-
-    draw_conversation_tab(
-        rl_draw,
-        tab_rect,
-        Some(name_area_rect),
-        &name,
-        active_conversation_id == Some(conversation_id),
-        true,
-        close_hovered_index == Some(tab_index),
-    );
 }
 
 /// Renders a conversation tab. With `name_area_rect = None`, draws only the icon slot (rail
