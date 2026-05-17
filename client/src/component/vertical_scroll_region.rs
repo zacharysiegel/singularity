@@ -18,10 +18,13 @@ pub struct VerticalScrollRegion {
     viewport: Rectangle,
     content_height: f32,
     padding: f32,
-    scroll_offset: f32,
-    /// When set, the next `update` snaps `scroll_offset` to the new `max_scroll` instead of
-    /// clamping the prior value. Lets callers (e.g. message handlers) request "land at the
-    /// bottom once the content size is recomputed" without knowing the new content height.
+    /// User/handler-set position. The visible scroll position is derived from this and the
+    /// current dimensions via `scroll_offset()` — never read this field directly for layout,
+    /// it can be out of range relative to the latest dimensions.
+    scroll_offset_intent: f32,
+    /// When set, `scroll_offset()` reports `max_scroll()` so the view lands at the bottom
+    /// using whatever content size is current. Lets callers (e.g. message handlers) request
+    /// "land at the bottom" without knowing the new content height.
     pending_snap_to_bottom: bool,
 }
 
@@ -31,7 +34,7 @@ impl VerticalScrollRegion {
             viewport,
             content_height: 0.,
             padding,
-            scroll_offset: 0.,
+            scroll_offset_intent: 0.,
             pending_snap_to_bottom: false,
         }
     }
@@ -46,21 +49,20 @@ impl VerticalScrollRegion {
         if let Some(padding) = update.padding {
             self.padding = padding;
         }
-
-        if self.pending_snap_to_bottom {
-            self.scroll_offset = self.max_scroll();
-            self.pending_snap_to_bottom = false;
-        } else {
-            self.scroll_offset = self.scroll_offset.clamp(0., self.max_scroll());
-        }
     }
 
     pub fn viewport(&self) -> Rectangle {
         self.viewport
     }
 
+    /// The effective scroll position, derived from intent and current dimensions. Always
+    /// in `[0, max_scroll()]`.
     pub fn scroll_offset(&self) -> f32 {
-        self.scroll_offset
+        if self.pending_snap_to_bottom {
+            self.max_scroll()
+        } else {
+            self.scroll_offset_intent.clamp(0., self.max_scroll())
+        }
     }
 
     pub fn padding(&self) -> f32 {
@@ -72,18 +74,19 @@ impl VerticalScrollRegion {
     }
 
     pub fn is_at_bottom(&self) -> bool {
-        self.pending_snap_to_bottom || self.scroll_offset >= self.max_scroll()
+        self.pending_snap_to_bottom || self.scroll_offset_intent >= self.max_scroll()
     }
 
-    /// Requests the next `update` to land `scroll_offset` at the new `max_scroll`. The
-    /// actual clamp is deferred so callers don't need to know the post-update content
+    /// Requests subsequent reads to report `max_scroll()` until the user scrolls. Defers
+    /// the bottom-landing decision so callers don't need to know the post-update content
     /// height (which may depend on font/viewport state unavailable at the call site).
     pub fn scroll_to_bottom(&mut self) {
         self.pending_snap_to_bottom = true;
     }
 
     pub fn scroll_clamped(&mut self, delta: f32) {
-        self.scroll_offset = (self.scroll_offset + delta).clamp(0., self.max_scroll());
+        let effective_offset: f32 = self.scroll_offset();
+        self.scroll_offset_intent = (effective_offset + delta).clamp(0., self.max_scroll());
         self.pending_snap_to_bottom = false;
     }
 
@@ -92,7 +95,7 @@ impl VerticalScrollRegion {
         rl_draw: &mut RaylibDrawHandle,
         mut draw_fn: impl FnMut(RaylibScissorMode<RaylibDrawHandle>, f32),
     ) {
-        let y_offset: f32 = self.padding - self.scroll_offset;
+        let y_offset: f32 = self.padding - self.scroll_offset();
         rl_draw.draw_scissor_mode(
             self.viewport.x as i32,
             self.viewport.y as i32,
