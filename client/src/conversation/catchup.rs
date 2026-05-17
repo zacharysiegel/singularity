@@ -5,12 +5,15 @@ use shared::schema::conversation_message::ConversationMessageSerial;
 use uuid::Uuid;
 
 use super::event;
+use crate::account;
 use crate::http;
 use crate::state::STATE;
 
 const MESSAGE_LIMIT: i64 = 64;
 
 pub async fn catch_up(token: &str) {
+    account::catchup::fetch_own_account(token).await;
+
     let conversation_serials: Vec<ConversationSerial> = match fetch_conversations(token).await {
         Ok(conversations) => conversations,
         Err(error) => {
@@ -40,6 +43,12 @@ pub async fn catch_up(token: &str) {
         for member_serial in &member_serials {
             event::handle_member_joined(ConversationMemberChangeSerial::from(member_serial));
         }
+
+        let member_account_ids: Vec<Uuid> = member_serials
+            .iter()
+            .map(|member_serial| member_serial.account_id)
+            .collect();
+        account::catchup::fetch_missing_accounts(token, &member_account_ids).await;
 
         let message_serials: Vec<ConversationMessageSerial> =
             match fetch_messages(token, conversation_serial.id).await {
