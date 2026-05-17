@@ -8,7 +8,7 @@ use uuid::Uuid;
 const PANEL_MAX_WIDTH: f32 = 600.;
 pub const HEADER_HEIGHT: f32 = 46.;
 pub const ENTRY_HEIGHT: f32 = 44.;
-pub const CONTENT_PADDING: f32 = 12.;
+pub const CONTENT_PADDING: f32 = 8.;
 pub const RAIL_SEPARATOR_GAP: f32 = 6.;
 pub const TAB_MINI_CLOSE_SIZE: f32 = 12.;
 pub const TAB_MINI_CLOSE_MARGIN: f32 = 2.;
