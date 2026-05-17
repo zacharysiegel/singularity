@@ -89,6 +89,22 @@ impl VerticalScrollRegion {
         self.pending_snap_to_bottom = false;
     }
 
+    /// Inverse of the render-side `y_offset = padding - scroll_offset()` mapping. Converts
+    /// a screen y to a content-space y (origin at the first item, scroll-aware). Returns
+    /// `None` if the screen y falls outside the viewport or in the leading padding gutter.
+    /// Hit-testing should always go through this rather than recomputing the math at the
+    /// call site, so input stays aligned with render across padding/scroll/viewport changes.
+    pub fn screen_to_content_y(&self, screen_y: f32) -> Option<f32> {
+        if screen_y < self.viewport.y || screen_y >= self.viewport.y + self.viewport.height {
+            return None;
+        }
+        let content_y: f32 = screen_y - self.viewport.y + self.scroll_offset() - self.padding;
+        if content_y < 0. {
+            return None;
+        }
+        Some(content_y)
+    }
+
     pub fn draw(
         &self,
         rl_draw: &mut RaylibDrawHandle,
