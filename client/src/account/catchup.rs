@@ -30,16 +30,20 @@ pub async fn fetch_own_account(token: &str) {
     STATE.account.cache.insert(public.id, public);
 }
 
-/// Fills the cache with public account info for any of the given ids that aren't
-/// already cached. Performs one `GET /account/{id}` per missing id sequentially;
-/// catch-up isn't on a hot path.
+/// Fills the cache with public account info for any of the given ids that aren't already
+/// cached. Issues one `GET /account/{id}` per missing id concurrently and joins on all.
 pub async fn fetch_missing_accounts(token: &str, account_ids: &[Uuid]) {
-    for account_id in account_ids {
-        if STATE.account.cache.contains_key(account_id) {
-            continue;
-        }
-        fetch_account(token, *account_id).await;
-    }
+    let missing_account_ids: Vec<Uuid> = account_ids
+        .iter()
+        .copied()
+        .filter(|account_id| !STATE.account.cache.contains_key(account_id))
+        .collect();
+    futures::future::join_all(
+        missing_account_ids
+            .into_iter()
+            .map(|account_id| fetch_account(token, account_id)),
+    )
+    .await;
 }
 
 impl AccountState {

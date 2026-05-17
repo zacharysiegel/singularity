@@ -13,9 +13,12 @@ use crate::state::STATE;
 const MESSAGE_LIMIT: i64 = 64;
 
 pub async fn catch_up(token: &str) {
-    account::catchup::fetch_own_account(token).await;
+    let (_, conversation_result): (_, Result<Vec<ConversationSerial>, AppErrorStatic>) = tokio::join!(
+        account::catchup::fetch_own_account(token),
+        fetch_conversations(token),
+    );
 
-    let conversation_serials: Vec<ConversationSerial> = match fetch_conversations(token).await {
+    let conversation_serials: Vec<ConversationSerial> = match conversation_result {
         Ok(conversations) => conversations,
         Err(error) => {
             log::warn!("Chat catch-up failed to fetch conversations; [{error}]");
@@ -23,58 +26,75 @@ pub async fn catch_up(token: &str) {
         }
     };
 
-    let mut conversation_count: i32 = 0;
-    let mut message_count: i32 = 0;
-
-    for conversation_serial in &conversation_serials {
-        STATE.conversation.get_or_create(conversation_serial.id)
-            .set_metadata(conversation_serial);
-
-        let member_serials: Vec<ConversationMemberSerial> =
-            match fetch_members(token, conversation_serial.id).await {
-                Ok(members) => members,
-                Err(error) => {
-                    log::warn!(
-                        "Chat catch-up failed to fetch members; [{}] [{error}]",
-                        conversation_serial.id
-                    );
-                    Vec::new()
-                }
-            };
-        for member_serial in &member_serials {
-            event::handle_member_joined(ConversationMemberChangeSerial::from(member_serial));
-        }
-
-        let member_account_ids: Vec<Uuid> = member_serials
+    let per_conversation_message_counts: Vec<usize> = futures::future::join_all(
+        conversation_serials
             .iter()
-            .map(|member_serial| member_serial.account_id)
-            .collect();
-        account::catchup::fetch_missing_accounts(token, &member_account_ids).await;
+            .map(|conversation_serial| catch_up_conversation(token, conversation_serial)),
+    )
+    .await;
 
-        let message_serials: Vec<ConversationMessageSerial> =
-            match fetch_messages(token, conversation_serial.id).await {
-                Ok(messages) => messages,
-                Err(error) => {
-                    log::warn!(
-                        "Chat catch-up failed to fetch messages; [{}] [{error}]",
-                        conversation_serial.id
-                    );
-                    Vec::new()
-                }
-            };
+    let conversation_with_messages_count: usize = per_conversation_message_counts
+        .iter()
+        .filter(|count| **count > 0)
+        .count();
+    let message_count: usize = per_conversation_message_counts.iter().sum();
 
-        conversation_count += i32::from(!message_serials.is_empty());
-        message_count += message_serials.len() as i32;
-        for message_serial in message_serials {
-            event::handle_message(message_serial);
-        }
-    }
-
-    log::info!("Chat catch-up complete; [{conversation_count} conversations] [{message_count} messages]");
+    log::info!("Chat catch-up complete; [{conversation_with_messages_count} conversations] [{message_count} messages]");
 
     if RuntimeEnvironment::default().is_debug() {
         debug::seed_debug_conversations();
     }
+}
+
+/// Fetches members and messages for a single conversation concurrently, applies them via
+/// the same event path as live WS, and resolves any uncached member usernames. Returns the
+/// number of messages applied.
+async fn catch_up_conversation(token: &str, conversation_serial: &ConversationSerial) -> usize {
+    STATE.conversation.get_or_create(conversation_serial.id)
+        .set_metadata(conversation_serial);
+
+    let (member_result, message_result): (
+        Result<Vec<ConversationMemberSerial>, AppErrorStatic>,
+        Result<Vec<ConversationMessageSerial>, AppErrorStatic>,
+    ) = tokio::join!(
+        fetch_members(token, conversation_serial.id),
+        fetch_messages(token, conversation_serial.id),
+    );
+
+    let member_serials: Vec<ConversationMemberSerial> = match member_result {
+        Ok(members) => members,
+        Err(error) => {
+            log::warn!(
+                "Chat catch-up failed to fetch members; [{}] [{error}]",
+                conversation_serial.id
+            );
+            Vec::new()
+        }
+    };
+    for member_serial in &member_serials {
+        event::handle_member_joined(ConversationMemberChangeSerial::from(member_serial));
+    }
+    let member_account_ids: Vec<Uuid> = member_serials
+        .iter()
+        .map(|member_serial| member_serial.account_id)
+        .collect();
+    account::catchup::fetch_missing_accounts(token, &member_account_ids).await;
+
+    let message_serials: Vec<ConversationMessageSerial> = match message_result {
+        Ok(messages) => messages,
+        Err(error) => {
+            log::warn!(
+                "Chat catch-up failed to fetch messages; [{}] [{error}]",
+                conversation_serial.id
+            );
+            Vec::new()
+        }
+    };
+    let message_count: usize = message_serials.len();
+    for message_serial in message_serials {
+        event::handle_message(message_serial);
+    }
+    message_count
 }
 
 async fn fetch_conversations(token: &str) -> Result<Vec<ConversationSerial>, AppErrorStatic> {
