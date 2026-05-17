@@ -25,8 +25,19 @@ impl ScrollHandler for ChatPanelInput {
             return ScrollResult::Pass;
         }
 
+        let active_tab: ChatTab = STATE.conversation.chat_panel.read().unwrap().active_tab.clone();
         let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
-        chat_panel.conversation_list_state.scroll_region.scroll(rl, scroll_v, mouse_position);
+        match active_tab {
+            ChatTab::ConversationList => {
+                chat_panel.conversation_list_state.scroll_region.scroll(rl, scroll_v, mouse_position);
+            }
+            ChatTab::Conversation(conversation_id) => {
+                if let Some(view_state) = chat_panel.conversation_view_states.get_mut(&conversation_id) {
+                    view_state.scroll_region.scroll(rl, scroll_v, mouse_position);
+                }
+            }
+            ChatTab::NewConversation => {}
+        }
 
         ScrollResult::Consume
     }
