@@ -164,16 +164,23 @@ fn on_content_click(panel_rect: Rectangle, press_position: RenderCoord, release_
 
 fn on_conversation_list_click(panel_rect: Rectangle, press_position: RenderCoord, release_position: RenderCoord) {
     let content_body_rect: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
-    let scroll_offset: f32 = STATE.conversation.chat_panel.read().unwrap().conversation_list_state.scroll_region.scroll_offset();
-
-    let press_offset_from_body: f32 = press_position.y - content_body_rect.y + scroll_offset;
-    let release_offset_from_entries: f32 = release_position.y - content_body_rect.y + scroll_offset;
-    if press_offset_from_body < 0. || release_offset_from_entries < 0. {
+    if !content_body_rect.check_collision_point_rec(press_position)
+        || !content_body_rect.check_collision_point_rec(release_position)
+    {
         return;
     }
 
-    let press_index: usize = (press_offset_from_body / ENTRY_HEIGHT) as usize;
-    let release_index: usize = (release_offset_from_entries / ENTRY_HEIGHT) as usize;
+    let chat_panel: std::sync::RwLockReadGuard<ChatPanel> = STATE.conversation.chat_panel.read().unwrap();
+    let press_content_y: Option<f32> = chat_panel.conversation_list_state.scroll_region.screen_to_content_y(press_position.y);
+    let release_content_y: Option<f32> = chat_panel.conversation_list_state.scroll_region.screen_to_content_y(release_position.y);
+    drop(chat_panel);
+
+    let (Some(press_content_y), Some(release_content_y)) = (press_content_y, release_content_y) else {
+        return;
+    };
+
+    let press_index: usize = (press_content_y / ENTRY_HEIGHT) as usize;
+    let release_index: usize = (release_content_y / ENTRY_HEIGHT) as usize;
     if press_index != release_index {
         return;
     }
@@ -298,15 +305,12 @@ fn find_conversation_list_hovered_entry(panel_rect: Rectangle, mouse_position: R
         return None;
     }
 
-    let scroll_offset: f32 = STATE.conversation.chat_panel.read().unwrap().conversation_list_state.scroll_region.scroll_offset();
+    let chat_panel: std::sync::RwLockReadGuard<ChatPanel> = STATE.conversation.chat_panel.read().unwrap();
+    let content_y: f32 = chat_panel.conversation_list_state.scroll_region.screen_to_content_y(mouse_position.y)?;
+    drop(chat_panel);
+
     let entry_count: usize = STATE.conversation.display_order().len();
-
-    let mouse_offset_from_content: f32 = mouse_position.y - content_viewport.y + scroll_offset;
-    if mouse_offset_from_content < 0. {
-        return None;
-    }
-
-    let index: usize = (mouse_offset_from_content / ENTRY_HEIGHT) as usize;
+    let index: usize = (content_y / ENTRY_HEIGHT) as usize;
     if index < entry_count {
         Some(index)
     } else {
