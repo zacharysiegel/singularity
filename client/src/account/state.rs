@@ -28,8 +28,4 @@ impl AccountState {
             in_flight: DashMap::new(),
         }
     }
-
-    pub fn username(&self, account_id: Uuid) -> Option<String> {
-        self.cache.get(&account_id).map(|entry| entry.username.clone())
-    }
 }

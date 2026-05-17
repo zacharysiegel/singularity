@@ -45,12 +45,10 @@ pub async fn fetch_missing_accounts(token: &str, account_ids: &[Uuid]) {
 impl AccountState {
     /// Returns the cached username for `account_id` if present. On miss, spawns a deduped
     /// lazy fetch and returns `None`; subsequent reads (after the fetch completes) will
-    /// see the cached value. Read-with-self-population is the only way callers should
-    /// resolve usernames during render — bare `username()` is a passive lookup that does
-    /// not request data.
+    /// see the cached value.
     pub fn request_username(&self, account_id: Uuid) -> Option<String> {
-        if let Some(username) = self.username(account_id) {
-            return Some(username);
+        if let Some(entry) = self.cache.get(&account_id) {
+            return Some(entry.username.clone());
         }
         spawn_fetch_if_missing(account_id);
         None
