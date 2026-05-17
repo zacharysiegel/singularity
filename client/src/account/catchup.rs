@@ -31,7 +31,7 @@ pub async fn fetch_own_account(token: &str) {
 }
 
 /// Fills the cache with public account info for any of the given ids that aren't
-/// already cached. Performs one `GET /account/{id}` per missing id sequentially —
+/// already cached. Performs one `GET /account/{id}` per missing id sequentially;
 /// catch-up isn't on a hot path.
 pub async fn fetch_missing_accounts(token: &str, account_ids: &[Uuid]) {
     for account_id in account_ids {
