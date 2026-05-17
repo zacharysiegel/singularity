@@ -79,12 +79,12 @@ fn resolve_or_set_own_account_id() -> Uuid {
 
 fn seed_strategy_squad_messages(conversation: &mut Conversation, conversation_id: Uuid, me: Uuid, alpha: Uuid, beta: Uuid, gamma: Uuid) {
     let member_changes: &[(Uuid, MemberChangeKind, i64)] = &[
-        (alpha, MemberChangeKind::Joined, 3600 * 24 * 3),
-        (beta,  MemberChangeKind::Joined, 3600 * 24 * 3 - 60),
-        (gamma, MemberChangeKind::Joined, 3600 * 24 * 2),
-        (me,    MemberChangeKind::Joined, 3600 * 24),
-        (gamma, MemberChangeKind::Left,   3600 * 7),
-        (gamma, MemberChangeKind::Joined, 3600 * 6 + 1800),
+        (alpha, MemberChangeKind::Joined, 3600 * 8),
+        (beta,  MemberChangeKind::Joined, 3600 * 8 - 600),
+        (gamma, MemberChangeKind::Joined, 3600 * 7 + 1800),
+        (me,    MemberChangeKind::Joined, 3600 * 7),
+        (gamma, MemberChangeKind::Left,   9000),
+        (gamma, MemberChangeKind::Joined, 4500),
     ];
     insert_member_changes(conversation, conversation_id, member_changes);
 
