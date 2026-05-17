@@ -1,19 +1,15 @@
-use shared::environment::RuntimeEnvironment;
 use shared::error::AppErrorStatic;
 use shared::schema::account::{AccountPublicSerial, AccountSerial};
 use uuid::Uuid;
 
+use super::api;
 use super::AccountState;
-use crate::http;
 use crate::state::STATE;
 
-/// Fetches the authenticated user's account, sets `own_account_id`, and inserts the
-/// corresponding public entry into the cache. Idempotent across reconnects.
+/// Fetches the authenticated user's account via the api layer, sets `own_account_id`,
+/// and inserts the public entry into the cache. Idempotent across reconnects.
 pub async fn fetch_own_account(token: &str) {
-    let lobby_http_origin: String = RuntimeEnvironment::default().lobby_http_origin();
-    let url: String = format!("{lobby_http_origin}/account");
-    let result: Result<AccountSerial, AppErrorStatic> =
-        http::fetch_standard(token, &url, "own account").await;
+    let result: Result<AccountSerial, AppErrorStatic> = api::fetch_own_account(token).await;
     let account: AccountSerial = match result {
         Ok(account) => account,
         Err(error) => {
@@ -41,7 +37,7 @@ pub async fn fetch_missing_accounts(token: &str, account_ids: &[Uuid]) {
     futures::future::join_all(
         missing_account_ids
             .into_iter()
-            .map(|account_id| fetch_account(token, account_id)),
+            .map(|account_id| fetch_and_cache_account(token, account_id)),
     )
     .await;
 }
@@ -75,16 +71,13 @@ fn spawn_fetch_if_missing(account_id: Uuid) {
     };
 
     tokio::spawn(async move {
-        fetch_account(&token, account_id).await;
+        fetch_and_cache_account(&token, account_id).await;
         STATE.account.in_flight_account_lookups.remove(&account_id);
     });
 }
 
-async fn fetch_account(token: &str, account_id: Uuid) {
-    let lobby_http_origin: String = RuntimeEnvironment::default().lobby_http_origin();
-    let url: String = format!("{lobby_http_origin}/account/{account_id}");
-    let result: Result<AccountPublicSerial, AppErrorStatic> =
-        http::fetch_standard(token, &url, &format!("account; [{account_id}]")).await;
+async fn fetch_and_cache_account(token: &str, account_id: Uuid) {
+    let result: Result<AccountPublicSerial, AppErrorStatic> = api::fetch_account(token, account_id).await;
     match result {
         Ok(public) => {
             STATE.account.cache.insert(public.id, public);

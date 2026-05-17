@@ -1,3 +1,4 @@
+mod api;
 pub mod catchup;
 pub mod debug; // todo: remove
 
