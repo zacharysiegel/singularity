@@ -18,6 +18,15 @@ pub struct AccountPublicSerial {
     pub username: String,
 }
 
+impl From<AccountSerial> for AccountPublicSerial {
+    fn from(account: AccountSerial) -> Self {
+        Self {
+            id: account.id,
+            username: account.username,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateAccountRequest {
     pub email: String,
