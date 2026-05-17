@@ -195,18 +195,15 @@ impl HoverHandler for ChatPanelInput {
         let hovered_rail_button: Option<RailControl> = find_hovered_rail_button(panel_rect, mouse_position);
         let (hovered_conversation_tab, hovered_conversation_tab_close, hovered_tooltip): (Option<usize>, Option<usize>, bool) =
             find_conversation_tab_hover_state(panel_rect, mouse_position);
-        let hovered_list_entry: Option<usize> = if hovered_conversation_tab.is_none() {
-            find_hovered_content_entry(panel_rect, mouse_position)
-        } else {
-            None
-        };
 
         let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
         chat_panel.hovered_control_button = hovered_rail_button;
         chat_panel.hovered_conversation_tab = hovered_conversation_tab;
         chat_panel.hovered_conversation_tab_close = hovered_conversation_tab_close;
         chat_panel.hovered_tooltip = hovered_tooltip;
-        chat_panel.conversation_list_state.hovered_entry = hovered_list_entry;
+        drop(chat_panel);
+
+        handle_content_hover(panel_rect, mouse_position);
 
         HoverResult::Consume
     }
@@ -264,12 +261,23 @@ fn find_conversation_tab_hover_state(
     (hovered_conversation_tab, hovered_conversation_tab_close, hovered_tooltip)
 }
 
-fn find_hovered_content_entry(panel_rect: Rectangle, mouse_position: RenderCoord) -> Option<usize> {
+fn handle_content_hover(panel_rect: Rectangle, mouse_position: RenderCoord) {
     let active_tab: ChatTab = STATE.conversation.chat_panel.read().unwrap().active_tab.clone();
     match active_tab {
-        ChatTab::ConversationList => find_hovered_list_entry(panel_rect, mouse_position),
-        _ => None,
+        ChatTab::ConversationList => handle_conversation_list_hover(panel_rect, mouse_position),
+        ChatTab::NewConversation => {}
+        ChatTab::Conversation(_) => {}
     }
+}
+
+fn handle_conversation_list_hover(panel_rect: Rectangle, mouse_position: RenderCoord) {
+    let occluded_by_tab: bool = STATE.conversation.chat_panel.read().unwrap().hovered_conversation_tab.is_some();
+    let hovered_entry: Option<usize> = if occluded_by_tab {
+        None
+    } else {
+        find_hovered_list_entry(panel_rect, mouse_position)
+    };
+    STATE.conversation.chat_panel.write().unwrap().conversation_list_state.hovered_entry = hovered_entry;
 }
 
 fn find_hovered_list_entry(panel_rect: Rectangle, mouse_position: RenderCoord) -> Option<usize> {
