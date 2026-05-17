@@ -492,7 +492,7 @@ fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle,
 fn format_conversation_header(conversation: &Conversation) -> (String, String) {
     let name: String = conversation.name.clone().unwrap_or_else(|| UNNAMED_CONVERSATION_PLACEHOLDER.to_string());
     let member_count: usize = conversation.members.len();
-    let subtitle: String = format!("{member_count} member{}", if member_count > 1 { "s" } else { "" });
+    let subtitle: String = format!("{member_count} member{}", if member_count == 1 { "" } else { "s" });
     (name, subtitle)
 }
 
