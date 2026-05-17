@@ -445,22 +445,22 @@ fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle,
     };
 
     let (header_title, header_subtitle): (String, String) = format_conversation_header(&conversation_entry);
-    let chat_messages: Vec<ConversationMessage> = collect_chat_messages(&conversation_entry);
+    let raw_events: Vec<RawRenderableEvent> = collect_conversation_events(&conversation_entry);
     drop(conversation_entry);
 
     draw_panel_header(rl_draw, content_rect, &header_title, Some(&header_subtitle));
 
     let font_factory: fn() -> WeakFont = || unsafe { WeakFont::from_raw(raylib::ffi::GetFontDefault()) };
     let max_message_width: f32 = (content_body_rect.width - CONTENT_PADDING * 2.) * MESSAGE_MAX_WIDTH_RATIO;
-    let wrapped_messages: Vec<WrappedMessage> = chat_messages
+    let renderable_events: Vec<RenderableEvent> = raw_events
         .into_iter()
-        .map(|message| WrappedMessage::new(message, &font_factory(), max_message_width))
+        .map(|event| RenderableEvent::new(event, &font_factory(), max_message_width))
         .collect();
-    let content_height: f32 = wrapped_messages
+    let content_height: f32 = renderable_events
         .iter()
-        .map(WrappedMessage::height)
+        .map(RenderableEvent::height)
         .sum::<f32>()
-        + MESSAGE_BUNDLE_GAP * wrapped_messages.len().saturating_sub(1) as f32;
+        + MESSAGE_BUNDLE_GAP * renderable_events.len().saturating_sub(1) as f32;
 
     let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
     let view_state = chat_panel
@@ -476,16 +476,15 @@ fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle,
     let own_account_id: Option<Uuid> = *STATE.account.own_account_id.read().unwrap();
     view_state.scroll_region.draw(rl_draw, |mut scissor_draw, y_offset| {
         let mut entry_top: f32 = content_body_rect.y + y_offset;
-        for wrapped in &wrapped_messages {
+        for renderable in &renderable_events {
             if entry_top > content_body_rect.y + content_body_rect.height {
                 break;
             }
 
-            let is_own: bool = own_account_id == Some(wrapped.message.sender_account_id);
-            if entry_top + wrapped.height() > content_body_rect.y {
-                draw_message(&mut scissor_draw, content_body_rect, entry_top, wrapped, is_own, &font_factory());
+            if entry_top + renderable.height() > content_body_rect.y {
+                draw_renderable_event(&mut scissor_draw, content_body_rect, entry_top, renderable, own_account_id, &font_factory());
             }
-            entry_top += wrapped.height() + MESSAGE_BUNDLE_GAP;
+            entry_top += renderable.height() + MESSAGE_BUNDLE_GAP;
         }
     });
 }
@@ -497,15 +496,50 @@ fn format_conversation_header(conversation: &Conversation) -> (String, String) {
     (name, subtitle)
 }
 
-fn collect_chat_messages(conversation: &Conversation) -> Vec<ConversationMessage> {
+enum RawRenderableEvent {
+    Chat(ConversationMessage),
+    Joined(shared::schema::conversation::ConversationMemberChange),
+    Left(shared::schema::conversation::ConversationMemberChange),
+}
+
+fn collect_conversation_events(conversation: &Conversation) -> Vec<RawRenderableEvent> {
     conversation
         .events
         .values()
-        .filter_map(|event| match event {
-            ConversationEvent::Chat(message) => Some(message.clone()),
-            _ => None,
+        .map(|event| match event {
+            ConversationEvent::Chat(message) => RawRenderableEvent::Chat(message.clone()),
+            ConversationEvent::MemberJoined(change) => RawRenderableEvent::Joined(change.clone()),
+            ConversationEvent::MemberLeft(change) => RawRenderableEvent::Left(change.clone()),
         })
         .collect()
+}
+
+enum RenderableEvent {
+    Message(WrappedMessage),
+    System(SystemRow),
+}
+
+impl RenderableEvent {
+    fn new(event: RawRenderableEvent, font: &WeakFont, max_width: f32) -> Self {
+        match event {
+            RawRenderableEvent::Chat(message) => {
+                RenderableEvent::Message(WrappedMessage::new(message, font, max_width))
+            }
+            RawRenderableEvent::Joined(change) => {
+                RenderableEvent::System(SystemRow::new("joined", &change))
+            }
+            RawRenderableEvent::Left(change) => {
+                RenderableEvent::System(SystemRow::new("left", &change))
+            }
+        }
+    }
+
+    fn height(&self) -> f32 {
+        match self {
+            RenderableEvent::Message(wrapped) => wrapped.height(),
+            RenderableEvent::System(_) => SENDER_FONT_SIZE,
+        }
+    }
 }
 
 struct WrappedMessage {
@@ -533,6 +567,25 @@ impl WrappedMessage {
     }
 }
 
+struct SystemRow {
+    text: String,
+}
+
+impl SystemRow {
+    fn new(verb: &str, change: &shared::schema::conversation::ConversationMemberChange) -> Self {
+        let username: String = STATE
+            .account
+            .request_username(change.account_id)
+            .unwrap_or_else(|| change.account_id.to_string());
+        let local_time: DateTime<Local> = change.timestamp.with_timezone(&Local);
+        let absolute: String = local_time.format("%b %-d %H:%M:%S").to_string();
+        let relative: String = format_relative_time(change.timestamp);
+        SystemRow {
+            text: format!("{username} {verb} | {absolute} ({relative})"),
+        }
+    }
+}
+
 fn format_sender_line(message: &ConversationMessage) -> String {
     let sender_username: String = STATE
         .account
@@ -542,6 +595,44 @@ fn format_sender_line(message: &ConversationMessage) -> String {
     let absolute: String = local_time.format("%b %-d %H:%M:%S").to_string();
     let relative: String = format_relative_time(message.created);
     format!("{sender_username} | {absolute} ({relative})")
+}
+
+fn draw_renderable_event(
+    rl_draw: &mut impl RaylibDraw,
+    viewport: Rectangle,
+    top: f32,
+    renderable: &RenderableEvent,
+    own_account_id: Option<Uuid>,
+    font: &WeakFont,
+) {
+    match renderable {
+        RenderableEvent::Message(wrapped) => {
+            let is_own: bool = own_account_id == Some(wrapped.message.sender_account_id);
+            draw_message(rl_draw, viewport, top, wrapped, is_own, font);
+        }
+        RenderableEvent::System(row) => {
+            draw_system_row(rl_draw, viewport, top, row, font);
+        }
+    }
+}
+
+fn draw_system_row(
+    rl_draw: &mut impl RaylibDraw,
+    viewport: Rectangle,
+    top: f32,
+    row: &SystemRow,
+    font: &WeakFont,
+) {
+    let measure: Vector2 = font.measure_text(&row.text, SENDER_FONT_SIZE, SENDER_FONT_SPACING);
+    let center_x: f32 = viewport.x + viewport.width / 2. - measure.x / 2.;
+    rl_draw.draw_text_ex(
+        font,
+        &row.text,
+        Vector2 { x: center_x, y: top },
+        SENDER_FONT_SIZE,
+        SENDER_FONT_SPACING,
+        WINDOW_INTERIOR_BORDER_COLOR,
+    );
 }
 
 
