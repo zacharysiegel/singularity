@@ -38,21 +38,21 @@ pub async fn warm_accounts(token: &str, account_ids: &[Uuid]) {
     .await;
 }
 
-/// Deduped background fetch for a single account id. No-op if cached or already in flight.
+/// Deduped background fetch for a single account id. No-op if cached, already in flight,
+/// or the user is not authenticated.
 pub fn spawn_fetch_if_missing(account_id: Uuid) {
     if STATE.account.cache.contains_key(&account_id) {
         return;
     }
 
+    let token: Option<String> = STATE.lobby.token.read().unwrap().clone();
+    let Some(token) = token else {
+        return;
+    };
+
     if STATE.account.in_flight_account_lookups.insert(account_id, ()).is_some() {
         return;
     }
-
-    let token: Option<String> = STATE.lobby.token.read().unwrap().clone();
-    let Some(token) = token else {
-        STATE.account.in_flight_account_lookups.remove(&account_id);
-        return;
-    };
 
     tokio::spawn(async move {
         fetch_and_cache_account(&token, account_id).await;
