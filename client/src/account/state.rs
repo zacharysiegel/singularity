@@ -28,4 +28,15 @@ impl AccountState {
             in_flight_account_lookups: DashMap::new(),
         }
     }
+
+    /// Returns the cached username for `account_id` if present. On miss, spawns a deduped
+    /// lazy fetch and returns `None`; subsequent reads (after the fetch completes) will
+    /// see the cached value.
+    pub fn request_username(&self, account_id: Uuid) -> Option<String> {
+        if let Some(entry) = self.cache.get(&account_id) {
+            return Some(entry.username.clone());
+        }
+        super::catchup::spawn_fetch_if_missing(account_id);
+        None
+    }
 }
