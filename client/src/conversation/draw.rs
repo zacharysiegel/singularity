@@ -3,11 +3,11 @@ use crate::component::frame::{BORDER_THICKNESS, draw_side_button_accent_filled, 
 use crate::component::icon::{draw_close_x, draw_donut_ring, draw_hamburger, draw_plus};
 use crate::component::text::Text;
 use crate::component::text_truncate;
-use crate::conversation::panel::{ChatPanel, ChatTab, RailControl, ENTRY_HEIGHT, HEADER_HEIGHT};
+use crate::conversation::panel::{ChatPanel, ChatTab, RailControl, ENTRY_HEIGHT, HEADER_HEIGHT, RAIL_SEPARATOR_GAP};
 use crate::state::STATE;
-use crate::window::BUTTON_WIDTH;
+use crate::window::{BORDER_GAP, BUTTON_WIDTH};
 use raylib::color::Color;
-use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
+use raylib::drawing::{RaylibDraw, RaylibDrawHandle, RaylibScissorModeExt};
 use raylib::math::{Rectangle, Vector2};
 use raylib::text::{RaylibFont, WeakFont};
 use raylib::RaylibThread;
@@ -102,6 +102,10 @@ fn draw_conversation_tabs(
     panel_rect: Rectangle,
     conversation_tabs: &[Uuid],
 ) {
+    if conversation_tabs.is_empty() {
+        return;
+    }
+
     let chat_panel: RwLockReadGuard<ChatPanel> = STATE.conversation.chat_panel.read().unwrap();
     let active_conversation_id: Option<Uuid> = match chat_panel.active_tab {
         ChatTab::Conversation(id) => Some(id),
@@ -111,37 +115,47 @@ fn draw_conversation_tabs(
     let close_hovered_index: Option<usize> = chat_panel.hovered_conversation_tab_close;
     drop(chat_panel);
 
-    for (index, conversation_id) in conversation_tabs.iter().enumerate() {
-        let tab_rect: Rectangle = ChatPanel::rail_conversation_rect(panel_rect, index);
-        let is_active: bool = active_conversation_id == Some(*conversation_id);
-        let is_hovered: bool = hovered_index == Some(index);
-        let name: String = STATE.conversation.conversations
-            .get(conversation_id)
-            .map(|conversation| conversation.name.clone().unwrap_or_else(|| UNNAMED_CONVERSATION_PLACEHOLDER.to_string()))
-            .unwrap_or_default();
-        let tooltip_rect: Option<Rectangle> = if is_hovered {
-            Some(ChatPanel::tooltip_rect(panel_rect, index))
-        } else {
-            None
-        };
+    let list_rect: Rectangle = ChatPanel::rail_control_rect(panel_rect, RailControl::List);
+    let tab_area_top: f32 = list_rect.y + list_rect.height + RAIL_SEPARATOR_GAP;
+    let panel_inner_bottom: f32 = panel_rect.y + panel_rect.height - BORDER_GAP;
+    let scissor_x: i32 = (panel_rect.x + BORDER_GAP) as i32;
+    let scissor_y: i32 = tab_area_top as i32;
+    let scissor_width: i32 = (panel_rect.width - BORDER_GAP * 2.) as i32;
+    let scissor_height: i32 = (panel_inner_bottom - tab_area_top) as i32;
 
-        draw_conversation_tab(
-            rl_draw,
-            tab_rect,
-            tooltip_rect,
-            name,
-            is_active,
-            is_hovered,
-            is_hovered && close_hovered_index == Some(index),
-        );
-    }
+    rl_draw.draw_scissor_mode(scissor_x, scissor_y, scissor_width, scissor_height, |mut scissor_draw| {
+        for (index, conversation_id) in conversation_tabs.iter().enumerate() {
+            let tab_rect: Rectangle = ChatPanel::rail_conversation_rect(panel_rect, index);
+            let is_active: bool = active_conversation_id == Some(*conversation_id);
+            let is_hovered: bool = hovered_index == Some(index);
+            let name: String = STATE.conversation.conversations
+                .get(conversation_id)
+                .map(|conversation| conversation.name.clone().unwrap_or_else(|| UNNAMED_CONVERSATION_PLACEHOLDER.to_string()))
+                .unwrap_or_default();
+            let tooltip_rect: Option<Rectangle> = if is_hovered {
+                Some(ChatPanel::tooltip_rect(panel_rect, index))
+            } else {
+                None
+            };
+
+            draw_conversation_tab(
+                &mut scissor_draw,
+                tab_rect,
+                tooltip_rect,
+                name,
+                is_active,
+                is_hovered,
+                is_hovered && close_hovered_index == Some(index),
+            );
+        }
+    });
 }
 
 /// Renders a conversation tab. With `tooltip_rect = None`, draws only the icon slot (rail
 /// tab). With `Some(rect)`, widens the tab's frame to include the name label in that rect
 /// (hover tooltip presentation).
 pub fn draw_conversation_tab(
-    rl_draw: &mut RaylibDrawHandle,
+    rl_draw: &mut impl RaylibDraw,
     icon_rect: Rectangle,
     tooltip_rect: Option<Rectangle>,
     name: String,
@@ -173,7 +187,7 @@ pub fn draw_conversation_tab(
     }
 }
 
-fn draw_tooltip(rl_draw: &mut RaylibDrawHandle, tooltip_rect: Rectangle, name: String) {
+fn draw_tooltip(rl_draw: &mut impl RaylibDraw, tooltip_rect: Rectangle, name: String) {
     let text: Text = Text {
         content: name,
         font_size: NAME_FONT_SIZE,
@@ -198,7 +212,7 @@ fn draw_tooltip(rl_draw: &mut RaylibDrawHandle, tooltip_rect: Rectangle, name: S
     );
 }
 
-fn draw_tab_mini_close(rl_draw: &mut RaylibDrawHandle, tab_rect: Rectangle, hovered: bool) {
+fn draw_tab_mini_close(rl_draw: &mut impl RaylibDraw, tab_rect: Rectangle, hovered: bool) {
     let close_rect: Rectangle = ChatPanel::rail_conversation_close_rect(tab_rect);
     let background_color: Color = if hovered {
         math::color_add(&WINDOW_BACKGROUND_COLOR, &shared::color::DIFF_HOVER_BUTTON)

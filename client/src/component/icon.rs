@@ -1,12 +1,12 @@
 use std::f32;
 use raylib::color::Color;
-use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
+use raylib::drawing::RaylibDraw;
 use raylib::math::{Rectangle, Vector2};
 use shared::math::SIN_FRAC_PI_4;
 
 const X_VERTEX_N: usize = 8;
 
-pub fn draw_close_x(rl_draw: &mut RaylibDrawHandle, bounds: Rectangle, thickness: f32, color: Color) {
+pub fn draw_close_x(rl_draw: &mut impl RaylibDraw, bounds: Rectangle, thickness: f32, color: Color) {
     let center: Vector2 = Vector2 {
         x: bounds.x + bounds.width / 2.,
         y: bounds.y + bounds.height / 2.,
@@ -22,7 +22,7 @@ pub fn draw_close_x(rl_draw: &mut RaylibDrawHandle, bounds: Rectangle, thickness
     rl_draw.draw_triangle_fan(&b, color);
 }
 
-pub fn draw_plus(rl_draw: &mut RaylibDrawHandle, bounds: Rectangle, thickness: f32, color: Color) {
+pub fn draw_plus(rl_draw: &mut impl RaylibDraw, bounds: Rectangle, thickness: f32, color: Color) {
     let center: Vector2 = Vector2 {
         x: bounds.x + bounds.width / 2.,
         y: bounds.y + bounds.height / 2.,
@@ -42,7 +42,7 @@ pub fn draw_plus(rl_draw: &mut RaylibDrawHandle, bounds: Rectangle, thickness: f
     );
 }
 
-pub fn draw_hamburger(rl_draw: &mut RaylibDrawHandle, bounds: Rectangle, thickness: f32, color: Color) {
+pub fn draw_hamburger(rl_draw: &mut impl RaylibDraw, bounds: Rectangle, thickness: f32, color: Color) {
     let padding_x: f32 = bounds.width * 0.28;
     let padding_y: f32 = bounds.height * 0.33;
     let line_x: f32 = bounds.x + padding_x;
@@ -59,7 +59,7 @@ pub fn draw_hamburger(rl_draw: &mut RaylibDrawHandle, bounds: Rectangle, thickne
     }
 }
 
-pub fn draw_donut_ring(rl_draw: &mut RaylibDrawHandle, bounds: Rectangle, color: Color) {
+pub fn draw_donut_ring(rl_draw: &mut impl RaylibDraw, bounds: Rectangle, color: Color) {
     let center: Vector2 = Vector2 {
         x: bounds.x + bounds.width / 2.,
         y: bounds.y + bounds.height / 2.,

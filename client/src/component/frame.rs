@@ -1,5 +1,5 @@
 use raylib::color::Color;
-use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
+use raylib::drawing::RaylibDraw;
 use raylib::math::{Rectangle, Vector2};
 use shared::color::{DIFF_HOVER_BUTTON, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_INTERIOR_BORDER_COLOR};
 use shared::math;
@@ -8,13 +8,13 @@ pub const BORDER_GAP: f32 = 10.;
 pub const BORDER_THICKNESS: f32 = 1.;
 pub const ACCENT_HEIGHT: f32 = 10.;
 
-pub fn draw_window_frame(rl_draw: &mut RaylibDrawHandle, rect: Rectangle, background_color: Color) {
+pub fn draw_window_frame(rl_draw: &mut impl RaylibDraw, rect: Rectangle, background_color: Color) {
     rl_draw.draw_rectangle_rec(rect, background_color);
     draw_window_interior_border(rl_draw, rect);
     rl_draw.draw_rectangle_lines_ex(rect, BORDER_THICKNESS, WINDOW_BORDER_COLOR);
 }
 
-fn draw_window_interior_border(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
+fn draw_window_interior_border(rl_draw: &mut impl RaylibDraw, rect: Rectangle) {
     rl_draw.draw_line_ex(
         Vector2 {
             x: rect.x,
@@ -65,7 +65,7 @@ fn draw_window_interior_border(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) 
     );
 }
 
-pub fn draw_rail_button_frame(rl_draw: &mut RaylibDrawHandle, rect: Rectangle, hovered: bool) {
+pub fn draw_rail_button_frame(rl_draw: &mut impl RaylibDraw, rect: Rectangle, hovered: bool) {
     let mut background_color: Color = WINDOW_BACKGROUND_COLOR;
     if hovered {
         background_color = math::color_add(&background_color, &DIFF_HOVER_BUTTON);
@@ -75,7 +75,7 @@ pub fn draw_rail_button_frame(rl_draw: &mut RaylibDrawHandle, rect: Rectangle, h
     draw_rail_button_accent(rl_draw, rect);
 }
 
-fn draw_rail_button_border(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
+fn draw_rail_button_border(rl_draw: &mut impl RaylibDraw, rect: Rectangle) {
     let vertices: [Vector2; 4] = [
         Vector2 { x: rect.x, y: rect.y },
         Vector2 {
@@ -101,7 +101,7 @@ fn draw_rail_button_border(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
     }
 }
 
-fn draw_rail_button_accent(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
+fn draw_rail_button_accent(rl_draw: &mut impl RaylibDraw, rect: Rectangle) {
     rl_draw.draw_line_ex(
         Vector2 {
             x: rect.x + rect.width,
@@ -116,7 +116,7 @@ fn draw_rail_button_accent(rl_draw: &mut RaylibDrawHandle, rect: Rectangle) {
     );
 }
 
-pub fn draw_side_button_accent_filled(rl_draw: &mut RaylibDrawHandle, rect: Rectangle, color: Color) {
+pub fn draw_side_button_accent_filled(rl_draw: &mut impl RaylibDraw, rect: Rectangle, color: Color) {
     rl_draw.draw_triangle(
         Vector2 { x: rect.x + rect.width, y: rect.y + rect.height - ACCENT_HEIGHT },
         Vector2 { x: rect.x + rect.width - ACCENT_HEIGHT, y: rect.y + rect.height },
