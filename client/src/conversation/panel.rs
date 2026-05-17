@@ -24,7 +24,7 @@ pub struct ChatPanel {
     pub active_tab: ChatTab,
     /// Conversation IDs of open tabs in the rail, in top-down display order.
     pub conversation_tabs: Vec<Uuid>,
-    pub hovered_rail_button: Option<RailButton>,
+    pub hovered_control_button: Option<RailControl>,
     pub hovered_list_entry: Option<usize>,
     pub hovered_conversation_tab: Option<usize>,
     pub hovered_conversation_tab_close: Option<usize>,
@@ -35,7 +35,7 @@ pub struct ChatPanel {
 /// Variant order determines top-to-bottom position in the rail via discriminant cast.
 #[derive(Debug, Clone, Copy, PartialEq, EnumIter)]
 #[repr(u8)]
-pub enum RailButton {
+pub enum RailControl {
     Close,
     New,
     List,
@@ -49,7 +49,7 @@ impl ChatPanel {
             open: false,
             active_tab: ChatTab::ConversationList,
             conversation_tabs: Vec::new(),
-            hovered_rail_button: None,
+            hovered_control_button: None,
             hovered_list_entry: None,
             hovered_conversation_tab: None,
             hovered_conversation_tab_close: None,
@@ -91,7 +91,7 @@ impl ChatPanel {
     }
 
     /// Button rectangle for persistent rail buttons (e.g. close, new)
-    pub fn rail_control_rect(panel_rect: Rectangle, button: RailButton) -> Rectangle {
+    pub fn rail_control_rect(panel_rect: Rectangle, button: RailControl) -> Rectangle {
         let rail_x: f32 = panel_rect.x + panel_rect.width - BUTTON_WIDTH - BORDER_GAP;
         let rail_y: f32 = panel_rect.y + BORDER_GAP;
         Rectangle {
@@ -104,7 +104,7 @@ impl ChatPanel {
 
     /// Affordance rectangle for conversation rail buttons
     pub fn rail_conversation_rect(panel_rect: Rectangle, index: usize) -> Rectangle {
-        let list_rect: Rectangle = Self::rail_control_rect(panel_rect, RailButton::List);
+        let list_rect: Rectangle = Self::rail_control_rect(panel_rect, RailControl::List);
         let tab_area_y_start: f32 = list_rect.y + list_rect.height + RAIL_SEPARATOR_GAP;
         Rectangle {
             x: list_rect.x,

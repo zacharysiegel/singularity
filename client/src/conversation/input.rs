@@ -1,4 +1,4 @@
-use crate::conversation::panel::{ChatPanel, ChatTab, RailButton, ENTRY_HEIGHT};
+use crate::conversation::panel::{ChatPanel, ChatTab, RailControl, ENTRY_HEIGHT};
 use crate::input::{
     CharPressHandler, CharPressResult, ClickButton, ClickHandler, ClickResult, HoverHandler, HoverResult,
     KeyPressHandler, KeyPressResult, ScrollHandler, ScrollResult,
@@ -71,7 +71,7 @@ fn handle_left_click(panel_rect: Rectangle, press_position: RenderCoord, release
 }
 
 fn handle_rail_control_click(panel_rect: Rectangle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
-    for button in RailButton::iter() {
+    for button in RailControl::iter() {
         let rect: Rectangle = ChatPanel::rail_control_rect(panel_rect, button);
         if !(rect.check_collision_point_rec(press_position) && rect.check_collision_point_rec(release_position)) {
             continue;
@@ -79,9 +79,9 @@ fn handle_rail_control_click(panel_rect: Rectangle, press_position: RenderCoord,
 
         let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
         match button {
-            RailButton::Close => chat_panel.open = false,
-            RailButton::List => chat_panel.active_tab = ChatTab::ConversationList,
-            RailButton::New => chat_panel.active_tab = ChatTab::NewConversation,
+            RailControl::Close => chat_panel.open = false,
+            RailControl::List => chat_panel.active_tab = ChatTab::ConversationList,
+            RailControl::New => chat_panel.active_tab = ChatTab::NewConversation,
         }
         return ClickResult::Consume;
     }
@@ -192,7 +192,7 @@ impl HoverHandler for ChatPanelInput {
             return HoverResult::Pass;
         }
 
-        let hovered_rail_button: Option<RailButton> = find_hovered_rail_button(panel_rect, mouse_position);
+        let hovered_rail_button: Option<RailControl> = find_hovered_rail_button(panel_rect, mouse_position);
         let (hovered_conversation_tab, hovered_conversation_tab_close, hovered_tooltip): (Option<usize>, Option<usize>, bool) =
             find_conversation_tab_hover_state(panel_rect, mouse_position);
         let hovered_list_entry: Option<usize> = if hovered_conversation_tab.is_none() {
@@ -202,7 +202,7 @@ impl HoverHandler for ChatPanelInput {
         };
 
         let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
-        chat_panel.hovered_rail_button = hovered_rail_button;
+        chat_panel.hovered_control_button = hovered_rail_button;
         chat_panel.hovered_conversation_tab = hovered_conversation_tab;
         chat_panel.hovered_conversation_tab_close = hovered_conversation_tab_close;
         chat_panel.hovered_tooltip = hovered_tooltip;
@@ -212,8 +212,8 @@ impl HoverHandler for ChatPanelInput {
     }
 }
 
-fn find_hovered_rail_button(panel_rect: Rectangle, mouse_position: RenderCoord) -> Option<RailButton> {
-    RailButton::iter().find(|button| {
+fn find_hovered_rail_button(panel_rect: Rectangle, mouse_position: RenderCoord) -> Option<RailControl> {
+    RailControl::iter().find(|button| {
         ChatPanel::rail_control_rect(panel_rect, *button).check_collision_point_rec(mouse_position)
     })
 }
