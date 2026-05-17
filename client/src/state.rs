@@ -1,5 +1,6 @@
 use crate::account::AccountState;
 use crate::conversation::ConversationState;
+use crate::lobby::LobbyState;
 use crate::stage::StageState;
 use crate::texture::ScreenRenderTexture;
 use crate::ws::state::WsState;
@@ -15,6 +16,7 @@ pub static STATE: LazyLock<State> = LazyLock::new(|| State {
     frame_counter: RwLock::new(0),
     screen_texture: RwLock::new(unsafe { mem::zeroed() }),
     ws: WsState::default(),
+    lobby: LobbyState::new(),
     conversation: ConversationState::new(),
     account: AccountState::new(),
 });
@@ -33,6 +35,7 @@ pub struct State {
     pub frame_counter: RwLock<u64>,
     pub screen_texture: RwLock<ScreenRenderTexture>,
     pub ws: WsState,
+    pub lobby: LobbyState,
     pub conversation: ConversationState,
     pub account: AccountState,
 }

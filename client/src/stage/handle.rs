@@ -16,7 +16,7 @@ pub fn handle_stage_transition(previous_stage: Option<StageType>, current_stage:
             // TODO(ws-catchup): fetch in-game chat history via REST before WS delivers new events
             let runtime_environment: RuntimeEnvironment = RuntimeEnvironment::default();
             let lobby_ws_origin: String = runtime_environment.lobby_ws_origin();
-            let token_guard: RwLockReadGuard<Option<String>> = STATE.ws.token.read().unwrap();
+            let token_guard: RwLockReadGuard<Option<String>> = STATE.lobby.token.read().unwrap();
             if let Some(token) = &*token_guard {
                 ws::connect(&lobby_ws_origin, token, ConnectionType::Live);
             }
