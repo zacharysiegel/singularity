@@ -33,7 +33,6 @@ pub async fn deserialize_response<T: DeserializeOwned>(
 pub async fn fetch_standard<T: DeserializeOwned>(
     token: &str,
     url: &str,
-    description: &str,
 ) -> Result<T, AppErrorStatic> {
     shared::http::with_retry(MAX_RETRY_ATTEMPTS, || async {
         let response: Response = HTTP_CLIENT
@@ -45,7 +44,7 @@ pub async fn fetch_standard<T: DeserializeOwned>(
 
         if !response.status().is_success() {
             return Err(AppErrorStatic::new(&format!(
-                "fetch {description} failed; [{}]",
+                "fetch failed; [{url}] [{}]",
                 response.status()
             )));
         }
