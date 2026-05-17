@@ -4,7 +4,7 @@ use crate::component::icon::{draw_close_x, draw_donut_ring, draw_hamburger, draw
 use crate::component::text::Text;
 use crate::component::text_truncate;
 use crate::component::text_wrap;
-use crate::conversation::panel::{ChatPanel, ChatTab, RailControl, ENTRY_HEIGHT, HEADER_HEIGHT};
+use crate::conversation::panel::{ChatPanel, ChatTab, CONTENT_PADDING, RailControl, ENTRY_HEIGHT, HEADER_HEIGHT};
 use crate::conversation::state::{Conversation, ConversationEvent};
 use crate::state::STATE;
 use crate::window::BUTTON_WIDTH;
@@ -22,7 +22,6 @@ use shared::math;
 use crate::component::vertical_scroll_region::VerticalScrollRegionUpdate;
 
 const PANEL_BACKGROUND_ALPHA: u8 = 0xE8;
-const CONTENT_PADDING: f32 = 12.;
 const NAME_FONT_SIZE: f32 = 14.;
 const HEADER_FONT_SIZE: f32 = NAME_FONT_SIZE + 4.;
 const DETAIL_FONT_SIZE: f32 = 10.;
@@ -440,7 +439,7 @@ fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle,
     view_state.scroll_region.update(VerticalScrollRegionUpdate {
         viewport: Some(scroll_viewport),
         content_height: Some(content_height),
-        padding: Some(CONTENT_PADDING),
+        padding: None,
     });
 
     let own_account_id: Option<Uuid> = *STATE.account.own_account_id.read().unwrap();

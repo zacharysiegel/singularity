@@ -8,6 +8,7 @@ use uuid::Uuid;
 const PANEL_MAX_WIDTH: f32 = 600.;
 pub const HEADER_HEIGHT: f32 = 46.;
 pub const ENTRY_HEIGHT: f32 = 44.;
+pub const CONTENT_PADDING: f32 = 12.;
 pub const RAIL_SEPARATOR_GAP: f32 = 6.;
 pub const TAB_MINI_CLOSE_SIZE: f32 = 12.;
 pub const TAB_MINI_CLOSE_MARGIN: f32 = 2.;
@@ -55,7 +56,7 @@ pub struct ConversationViewState {
 
 impl ConversationViewState {
     pub fn new() -> Self {
-        let mut scroll_region: VerticalScrollRegion = VerticalScrollRegion::new(Rectangle::default(), 0.);
+        let mut scroll_region: VerticalScrollRegion = VerticalScrollRegion::new(Rectangle::default(), CONTENT_PADDING);
         scroll_region.scroll_to_bottom();
         ConversationViewState {
             scroll_region,
@@ -86,7 +87,7 @@ impl ChatPanel {
             hovered_tooltip: false,
             conversation_list_state: ConversationListState {
                 hovered_entry: None,
-                scroll_region: VerticalScrollRegion::new(Rectangle::default(), 0.),
+                scroll_region: VerticalScrollRegion::new(Rectangle::default(), CONTENT_PADDING),
             },
             new_conversation_state: NewConversationState,
             conversation_view_states: HashMap::new(),
