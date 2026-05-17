@@ -2,7 +2,7 @@ use std::sync::{RwLockReadGuard, RwLockWriteGuard};
 use crate::component::frame::{BORDER_THICKNESS, draw_side_button_accent_filled, draw_rail_button_frame, draw_window_frame};
 use crate::component::icon::{draw_close_x, draw_donut_ring, draw_hamburger, draw_plus};
 use crate::component::text::Text;
-use crate::component::text_truncate;
+use crate::component::{text_truncate, DEFAULT_FONT_SPACING};
 use crate::component::text_wrap;
 use crate::component::time::format_relative_time;
 use crate::conversation::panel::{ChatPanel, ChatTab, CONTENT_PADDING, RailControl, ENTRY_HEIGHT, HEADER_HEIGHT};
@@ -10,6 +10,7 @@ use crate::conversation::state::{Conversation, ConversationEvent};
 use crate::state::STATE;
 use crate::window::BUTTON_WIDTH;
 use chrono::{DateTime, Local};
+use dashmap::mapref::one::Ref;
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle, RaylibScissorModeExt};
 use raylib::math::{Rectangle, Vector2};
@@ -259,17 +260,17 @@ pub fn draw_panel_header(rl_draw: &mut RaylibDrawHandle, content_rect: Rectangle
         text_truncate::truncate_text(&subtitle_text, &rl_draw.get_font_default(), title_max_width)
     });
 
-    let total_text_height: f32 = match &truncated_subtitle {
+    let header_content_height: f32 = match &truncated_subtitle {
         Some(_) => title_height + line_gap + DETAIL_FONT_SIZE,
         None => title_height,
     };
-    let title_top_y: f32 = math::center_vertically(content_rect.y, header_text_area_height, total_text_height);
+    let title_top_y: f32 = math::center_vertically(content_rect.y, header_text_area_height, header_content_height);
     rl_draw.draw_text_ex(
         rl_draw.get_font_default(),
         &truncated_title,
         Vector2 { x: content_rect.x + CONTENT_PADDING, y: title_top_y },
         HEADER_FONT_SIZE,
-        2.,
+        DEFAULT_FONT_SPACING,
         TEXT_COLOR,
     );
 
@@ -436,9 +437,9 @@ fn draw_conversation_entry(
 
 fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle, conversation_id: Uuid) {
     let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
-    let scroll_viewport: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
+    let content_body_rect: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
 
-    let conversation_entry = STATE.conversation.conversations.get(&conversation_id);
+    let conversation_entry: Option<Ref<Uuid, Conversation>> = STATE.conversation.conversations.get(&conversation_id);
     let Some(conversation_entry) = conversation_entry else {
         return;
     };
@@ -450,7 +451,7 @@ fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle,
     draw_panel_header(rl_draw, content_rect, &header_title, Some(&header_subtitle));
 
     let font_factory: fn() -> WeakFont = || unsafe { WeakFont::from_raw(raylib::ffi::GetFontDefault()) };
-    let max_message_width: f32 = (scroll_viewport.width - CONTENT_PADDING * 2.) * MESSAGE_MAX_WIDTH_RATIO;
+    let max_message_width: f32 = (content_body_rect.width - CONTENT_PADDING * 2.) * MESSAGE_MAX_WIDTH_RATIO;
     let wrapped_messages: Vec<WrappedMessage> = chat_messages
         .into_iter()
         .map(|message| WrappedMessage::new(message, &font_factory(), max_message_width))
@@ -467,22 +468,22 @@ fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle,
         .get_mut(&conversation_id)
         .expect("conversation view state should exist for active tab");
     view_state.scroll_region.update(VerticalScrollRegionUpdate {
-        viewport: Some(scroll_viewport),
+        viewport: Some(content_body_rect),
         content_height: Some(content_height),
         padding: None,
     });
 
     let own_account_id: Option<Uuid> = *STATE.account.own_account_id.read().unwrap();
     view_state.scroll_region.draw(rl_draw, |mut scissor_draw, y_offset| {
-        let mut entry_top: f32 = scroll_viewport.y + y_offset;
+        let mut entry_top: f32 = content_body_rect.y + y_offset;
         for wrapped in &wrapped_messages {
-            if entry_top > scroll_viewport.y + scroll_viewport.height {
+            if entry_top > content_body_rect.y + content_body_rect.height {
                 break;
             }
 
             let is_own: bool = own_account_id == Some(wrapped.message.sender_account_id);
-            if entry_top + wrapped.height() > scroll_viewport.y {
-                draw_message(&mut scissor_draw, scroll_viewport, entry_top, wrapped, is_own, &font_factory());
+            if entry_top + wrapped.height() > content_body_rect.y {
+                draw_message(&mut scissor_draw, content_body_rect, entry_top, wrapped, is_own, &font_factory());
             }
             entry_top += wrapped.height() + MESSAGE_BUNDLE_GAP;
         }
@@ -492,11 +493,7 @@ fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle,
 fn format_conversation_header(conversation: &Conversation) -> (String, String) {
     let name: String = conversation.name.clone().unwrap_or_else(|| UNNAMED_CONVERSATION_PLACEHOLDER.to_string());
     let member_count: usize = conversation.members.len();
-    let subtitle: String = if member_count == 1 {
-        "1 member".to_string()
-    } else {
-        format!("{member_count} members")
-    };
+    let subtitle: String = format!("{member_count} member{}", if member_count > 1 { "s" } else { "" });
     (name, subtitle)
 }
 
