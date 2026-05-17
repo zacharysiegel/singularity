@@ -2,6 +2,7 @@ use dashmap::DashMap;
 use shared::schema::account::AccountPublicSerial;
 use std::sync::RwLock;
 use uuid::Uuid;
+use super::catchup;
 
 #[derive(Debug)]
 pub struct AccountState {
@@ -36,7 +37,8 @@ impl AccountState {
         if let Some(entry) = self.cache.get(&account_id) {
             return Some(entry.username.clone());
         }
-        super::catchup::spawn_fetch_if_missing(account_id);
+
+        catchup::spawn_fetch_if_missing(account_id);
         None
     }
 }
