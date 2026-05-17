@@ -19,7 +19,7 @@ pub struct VerticalScrollRegion {
     content_height: f32,
     padding: f32,
     /// User/handler-set position. The visible scroll position is derived from this and the
-    /// current dimensions via `scroll_offset()` — never read this field directly for layout,
+    /// current dimensions via `scroll_offset()`. Never read this field directly for layout;
     /// it can be out of range relative to the latest dimensions.
     scroll_offset_intent: f32,
     /// When set, `scroll_offset()` reports `max_scroll()` so the view lands at the bottom
