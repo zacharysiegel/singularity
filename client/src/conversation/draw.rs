@@ -31,7 +31,10 @@ const MESSAGE_FONT_SIZE: f32 = 13.;
 const MESSAGE_FONT_SPACING: f32 = 1.5;
 const SENDER_FONT_SIZE: f32 = 10.;
 const SENDER_FONT_SPACING: f32 = 1.;
+/// Vertical gap between consecutive wrapped lines within a single message body.
 const MESSAGE_LINE_GAP: f32 = 4.;
+/// Vertical gap between message bundles. One bundle = sender header line + all of that
+/// message's wrapped body lines.
 const MESSAGE_BUNDLE_GAP: f32 = 10.;
 const SENDER_TO_MESSAGE_GAP: f32 = 2.;
 const MESSAGE_MAX_WIDTH_RATIO: f32 = 0.88;
