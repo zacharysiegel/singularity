@@ -1,6 +1,7 @@
 use crate::component::vertical_scroll_region::VerticalScrollRegion;
 use crate::window::{BORDER_GAP, BUTTON_WIDTH};
 use raylib::math::Rectangle;
+use std::collections::HashMap;
 use strum::EnumIter;
 use uuid::Uuid;
 
@@ -30,6 +31,10 @@ pub struct ChatPanel {
     pub hovered_tooltip: bool,
     pub conversation_list_state: ConversationListState,
     pub new_conversation_state: NewConversationState,
+    /// Per-conversation view state for each open conversation tab. Entry is created when a
+    /// tab is opened and removed when it is dismissed, so the tab's scroll position and
+    /// other view state are preserved across tab switches.
+    pub conversation_view_states: HashMap<Uuid, ConversationViewState>,
 }
 
 #[derive(Debug)]
@@ -40,6 +45,21 @@ pub struct ConversationListState {
 
 #[derive(Debug)]
 pub struct NewConversationState;
+
+#[derive(Debug)]
+pub struct ConversationViewState {
+    pub scroll_region: VerticalScrollRegion,
+    // Future: message_input: TextInput, unread_anchor: Option<DateTime<Utc>>,
+    // scrolled_to_bottom: bool, etc.
+}
+
+impl ConversationViewState {
+    pub fn new() -> Self {
+        ConversationViewState {
+            scroll_region: VerticalScrollRegion::new(Rectangle::default(), 0.),
+        }
+    }
+}
 
 /// Variant order determines top-to-bottom position in the rail via discriminant cast.
 #[derive(Debug, Clone, Copy, PartialEq, EnumIter)]
@@ -67,6 +87,7 @@ impl ChatPanel {
                 scroll_region: VerticalScrollRegion::new(Rectangle::default(), 0.),
             },
             new_conversation_state: NewConversationState,
+            conversation_view_states: HashMap::new(),
         }
     }
 
@@ -78,11 +99,15 @@ impl ChatPanel {
         if !self.conversation_tabs.contains(&conversation_id) {
             self.conversation_tabs.push(conversation_id);
         }
+        self.conversation_view_states
+            .entry(conversation_id)
+            .or_insert_with(ConversationViewState::new);
         self.active_tab = ChatTab::Conversation(conversation_id);
     }
 
     pub fn dismiss_conversation_tab(&mut self, conversation_id: Uuid) {
         self.conversation_tabs.retain(|id| *id != conversation_id);
+        self.conversation_view_states.remove(&conversation_id);
         if self.active_tab == ChatTab::Conversation(conversation_id) {
             self.active_tab = ChatTab::ConversationList;
         }
