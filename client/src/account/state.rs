@@ -11,13 +11,13 @@ pub struct AccountState {
     /// own (right-aligned) vs other (left-aligned).
     pub own_account_id: RwLock<Option<Uuid>>,
     /// Public account info (id + username) keyed by account_id. Filled eagerly during
-    /// catch-up for known members and lazily on demand for unknown senders that arrive
-    /// via WS events.
+    /// catch-up for known members and lazily on demand for unknown senders of messages
+    /// which arrive via real-time events.
     pub cache: DashMap<Uuid, AccountPublicSerial>,
     /// Account IDs with an in-flight `GET /account/{id}` request. Inserted before dispatch,
     /// removed after the request completes (success or failure). Prevents fan-out when
     /// multiple events from the same uncached sender arrive concurrently.
-    pub in_flight: DashMap<Uuid, ()>,
+    pub in_flight_account_fetches: DashMap<Uuid, ()>,
 }
 
 impl AccountState {
@@ -25,7 +25,7 @@ impl AccountState {
         AccountState {
             own_account_id: RwLock::new(None),
             cache: DashMap::new(),
-            in_flight: DashMap::new(),
+            in_flight_account_fetches: DashMap::new(),
         }
     }
 }
