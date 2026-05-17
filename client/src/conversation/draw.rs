@@ -535,7 +535,7 @@ impl WrappedMessage {
 fn format_sender_line(message: &ConversationMessage) -> String {
     let sender_username: String = STATE
         .account
-        .username(message.sender_account_id)
+        .request_username(message.sender_account_id)
         .unwrap_or_else(|| message.sender_account_id.to_string());
     let local_time: DateTime<Local> = message.created.with_timezone(&Local);
     let absolute: String = local_time.format("%b %-d %H:%M:%S").to_string();
