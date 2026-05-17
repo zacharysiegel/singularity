@@ -3,7 +3,7 @@ use crate::conversation::state::{Conversation, ConversationEvent, ConversationEv
 use crate::state::STATE;
 use chrono::{Duration, Utc};
 use shared::schema::account::AccountPublicSerial;
-use shared::schema::conversation::ConversationMemberChange;
+use shared::schema::conversation::{ConversationMember, ConversationMemberChange};
 use shared::schema::conversation_message::ConversationMessage;
 use uuid::Uuid;
 
@@ -182,8 +182,20 @@ fn insert_member_changes(
             timestamp,
         };
         let event = match kind {
-            MemberChangeKind::Joined => ConversationEvent::MemberJoined(change),
-            MemberChangeKind::Left => ConversationEvent::MemberLeft(change),
+            MemberChangeKind::Joined => {
+                conversation.members.insert(*account_id, ConversationMember {
+                    conversation_id,
+                    account_id: *account_id,
+                    entered: timestamp,
+                    exited: None,
+                    color_cached: None,
+                });
+                ConversationEvent::MemberJoined(change)
+            }
+            MemberChangeKind::Left => {
+                conversation.members.remove(account_id);
+                ConversationEvent::MemberLeft(change)
+            }
         };
         let key = ConversationEventKey::from(&event);
         conversation.events.insert(key, event);
