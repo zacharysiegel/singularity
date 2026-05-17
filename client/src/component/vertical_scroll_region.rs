@@ -80,13 +80,12 @@ impl VerticalScrollRegion {
     /// Requests subsequent reads to report `max_scroll()` until the user scrolls. Defers
     /// the bottom-landing decision so callers don't need to know the post-update content
     /// height (which may depend on font/viewport state unavailable at the call site).
-    pub fn scroll_to_bottom(&mut self) {
+    pub fn request_scroll_to_bottom(&mut self) {
         self.pending_snap_to_bottom = true;
     }
 
     pub fn scroll_clamped(&mut self, delta: f32) {
-        let effective_offset: f32 = self.scroll_offset();
-        self.scroll_offset_intent = (effective_offset + delta).clamp(0., self.max_scroll());
+        self.scroll_offset_intent = (self.scroll_offset() + delta).clamp(0., self.max_scroll());
         self.pending_snap_to_bottom = false;
     }
 

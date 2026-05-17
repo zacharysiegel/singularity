@@ -47,7 +47,7 @@ fn snap_conversation_view_to_bottom_if_at_bottom(conversation_id: Uuid) {
     };
 
     if view_state.scroll_region.is_at_bottom() {
-        view_state.scroll_region.scroll_to_bottom();
+        view_state.scroll_region.request_scroll_to_bottom();
     }
 }
 
