@@ -4,6 +4,7 @@ use shared::schema::conversation::{ConversationMemberChangeSerial, ConversationM
 use shared::schema::conversation_message::ConversationMessageSerial;
 use uuid::Uuid;
 
+use super::debug;
 use super::event;
 use crate::account;
 use crate::http;
@@ -70,6 +71,10 @@ pub async fn catch_up(token: &str) {
     }
 
     log::info!("Chat catch-up complete; [{conversation_count} conversations] [{message_count} messages]");
+
+    if RuntimeEnvironment::default().is_debug() {
+        debug::seed_debug_conversations();
+    }
 }
 
 async fn fetch_conversations(token: &str) -> Result<Vec<ConversationSerial>, AppErrorStatic> {
