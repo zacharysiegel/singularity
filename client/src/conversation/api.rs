@@ -11,7 +11,7 @@ const MESSAGE_LIMIT: i64 = 64;
 pub async fn get_conversations(token: &str) -> Result<Vec<ConversationSerial>, AppErrorStatic> {
     let lobby_http_origin: String = RuntimeEnvironment::default().lobby_http_origin();
     let url: String = format!("{lobby_http_origin}/conversation");
-    http::fetch_standard(token, &url, "conversations").await
+    http::fetch_standard(token, &url).await
 }
 
 pub async fn get_messages(
@@ -22,7 +22,7 @@ pub async fn get_messages(
     let url: String = format!(
         "{lobby_http_origin}/conversation/{conversation_id}/message?limit={MESSAGE_LIMIT}"
     );
-    http::fetch_standard(token, &url, &format!("messages; [{conversation_id}]")).await
+    http::fetch_standard(token, &url).await
 }
 
 pub async fn get_members(
@@ -31,5 +31,5 @@ pub async fn get_members(
 ) -> Result<Vec<ConversationMemberSerial>, AppErrorStatic> {
     let lobby_http_origin: String = RuntimeEnvironment::default().lobby_http_origin();
     let url: String = format!("{lobby_http_origin}/conversation/{conversation_id}/member");
-    http::fetch_standard(token, &url, &format!("members; [{conversation_id}]")).await
+    http::fetch_standard(token, &url).await
 }
