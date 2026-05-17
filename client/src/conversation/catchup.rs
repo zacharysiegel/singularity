@@ -12,7 +12,7 @@ pub async fn catch_up(token: &str) {
     let conversation_serials: Vec<ConversationSerial> = match api::get_conversations(token).await {
         Ok(conversations) => conversations,
         Err(error) => {
-            log::warn!("Chat catch-up failed to fetch conversations; [{error}]");
+            log::warn!("Conversation catch-up failed to fetch conversations; [{error}]");
             return;
         }
     };
@@ -29,8 +29,7 @@ pub async fn catch_up(token: &str) {
         .filter(|count| **count > 0)
         .count();
     let message_count: usize = per_conversation_message_counts.iter().sum();
-
-    log::info!("Chat catch-up complete; [{conversation_with_messages_count} conversations] [{message_count} messages]");
+    log::info!("Conversation catch-up complete; [{conversation_with_messages_count} conversations] [{message_count} messages]");
 }
 
 /// Fetches members and messages for a single conversation concurrently, applies them via
@@ -52,7 +51,7 @@ async fn catch_up_conversation(token: &str, conversation_serial: &ConversationSe
         Ok(members) => members,
         Err(error) => {
             log::warn!(
-                "Chat catch-up failed to fetch members; [{}] [{error}]",
+                "Conversation catch-up failed to fetch members; [{}] [{error}]",
                 conversation_serial.id
             );
             Vec::new()
@@ -65,13 +64,13 @@ async fn catch_up_conversation(token: &str, conversation_serial: &ConversationSe
         .iter()
         .map(|member_serial| member_serial.account_id)
         .collect();
-    account::catchup::fetch_missing_accounts(token, &member_account_ids).await;
+    account::catchup::warm_accounts(token, &member_account_ids).await;
 
     let message_serials: Vec<ConversationMessageSerial> = match message_result {
         Ok(messages) => messages,
         Err(error) => {
             log::warn!(
-                "Chat catch-up failed to fetch messages; [{}] [{error}]",
+                "Conversation catch-up failed to fetch messages; [{}] [{error}]",
                 conversation_serial.id
             );
             Vec::new()
