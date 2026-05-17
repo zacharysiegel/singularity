@@ -3,7 +3,7 @@ use crate::component::frame::{BORDER_THICKNESS, draw_side_button_accent_filled, 
 use crate::component::icon::{draw_close_x, draw_donut_ring, draw_hamburger, draw_plus};
 use crate::component::text::Text;
 use crate::component::text_truncate;
-use crate::conversation::panel::{ChatPanel, ChatTab, RailButton, ENTRY_HEIGHT, HEADER_HEIGHT};
+use crate::conversation::panel::{ChatPanel, ChatTab, RailControl, ENTRY_HEIGHT, HEADER_HEIGHT};
 use crate::state::STATE;
 use crate::window::BUTTON_WIDTH;
 use raylib::color::Color;
@@ -48,15 +48,15 @@ pub fn draw(rl_draw: &mut RaylibDrawHandle, _rl_thread: &RaylibThread) {
 
 fn draw_rail(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
     let chat_panel: RwLockReadGuard<ChatPanel> = STATE.conversation.chat_panel.read().unwrap();
-    let hovered_button: Option<RailButton> = chat_panel.hovered_rail_button;
-    let active_rail_button: Option<RailButton> = match &chat_panel.active_tab {
-        ChatTab::ConversationList => Some(RailButton::List),
-        ChatTab::NewConversation => Some(RailButton::New),
+    let hovered_button: Option<RailControl> = chat_panel.hovered_control_button;
+    let active_rail_button: Option<RailControl> = match &chat_panel.active_tab {
+        ChatTab::ConversationList => Some(RailControl::List),
+        ChatTab::NewConversation => Some(RailControl::New),
         ChatTab::Conversation(_) => None,
     };
     drop(chat_panel);
 
-    let buttons: Vec<(Rectangle, RailButton)> = RailButton::iter()
+    let buttons: Vec<(Rectangle, RailControl)> = RailControl::iter()
         .map(|button| (ChatPanel::rail_control_rect(panel_rect, button), button))
         .collect();
 
