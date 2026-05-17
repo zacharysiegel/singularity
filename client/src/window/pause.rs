@@ -143,7 +143,7 @@ mod draw {
         }
 
         fn draw_exit_button(&self, rl_draw: &mut RaylibDrawHandle, rl_thread: &RaylibThread) {
-            component::draw_side_button_frame(rl_draw, self.exit_button.rectangle, self.exit_button.is_hovered());
+            component::draw_rail_button_frame(rl_draw, self.exit_button.rectangle, self.exit_button.is_hovered());
 
             let mut screen_texture: RwLockWriteGuard<ScreenRenderTexture> = STATE.screen_texture.write().unwrap();
             rl_draw.draw_texture_mode(rl_thread, &mut screen_texture, |mut t| {
