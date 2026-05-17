@@ -8,21 +8,18 @@ use crate::state::STATE;
 
 /// Fetches the authenticated user's account via the api layer, sets `own_account_id`,
 /// and inserts the public entry into the cache. Idempotent across reconnects.
-pub async fn fetch_own_account(token: &str) {
+pub async fn warm_own_account(token: &str) {
     let result: Result<AccountSerial, AppErrorStatic> = api::get_own_account(token).await;
     let account: AccountSerial = match result {
         Ok(account) => account,
         Err(error) => {
-            log::warn!("Failed to fetch own account; [{error}]");
+            log::warn!("Account catch-up failed to fetch own account; [{error}]");
             return;
         }
     };
 
     let _ = STATE.account.own_account_id.write().unwrap().replace(account.id);
-    let public: AccountPublicSerial = AccountPublicSerial {
-        id: account.id,
-        username: account.username,
-    };
+    let public: AccountPublicSerial = AccountPublicSerial::from(account);
     STATE.account.cache.insert(public.id, public);
 }
 

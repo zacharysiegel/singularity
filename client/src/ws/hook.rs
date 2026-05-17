@@ -8,7 +8,7 @@ pub async fn after_connect(connection_type: ConnectionType, token: &str) {
     match connection_type {
         ConnectionType::Lobby => {
             tokio::join!(
-                account::catchup::fetch_own_account(token),
+                account::catchup::warm_own_account(token),
                 conversation::catchup::catch_up(token),
             );
 
