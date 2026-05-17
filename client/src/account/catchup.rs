@@ -9,7 +9,7 @@ use crate::state::STATE;
 /// Fetches the authenticated user's account via the api layer, sets `own_account_id`,
 /// and inserts the public entry into the cache. Idempotent across reconnects.
 pub async fn fetch_own_account(token: &str) {
-    let result: Result<AccountSerial, AppErrorStatic> = api::fetch_own_account(token).await;
+    let result: Result<AccountSerial, AppErrorStatic> = api::get_own_account(token).await;
     let account: AccountSerial = match result {
         Ok(account) => account,
         Err(error) => {
@@ -77,7 +77,7 @@ fn spawn_fetch_if_missing(account_id: Uuid) {
 }
 
 async fn fetch_and_cache_account(token: &str, account_id: Uuid) {
-    let result: Result<AccountPublicSerial, AppErrorStatic> = api::fetch_account(token, account_id).await;
+    let result: Result<AccountPublicSerial, AppErrorStatic> = api::get_account(token, account_id).await;
     match result {
         Ok(public) => {
             STATE.account.cache.insert(public.id, public);

@@ -8,13 +8,13 @@ use crate::http;
 
 const MESSAGE_LIMIT: i64 = 64;
 
-pub async fn fetch_conversations(token: &str) -> Result<Vec<ConversationSerial>, AppErrorStatic> {
+pub async fn get_conversations(token: &str) -> Result<Vec<ConversationSerial>, AppErrorStatic> {
     let lobby_http_origin: String = RuntimeEnvironment::default().lobby_http_origin();
     let url: String = format!("{lobby_http_origin}/conversation");
     http::fetch_standard(token, &url, "conversations").await
 }
 
-pub async fn fetch_messages(
+pub async fn get_messages(
     token: &str,
     conversation_id: Uuid,
 ) -> Result<Vec<ConversationMessageSerial>, AppErrorStatic> {
@@ -25,7 +25,7 @@ pub async fn fetch_messages(
     http::fetch_standard(token, &url, &format!("messages; [{conversation_id}]")).await
 }
 
-pub async fn fetch_members(
+pub async fn get_members(
     token: &str,
     conversation_id: Uuid,
 ) -> Result<Vec<ConversationMemberSerial>, AppErrorStatic> {
