@@ -1,22 +1,15 @@
-use shared::environment::RuntimeEnvironment;
 use shared::error::AppErrorStatic;
 use shared::schema::conversation::{ConversationMemberChangeSerial, ConversationMemberSerial, ConversationSerial};
 use shared::schema::conversation_message::ConversationMessageSerial;
 use uuid::Uuid;
 
 use super::api;
-use super::debug;
 use super::event;
 use crate::account;
 use crate::state::STATE;
 
 pub async fn catch_up(token: &str) {
-    let (_, conversation_result): (_, Result<Vec<ConversationSerial>, AppErrorStatic>) = tokio::join!(
-        account::catchup::fetch_own_account(token),
-        api::get_conversations(token),
-    );
-
-    let conversation_serials: Vec<ConversationSerial> = match conversation_result {
+    let conversation_serials: Vec<ConversationSerial> = match api::get_conversations(token).await {
         Ok(conversations) => conversations,
         Err(error) => {
             log::warn!("Chat catch-up failed to fetch conversations; [{error}]");
@@ -38,10 +31,6 @@ pub async fn catch_up(token: &str) {
     let message_count: usize = per_conversation_message_counts.iter().sum();
 
     log::info!("Chat catch-up complete; [{conversation_with_messages_count} conversations] [{message_count} messages]");
-
-    if RuntimeEnvironment::default().is_debug() {
-        debug::seed_debug_conversations();
-    }
 }
 
 /// Fetches members and messages for a single conversation concurrently, applies them via
