@@ -52,30 +52,43 @@ fn handle_left_click(panel_rect: Rectangle, press_position: RenderCoord, release
         return ClickResult::Pass;
     }
 
-    let close_rect: Rectangle = ChatPanel::rail_control_rect(panel_rect, RailButton::Close);
-    if close_rect.check_collision_point_rec(press_position)
-        && close_rect.check_collision_point_rec(release_position)
-    {
-        STATE.conversation.chat_panel.write().unwrap().open = false;
+    if let ClickResult::Consume = handle_rail_control_click(panel_rect, press_position, release_position) {
         return ClickResult::Consume;
     }
 
-    let list_rect: Rectangle = ChatPanel::rail_control_rect(panel_rect, RailButton::List);
-    if list_rect.check_collision_point_rec(press_position)
-        && list_rect.check_collision_point_rec(release_position)
-    {
-        STATE.conversation.chat_panel.write().unwrap().active_tab = ChatTab::ConversationList;
+    if let ClickResult::Consume = handle_conversation_tab_click(panel_rect, press_position, release_position) {
         return ClickResult::Consume;
     }
 
-    let new_rect: Rectangle = ChatPanel::rail_control_rect(panel_rect, RailButton::New);
-    if new_rect.check_collision_point_rec(press_position)
-        && new_rect.check_collision_point_rec(release_position)
+    let scroll_viewport: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
+    if scroll_viewport.check_collision_point_rec(press_position)
+        && scroll_viewport.check_collision_point_rec(release_position)
     {
-        STATE.conversation.chat_panel.write().unwrap().active_tab = ChatTab::NewConversation;
-        return ClickResult::Consume;
+        on_content_click(panel_rect, press_position, release_position);
     }
 
+    ClickResult::Consume
+}
+
+fn handle_rail_control_click(panel_rect: Rectangle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
+    for button in RailButton::iter() {
+        let rect: Rectangle = ChatPanel::rail_control_rect(panel_rect, button);
+        if !(rect.check_collision_point_rec(press_position) && rect.check_collision_point_rec(release_position)) {
+            continue;
+        }
+
+        let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
+        match button {
+            RailButton::Close => chat_panel.open = false,
+            RailButton::List => chat_panel.active_tab = ChatTab::ConversationList,
+            RailButton::New => chat_panel.active_tab = ChatTab::NewConversation,
+        }
+        return ClickResult::Consume;
+    }
+    ClickResult::Pass
+}
+
+fn handle_conversation_tab_click(panel_rect: Rectangle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
     let conversation_tabs: Vec<Uuid> =
         STATE.conversation.chat_panel.read().unwrap().conversation_tabs.clone();
     let hovered_conversation_tab: Option<usize> =
@@ -108,15 +121,7 @@ fn handle_left_click(panel_rect: Rectangle, press_position: RenderCoord, release
         STATE.conversation.mark_as_read(*conversation_id);
         return ClickResult::Consume;
     }
-
-    let scroll_viewport: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
-    if scroll_viewport.check_collision_point_rec(press_position)
-        && scroll_viewport.check_collision_point_rec(release_position)
-    {
-        on_content_click(panel_rect, press_position, release_position);
-    }
-
-    ClickResult::Consume
+    ClickResult::Pass
 }
 
 fn handle_middle_click(panel_rect: Rectangle, position: RenderCoord) -> ClickResult {
