@@ -3,7 +3,6 @@ use shared::schema::account::{AccountPublicSerial, AccountSerial};
 use uuid::Uuid;
 
 use super::api;
-use super::AccountState;
 use crate::state::STATE;
 
 /// Fetches the authenticated user's account via the api layer, sets `own_account_id`,
@@ -39,21 +38,8 @@ pub async fn warm_accounts(token: &str, account_ids: &[Uuid]) {
     .await;
 }
 
-impl AccountState {
-    /// Returns the cached username for `account_id` if present. On miss, spawns a deduped
-    /// lazy fetch and returns `None`; subsequent reads (after the fetch completes) will
-    /// see the cached value.
-    pub fn request_username(&self, account_id: Uuid) -> Option<String> {
-        if let Some(entry) = self.cache.get(&account_id) {
-            return Some(entry.username.clone());
-        }
-        spawn_fetch_if_missing(account_id);
-        None
-    }
-}
-
 /// Deduped background fetch for a single account id. No-op if cached or already in flight.
-fn spawn_fetch_if_missing(account_id: Uuid) {
+pub(super) fn spawn_fetch_if_missing(account_id: Uuid) {
     if STATE.account.cache.contains_key(&account_id) {
         return;
     }
