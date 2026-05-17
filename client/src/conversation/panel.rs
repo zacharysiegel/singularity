@@ -170,6 +170,20 @@ impl ChatPanel {
         }
     }
 
+    /// Clip rect for rendering conversation rail tabs. Spans the full panel inner width
+    /// (so tooltips extending leftward into content area aren't clipped) and vertically
+    /// from below the rail separator to the panel's inner bottom.
+    pub fn rail_conversation_clip_rect(panel_rect: Rectangle) -> Rectangle {
+        let list_rect: Rectangle = Self::rail_control_rect(panel_rect, RailControl::List);
+        let top: f32 = list_rect.y + list_rect.height + RAIL_SEPARATOR_GAP;
+        Rectangle {
+            x: panel_rect.x + BORDER_GAP,
+            y: top,
+            width: panel_rect.width - BORDER_GAP * 2.,
+            height: panel_rect.y + panel_rect.height - BORDER_GAP - top,
+        }
+    }
+
     /// The area to the left of the rail buttons, inside the panel border. Used for rendering
     /// conversation list entries, message views, etc.
     pub fn content_rectangle(panel_rect: Rectangle) -> Rectangle {
