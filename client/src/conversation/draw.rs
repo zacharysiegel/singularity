@@ -4,11 +4,12 @@ use crate::component::icon::{draw_close_x, draw_donut_ring, draw_hamburger, draw
 use crate::component::text::Text;
 use crate::component::text_truncate;
 use crate::component::text_wrap;
+use crate::component::time::format_relative_time;
 use crate::conversation::panel::{ChatPanel, ChatTab, CONTENT_PADDING, RailControl, ENTRY_HEIGHT, HEADER_HEIGHT};
 use crate::conversation::state::{Conversation, ConversationEvent};
 use crate::state::STATE;
 use crate::window::BUTTON_WIDTH;
-use chrono::{DateTime, Local, Utc};
+use chrono::{DateTime, Local};
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle, RaylibScissorModeExt};
 use raylib::math::{Rectangle, Vector2};
@@ -543,19 +544,7 @@ fn format_sender_line(message: &ConversationMessage) -> String {
     format!("{sender_username} | {absolute} ({relative})")
 }
 
-fn format_relative_time(timestamp: DateTime<Utc>) -> String {
-    let elapsed: chrono::Duration = Utc::now() - timestamp;
-    let seconds: i64 = elapsed.num_seconds().max(0);
-    if seconds < 60 {
-        format!("{seconds}s ago")
-    } else if seconds < 3600 {
-        format!("{}m ago", seconds / 60)
-    } else if seconds < 86_400 {
-        format!("{}h ago", seconds / 3600)
-    } else {
-        format!("{}d ago", seconds / 86_400)
-    }
-}
+
 
 fn draw_message(
     rl_draw: &mut impl RaylibDraw,
