@@ -28,7 +28,7 @@ pub async fn fetch_own_account(token: &str) {
 
 /// Fills the cache with public account info for any of the given ids that aren't already
 /// cached. Issues one `GET /account/{id}` per missing id concurrently and joins on all.
-pub async fn fetch_missing_accounts(token: &str, account_ids: &[Uuid]) {
+pub async fn warm_accounts(token: &str, account_ids: &[Uuid]) {
     let missing_account_ids: Vec<Uuid> = account_ids
         .iter()
         .copied()
