@@ -19,6 +19,10 @@ pub struct VerticalScrollRegion {
     content_height: f32,
     padding: f32,
     scroll_offset: f32,
+    /// When set, the next `update` snaps `scroll_offset` to the new `max_scroll` instead of
+    /// clamping the prior value. Lets callers (e.g. message handlers) request "land at the
+    /// bottom once the content size is recomputed" without knowing the new content height.
+    pending_snap_to_bottom: bool,
 }
 
 impl VerticalScrollRegion {
@@ -28,6 +32,7 @@ impl VerticalScrollRegion {
             content_height: 0.,
             padding,
             scroll_offset: 0.,
+            pending_snap_to_bottom: false,
         }
     }
 
@@ -40,6 +45,12 @@ impl VerticalScrollRegion {
         }
         if let Some(padding) = update.padding {
             self.padding = padding;
+        }
+        if self.pending_snap_to_bottom {
+            self.scroll_offset = self.max_scroll();
+            self.pending_snap_to_bottom = false;
+        } else {
+            self.scroll_offset = self.scroll_offset.clamp(0., self.max_scroll());
         }
     }
 
@@ -59,8 +70,20 @@ impl VerticalScrollRegion {
         (self.content_height + self.padding * 2. - self.viewport.height).max(0.)
     }
 
+    pub fn is_at_bottom(&self) -> bool {
+        self.pending_snap_to_bottom || self.scroll_offset >= self.max_scroll()
+    }
+
+    /// Requests the next `update` to land `scroll_offset` at the new `max_scroll`. The
+    /// actual clamp is deferred so callers don't need to know the post-update content
+    /// height (which may depend on font/viewport state unavailable at the call site).
+    pub fn scroll_to_bottom(&mut self) {
+        self.pending_snap_to_bottom = true;
+    }
+
     pub fn scroll_clamped(&mut self, delta: f32) {
         self.scroll_offset = (self.scroll_offset + delta).clamp(0., self.max_scroll());
+        self.pending_snap_to_bottom = false;
     }
 
     pub fn draw(
