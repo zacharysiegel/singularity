@@ -1,5 +1,5 @@
 use crate::component::button::RectangularButton;
-use crate::component::frame::{draw_side_button_frame, draw_window_frame};
+use crate::component::frame::{draw_rail_button_frame, draw_window_frame};
 use crate::component::icon::draw_close_x;
 use crate::state::STATE;
 use crate::window::{ErrorWindow, HexWindow, PauseWindow, Window};
@@ -48,6 +48,6 @@ fn draw_background(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
 
 fn draw_close_button(rl_draw: &mut RaylibDrawHandle, window: &dyn Window) {
     let button: &RectangularButton = window.close_button();
-    draw_side_button_frame(rl_draw, button.rectangle, button.is_hovered());
+    draw_rail_button_frame(rl_draw, button.rectangle, button.is_hovered());
     draw_close_x(rl_draw, button.rectangle, 4.5, shared::color::RED);
 }

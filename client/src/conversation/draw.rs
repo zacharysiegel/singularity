@@ -1,5 +1,5 @@
 use std::sync::{RwLockReadGuard, RwLockWriteGuard};
-use crate::component::frame::{BORDER_THICKNESS, draw_side_button_accent_filled, draw_side_button_frame, draw_window_frame};
+use crate::component::frame::{BORDER_THICKNESS, draw_side_button_accent_filled, draw_rail_button_frame, draw_window_frame};
 use crate::component::icon::{draw_close_x, draw_donut_ring, draw_hamburger, draw_plus};
 use crate::component::text::Text;
 use crate::component::text_truncate;
@@ -61,7 +61,7 @@ fn draw_rail(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
         .collect();
 
     for (rect, button) in &buttons {
-        draw_side_button_frame(rl_draw, *rect, hovered_button == Some(*button));
+        draw_rail_button_frame(rl_draw, *rect, hovered_button == Some(*button));
         if active_rail_button == Some(*button) {
             draw_side_button_accent_filled(rl_draw, *rect, shared::color::WINDOW_BORDER_FOCUSED_COLOR);
         }
@@ -129,7 +129,7 @@ fn draw_conversation_tabs(
             rl_draw,
             tab_rect,
             tooltip_rect,
-            &name,
+            name,
             is_active,
             is_hovered,
             is_hovered && close_hovered_index == Some(index),
@@ -144,12 +144,12 @@ pub fn draw_conversation_tab(
     rl_draw: &mut RaylibDrawHandle,
     icon_rect: Rectangle,
     tooltip_rect: Option<Rectangle>,
-    name: &str,
+    name: String,
     active: bool,
     row_hovered: bool,
     mini_close_hovered: bool,
 ) {
-    let full_rect: Rectangle = match tooltip_rect {
+    let container: Rectangle = match tooltip_rect {
         Some(tooltip_rect) => Rectangle {
             width: tooltip_rect.width + icon_rect.width,
             ..tooltip_rect
@@ -157,41 +157,45 @@ pub fn draw_conversation_tab(
         None => icon_rect,
     };
 
-    draw_side_button_frame(rl_draw, full_rect, row_hovered);
+    draw_rail_button_frame(rl_draw, container, row_hovered);
     if active {
-        draw_side_button_accent_filled(rl_draw, full_rect, shared::color::WINDOW_BORDER_FOCUSED_COLOR);
+        draw_side_button_accent_filled(rl_draw, container, shared::color::WINDOW_BORDER_FOCUSED_COLOR);
     }
 
     draw_donut_ring(rl_draw, icon_rect, DONUT_PLACEHOLDER_COLOR);
 
-    if let Some(name_rect) = tooltip_rect {
-        let name_text: Text = Text {
-            content: name.to_string(),
-            font_size: NAME_FONT_SIZE,
-            font_spacing: 2.,
-            color: TEXT_COLOR,
-        };
-        let font = || unsafe { WeakFont::from_raw(raylib::ffi::GetFontDefault()) };
-        let name_max_width: f32 = name_rect.width - CONTENT_PADDING * 2.;
-        let truncated_name: String = text_truncate::truncate_text(&name_text, &font(), name_max_width);
-        let text_height: f32 = NAME_FONT_SIZE;
-        let text_y: f32 = math::center_vertically(name_rect.y, name_rect.height, text_height);
-        rl_draw.draw_text_ex(
-            font(),
-            &truncated_name,
-            Vector2 {
-                x: name_rect.x + CONTENT_PADDING,
-                y: text_y,
-            },
-            NAME_FONT_SIZE,
-            2.,
-            TEXT_COLOR,
-        );
+    if let Some(tooltip_rect) = tooltip_rect {
+        draw_tooltip(rl_draw, tooltip_rect, name);
     }
 
     if row_hovered {
         draw_tab_mini_close(rl_draw, icon_rect, mini_close_hovered);
     }
+}
+
+fn draw_tooltip(rl_draw: &mut RaylibDrawHandle, tooltip_rect: Rectangle, name: String) {
+    let text: Text = Text {
+        content: name,
+        font_size: NAME_FONT_SIZE,
+        font_spacing: 2.,
+        color: TEXT_COLOR,
+    };
+    let font_factory: fn() -> WeakFont = || unsafe { WeakFont::from_raw(raylib::ffi::GetFontDefault()) };
+    let name_max_width: f32 = tooltip_rect.width - CONTENT_PADDING * 2.;
+    let truncated_name: String = text_truncate::truncate_text(&text, &font_factory(), name_max_width);
+    let text_height: f32 = NAME_FONT_SIZE;
+    let text_y: f32 = math::center_vertically(tooltip_rect.y, tooltip_rect.height, text_height);
+    rl_draw.draw_text_ex(
+        font_factory(),
+        &truncated_name,
+        Vector2 {
+            x: tooltip_rect.x + CONTENT_PADDING,
+            y: text_y,
+        },
+        NAME_FONT_SIZE,
+        2.,
+        TEXT_COLOR,
+    );
 }
 
 fn draw_tab_mini_close(rl_draw: &mut RaylibDrawHandle, tab_rect: Rectangle, hovered: bool) {
