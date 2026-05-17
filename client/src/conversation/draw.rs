@@ -3,15 +3,19 @@ use crate::component::frame::{BORDER_THICKNESS, draw_side_button_accent_filled, 
 use crate::component::icon::{draw_close_x, draw_donut_ring, draw_hamburger, draw_plus};
 use crate::component::text::Text;
 use crate::component::text_truncate;
+use crate::component::text_wrap;
 use crate::conversation::panel::{ChatPanel, ChatTab, RailControl, ENTRY_HEIGHT, HEADER_HEIGHT};
+use crate::conversation::state::{Conversation, ConversationEvent};
 use crate::state::STATE;
 use crate::window::BUTTON_WIDTH;
+use chrono::{DateTime, Local, Utc};
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle, RaylibScissorModeExt};
 use raylib::math::{Rectangle, Vector2};
 use raylib::text::{RaylibFont, WeakFont};
 use raylib::RaylibThread;
 use shared::color::{GREEN, TEXT_COLOR, WINDOW_BACKGROUND_COLOR, WINDOW_INTERIOR_BORDER_COLOR};
+use shared::schema::conversation_message::ConversationMessage;
 use strum::IntoEnumIterator;
 use uuid::Uuid;
 use shared::math;
@@ -23,6 +27,14 @@ const NAME_FONT_SIZE: f32 = 14.;
 const HEADER_FONT_SIZE: f32 = NAME_FONT_SIZE + 4.;
 const DETAIL_FONT_SIZE: f32 = 10.;
 const DONUT_PLACEHOLDER_COLOR: Color = Color { r: 0xa0, g: 0xa0, b: 0xa0, a: 0xff };
+const MESSAGE_FONT_SIZE: f32 = 13.;
+const MESSAGE_FONT_SPACING: f32 = 1.5;
+const SENDER_FONT_SIZE: f32 = 10.;
+const SENDER_FONT_SPACING: f32 = 1.;
+const MESSAGE_LINE_GAP: f32 = 4.;
+const MESSAGE_BUNDLE_GAP: f32 = 10.;
+const SENDER_TO_MESSAGE_GAP: f32 = 2.;
+const MESSAGE_MAX_WIDTH_RATIO: f32 = 0.88;
 const UNNAMED_CONVERSATION_PLACEHOLDER: &str = "Unnamed";
 
 pub fn draw(rl_draw: &mut RaylibDrawHandle, _rl_thread: &RaylibThread) {
@@ -39,7 +51,7 @@ pub fn draw(rl_draw: &mut RaylibDrawHandle, _rl_thread: &RaylibThread) {
     let active_tab: ChatTab = STATE.conversation.chat_panel.read().unwrap().active_tab.clone();
     match active_tab {
         ChatTab::ConversationList => draw_conversation_list(rl_draw, panel_rect),
-        ChatTab::Conversation(_) => {}
+        ChatTab::Conversation(conversation_id) => draw_conversation_view(rl_draw, panel_rect, conversation_id),
         ChatTab::NewConversation => {}
     }
 
@@ -223,11 +235,20 @@ pub fn draw_panel_header(rl_draw: &mut RaylibDrawHandle, content_rect: Rectangle
     let double_border_separation: f32 = 4.;
     let header_text_area_height: f32 = HEADER_HEIGHT - double_border_separation;
 
-    let text_height: f32 = rl_draw.get_font_default().measure_text(title, HEADER_FONT_SIZE, 2.).y;
+    let title_text: Text = Text {
+        content: title.to_string(),
+        font_size: HEADER_FONT_SIZE,
+        font_spacing: 2.,
+        color: TEXT_COLOR,
+    };
+    let title_max_width: f32 = content_rect.width - CONTENT_PADDING * 2.;
+    let truncated_title: String = text_truncate::truncate_text(&title_text, &rl_draw.get_font_default(), title_max_width);
+
+    let text_height: f32 = rl_draw.get_font_default().measure_text(&truncated_title, HEADER_FONT_SIZE, 2.).y;
     let header_text_y: f32 = math::center_vertically(content_rect.y, header_text_area_height, text_height);
     rl_draw.draw_text_ex(
         rl_draw.get_font_default(),
-        title,
+        &truncated_title,
         Vector2 { x: content_rect.x + CONTENT_PADDING, y: header_text_y },
         HEADER_FONT_SIZE,
         2.,
@@ -382,4 +403,164 @@ fn draw_conversation_entry(
         BORDER_THICKNESS,
         WINDOW_INTERIOR_BORDER_COLOR,
     );
+}
+
+fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle, conversation_id: Uuid) {
+    let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
+    let scroll_viewport: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
+
+    let conversation_entry = STATE.conversation.conversations.get(&conversation_id);
+    let Some(conversation_entry) = conversation_entry else {
+        return;
+    };
+
+    let header_title: String = format_conversation_header(&conversation_entry);
+    let chat_messages: Vec<ConversationMessage> = collect_chat_messages(&conversation_entry);
+    drop(conversation_entry);
+
+    draw_panel_header(rl_draw, content_rect, &header_title);
+
+    let font_factory: fn() -> WeakFont = || unsafe { WeakFont::from_raw(raylib::ffi::GetFontDefault()) };
+    let max_message_width: f32 = (scroll_viewport.width - CONTENT_PADDING * 2.) * MESSAGE_MAX_WIDTH_RATIO;
+    let wrapped_messages: Vec<WrappedMessage> = chat_messages
+        .into_iter()
+        .map(|message| WrappedMessage::new(message, &font_factory(), max_message_width))
+        .collect();
+    let content_height: f32 = wrapped_messages
+        .iter()
+        .map(WrappedMessage::height)
+        .sum::<f32>()
+        + MESSAGE_BUNDLE_GAP * wrapped_messages.len().saturating_sub(1) as f32;
+
+    let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
+    let view_state = chat_panel
+        .conversation_view_states
+        .get_mut(&conversation_id)
+        .expect("conversation view state should exist for active tab");
+    view_state.scroll_region.update(VerticalScrollRegionUpdate {
+        viewport: Some(scroll_viewport),
+        content_height: Some(content_height),
+        padding: Some(CONTENT_PADDING),
+    });
+
+    let own_account_id: Option<Uuid> = *STATE.account.own_account_id.read().unwrap();
+    view_state.scroll_region.draw(rl_draw, |mut scissor_draw, y_offset| {
+        let mut entry_top: f32 = scroll_viewport.y + y_offset;
+        for wrapped in &wrapped_messages {
+            if entry_top > scroll_viewport.y + scroll_viewport.height {
+                break;
+            }
+
+            let is_own: bool = own_account_id == Some(wrapped.message.sender_account_id);
+            if entry_top + wrapped.height() > scroll_viewport.y {
+                draw_message(&mut scissor_draw, scroll_viewport, entry_top, wrapped, is_own, &font_factory());
+            }
+            entry_top += wrapped.height() + MESSAGE_BUNDLE_GAP;
+        }
+    });
+}
+
+fn format_conversation_header(conversation: &Conversation) -> String {
+    let name: &str = conversation.name.as_deref().unwrap_or(UNNAMED_CONVERSATION_PLACEHOLDER);
+    let member_count: usize = conversation.members.len();
+    format!("{name}  ({member_count} members)")
+}
+
+fn collect_chat_messages(conversation: &Conversation) -> Vec<ConversationMessage> {
+    conversation
+        .events
+        .values()
+        .filter_map(|event| match event {
+            ConversationEvent::Chat(message) => Some(message.clone()),
+            _ => None,
+        })
+        .collect()
+}
+
+struct WrappedMessage {
+    message: ConversationMessage,
+    sender_line: String,
+    wrapped_lines: Vec<String>,
+}
+
+impl WrappedMessage {
+    fn new(message: ConversationMessage, font: &WeakFont, max_width: f32) -> Self {
+        let sender_line: String = format_sender_line(&message);
+        let wrapped_lines: Vec<String> =
+            text_wrap::wrap_text(&message.content, font, MESSAGE_FONT_SIZE, MESSAGE_FONT_SPACING, max_width);
+        WrappedMessage {
+            message,
+            sender_line,
+            wrapped_lines,
+        }
+    }
+
+    fn height(&self) -> f32 {
+        SENDER_FONT_SIZE
+            + SENDER_TO_MESSAGE_GAP
+            + (MESSAGE_FONT_SIZE + MESSAGE_LINE_GAP) * self.wrapped_lines.len().max(1) as f32
+    }
+}
+
+fn format_sender_line(message: &ConversationMessage) -> String {
+    let sender_username: String = STATE
+        .account
+        .username(message.sender_account_id)
+        .unwrap_or_else(|| message.sender_account_id.to_string());
+    let local_time: DateTime<Local> = message.created.with_timezone(&Local);
+    let absolute: String = local_time.format("%b %-d %H:%M:%S").to_string();
+    let relative: String = format_relative_time(message.created);
+    format!("{sender_username} | {absolute} ({relative})")
+}
+
+fn format_relative_time(timestamp: DateTime<Utc>) -> String {
+    let elapsed: chrono::Duration = Utc::now() - timestamp;
+    let seconds: i64 = elapsed.num_seconds().max(0);
+    if seconds < 60 {
+        format!("{seconds}s ago")
+    } else if seconds < 3600 {
+        format!("{}m ago", seconds / 60)
+    } else if seconds < 86_400 {
+        format!("{}h ago", seconds / 3600)
+    } else {
+        format!("{}d ago", seconds / 86_400)
+    }
+}
+
+fn draw_message(
+    rl_draw: &mut impl RaylibDraw,
+    viewport: Rectangle,
+    top: f32,
+    wrapped: &WrappedMessage,
+    is_own: bool,
+    font: &WeakFont,
+) {
+    let body_left: f32 = viewport.x + CONTENT_PADDING;
+    let body_right: f32 = viewport.x + viewport.width - CONTENT_PADDING;
+
+    let sender_measure: Vector2 = font.measure_text(&wrapped.sender_line, SENDER_FONT_SIZE, SENDER_FONT_SPACING);
+    let sender_x: f32 = if is_own { body_right - sender_measure.x } else { body_left };
+    rl_draw.draw_text_ex(
+        font,
+        &wrapped.sender_line,
+        Vector2 { x: sender_x, y: top },
+        SENDER_FONT_SIZE,
+        SENDER_FONT_SPACING,
+        WINDOW_INTERIOR_BORDER_COLOR,
+    );
+
+    let mut line_y: f32 = top + SENDER_FONT_SIZE + SENDER_TO_MESSAGE_GAP;
+    for line in &wrapped.wrapped_lines {
+        let line_measure: Vector2 = font.measure_text(line, MESSAGE_FONT_SIZE, MESSAGE_FONT_SPACING);
+        let line_x: f32 = if is_own { body_right - line_measure.x } else { body_left };
+        rl_draw.draw_text_ex(
+            font,
+            line,
+            Vector2 { x: line_x, y: line_y },
+            MESSAGE_FONT_SIZE,
+            MESSAGE_FONT_SPACING,
+            TEXT_COLOR,
+        );
+        line_y += MESSAGE_FONT_SIZE + MESSAGE_LINE_GAP;
+    }
 }
