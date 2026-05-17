@@ -28,11 +28,10 @@ pub fn handle_member_joined(change_serial: ConversationMemberChangeSerial) {
     let event: ConversationEvent = ConversationEvent::MemberJoined(change);
     insert_event(conversation_id, event);
 
-    let mut conversation_entry: RefMut<Uuid, Conversation> = STATE.conversation.get_or_create(conversation_id);
-    conversation_entry.members
+    STATE.conversation.get_or_create(conversation_id)
+        .members
         .entry(change_serial.account_id)
         .or_insert_with(|| ConversationMember::from(&change_serial));
-    drop(conversation_entry);
 
     account::catchup::spawn_fetch_if_missing(change_serial.account_id);
 }

@@ -46,6 +46,7 @@ impl VerticalScrollRegion {
         if let Some(padding) = update.padding {
             self.padding = padding;
         }
+
         if self.pending_snap_to_bottom {
             self.scroll_offset = self.max_scroll();
             self.pending_snap_to_bottom = false;
