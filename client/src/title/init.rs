@@ -18,7 +18,6 @@ use raylib::RaylibHandle;
 use shared::environment::RuntimeEnvironment;
 use shared::map::RenderCoord;
 use std::sync::{LazyLock, RwLockWriteGuard};
-use crate::conversation;
 
 const BUTTON_DIMENSIONS: LazyLock<Vector2> = LazyLock::new(|| {
     let mut max_measure: Vector2 = Vector2 {
@@ -52,8 +51,6 @@ pub fn init_title(rl: &mut RaylibHandle) {
         let mut debug_scroll_region: RwLockWriteGuard<Option<VerticalScrollRegion>> =
             STATE.stage.title.debug_scroll_region.write().unwrap();
         *debug_scroll_region = Some(create_debug_scroll_region(rl));
-
-        conversation::debug::seed_debug_conversations(); // todo: remove
     }
 
     let mut games_button: RwLockWriteGuard<RectangularButton> = STATE.stage.title.main_buttons[GAMES_BUTTON_INDEX].write().unwrap();
