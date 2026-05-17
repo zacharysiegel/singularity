@@ -87,7 +87,7 @@ impl ChatPanel {
             hovered_tooltip: false,
             conversation_list_state: ConversationListState {
                 hovered_entry: None,
-                scroll_region: VerticalScrollRegion::new(Rectangle::default(), CONTENT_PADDING),
+                scroll_region: VerticalScrollRegion::new(Rectangle::default(), 0.),
             },
             new_conversation_state: NewConversationState,
             conversation_view_states: HashMap::new(),
