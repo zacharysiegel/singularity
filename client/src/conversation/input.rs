@@ -275,23 +275,26 @@ fn handle_conversation_list_hover(panel_rect: Rectangle, mouse_position: RenderC
     let hovered_entry: Option<usize> = if occluded_by_tab {
         None
     } else {
-        find_hovered_list_entry(panel_rect, mouse_position)
+        find_conversation_list_hovered_entry(panel_rect, mouse_position)
     };
     STATE.conversation.chat_panel.write().unwrap().conversation_list_state.hovered_entry = hovered_entry;
 }
 
-fn find_hovered_list_entry(panel_rect: Rectangle, mouse_position: RenderCoord) -> Option<usize> {
-    let scroll_viewport: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
-    if !scroll_viewport.check_collision_point_rec(mouse_position) {
+fn find_conversation_list_hovered_entry(panel_rect: Rectangle, mouse_position: RenderCoord) -> Option<usize> {
+    let content_viewport: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
+    if !content_viewport.check_collision_point_rec(mouse_position) {
         return None;
     }
+
     let scroll_offset: f32 = STATE.conversation.chat_panel.read().unwrap().conversation_list_state.scroll_region.scroll_offset();
     let entry_count: usize = STATE.conversation.display_order().len();
-    let mouse_offset_from_body: f32 = mouse_position.y - scroll_viewport.y + scroll_offset;
-    if mouse_offset_from_body < 0. {
+
+    let mouse_offset_from_content: f32 = mouse_position.y - content_viewport.y + scroll_offset;
+    if mouse_offset_from_content < 0. {
         return None;
     }
-    let index: usize = (mouse_offset_from_body / ENTRY_HEIGHT) as usize;
+
+    let index: usize = (mouse_offset_from_content / ENTRY_HEIGHT) as usize;
     if index < entry_count {
         Some(index)
     } else {
