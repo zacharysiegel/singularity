@@ -2,6 +2,7 @@ pub mod component;
 pub mod config;
 pub mod connect;
 pub mod conversation;
+pub mod account;
 pub mod engine;
 pub mod facility;
 pub mod game;

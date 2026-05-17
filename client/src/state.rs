@@ -1,3 +1,4 @@
+use crate::account::AccountState;
 use crate::conversation::ConversationState;
 use crate::stage::StageState;
 use crate::texture::ScreenRenderTexture;
@@ -15,6 +16,7 @@ pub static STATE: LazyLock<State> = LazyLock::new(|| State {
     screen_texture: RwLock::new(unsafe { mem::zeroed() }),
     ws: WsState::default(),
     conversation: ConversationState::new(),
+    account: AccountState::new(),
 });
 
 pub static HTTP_CLIENT: LazyLock<Client> = LazyLock::new(|| {
@@ -32,6 +34,7 @@ pub struct State {
     pub screen_texture: RwLock<ScreenRenderTexture>,
     pub ws: WsState,
     pub conversation: ConversationState,
+    pub account: AccountState,
 }
 
 #[derive(Debug, PartialEq)]
