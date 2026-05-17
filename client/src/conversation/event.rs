@@ -9,17 +9,14 @@ use uuid::Uuid;
 
 use super::panel::ChatPanel;
 use super::state::{ConversationEvent, ConversationEventKey, Conversation};
-use crate::account;
 use crate::state::STATE;
 
 pub fn handle_message(message_serial: ConversationMessageSerial) {
     let conversation_id: Uuid = message_serial.conversation_id;
-    let sender_account_id: Uuid = message_serial.sender_account_id;
     let message: ConversationMessage = ConversationMessage::from(message_serial);
     let event: ConversationEvent = ConversationEvent::Chat(message);
     insert_event(conversation_id, event);
     snap_conversation_view_to_bottom_if_at_bottom(conversation_id);
-    account::catchup::spawn_fetch_if_missing(sender_account_id);
 }
 
 pub fn handle_member_joined(change_serial: ConversationMemberChangeSerial) {
@@ -32,8 +29,6 @@ pub fn handle_member_joined(change_serial: ConversationMemberChangeSerial) {
         .members
         .entry(change_serial.account_id)
         .or_insert_with(|| ConversationMember::from(&change_serial));
-
-    account::catchup::spawn_fetch_if_missing(change_serial.account_id);
 }
 
 /// If the user is currently scrolled to the bottom of this conversation's view, mark the

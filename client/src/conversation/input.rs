@@ -42,6 +42,7 @@ impl ScrollHandler for ChatPanelInput {
         ScrollResult::Consume
     }
 }
+
 impl ClickHandler for ChatPanelInput {
     fn click(&mut self, rl: &mut RaylibHandle, button: ClickButton, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
         if !STATE.conversation.chat_panel.read().unwrap().open {

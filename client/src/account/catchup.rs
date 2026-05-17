@@ -3,12 +3,12 @@ use shared::error::AppErrorStatic;
 use shared::schema::account::{AccountPublicSerial, AccountSerial};
 use uuid::Uuid;
 
+use super::AccountState;
 use crate::http;
 use crate::state::STATE;
 
 /// Fetches the authenticated user's account, sets `own_account_id`, and inserts the
-/// corresponding public entry into the cache. Idempotent across reconnects (`OnceLock`
-/// only sets the first time, cache insert is a write).
+/// corresponding public entry into the cache. Idempotent across reconnects.
 pub async fn fetch_own_account(token: &str) {
     let lobby_http_origin: String = RuntimeEnvironment::default().lobby_http_origin();
     let url: String = format!("{lobby_http_origin}/account");
@@ -42,10 +42,23 @@ pub async fn fetch_missing_accounts(token: &str, account_ids: &[Uuid]) {
     }
 }
 
-/// Spawn a deduped lazy fetch for an account that isn't currently cached. Safe to call
-/// from synchronous contexts (WS event handlers). No-op if the id is already cached or
-/// already in flight.
-pub fn spawn_fetch_if_missing(account_id: Uuid) {
+impl AccountState {
+    /// Returns the cached username for `account_id` if present. On miss, spawns a deduped
+    /// lazy fetch and returns `None`; subsequent reads (after the fetch completes) will
+    /// see the cached value. Read-with-self-population is the only way callers should
+    /// resolve usernames during render — bare `username()` is a passive lookup that does
+    /// not request data.
+    pub fn request_username(&self, account_id: Uuid) -> Option<String> {
+        if let Some(username) = self.username(account_id) {
+            return Some(username);
+        }
+        spawn_fetch_if_missing(account_id);
+        None
+    }
+}
+
+/// Deduped background fetch for a single account id. No-op if cached or already in flight.
+fn spawn_fetch_if_missing(account_id: Uuid) {
     if STATE.account.cache.contains_key(&account_id) {
         return;
     }
