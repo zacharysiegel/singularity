@@ -25,12 +25,21 @@ pub struct ChatPanel {
     /// Conversation IDs of open tabs in the rail, in top-down display order.
     pub conversation_tabs: Vec<Uuid>,
     pub hovered_control_button: Option<RailControl>,
-    pub hovered_list_entry: Option<usize>,
     pub hovered_conversation_tab: Option<usize>,
     pub hovered_conversation_tab_close: Option<usize>,
     pub hovered_tooltip: bool,
-    pub list_scroll_region: VerticalScrollRegion,
+    pub conversation_list_state: ConversationListState,
+    pub new_conversation_state: NewConversationState,
 }
+
+#[derive(Debug)]
+pub struct ConversationListState {
+    pub hovered_entry: Option<usize>,
+    pub scroll_region: VerticalScrollRegion,
+}
+
+#[derive(Debug)]
+pub struct NewConversationState;
 
 /// Variant order determines top-to-bottom position in the rail via discriminant cast.
 #[derive(Debug, Clone, Copy, PartialEq, EnumIter)]
@@ -50,11 +59,14 @@ impl ChatPanel {
             active_tab: ChatTab::ConversationList,
             conversation_tabs: Vec::new(),
             hovered_control_button: None,
-            hovered_list_entry: None,
             hovered_conversation_tab: None,
             hovered_conversation_tab_close: None,
             hovered_tooltip: false,
-            list_scroll_region: VerticalScrollRegion::new(Rectangle::default(), 0.),
+            conversation_list_state: ConversationListState {
+                hovered_entry: None,
+                scroll_region: VerticalScrollRegion::new(Rectangle::default(), 0.),
+            },
+            new_conversation_state: NewConversationState,
         }
     }
 

@@ -26,7 +26,7 @@ impl ScrollHandler for ChatPanelInput {
         }
 
         let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
-        chat_panel.list_scroll_region.scroll(rl, scroll_v, mouse_position);
+        chat_panel.conversation_list_state.scroll_region.scroll(rl, scroll_v, mouse_position);
 
         ScrollResult::Consume
     }
@@ -152,7 +152,7 @@ fn on_content_click(panel_rect: Rectangle, press_position: RenderCoord, release_
 
 fn on_conversation_list_click(panel_rect: Rectangle, press_position: RenderCoord, release_position: RenderCoord) {
     let content_body_rect: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
-    let scroll_offset: f32 = STATE.conversation.chat_panel.read().unwrap().list_scroll_region.scroll_offset();
+    let scroll_offset: f32 = STATE.conversation.chat_panel.read().unwrap().conversation_list_state.scroll_region.scroll_offset();
 
     let press_offset_from_body: f32 = press_position.y - content_body_rect.y + scroll_offset;
     let release_offset_from_entries: f32 = release_position.y - content_body_rect.y + scroll_offset;
@@ -206,7 +206,7 @@ impl HoverHandler for ChatPanelInput {
         chat_panel.hovered_conversation_tab = hovered_conversation_tab;
         chat_panel.hovered_conversation_tab_close = hovered_conversation_tab_close;
         chat_panel.hovered_tooltip = hovered_tooltip;
-        chat_panel.hovered_list_entry = hovered_list_entry;
+        chat_panel.conversation_list_state.hovered_entry = hovered_list_entry;
 
         HoverResult::Consume
     }
@@ -277,7 +277,7 @@ fn find_hovered_list_entry(panel_rect: Rectangle, mouse_position: RenderCoord) -
     if !scroll_viewport.check_collision_point_rec(mouse_position) {
         return None;
     }
-    let scroll_offset: f32 = STATE.conversation.chat_panel.read().unwrap().list_scroll_region.scroll_offset();
+    let scroll_offset: f32 = STATE.conversation.chat_panel.read().unwrap().conversation_list_state.scroll_region.scroll_offset();
     let entry_count: usize = STATE.conversation.display_order().len();
     let mouse_offset_from_body: f32 = mouse_position.y - scroll_viewport.y + scroll_offset;
     if mouse_offset_from_body < 0. {

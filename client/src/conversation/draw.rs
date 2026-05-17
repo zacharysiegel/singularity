@@ -246,7 +246,7 @@ pub fn draw_panel_header(rl_draw: &mut RaylibDrawHandle, content_rect: Rectangle
 fn draw_conversation_list(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle) {
     let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
     let conversation_order: RwLockReadGuard<Vec<Uuid>> = STATE.conversation.display_order();
-    let hovered_list_entry: Option<usize> = STATE.conversation.chat_panel.read().unwrap().hovered_list_entry;
+    let hovered_list_entry: Option<usize> = STATE.conversation.chat_panel.read().unwrap().conversation_list_state.hovered_entry;
 
     draw_panel_header(rl_draw, content_rect, "Conversations");
 
@@ -255,12 +255,12 @@ fn draw_conversation_list(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle)
     let logical_height: f32 = conversation_count as f32 * ENTRY_HEIGHT;
 
     let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
-    chat_panel.list_scroll_region.update(VerticalScrollRegionUpdate {
+    chat_panel.conversation_list_state.scroll_region.update(VerticalScrollRegionUpdate {
         viewport: Some(scroll_viewport),
         content_height: Some(logical_height),
         padding: None,
     });
-    chat_panel.list_scroll_region.draw(rl_draw, |mut scissor_draw, y_offset| {
+    chat_panel.conversation_list_state.scroll_region.draw(rl_draw, |mut scissor_draw, y_offset| {
         let mut entry_top: f32 = scroll_viewport.y + y_offset;
         for (index, conversation_id) in conversation_order.iter().enumerate() {
             if entry_top > scroll_viewport.y + scroll_viewport.height {
