@@ -11,7 +11,6 @@ pub struct WsState {
     pub lobby_sender: RwLock<Option<Sender<WsRequest>>>,
     pub live_sender: RwLock<Option<Sender<WsRequest>>>,
     pub last_error: RwLock<Option<String>>,
-    pub token: RwLock<Option<String>>,
 }
 
 impl Default for WsState {
@@ -20,7 +19,6 @@ impl Default for WsState {
             lobby_sender: RwLock::new(None),
             live_sender: RwLock::new(None),
             last_error: RwLock::new(None),
-            token: RwLock::new(None),
         }
     }
 }

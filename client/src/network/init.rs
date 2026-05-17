@@ -16,7 +16,7 @@ pub fn init() {
             );
             return;
         };
-        *STATE.ws.token.write().unwrap() = Some(token.clone());
+        *STATE.lobby.token.write().unwrap() = Some(token.clone());
 
         let Ok(_) = connect::connect() else {
             log::error!("live server connection failed");

@@ -39,15 +39,16 @@ pub async fn warm_accounts(token: &str, account_ids: &[Uuid]) {
 }
 
 /// Deduped background fetch for a single account id. No-op if cached or already in flight.
-pub(super) fn spawn_fetch_if_missing(account_id: Uuid) {
+pub fn spawn_fetch_if_missing(account_id: Uuid) {
     if STATE.account.cache.contains_key(&account_id) {
         return;
     }
+
     if STATE.account.in_flight_account_lookups.insert(account_id, ()).is_some() {
         return;
     }
 
-    let token: Option<String> = STATE.ws.token.read().unwrap().clone();
+    let token: Option<String> = STATE.lobby.token.read().unwrap().clone();
     let Some(token) = token else {
         STATE.account.in_flight_account_lookups.remove(&account_id);
         return;
@@ -66,7 +67,7 @@ async fn fetch_and_cache_account(token: &str, account_id: Uuid) {
             STATE.account.cache.insert(public.id, public);
         }
         Err(error) => {
-            log::warn!("Failed to fetch account; [{account_id}] [{error}]");
+            log::warn!("Account catchup failed to fetch account; [{account_id}] [{error}]");
         }
     }
 }
