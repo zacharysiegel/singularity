@@ -13,7 +13,7 @@ use crate::state::STATE;
 pub async fn catch_up(token: &str) {
     let (_, conversation_result): (_, Result<Vec<ConversationSerial>, AppErrorStatic>) = tokio::join!(
         account::catchup::fetch_own_account(token),
-        api::fetch_conversations(token),
+        api::get_conversations(token),
     );
 
     let conversation_serials: Vec<ConversationSerial> = match conversation_result {
@@ -55,8 +55,8 @@ async fn catch_up_conversation(token: &str, conversation_serial: &ConversationSe
         Result<Vec<ConversationMemberSerial>, AppErrorStatic>,
         Result<Vec<ConversationMessageSerial>, AppErrorStatic>,
     ) = tokio::join!(
-        api::fetch_members(token, conversation_serial.id),
-        api::fetch_messages(token, conversation_serial.id),
+        api::get_members(token, conversation_serial.id),
+        api::get_messages(token, conversation_serial.id),
     );
 
     let member_serials: Vec<ConversationMemberSerial> = match member_result {
