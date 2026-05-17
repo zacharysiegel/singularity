@@ -12,7 +12,7 @@ pub struct AccountSerial {
 }
 
 /// Limited public view of an account (no email)
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccountPublicSerial {
     pub id: Uuid,
     pub username: String,
