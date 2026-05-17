@@ -230,9 +230,11 @@ fn draw_tab_mini_close(rl_draw: &mut impl RaylibDraw, tab_rect: Rectangle, hover
 
 /// Renders a panel section header: a vertically centered title text, followed by a double border line.
 /// Used by all chat panel tab views (conversation list, message view, new conversation).
-pub fn draw_panel_header(rl_draw: &mut RaylibDrawHandle, content_rect: Rectangle, title: &str) {
+pub fn draw_panel_header(rl_draw: &mut RaylibDrawHandle, content_rect: Rectangle, title: &str, subtitle: Option<&str>) {
     let double_border_separation: f32 = 4.;
     let header_text_area_height: f32 = HEADER_HEIGHT - double_border_separation;
+    let line_gap: f32 = 4.;
+    let title_max_width: f32 = content_rect.width - CONTENT_PADDING * 2.;
 
     let title_text: Text = Text {
         content: title.to_string(),
@@ -240,19 +242,43 @@ pub fn draw_panel_header(rl_draw: &mut RaylibDrawHandle, content_rect: Rectangle
         font_spacing: 2.,
         color: TEXT_COLOR,
     };
-    let title_max_width: f32 = content_rect.width - CONTENT_PADDING * 2.;
     let truncated_title: String = text_truncate::truncate_text(&title_text, &rl_draw.get_font_default(), title_max_width);
+    let title_height: f32 = rl_draw.get_font_default().measure_text(&truncated_title, HEADER_FONT_SIZE, 2.).y;
 
-    let text_height: f32 = rl_draw.get_font_default().measure_text(&truncated_title, HEADER_FONT_SIZE, 2.).y;
-    let header_text_y: f32 = math::center_vertically(content_rect.y, header_text_area_height, text_height);
+    let truncated_subtitle: Option<String> = subtitle.map(|subtitle| {
+        let subtitle_text: Text = Text {
+            content: subtitle.to_string(),
+            font_size: DETAIL_FONT_SIZE,
+            font_spacing: 1.,
+            color: WINDOW_INTERIOR_BORDER_COLOR,
+        };
+        text_truncate::truncate_text(&subtitle_text, &rl_draw.get_font_default(), title_max_width)
+    });
+
+    let total_text_height: f32 = match &truncated_subtitle {
+        Some(_) => title_height + line_gap + DETAIL_FONT_SIZE,
+        None => title_height,
+    };
+    let title_top_y: f32 = math::center_vertically(content_rect.y, header_text_area_height, total_text_height);
     rl_draw.draw_text_ex(
         rl_draw.get_font_default(),
         &truncated_title,
-        Vector2 { x: content_rect.x + CONTENT_PADDING, y: header_text_y },
+        Vector2 { x: content_rect.x + CONTENT_PADDING, y: title_top_y },
         HEADER_FONT_SIZE,
         2.,
         TEXT_COLOR,
     );
+
+    if let Some(subtitle) = truncated_subtitle {
+        rl_draw.draw_text_ex(
+            rl_draw.get_font_default(),
+            &subtitle,
+            Vector2 { x: content_rect.x + CONTENT_PADDING, y: title_top_y + title_height + line_gap },
+            DETAIL_FONT_SIZE,
+            1.,
+            WINDOW_INTERIOR_BORDER_COLOR,
+        );
+    }
 
     let top_y: f32 = content_rect.y + HEADER_HEIGHT - double_border_separation;
     let bottom_y: f32 = content_rect.y + HEADER_HEIGHT;
@@ -275,7 +301,7 @@ fn draw_conversation_list(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle)
     let conversation_order: RwLockReadGuard<Vec<Uuid>> = STATE.conversation.display_order();
     let hovered_list_entry: Option<usize> = STATE.conversation.chat_panel.read().unwrap().conversation_list_state.hovered_entry;
 
-    draw_panel_header(rl_draw, content_rect, "Conversations");
+    draw_panel_header(rl_draw, content_rect, "Conversations", None);
 
     let scroll_viewport: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
     let conversation_count: usize = conversation_order.len();
@@ -413,11 +439,11 @@ fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle,
         return;
     };
 
-    let header_title: String = format_conversation_header(&conversation_entry);
+    let (header_title, header_subtitle): (String, String) = format_conversation_header(&conversation_entry);
     let chat_messages: Vec<ConversationMessage> = collect_chat_messages(&conversation_entry);
     drop(conversation_entry);
 
-    draw_panel_header(rl_draw, content_rect, &header_title);
+    draw_panel_header(rl_draw, content_rect, &header_title, Some(&header_subtitle));
 
     let font_factory: fn() -> WeakFont = || unsafe { WeakFont::from_raw(raylib::ffi::GetFontDefault()) };
     let max_message_width: f32 = (scroll_viewport.width - CONTENT_PADDING * 2.) * MESSAGE_MAX_WIDTH_RATIO;
@@ -459,10 +485,15 @@ fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle,
     });
 }
 
-fn format_conversation_header(conversation: &Conversation) -> String {
-    let name: &str = conversation.name.as_deref().unwrap_or(UNNAMED_CONVERSATION_PLACEHOLDER);
+fn format_conversation_header(conversation: &Conversation) -> (String, String) {
+    let name: String = conversation.name.clone().unwrap_or_else(|| UNNAMED_CONVERSATION_PLACEHOLDER.to_string());
     let member_count: usize = conversation.members.len();
-    format!("{name}  ({member_count} members)")
+    let subtitle: String = if member_count == 1 {
+        "1 member".to_string()
+    } else {
+        format!("{member_count} members")
+    };
+    (name, subtitle)
 }
 
 fn collect_chat_messages(conversation: &Conversation) -> Vec<ConversationMessage> {
