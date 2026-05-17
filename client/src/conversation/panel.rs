@@ -57,7 +57,7 @@ pub struct ConversationViewState {
 impl ConversationViewState {
     pub fn new() -> Self {
         let mut scroll_region: VerticalScrollRegion = VerticalScrollRegion::new(Rectangle::default(), CONTENT_PADDING);
-        scroll_region.scroll_to_bottom();
+        scroll_region.request_scroll_to_bottom();
         ConversationViewState {
             scroll_region,
         }
