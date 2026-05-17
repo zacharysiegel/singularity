@@ -60,19 +60,19 @@ fn spawn_fetch_if_missing(account_id: Uuid) {
     if STATE.account.cache.contains_key(&account_id) {
         return;
     }
-    if STATE.account.in_flight_account_fetches.insert(account_id, ()).is_some() {
+    if STATE.account.in_flight_account_lookups.insert(account_id, ()).is_some() {
         return;
     }
 
     let token: Option<String> = STATE.ws.token.read().unwrap().clone();
     let Some(token) = token else {
-        STATE.account.in_flight_account_fetches.remove(&account_id);
+        STATE.account.in_flight_account_lookups.remove(&account_id);
         return;
     };
 
     tokio::spawn(async move {
         fetch_account(&token, account_id).await;
-        STATE.account.in_flight_account_fetches.remove(&account_id);
+        STATE.account.in_flight_account_lookups.remove(&account_id);
     });
 }
 
