@@ -17,7 +17,7 @@ pub struct AccountState {
     /// Account IDs with an in-flight `GET /account/{id}` request. Inserted before dispatch,
     /// removed after the request completes (success or failure). Prevents fan-out when
     /// multiple events from the same uncached sender arrive concurrently.
-    pub in_flight_account_fetches: DashMap<Uuid, ()>,
+    pub in_flight_account_lookups: DashMap<Uuid, ()>,
 }
 
 impl AccountState {
@@ -25,7 +25,7 @@ impl AccountState {
         AccountState {
             own_account_id: RwLock::new(None),
             cache: DashMap::new(),
-            in_flight_account_fetches: DashMap::new(),
+            in_flight_account_lookups: DashMap::new(),
         }
     }
 }
