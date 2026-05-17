@@ -98,10 +98,12 @@ impl VerticalScrollRegion {
         if screen_y < self.viewport.y || screen_y >= self.viewport.y + self.viewport.height {
             return None;
         }
+
         let content_y: f32 = screen_y - self.viewport.y + self.scroll_offset() - self.padding;
         if content_y < 0. {
             return None;
         }
+
         Some(content_y)
     }
 
