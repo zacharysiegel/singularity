@@ -3,6 +3,7 @@ use crate::conversation::state::{Conversation, ConversationEvent, ConversationEv
 use crate::state::STATE;
 use chrono::{Duration, Utc};
 use shared::schema::account::AccountPublicSerial;
+use shared::schema::conversation::ConversationMemberChange;
 use shared::schema::conversation_message::ConversationMessage;
 use uuid::Uuid;
 
@@ -77,6 +78,16 @@ fn resolve_or_set_own_account_id() -> Uuid {
 }
 
 fn seed_strategy_squad_messages(conversation: &mut Conversation, conversation_id: Uuid, me: Uuid, alpha: Uuid, beta: Uuid, gamma: Uuid) {
+    let member_changes: &[(Uuid, MemberChangeKind, i64)] = &[
+        (alpha, MemberChangeKind::Joined, 3600 * 24 * 3),
+        (beta,  MemberChangeKind::Joined, 3600 * 24 * 3 - 60),
+        (gamma, MemberChangeKind::Joined, 3600 * 24 * 2),
+        (me,    MemberChangeKind::Joined, 3600 * 24),
+        (gamma, MemberChangeKind::Left,   3600 * 7),
+        (gamma, MemberChangeKind::Joined, 3600 * 6 + 1800),
+    ];
+    insert_member_changes(conversation, conversation_id, member_changes);
+
     let lines: &[(Uuid, &str, i64)] = &[
         (alpha, "anyone seeing the U-235 spike on the eastern hex cluster?", 3600 * 6),
         (beta,  "yeah, third tick in a row. someone's been pre-positioning extractors there.", 3600 * 6 - 30),
@@ -119,6 +130,12 @@ fn seed_expansion_messages(conversation: &mut Conversation, conversation_id: Uui
 }
 
 fn seed_dm_messages(conversation: &mut Conversation, conversation_id: Uuid, me: Uuid, alpha: Uuid) {
+    let member_changes: &[(Uuid, MemberChangeKind, i64)] = &[
+        (alpha, MemberChangeKind::Joined, 86_500),
+        (me,    MemberChangeKind::Joined, 86_500),
+    ];
+    insert_member_changes(conversation, conversation_id, member_changes);
+
     let lines: &[(Uuid, &str, i64)] = &[
         (alpha, "gg earlier - that flank from the north was nasty.", 86_400),
         (me,    "yeah you almost had me, the second push caught me out of position.", 86_350),
@@ -140,6 +157,34 @@ fn insert_messages(conversation: &mut Conversation, conversation_id: Uuid, lines
             created,
         };
         let event = ConversationEvent::Chat(message);
+        let key = ConversationEventKey::from(&event);
+        conversation.events.insert(key, event);
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+enum MemberChangeKind {
+    Joined,
+    Left,
+}
+
+fn insert_member_changes(
+    conversation: &mut Conversation,
+    conversation_id: Uuid,
+    changes: &[(Uuid, MemberChangeKind, i64)],
+) {
+    let now = Utc::now();
+    for (account_id, kind, seconds_ago) in changes {
+        let timestamp = now - Duration::seconds(*seconds_ago);
+        let change = ConversationMemberChange {
+            conversation_id,
+            account_id: *account_id,
+            timestamp,
+        };
+        let event = match kind {
+            MemberChangeKind::Joined => ConversationEvent::MemberJoined(change),
+            MemberChangeKind::Left => ConversationEvent::MemberLeft(change),
+        };
         let key = ConversationEventKey::from(&event);
         conversation.events.insert(key, event);
     }
