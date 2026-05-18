@@ -100,11 +100,12 @@ impl SystemLines {
             return SystemLines { wrapped_lines: vec![single_line] };
         }
 
-        // Oversized: put the timestamp suffix on its own line and wrap only the body half.
-        // The suffix is fixed-form and assumed to fit on a single line.
+        // Oversized: put the timestamp on its own line (without the pipe, which only made sense
+        // as an inline separator) and wrap only the body half. The bare timestamp+rel is assumed
+        // to fit on a single line.
         let mut wrapped_lines: Vec<String> =
             text_wrap::wrap_text(&body, font, SENDER_FONT_SIZE, SENDER_FONT_SPACING, max_width);
-        wrapped_lines.push(suffix);
+        wrapped_lines.push(format!("{absolute} ({relative})"));
         SystemLines { wrapped_lines }
     }
 
