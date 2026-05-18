@@ -84,7 +84,7 @@ impl MessageLines {
 }
 
 struct SystemLines {
-    wrapped_lines: Vec<String>,
+    lines: Vec<String>,
 }
 
 impl SystemLines {
@@ -97,7 +97,7 @@ impl SystemLines {
 
         let single_measure: Vector2 = font.measure_text(&single_line, SENDER_FONT_SIZE, SENDER_FONT_SPACING);
         if single_measure.x <= max_width {
-            return SystemLines { wrapped_lines: vec![single_line] };
+            return SystemLines { lines: vec![single_line] };
         }
 
         // Oversized: put the timestamp on its own line (without the pipe, which only made sense
@@ -106,7 +106,7 @@ impl SystemLines {
         let mut wrapped_lines: Vec<String> =
             text_wrap::wrap_text(&body, font, SENDER_FONT_SIZE, SENDER_FONT_SPACING, max_width);
         wrapped_lines.push(suffix[2..].to_string());
-        SystemLines { wrapped_lines }
+        SystemLines { lines: wrapped_lines }
     }
 
     fn member_joined(change: &ConversationMemberChange, font: &WeakFont, max_width: f32) -> Self {
@@ -118,8 +118,8 @@ impl SystemLines {
     }
 
     fn height(&self) -> f32 {
-        SENDER_FONT_SIZE * self.wrapped_lines.len().max(1) as f32
-            + MESSAGE_LINE_GAP * self.wrapped_lines.len().saturating_sub(1) as f32
+        SENDER_FONT_SIZE * self.lines.len().max(1) as f32
+            + MESSAGE_LINE_GAP * self.lines.len().saturating_sub(1) as f32
     }
 }
 
@@ -265,7 +265,7 @@ fn draw_system_row(
     font: &WeakFont,
 ) {
     let mut line_y: f32 = top;
-    for line in &row.wrapped_lines {
+    for line in &row.lines {
         let measure: Vector2 = font.measure_text(line, SENDER_FONT_SIZE, SENDER_FONT_SPACING);
         let center_x: f32 = viewport.x + viewport.width / 2. - measure.x / 2.;
         rl_draw.draw_text_ex(
