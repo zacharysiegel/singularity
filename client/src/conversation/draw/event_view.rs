@@ -50,10 +50,10 @@ impl RenderableEvent {
                 RenderableEvent::Message(WrappedMessage::new(message.clone(), font, max_width))
             }
             ConversationEvent::MemberJoined(change) => {
-                RenderableEvent::System(SystemRow::new("joined", change))
+                RenderableEvent::System(SystemRow::new(format_member_change_text("joined", change)))
             }
             ConversationEvent::MemberLeft(change) => {
-                RenderableEvent::System(SystemRow::new("left", change))
+                RenderableEvent::System(SystemRow::new(format_member_change_text("left", change)))
             }
         }
     }
@@ -86,18 +86,20 @@ impl WrappedMessage {
 }
 
 impl SystemRow {
-    fn new(verb: &str, change: &ConversationMemberChange) -> Self {
-        let username: String = STATE
-            .account
-            .request_username(change.account_id)
-            .unwrap_or_else(|| change.account_id.to_string());
-        let local_time: DateTime<Local> = change.timestamp.with_timezone(&Local);
-        let absolute: String = local_time.format("%b %-d %H:%M:%S").to_string();
-        let relative: String = format_relative_time(change.timestamp);
-        SystemRow {
-            text: format!("{username} {verb} | {absolute} ({relative})"),
-        }
+    fn new(text: String) -> Self {
+        SystemRow { text }
     }
+}
+
+fn format_member_change_text(verb: &str, change: &ConversationMemberChange) -> String {
+    let username: String = STATE
+        .account
+        .request_username(change.account_id)
+        .unwrap_or_else(|| change.account_id.to_string());
+    let local_time: DateTime<Local> = change.timestamp.with_timezone(&Local);
+    let absolute: String = local_time.format("%b %-d %H:%M:%S").to_string();
+    let relative: String = format_relative_time(change.timestamp);
+    format!("{username} {verb} | {absolute} ({relative})")
 }
 
 pub fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle, conversation_id: Uuid) {
