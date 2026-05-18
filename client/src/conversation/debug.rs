@@ -90,13 +90,18 @@ fn seed_strategy_squad_messages(conversation: &mut Conversation, conversation_id
 
     let lines: &[(Uuid, &str, i64)] = &[
         (alpha, "anyone seeing the U-235 spike on the eastern hex cluster?", 3600 * 6),
+        (alpha, "third night in a row.", 3600 * 6 - 5),
+        (alpha, "i'm starting to think it's not random.", 3600 * 6 - 10),
         (beta,  "yeah, third tick in a row. someone's been pre-positioning extractors there.", 3600 * 6 - 30),
         (gamma, "could be a feint. last time we saw that pattern it ended up being a supply screen for a flank push.", 3600 * 6 - 90),
         (me,    "i was about to ask the same. let me pull telemetry.", 3600 * 6 - 110),
+        (me,    "ok pulled. yeah, definite spike on hexes 13/14/15.", 3600 * 6 - 105),
+        (me,    "and look at the timing of the convoy departures - it lines up.", 3600 * 6 - 100),
         (alpha, "we should sink a scout into hex 14 just to be sure. cheap insurance.", 3600 * 5 - 50),
         (beta,  "agreed. i can spare one - give me the tick budget and i'll route it.", 3600 * 5 - 110),
         (me,    "tick budget on hex 14 is 6 right now, but i can free up 2 more by deferring the refinery handoff.", 3600 * 5 - 140),
         (gamma, "do not commit yet - the trade window with the southern coalition is still open and i don't want to telegraph our worry.", 3600 * 4),
+        (gamma, "give me 30 minutes.", 3600 * 4 - 5),
         (alpha, "fair. we wait until the trade closes, then move the scout the next tick.", 3600 * 4 - 60),
         (beta,  "noted. queued for tick +2.", 3600 * 4 - 120),
         (me,    "queue confirmed on my side too. i'll babysit the build order until the swap lands.", 3600 * 4 - 160),
@@ -104,6 +109,7 @@ fn seed_strategy_squad_messages(conversation: &mut Conversation, conversation_id
         (alpha, "i'll model both paths tonight and post numbers in the morning.", 3600 * 3 - 200),
         (me,    "if you want a sanity check on the centrifuge throughput numbers, i ran the math last week and have a spreadsheet i can drop in here.", 3600 * 3 - 240),
         (beta,  "+1", 3600 * 2 - 30),
+        (beta,  "actually pls share the sheet, i want to see assumptions.", 3600 * 2 - 25),
         (alpha, "also: somebody please poke at the lobby UI, the conversation tab tooltip is being weird on hover after a tab dismiss.", 1800),
         (gamma, "i can repro. filing it.", 1700),
         (beta,  "not blocking - strategy first, polish later.", 1500),
@@ -112,6 +118,8 @@ fn seed_strategy_squad_messages(conversation: &mut Conversation, conversation_id
         (gamma, "lol", 540),
         (beta,  "wrapped messages incoming, brace.", 480),
         (me,    "and here's a long one from me too, so we can confirm right-aligned wrapping looks correct when the body has to span multiple lines and the sender header line drifts off to the right edge cleanly.", 420),
+        (me,    "follow-up.", 415),
+        (me,    "and one more, to test that consecutive own-message bundling looks right with the right-edge alignment all the way down.", 410),
     ];
     insert_messages(conversation, conversation_id, lines);
 }
