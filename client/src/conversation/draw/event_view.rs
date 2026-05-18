@@ -96,15 +96,15 @@ impl SystemRow {
     }
 
     fn member_joined(change: &ConversationMemberChange) -> Self {
-        SystemRow::new(format!("{} joined", username_or_id(change.account_id)), change.timestamp)
+        SystemRow::new(format!("{} joined", format_username(change.account_id)), change.timestamp)
     }
 
     fn member_left(change: &ConversationMemberChange) -> Self {
-        SystemRow::new(format!("{} left", username_or_id(change.account_id)), change.timestamp)
+        SystemRow::new(format!("{} left", format_username(change.account_id)), change.timestamp)
     }
 }
 
-fn username_or_id(account_id: Uuid) -> String {
+fn format_username(account_id: Uuid) -> String {
     STATE
         .account
         .request_username(account_id)
@@ -174,7 +174,7 @@ fn format_conversation_header(conversation: &Conversation) -> (String, String) {
 }
 
 fn format_sender_line(message: &ConversationMessage) -> String {
-    let sender_username: String = username_or_id(message.sender_account_id);
+    let sender_username: String = format_username(message.sender_account_id);
     let local_time: DateTime<Local> = message.created.with_timezone(&Local);
     let absolute: String = local_time.format("%b %-d %H:%M:%S").to_string();
     let relative: String = format_relative_time(message.created);
