@@ -44,6 +44,16 @@ impl RenderableEvent {
             RenderableEvent::System(line) => line.height(),
         }
     }
+
+    fn draw(&self, rl_draw: &mut impl RaylibDraw, viewport: Rectangle, top: f32, own_account_id: Option<Uuid>, font: &WeakFont) {
+        match self {
+            RenderableEvent::Message(bundle) => {
+                let is_own: bool = own_account_id == Some(bundle.sender_account_id);
+                bundle.draw(rl_draw, viewport, top, is_own, font);
+            }
+            RenderableEvent::System(lines) => lines.draw(rl_draw, viewport, top, font),
+        }
+    }
 }
 
 struct MessageBundle {
@@ -94,6 +104,45 @@ impl MessageBundle {
             + WRAPPED_LINE_GAP * total_lines.saturating_sub(block_count) as f32
             + INTRA_BUNDLE_GAP * block_count.saturating_sub(1) as f32
     }
+
+    fn draw(&self, rl_draw: &mut impl RaylibDraw, viewport: Rectangle, top: f32, is_own: bool, font: &WeakFont) {
+        let body_left: f32 = viewport.x + CONTENT_PADDING;
+        let body_right: f32 = viewport.x + viewport.width - CONTENT_PADDING;
+
+        let sender_measure: Vector2 = font.measure_text(&self.sender_line, SENDER_FONT_SIZE, SENDER_FONT_SPACING);
+        let sender_x: f32 = if is_own { body_right - sender_measure.x } else { body_left };
+        rl_draw.draw_text_ex(
+            font,
+            &self.sender_line,
+            Vector2 { x: sender_x, y: top },
+            SENDER_FONT_SIZE,
+            SENDER_FONT_SPACING,
+            WINDOW_INTERIOR_BORDER_COLOR,
+        );
+
+        let mut line_y: f32 = top + SENDER_FONT_SIZE + SENDER_TO_MESSAGE_GAP;
+        for (block_index, block) in self.content_blocks.iter().enumerate() {
+            if block_index > 0 {
+                line_y += INTRA_BUNDLE_GAP;
+            }
+            for (line_index, line) in block.iter().enumerate() {
+                if line_index > 0 {
+                    line_y += WRAPPED_LINE_GAP;
+                }
+                let line_measure: Vector2 = font.measure_text(line, MESSAGE_FONT_SIZE, MESSAGE_FONT_SPACING);
+                let line_x: f32 = if is_own { body_right - line_measure.x } else { body_left };
+                rl_draw.draw_text_ex(
+                    font,
+                    line,
+                    Vector2 { x: line_x, y: line_y },
+                    MESSAGE_FONT_SIZE,
+                    MESSAGE_FONT_SPACING,
+                    TEXT_COLOR,
+                );
+                line_y += MESSAGE_FONT_SIZE;
+            }
+        }
+    }
 }
 
 struct SystemLines {
@@ -140,6 +189,26 @@ impl SystemLines {
     fn height(&self) -> f32 {
         SENDER_FONT_SIZE * self.lines.len().max(1) as f32
             + WRAPPED_LINE_GAP * self.lines.len().saturating_sub(1) as f32
+    }
+
+    fn draw(&self, rl_draw: &mut impl RaylibDraw, viewport: Rectangle, top: f32, font: &WeakFont) {
+        let mut line_y: f32 = top;
+        for (line_index, line) in self.lines.iter().enumerate() {
+            if line_index > 0 {
+                line_y += WRAPPED_LINE_GAP;
+            }
+            let measure: Vector2 = font.measure_text(line, SENDER_FONT_SIZE, SENDER_FONT_SPACING);
+            let center_x: f32 = viewport.x + viewport.width / 2. - measure.x / 2.;
+            rl_draw.draw_text_ex(
+                font,
+                line,
+                Vector2 { x: center_x, y: line_y },
+                SENDER_FONT_SIZE,
+                SENDER_FONT_SPACING,
+                WINDOW_INTERIOR_BORDER_COLOR,
+            );
+            line_y += SENDER_FONT_SIZE;
+        }
     }
 }
 
@@ -198,7 +267,7 @@ pub fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectan
             }
 
             if entry_top + event.height() > content_body_rect.y {
-                draw_renderable_event(&mut scissor_draw, content_body_rect, entry_top, event, own_account_id, &font_factory());
+                event.draw(&mut scissor_draw, content_body_rect, entry_top, own_account_id, &font_factory());
             }
             entry_top += event.height() + INTER_BUNDLE_GAP;
         }
@@ -226,20 +295,14 @@ where
     for event in events {
         match event {
             ConversationEvent::Chat(message) => {
-                let extended: bool = match renderable_events.last_mut() {
-                    Some(RenderableEvent::Message(bundle))
-                    if bundle.sender_account_id == message.sender_account_id =>
-                        {
-                            bundle.append(message, font, inner_width);
-                            true
-                        }
-                    _ => false,
+                match renderable_events.last_mut() {
+                    Some(RenderableEvent::Message(bundle)) if bundle.sender_account_id == message.sender_account_id => {
+                        bundle.append(message, font, inner_width);
+                    }
+                    _ => {
+                        renderable_events.push(RenderableEvent::Message(MessageBundle::new(message, font, inner_width)));
+                    }
                 };
-
-                if !extended {
-                    renderable_events
-                        .push(RenderableEvent::Message(MessageBundle::new(message, font, inner_width)));
-                }
             }
             ConversationEvent::MemberJoined(change) => {
                 renderable_events.push(RenderableEvent::System(SystemLines::member_joined(change, font, inner_width)));
@@ -260,93 +323,3 @@ fn format_sender_line(message: &ConversationMessage) -> String {
     format!("{sender_username} | {absolute} ({relative})")
 }
 
-fn draw_renderable_event(
-    rl_draw: &mut impl RaylibDraw,
-    viewport: Rectangle,
-    top: f32,
-    renderable: &RenderableEvent,
-    own_account_id: Option<Uuid>,
-    font: &WeakFont,
-) {
-    match renderable {
-        RenderableEvent::Message(bundle) => {
-            let is_own: bool = own_account_id == Some(bundle.sender_account_id);
-            draw_message_bundle(rl_draw, viewport, top, bundle, is_own, font);
-        }
-        RenderableEvent::System(row) => {
-            draw_system_row(rl_draw, viewport, top, row, font);
-        }
-    }
-}
-
-fn draw_message_bundle(
-    rl_draw: &mut impl RaylibDraw,
-    viewport: Rectangle,
-    top: f32,
-    bundle: &MessageBundle,
-    is_own: bool,
-    font: &WeakFont,
-) {
-    let body_left: f32 = viewport.x + CONTENT_PADDING;
-    let body_right: f32 = viewport.x + viewport.width - CONTENT_PADDING;
-
-    let sender_measure: Vector2 = font.measure_text(&bundle.sender_line, SENDER_FONT_SIZE, SENDER_FONT_SPACING);
-    let sender_x: f32 = if is_own { body_right - sender_measure.x } else { body_left };
-    rl_draw.draw_text_ex(
-        font,
-        &bundle.sender_line,
-        Vector2 { x: sender_x, y: top },
-        SENDER_FONT_SIZE,
-        SENDER_FONT_SPACING,
-        WINDOW_INTERIOR_BORDER_COLOR,
-    );
-
-    let mut line_y: f32 = top + SENDER_FONT_SIZE + SENDER_TO_MESSAGE_GAP;
-    for (block_index, block) in bundle.content_blocks.iter().enumerate() {
-        if block_index > 0 {
-            line_y += INTRA_BUNDLE_GAP;
-        }
-        for (line_index, line) in block.iter().enumerate() {
-            if line_index > 0 {
-                line_y += WRAPPED_LINE_GAP;
-            }
-            let line_measure: Vector2 = font.measure_text(line, MESSAGE_FONT_SIZE, MESSAGE_FONT_SPACING);
-            let line_x: f32 = if is_own { body_right - line_measure.x } else { body_left };
-            rl_draw.draw_text_ex(
-                font,
-                line,
-                Vector2 { x: line_x, y: line_y },
-                MESSAGE_FONT_SIZE,
-                MESSAGE_FONT_SPACING,
-                TEXT_COLOR,
-            );
-            line_y += MESSAGE_FONT_SIZE;
-        }
-    }
-}
-
-fn draw_system_row(
-    rl_draw: &mut impl RaylibDraw,
-    viewport: Rectangle,
-    top: f32,
-    row: &SystemLines,
-    font: &WeakFont,
-) {
-    let mut line_y: f32 = top;
-    for (line_index, line) in row.lines.iter().enumerate() {
-        if line_index > 0 {
-            line_y += WRAPPED_LINE_GAP;
-        }
-        let measure: Vector2 = font.measure_text(line, SENDER_FONT_SIZE, SENDER_FONT_SPACING);
-        let center_x: f32 = viewport.x + viewport.width / 2. - measure.x / 2.;
-        rl_draw.draw_text_ex(
-            font,
-            line,
-            Vector2 { x: center_x, y: line_y },
-            SENDER_FONT_SIZE,
-            SENDER_FONT_SPACING,
-            WINDOW_INTERIOR_BORDER_COLOR,
-        );
-        line_y += SENDER_FONT_SIZE;
-    }
-}
