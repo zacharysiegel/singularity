@@ -1,13 +1,15 @@
-use crate::conversation::panel::{ChatPanel, ChatTab, RailControl, ENTRY_HEIGHT};
+use crate::conversation::panel::{ChatPanel, ChatTab, ConversationViewState, RailControl, ENTRY_HEIGHT};
 use crate::input::{
     CharPressHandler, CharPressResult, ClickButton, ClickHandler, ClickResult, HoverHandler, HoverResult,
     KeyPressHandler, KeyPressResult, ScrollHandler, ScrollResult,
 };
 use crate::state::STATE;
+use crate::ws;
 use raylib::consts::KeyboardKey;
 use raylib::math::{Rectangle, Vector2};
 use raylib::RaylibHandle;
 use shared::map::RenderCoord;
+use shared::schema::ws_message::{ConnectionType, WsRequest};
 use std::sync::RwLockWriteGuard;
 use strum::IntoEnumIterator;
 use uuid::Uuid;
@@ -52,16 +54,34 @@ impl ClickHandler for ChatPanelInput {
         let panel_rect: Rectangle = ChatPanel::panel_rect(rl.get_screen_width() as f32, rl.get_screen_height() as f32);
 
         match button {
-            ClickButton::Left => handle_left_click(panel_rect, press_position, release_position),
+            ClickButton::Left => handle_left_click(rl, panel_rect, press_position, release_position),
             ClickButton::Middle => handle_middle_click(panel_rect, release_position),
             ClickButton::Right => ClickResult::Pass,
         }
     }
 }
 
-fn handle_left_click(panel_rect: Rectangle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
+fn handle_left_click(rl: &mut RaylibHandle, panel_rect: Rectangle, press_position: RenderCoord, release_position: RenderCoord) -> ClickResult {
+    let send_rect: Rectangle = ChatPanel::send_button_rect(panel_rect);
+    if matches!(active_conversation_id(), Some(_))
+        && send_rect.check_collision_point_rec(press_position)
+        && send_rect.check_collision_point_rec(release_position)
+    {
+        send_active_message();
+        return ClickResult::Consume;
+    }
+
+    // Always let the active conversation's message input see Left clicks: it focuses on
+    // inside-rect clicks and unfocuses on outside ones. Doing this before the panel-rect
+    // check means a click that drags out of the panel still unfocuses the input.
+    let input_result: ClickResult = delegate_message_input_click(rl, ClickButton::Left, press_position, release_position);
+
     if !panel_rect.check_collision_point_rec(press_position) {
         return ClickResult::Pass;
+    }
+
+    if let ClickResult::Consume = input_result {
+        return ClickResult::Consume;
     }
 
     if let ClickResult::Consume = handle_rail_control_click(panel_rect, press_position, release_position) {
@@ -214,13 +234,18 @@ impl HoverHandler for ChatPanelInput {
         let hovered_rail_button: Option<RailControl> = find_hovered_rail_button(panel_rect, mouse_position);
         let (hovered_conversation_tab, hovered_conversation_tab_close, hovered_tooltip): (Option<usize>, Option<usize>, bool) =
             find_conversation_tab_hover_state(panel_rect, mouse_position);
+        let send_button_hovered: bool = matches!(active_conversation_id(), Some(_))
+            && ChatPanel::send_button_rect(panel_rect).check_collision_point_rec(mouse_position);
 
         let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
         chat_panel.hovered_control_button = hovered_rail_button;
         chat_panel.hovered_conversation_tab = hovered_conversation_tab;
         chat_panel.hovered_conversation_tab_close = hovered_conversation_tab_close;
         chat_panel.hovered_tooltip = hovered_tooltip;
+        chat_panel.send_button_hovered = send_button_hovered;
         drop(chat_panel);
+
+        with_active_message_input(|input| input.hover(rl, mouse_position));
 
         handle_content_hover(panel_rect, mouse_position);
 
@@ -319,19 +344,24 @@ fn find_conversation_list_hovered_entry(panel_rect: Rectangle, mouse_position: R
 }
 
 impl KeyPressHandler for ChatPanelInput {
-    fn key_press(&mut self, _rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
-        let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
+    fn key_press(&mut self, rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
+        let active_input_focused: bool = is_active_message_input_focused();
 
-        if key == KeyboardKey::KEY_T {
-            chat_panel.toggle();
+        if key == KeyboardKey::KEY_T && !active_input_focused {
+            STATE.conversation.chat_panel.write().unwrap().toggle();
             return KeyPressResult::Consume;
         }
 
-        if !chat_panel.open {
+        if !STATE.conversation.chat_panel.read().unwrap().open {
             return KeyPressResult::Pass;
         }
 
         if key == KeyboardKey::KEY_ESCAPE {
+            if active_input_focused {
+                with_active_message_input(|input| input.focused = false);
+                return KeyPressResult::Consume;
+            }
+            let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
             match &chat_panel.active_tab {
                 ChatTab::ConversationList => {
                     chat_panel.open = false;
@@ -343,12 +373,88 @@ impl KeyPressHandler for ChatPanelInput {
             return KeyPressResult::Consume;
         }
 
+        if active_input_focused && key == KeyboardKey::KEY_ENTER {
+            send_active_message();
+            return KeyPressResult::Consume;
+        }
+
+        if active_input_focused {
+            return delegate_message_input_key_press(rl, key);
+        }
+
         KeyPressResult::Pass
     }
 }
 
 impl CharPressHandler for ChatPanelInput {
-    fn char_press(&mut self, _rl: &mut RaylibHandle, _ch: char) -> CharPressResult {
-        CharPressResult::Pass
+    fn char_press(&mut self, rl: &mut RaylibHandle, ch: char) -> CharPressResult {
+        if !is_active_message_input_focused() {
+            return CharPressResult::Pass;
+        }
+        delegate_message_input_char_press(rl, ch)
     }
+}
+
+fn active_conversation_id() -> Option<Uuid> {
+    match STATE.conversation.chat_panel.read().unwrap().active_tab {
+        ChatTab::Conversation(id) => Some(id),
+        _ => None,
+    }
+}
+
+fn is_active_message_input_focused() -> bool {
+    let chat_panel: std::sync::RwLockReadGuard<ChatPanel> = STATE.conversation.chat_panel.read().unwrap();
+    let ChatTab::Conversation(id) = chat_panel.active_tab else {
+        return false;
+    };
+    chat_panel
+        .conversation_view_states
+        .get(&id)
+        .map(|view_state| view_state.message_input.focused)
+        .unwrap_or(false)
+}
+
+fn with_active_message_input<F, R>(action: F) -> Option<R>
+where
+    F: FnOnce(&mut crate::component::text_input::TextInput) -> R,
+{
+    let id: Uuid = active_conversation_id()?;
+    let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
+    let view_state: &mut ConversationViewState = chat_panel.conversation_view_states.get_mut(&id)?;
+    Some(action(&mut view_state.message_input))
+}
+
+fn delegate_message_input_key_press(rl: &mut RaylibHandle, key: KeyboardKey) -> KeyPressResult {
+    with_active_message_input(|input| input.key_press(rl, key)).unwrap_or(KeyPressResult::Pass)
+}
+
+fn delegate_message_input_char_press(rl: &mut RaylibHandle, ch: char) -> CharPressResult {
+    with_active_message_input(|input| input.char_press(rl, ch)).unwrap_or(CharPressResult::Pass)
+}
+
+fn delegate_message_input_click(
+    rl: &mut RaylibHandle,
+    button: ClickButton,
+    press_position: RenderCoord,
+    release_position: RenderCoord,
+) -> ClickResult {
+    with_active_message_input(|input| input.click(rl, button, press_position, release_position))
+        .unwrap_or(ClickResult::Pass)
+}
+
+fn send_active_message() {
+    let id: Option<Uuid> = active_conversation_id();
+    let Some(id) = id else { return };
+
+    let content: String = with_active_message_input(|input| {
+        let body: String = input.text.content.clone();
+        input.clear();
+        body
+    })
+    .unwrap_or_default();
+    if content.trim().is_empty() {
+        return;
+    }
+
+    ws::lifecycle::send(ConnectionType::Lobby, WsRequest::Chat { conversation_id: id, content });
 }

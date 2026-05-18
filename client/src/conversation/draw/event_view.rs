@@ -224,7 +224,7 @@ fn format_username(account_id: Uuid) -> String {
 
 pub fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle, conversation_id: Uuid) {
     let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
-    let content_body_rect: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
+    let content_body_rect: Rectangle = ChatPanel::event_body_rectangle(panel_rect);
 
     let conversation_entry: Option<Ref<Uuid, Conversation>> = STATE.conversation.conversations.get(&conversation_id);
     let Some(conversation_entry) = conversation_entry else {
@@ -251,6 +251,7 @@ pub fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectan
         + INTER_BUNDLE_GAP * renderable_events.len().saturating_sub(1) as f32;
 
     let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
+    let send_button_hovered: bool = chat_panel.send_button_hovered;
     let view_state: &mut ConversationViewState = chat_panel
         .conversation_view_states
         .get_mut(&conversation_id)
@@ -275,6 +276,38 @@ pub fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectan
             entry_top += event.height() + INTER_BUNDLE_GAP;
         }
     });
+
+    let message_input_rect: Rectangle = ChatPanel::message_input_rect(panel_rect);
+    let send_button_rect: Rectangle = ChatPanel::send_button_rect(panel_rect);
+    view_state.message_input.rectangle = message_input_rect;
+    view_state.message_input.draw(rl_draw);
+
+    draw_send_button(rl_draw, send_button_rect, send_button_hovered);
+}
+
+fn draw_send_button(rl_draw: &mut impl RaylibDraw, rect: Rectangle, hovered: bool) {
+    use crate::component::frame::draw_rail_button_frame;
+    draw_rail_button_frame(rl_draw, rect, hovered);
+    draw_send_arrow(rl_draw, rect, TEXT_COLOR);
+}
+
+/// A right-pointing chevron-style arrow centered in `bounds`. Three line segments meeting
+/// at the right midpoint: top-left to right-mid, right-mid to bottom-left, plus a horizontal
+/// shaft from the left edge into the meeting point.
+fn draw_send_arrow(rl_draw: &mut impl RaylibDraw, bounds: Rectangle, color: raylib::color::Color) {
+    let size: f32 = bounds.width.min(bounds.height) * 0.32;
+    let cx: f32 = bounds.x + bounds.width / 2.;
+    let cy: f32 = bounds.y + bounds.height / 2.;
+    let thickness: f32 = 2.;
+
+    let tip: Vector2 = Vector2 { x: cx + size, y: cy };
+    let top: Vector2 = Vector2 { x: cx, y: cy - size };
+    let bottom: Vector2 = Vector2 { x: cx, y: cy + size };
+    let shaft_left: Vector2 = Vector2 { x: cx - size, y: cy };
+
+    rl_draw.draw_line_ex(top, tip, thickness, color);
+    rl_draw.draw_line_ex(tip, bottom, thickness, color);
+    rl_draw.draw_line_ex(shaft_left, tip, thickness, color);
 }
 
 fn format_conversation_header(conversation: &Conversation) -> (String, String) {
