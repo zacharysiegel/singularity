@@ -105,7 +105,7 @@ impl SystemLines {
         // to fit on a single line.
         let mut wrapped_lines: Vec<String> =
             text_wrap::wrap_text(&body, font, SENDER_FONT_SIZE, SENDER_FONT_SPACING, max_width);
-        wrapped_lines.push(format!("{absolute} ({relative})"));
+        wrapped_lines.push(suffix[2..].to_string());
         SystemLines { wrapped_lines }
     }
 
