@@ -33,17 +33,6 @@ enum RenderableEvent {
     System(SystemLine),
 }
 
-struct MessageLines {
-    message: ConversationMessage,
-    sender_line: String,
-    /// Content is hard-wrapped before being stored here
-    content_lines: Vec<String>,
-}
-
-struct SystemLine {
-    text: String,
-}
-
 impl RenderableEvent {
     fn new(event: &ConversationEvent, font: &WeakFont, max_width: f32) -> Self {
         match event {
@@ -67,6 +56,13 @@ impl RenderableEvent {
     }
 }
 
+struct MessageLines {
+    message: ConversationMessage,
+    sender_line: String,
+    /// Content is hard-wrapped before being stored here
+    content_lines: Vec<String>,
+}
+
 impl MessageLines {
     fn new(message: ConversationMessage, font: &WeakFont, max_width: f32) -> Self {
         let sender_line: String = format_sender_line(&message);
@@ -84,6 +80,10 @@ impl MessageLines {
             + SENDER_TO_MESSAGE_GAP
             + (MESSAGE_FONT_SIZE + MESSAGE_LINE_GAP) * self.content_lines.len().max(1) as f32
     }
+}
+
+struct SystemLine {
+    text: String,
 }
 
 impl SystemLine {
