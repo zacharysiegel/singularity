@@ -105,12 +105,12 @@ impl MessageBundle {
             + INTRA_BUNDLE_GAP * block_count.saturating_sub(1) as f32
     }
 
-    fn draw(&self, rl_draw: &mut impl RaylibDraw, viewport: Rectangle, top: f32, is_own: bool, font: &WeakFont) {
+    fn draw(&self, rl_draw: &mut impl RaylibDraw, viewport: Rectangle, top: f32, right_aligned: bool, font: &WeakFont) {
         let body_left: f32 = viewport.x + CONTENT_PADDING;
         let body_right: f32 = viewport.x + viewport.width - CONTENT_PADDING;
 
         let sender_measure: Vector2 = font.measure_text(&self.sender_line, SENDER_FONT_SIZE, SENDER_FONT_SPACING);
-        let sender_x: f32 = if is_own { body_right - sender_measure.x } else { body_left };
+        let sender_x: f32 = if right_aligned { body_right - sender_measure.x } else { body_left };
         rl_draw.draw_text_ex(
             font,
             &self.sender_line,
@@ -125,12 +125,14 @@ impl MessageBundle {
             if block_index > 0 {
                 line_y += INTRA_BUNDLE_GAP;
             }
+
             for (line_index, line) in block.iter().enumerate() {
                 if line_index > 0 {
                     line_y += WRAPPED_LINE_GAP;
                 }
+
                 let line_measure: Vector2 = font.measure_text(line, MESSAGE_FONT_SIZE, MESSAGE_FONT_SPACING);
-                let line_x: f32 = if is_own { body_right - line_measure.x } else { body_left };
+                let line_x: f32 = if right_aligned { body_right - line_measure.x } else { body_left };
                 rl_draw.draw_text_ex(
                     font,
                     line,
@@ -197,6 +199,7 @@ impl SystemLines {
             if line_index > 0 {
                 line_y += WRAPPED_LINE_GAP;
             }
+
             let measure: Vector2 = font.measure_text(line, SENDER_FONT_SIZE, SENDER_FONT_SPACING);
             let center_x: f32 = viewport.x + viewport.width / 2. - measure.x / 2.;
             rl_draw.draw_text_ex(
