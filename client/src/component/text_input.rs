@@ -33,6 +33,9 @@ pub struct TextInput {
     pub hovered: bool,
     pub horizontal_padding: f32,
     pub on_submit: Option<fn(&str)>,
+    /// Whether to draw the rectangular border around the input. Disable when the input is
+    /// embedded in a parent that already provides its own framing.
+    pub show_border: bool,
 
     /// Cursor position is expressed as character units from the start of the string
     cursor_position: usize,
@@ -172,6 +175,7 @@ impl Default for TextInput {
             hovered: false,
             horizontal_padding: DEFAULT_HORIZONTAL_PADDING,
             on_submit: None,
+            show_border: true,
             cursor_position: 0,
             scroll_offset: 0.,
             last_input_at: Instant::now(),
@@ -206,12 +210,14 @@ impl TextInput {
         }
         rl_draw.draw_rectangle_rec(self.rectangle, background_color);
 
-        let (border_color, border_thickness): (Color, f32) = if self.focused {
-            (WINDOW_BORDER_FOCUSED_COLOR, 1.)
-        } else {
-            (WINDOW_BORDER_COLOR, 1.)
-        };
-        rl_draw.draw_rectangle_lines_ex(self.rectangle, border_thickness, border_color);
+        if self.show_border {
+            let (border_color, border_thickness): (Color, f32) = if self.focused {
+                (WINDOW_BORDER_FOCUSED_COLOR, 1.)
+            } else {
+                (WINDOW_BORDER_COLOR, 1.)
+            };
+            rl_draw.draw_rectangle_lines_ex(self.rectangle, border_thickness, border_color);
+        }
 
         let content_x: f32 = self.rectangle.x + self.horizontal_padding;
         let scissor_x: f32 = content_x - GLYPH_OVERFLOW_MARGIN;

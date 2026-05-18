@@ -282,6 +282,14 @@ pub fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectan
     view_state.message_input.rectangle = message_input_rect;
     view_state.message_input.draw(rl_draw);
 
+    let footer_top_y: f32 = message_input_rect.y;
+    rl_draw.draw_line_ex(
+        Vector2 { x: content_body_rect.x, y: footer_top_y },
+        Vector2 { x: content_body_rect.x + content_body_rect.width, y: footer_top_y },
+        crate::component::frame::BORDER_THICKNESS,
+        WINDOW_INTERIOR_BORDER_COLOR,
+    );
+
     draw_send_button(rl_draw, send_button_rect, send_button_hovered);
 }
 
@@ -295,7 +303,7 @@ fn draw_send_button(rl_draw: &mut impl RaylibDraw, rect: Rectangle, hovered: boo
 /// at the right midpoint: top-left to right-mid, right-mid to bottom-left, plus a horizontal
 /// shaft from the left edge into the meeting point.
 fn draw_send_arrow(rl_draw: &mut impl RaylibDraw, bounds: Rectangle, color: raylib::color::Color) {
-    let size: f32 = bounds.width.min(bounds.height) * 0.32;
+    let size: f32 = bounds.width.min(bounds.height) * 0.22;
     let cx: f32 = bounds.x + bounds.width / 2.;
     let cy: f32 = bounds.y + bounds.height / 2.;
     let thickness: f32 = 2.;

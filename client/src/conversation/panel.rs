@@ -60,9 +60,11 @@ impl ConversationViewState {
     pub fn new() -> Self {
         let mut scroll_region: VerticalScrollRegion = VerticalScrollRegion::new(Rectangle::default(), CONTENT_PADDING);
         scroll_region.request_scroll_to_bottom();
+        let mut message_input: TextInput = TextInput::new_empty(Rectangle::default());
+        message_input.show_border = false;
         ConversationViewState {
             scroll_region,
-            message_input: TextInput::new_empty(Rectangle::default()),
+            message_input,
         }
     }
 }
