@@ -15,6 +15,7 @@ use shared::schema::conversation::ConversationMemberChange;
 use shared::schema::conversation_message::ConversationMessage;
 use std::sync::RwLockWriteGuard;
 use uuid::Uuid;
+use crate::conversation::ConversationViewState;
 
 const MESSAGE_FONT_SIZE: f32 = 13.;
 const MESSAGE_FONT_SPACING: f32 = 1.5;
@@ -30,7 +31,6 @@ const INTRA_BUNDLE_GAP: f32 = 6.;
 /// same-sender messages' wrapped body lines.
 const INTER_BUNDLE_GAP: f32 = 11.;
 const SENDER_TO_MESSAGE_GAP: f32 = 3.;
-const MESSAGE_MAX_WIDTH_RATIO: f32 = 0.88;
 
 enum RenderableEvent {
     Message(MessageBundle),
@@ -55,7 +55,16 @@ struct MessageBundle {
 }
 
 impl MessageBundle {
-    fn new(message: &ConversationMessage, font: &WeakFont, max_width: f32) -> Self {
+    /// Fraction of the available inner width that a message bubble may occupy. Leaves a
+    /// gap on the opposite side so own/other column alignment remains visually distinct.
+    const MAX_WIDTH_RATIO: f32 = 0.88;
+
+    fn max_width(inner_width: f32) -> f32 {
+        inner_width * Self::MAX_WIDTH_RATIO
+    }
+
+    fn new(message: &ConversationMessage, font: &WeakFont, inner_width: f32) -> Self {
+        let max_width: f32 = Self::max_width(inner_width);
         let sender_line: String = format_sender_line(message);
         let content_lines: Vec<String> =
             text_wrap::wrap_text(&message.content, font, MESSAGE_FONT_SIZE, MESSAGE_FONT_SPACING, max_width);
@@ -66,7 +75,8 @@ impl MessageBundle {
         }
     }
 
-    fn append(&mut self, message: &ConversationMessage, font: &WeakFont, max_width: f32) {
+    fn append(&mut self, message: &ConversationMessage, font: &WeakFont, inner_width: f32) {
+        let max_width: f32 = Self::max_width(inner_width);
         let content_lines: Vec<String> =
             text_wrap::wrap_text(&message.content, font, MESSAGE_FONT_SIZE, MESSAGE_FONT_SPACING, max_width);
         self.content_blocks.push(content_lines);
@@ -91,7 +101,15 @@ struct SystemLines {
 }
 
 impl SystemLines {
-    fn new(body: String, timestamp: DateTime<Utc>, font: &WeakFont, max_width: f32) -> Self {
+    /// System rows are centered (not column-aligned), so they may use the full inner width.
+    const MAX_WIDTH_RATIO: f32 = 1.0;
+
+    fn max_width(inner_width: f32) -> f32 {
+        inner_width * Self::MAX_WIDTH_RATIO
+    }
+
+    fn new(body: String, timestamp: DateTime<Utc>, font: &WeakFont, inner_width: f32) -> Self {
+        let max_width: f32 = Self::max_width(inner_width);
         let local_time: DateTime<Local> = timestamp.with_timezone(&Local);
         let absolute: String = local_time.format("%b %-d %H:%M:%S").to_string();
         let relative: String = format_relative_time(timestamp);
@@ -112,12 +130,12 @@ impl SystemLines {
         SystemLines { lines: wrapped_lines }
     }
 
-    fn member_joined(change: &ConversationMemberChange, font: &WeakFont, max_width: f32) -> Self {
-        SystemLines::new(format!("{} joined", format_username(change.account_id)), change.timestamp, font, max_width)
+    fn member_joined(change: &ConversationMemberChange, font: &WeakFont, inner_width: f32) -> Self {
+        SystemLines::new(format!("{} joined", format_username(change.account_id)), change.timestamp, font, inner_width)
     }
 
-    fn member_left(change: &ConversationMemberChange, font: &WeakFont, max_width: f32) -> Self {
-        SystemLines::new(format!("{} left", format_username(change.account_id)), change.timestamp, font, max_width)
+    fn member_left(change: &ConversationMemberChange, font: &WeakFont, inner_width: f32) -> Self {
+        SystemLines::new(format!("{} left", format_username(change.account_id)), change.timestamp, font, inner_width)
     }
 
     fn height(&self) -> f32 {
@@ -146,11 +164,9 @@ pub fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectan
     let inner_width: f32 = content_body_rect.width - CONTENT_PADDING * 2.;
 
     let (header_title, header_subtitle): (String, String) = format_conversation_header(&conversation_entry);
-    let max_message_width: f32 = inner_width * MESSAGE_MAX_WIDTH_RATIO;
     let renderable_events: Vec<RenderableEvent> = build_renderable_events(
         conversation_entry.events.values(),
         &font_factory(),
-        max_message_width,
         inner_width,
     );
     drop(conversation_entry);
@@ -164,7 +180,7 @@ pub fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectan
         + INTER_BUNDLE_GAP * renderable_events.len().saturating_sub(1) as f32;
 
     let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
-    let view_state = chat_panel
+    let view_state: &mut ConversationViewState = chat_panel
         .conversation_view_states
         .get_mut(&conversation_id)
         .expect("conversation view state should exist for active tab");
@@ -177,15 +193,15 @@ pub fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectan
     let own_account_id: Option<Uuid> = *STATE.account.own_account_id.read().unwrap();
     view_state.scroll_region.draw(rl_draw, |mut scissor_draw, y_offset| {
         let mut entry_top: f32 = content_body_rect.y + y_offset;
-        for renderable in &renderable_events {
+        for event in &renderable_events {
             if entry_top > content_body_rect.y + content_body_rect.height {
                 break;
             }
 
-            if entry_top + renderable.height() > content_body_rect.y {
-                draw_renderable_event(&mut scissor_draw, content_body_rect, entry_top, renderable, own_account_id, &font_factory());
+            if entry_top + event.height() > content_body_rect.y {
+                draw_renderable_event(&mut scissor_draw, content_body_rect, entry_top, event, own_account_id, &font_factory());
             }
-            entry_top += renderable.height() + INTER_BUNDLE_GAP;
+            entry_top += event.height() + INTER_BUNDLE_GAP;
         }
     });
 }
@@ -199,36 +215,38 @@ fn format_conversation_header(conversation: &Conversation) -> (String, String) {
 
 /// Coalesces consecutive same-sender chat events into bundles. Member-change events break
 /// any open bundle.
-fn build_renderable_events<'a>(
-    events: impl Iterator<Item = &'a ConversationEvent>,
+fn build_renderable_events<'a, EventIterator>(
+    events: EventIterator,
     font: &WeakFont,
-    message_max_width: f32,
-    system_max_width: f32,
-) -> Vec<RenderableEvent> {
+    inner_width: f32,
+) -> Vec<RenderableEvent>
+where
+    EventIterator: Iterator<Item = &'a ConversationEvent>,
+{
     let mut renderable_events: Vec<RenderableEvent> = Vec::new();
     for event in events {
         match event {
             ConversationEvent::Chat(message) => {
                 let extended: bool = match renderable_events.last_mut() {
                     Some(RenderableEvent::Message(bundle))
-                        if bundle.sender_account_id == message.sender_account_id =>
-                    {
-                        bundle.append(message, font, message_max_width);
-                        true
-                    }
+                    if bundle.sender_account_id == message.sender_account_id =>
+                        {
+                            bundle.append(message, font, inner_width);
+                            true
+                        }
                     _ => false,
                 };
 
                 if !extended {
                     renderable_events
-                        .push(RenderableEvent::Message(MessageBundle::new(message, font, message_max_width)));
+                        .push(RenderableEvent::Message(MessageBundle::new(message, font, inner_width)));
                 }
             }
             ConversationEvent::MemberJoined(change) => {
-                renderable_events.push(RenderableEvent::System(SystemLines::member_joined(change, font, system_max_width)));
+                renderable_events.push(RenderableEvent::System(SystemLines::member_joined(change, font, inner_width)));
             }
             ConversationEvent::MemberLeft(change) => {
-                renderable_events.push(RenderableEvent::System(SystemLines::member_left(change, font, system_max_width)));
+                renderable_events.push(RenderableEvent::System(SystemLines::member_left(change, font, inner_width)));
             }
         }
     }
