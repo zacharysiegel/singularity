@@ -28,7 +28,7 @@ const WRAPPED_LINE_GAP: f32 = 4.;
 const INTRA_BUNDLE_GAP: f32 = 6.;
 /// Vertical gap between message bundles. One bundle = sender header line + all consecutive
 /// same-sender messages' wrapped body lines.
-const INTER_BUNDLE_GAP: f32 = 10.;
+const INTER_BUNDLE_GAP: f32 = 11.;
 const SENDER_TO_MESSAGE_GAP: f32 = 3.;
 const MESSAGE_MAX_WIDTH_RATIO: f32 = 0.88;
 
