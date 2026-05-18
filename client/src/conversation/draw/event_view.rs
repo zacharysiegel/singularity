@@ -34,16 +34,17 @@ enum RenderableEvent {
 }
 
 impl RenderableEvent {
-    fn new(event: &ConversationEvent, font: &WeakFont, max_width: f32) -> Self {
+    fn new(event: &ConversationEvent, font: &WeakFont, inner_width: f32) -> Self {
         match event {
             ConversationEvent::Chat(message) => {
+                let max_width: f32 = inner_width * MESSAGE_MAX_WIDTH_RATIO;
                 RenderableEvent::Message(MessageLines::new(message.clone(), font, max_width))
             }
             ConversationEvent::MemberJoined(change) => {
-                RenderableEvent::System(SystemLine::member_joined(change))
+                RenderableEvent::System(SystemLine::member_joined(change, font, inner_width))
             }
             ConversationEvent::MemberLeft(change) => {
-                RenderableEvent::System(SystemLine::member_left(change))
+                RenderableEvent::System(SystemLine::member_left(change, font, inner_width))
             }
         }
     }
@@ -51,7 +52,7 @@ impl RenderableEvent {
     fn height(&self) -> f32 {
         match self {
             RenderableEvent::Message(wrapped) => wrapped.height(),
-            RenderableEvent::System(_) => SENDER_FONT_SIZE,
+            RenderableEvent::System(line) => line.height(),
         }
     }
 }
@@ -83,25 +84,31 @@ impl MessageLines {
 }
 
 struct SystemLine {
-    text: String,
+    wrapped_lines: Vec<String>,
 }
 
 impl SystemLine {
-    fn new(body: String, timestamp: DateTime<Utc>) -> Self {
+    fn new(body: String, timestamp: DateTime<Utc>, font: &WeakFont, max_width: f32) -> Self {
         let local_time: DateTime<Local> = timestamp.with_timezone(&Local);
         let absolute: String = local_time.format("%b %-d %H:%M:%S").to_string();
         let relative: String = format_relative_time(timestamp);
-        SystemLine {
-            text: format!("{body} | {absolute} ({relative})"),
-        }
+        let text: String = format!("{body} | {absolute} ({relative})");
+        let wrapped_lines: Vec<String> =
+            text_wrap::wrap_text(&text, font, SENDER_FONT_SIZE, SENDER_FONT_SPACING, max_width);
+        SystemLine { wrapped_lines }
     }
 
-    fn member_joined(change: &ConversationMemberChange) -> Self {
-        SystemLine::new(format!("{} joined", format_username(change.account_id)), change.timestamp)
+    fn member_joined(change: &ConversationMemberChange, font: &WeakFont, max_width: f32) -> Self {
+        SystemLine::new(format!("{} joined", format_username(change.account_id)), change.timestamp, font, max_width)
     }
 
-    fn member_left(change: &ConversationMemberChange) -> Self {
-        SystemLine::new(format!("{} left", format_username(change.account_id)), change.timestamp)
+    fn member_left(change: &ConversationMemberChange, font: &WeakFont, max_width: f32) -> Self {
+        SystemLine::new(format!("{} left", format_username(change.account_id)), change.timestamp, font, max_width)
+    }
+
+    fn height(&self) -> f32 {
+        SENDER_FONT_SIZE * self.wrapped_lines.len().max(1) as f32
+            + MESSAGE_LINE_GAP * self.wrapped_lines.len().saturating_sub(1) as f32
     }
 }
 
@@ -122,13 +129,13 @@ pub fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectan
     };
 
     let font_factory: fn() -> WeakFont = || unsafe { WeakFont::from_raw(raylib::ffi::GetFontDefault()) };
-    let max_message_width: f32 = (content_body_rect.width - CONTENT_PADDING * 2.) * MESSAGE_MAX_WIDTH_RATIO;
+    let inner_width: f32 = content_body_rect.width - CONTENT_PADDING * 2.;
 
     let (header_title, header_subtitle): (String, String) = format_conversation_header(&conversation_entry);
     let renderable_events: Vec<RenderableEvent> = conversation_entry
         .events
         .values()
-        .map(|event| RenderableEvent::new(event, &font_factory(), max_message_width))
+        .map(|event| RenderableEvent::new(event, &font_factory(), inner_width))
         .collect();
     drop(conversation_entry);
 
@@ -246,14 +253,18 @@ fn draw_system_row(
     row: &SystemLine,
     font: &WeakFont,
 ) {
-    let measure: Vector2 = font.measure_text(&row.text, SENDER_FONT_SIZE, SENDER_FONT_SPACING);
-    let center_x: f32 = viewport.x + viewport.width / 2. - measure.x / 2.;
-    rl_draw.draw_text_ex(
-        font,
-        &row.text,
-        Vector2 { x: center_x, y: top },
-        SENDER_FONT_SIZE,
-        SENDER_FONT_SPACING,
-        WINDOW_INTERIOR_BORDER_COLOR,
-    );
+    let mut line_y: f32 = top;
+    for line in &row.wrapped_lines {
+        let measure: Vector2 = font.measure_text(line, SENDER_FONT_SIZE, SENDER_FONT_SPACING);
+        let center_x: f32 = viewport.x + viewport.width / 2. - measure.x / 2.;
+        rl_draw.draw_text_ex(
+            font,
+            line,
+            Vector2 { x: center_x, y: line_y },
+            SENDER_FONT_SIZE,
+            SENDER_FONT_SPACING,
+            WINDOW_INTERIOR_BORDER_COLOR,
+        );
+        line_y += SENDER_FONT_SIZE + MESSAGE_LINE_GAP;
+    }
 }
