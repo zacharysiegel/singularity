@@ -101,8 +101,7 @@ struct SystemLines {
 }
 
 impl SystemLines {
-    /// System rows are centered (not column-aligned), so they may use the full inner width.
-    const MAX_WIDTH_RATIO: f32 = 1.0;
+    const MAX_WIDTH_RATIO: f32 = 0.7;
 
     fn max_width(inner_width: f32) -> f32 {
         inner_width * Self::MAX_WIDTH_RATIO
