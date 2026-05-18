@@ -192,6 +192,13 @@ impl TextInput {
         Self::new(rectangle, "")
     }
 
+    pub fn clear(&mut self) {
+        self.text.content.clear();
+        self.cursor_position = 0;
+        self.scroll_offset = 0.;
+        self.reset_cursor_blink();
+    }
+
     pub fn draw(&self, rl_draw: &mut RaylibDrawHandle) {
         let mut background_color: Color = WINDOW_BACKGROUND_COLOR;
         if !self.focused && self.hovered {

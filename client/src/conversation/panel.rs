@@ -1,3 +1,4 @@
+use crate::component::text_input::TextInput;
 use crate::component::vertical_scroll_region::VerticalScrollRegion;
 use crate::window::{BORDER_GAP, BUTTON_WIDTH};
 use raylib::math::Rectangle;
@@ -12,6 +13,7 @@ pub const CONTENT_PADDING: f32 = 10.;
 pub const RAIL_SEPARATOR_GAP: f32 = 6.;
 pub const TAB_MINI_CLOSE_SIZE: f32 = 12.;
 pub const TAB_MINI_CLOSE_MARGIN: f32 = 2.;
+pub const INPUT_FOOTER_HEIGHT: f32 = BUTTON_WIDTH;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ChatTab {
@@ -30,6 +32,7 @@ pub struct ChatPanel {
     pub hovered_conversation_tab: Option<usize>,
     pub hovered_conversation_tab_close: Option<usize>,
     pub hovered_tooltip: bool,
+    pub send_button_hovered: bool,
     pub conversation_list_state: ConversationListState,
     pub new_conversation_state: NewConversationState,
     /// Per-conversation view state for each open conversation tab. Entry is created when a
@@ -50,7 +53,7 @@ pub struct NewConversationState;
 #[derive(Debug)]
 pub struct ConversationViewState {
     pub scroll_region: VerticalScrollRegion,
-    // Future: message_input: TextInput, unread_anchor: Option<DateTime<Utc>>
+    pub message_input: TextInput,
 }
 
 impl ConversationViewState {
@@ -59,6 +62,7 @@ impl ConversationViewState {
         scroll_region.request_scroll_to_bottom();
         ConversationViewState {
             scroll_region,
+            message_input: TextInput::new_empty(Rectangle::default()),
         }
     }
 }
@@ -84,6 +88,7 @@ impl ChatPanel {
             hovered_conversation_tab: None,
             hovered_conversation_tab_close: None,
             hovered_tooltip: false,
+            send_button_hovered: false,
             conversation_list_state: ConversationListState {
                 hovered_entry: None,
                 scroll_region: VerticalScrollRegion::new(Rectangle::default(), 0.),
@@ -204,6 +209,49 @@ impl ChatPanel {
             y: content_rect.y + HEADER_HEIGHT,
             height: content_rect.height - HEADER_HEIGHT,
             ..content_rect
+        }
+    }
+
+    /// The content body rectangle for the conversation event view, leaving room for the
+    /// message input footer at the bottom.
+    pub fn event_body_rectangle(panel_rect: Rectangle) -> Rectangle {
+        let body_rect: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
+        Rectangle {
+            height: body_rect.height - INPUT_FOOTER_HEIGHT,
+            ..body_rect
+        }
+    }
+
+    /// Footer area at the bottom of the panel content, holding the message input on the
+    /// left and the send button on the right (with no margin between them, mirroring the
+    /// rail/window button design).
+    pub fn input_footer_rectangle(panel_rect: Rectangle) -> Rectangle {
+        let body_rect: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
+        Rectangle {
+            x: body_rect.x,
+            y: body_rect.y + body_rect.height - INPUT_FOOTER_HEIGHT,
+            width: body_rect.width,
+            height: INPUT_FOOTER_HEIGHT,
+        }
+    }
+
+    pub fn message_input_rect(panel_rect: Rectangle) -> Rectangle {
+        let footer_rect: Rectangle = ChatPanel::input_footer_rectangle(panel_rect);
+        Rectangle {
+            x: footer_rect.x,
+            y: footer_rect.y,
+            width: footer_rect.width - BUTTON_WIDTH,
+            height: footer_rect.height,
+        }
+    }
+
+    pub fn send_button_rect(panel_rect: Rectangle) -> Rectangle {
+        let footer_rect: Rectangle = ChatPanel::input_footer_rectangle(panel_rect);
+        Rectangle {
+            x: footer_rect.x + footer_rect.width - BUTTON_WIDTH,
+            y: footer_rect.y,
+            width: BUTTON_WIDTH,
+            height: BUTTON_WIDTH,
         }
     }
 }
