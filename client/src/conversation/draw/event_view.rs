@@ -22,64 +22,67 @@ const SENDER_FONT_SIZE: f32 = 10.;
 const SENDER_FONT_SPACING: f32 = 1.;
 /// Vertical gap between consecutive wrapped lines within a single message body.
 const MESSAGE_LINE_GAP: f32 = 4.;
-/// Vertical gap between message bundles. One bundle = sender header line + all of that
-/// message's wrapped body lines.
-const MESSAGE_BUNDLE_GAP: f32 = 10.;
+/// Vertical gap between consecutive same-sender messages within one bundle. Larger than
+/// the intra-message line gap (so message boundaries are visible) but smaller than the
+/// inter-bundle gap (so the visual grouping reads as "one speaker's turn").
+const INTRA_BUNDLE_GAP: f32 = 6.;
+/// Vertical gap between message bundles. One bundle = sender header line + all consecutive
+/// same-sender messages' wrapped body lines.
+const INTER_BUNDLE_GAP: f32 = 10.;
 const SENDER_TO_MESSAGE_GAP: f32 = 2.;
 const MESSAGE_MAX_WIDTH_RATIO: f32 = 0.88;
 
 enum RenderableEvent {
-    Message(MessageLines),
+    Message(MessageBundle),
     System(SystemLines),
 }
 
 impl RenderableEvent {
-    fn new(event: &ConversationEvent, font: &WeakFont, inner_width: f32) -> Self {
-        match event {
-            ConversationEvent::Chat(message) => {
-                let max_width: f32 = inner_width * MESSAGE_MAX_WIDTH_RATIO;
-                RenderableEvent::Message(MessageLines::new(message.clone(), font, max_width))
-            }
-            ConversationEvent::MemberJoined(change) => {
-                RenderableEvent::System(SystemLines::member_joined(change, font, inner_width))
-            }
-            ConversationEvent::MemberLeft(change) => {
-                RenderableEvent::System(SystemLines::member_left(change, font, inner_width))
-            }
-        }
-    }
-
     fn height(&self) -> f32 {
         match self {
-            RenderableEvent::Message(wrapped) => wrapped.height(),
+            RenderableEvent::Message(bundle) => bundle.height(),
             RenderableEvent::System(line) => line.height(),
         }
     }
 }
 
-struct MessageLines {
-    message: ConversationMessage,
+struct MessageBundle {
+    sender_account_id: Uuid,
     sender_line: String,
-    /// Content is hard-wrapped before being stored here
-    content_lines: Vec<String>,
+    /// One inner Vec per message in the bundle; each inner Vec is that message's
+    /// hard-wrapped body lines.
+    content_blocks: Vec<Vec<String>>,
 }
 
-impl MessageLines {
-    fn new(message: ConversationMessage, font: &WeakFont, max_width: f32) -> Self {
-        let sender_line: String = format_sender_line(&message);
-        let wrapped_lines: Vec<String> =
+impl MessageBundle {
+    fn new(message: &ConversationMessage, font: &WeakFont, max_width: f32) -> Self {
+        let sender_line: String = format_sender_line(message);
+        let content_lines: Vec<String> =
             text_wrap::wrap_text(&message.content, font, MESSAGE_FONT_SIZE, MESSAGE_FONT_SPACING, max_width);
-        MessageLines {
-            message,
+        MessageBundle {
+            sender_account_id: message.sender_account_id,
             sender_line,
-            content_lines: wrapped_lines,
+            content_blocks: vec![content_lines],
         }
     }
 
+    fn append(&mut self, message: &ConversationMessage, font: &WeakFont, max_width: f32) {
+        let content_lines: Vec<String> =
+            text_wrap::wrap_text(&message.content, font, MESSAGE_FONT_SIZE, MESSAGE_FONT_SPACING, max_width);
+        self.content_blocks.push(content_lines);
+    }
+
     fn height(&self) -> f32 {
+        let total_lines: usize = self.content_blocks.iter().map(|block| block.len()).sum::<usize>().max(1);
+        let block_count: usize = self.content_blocks.len();
+        // Inter-line gaps live BETWEEN lines of the same block; inter-block gaps live BETWEEN
+        // blocks. A bundle with K blocks of total N lines has (N-K) inter-line gaps and (K-1)
+        // inter-block gaps.
         SENDER_FONT_SIZE
             + SENDER_TO_MESSAGE_GAP
-            + (MESSAGE_FONT_SIZE + MESSAGE_LINE_GAP) * self.content_lines.len().max(1) as f32
+            + MESSAGE_FONT_SIZE * total_lines as f32
+            + MESSAGE_LINE_GAP * total_lines.saturating_sub(block_count) as f32
+            + INTRA_BUNDLE_GAP * block_count.saturating_sub(1) as f32
     }
 }
 
@@ -143,11 +146,13 @@ pub fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectan
     let inner_width: f32 = content_body_rect.width - CONTENT_PADDING * 2.;
 
     let (header_title, header_subtitle): (String, String) = format_conversation_header(&conversation_entry);
-    let renderable_events: Vec<RenderableEvent> = conversation_entry
-        .events
-        .values()
-        .map(|event| RenderableEvent::new(event, &font_factory(), inner_width))
-        .collect();
+    let max_message_width: f32 = inner_width * MESSAGE_MAX_WIDTH_RATIO;
+    let renderable_events: Vec<RenderableEvent> = build_renderable_events(
+        conversation_entry.events.values(),
+        &font_factory(),
+        max_message_width,
+        inner_width,
+    );
     drop(conversation_entry);
 
     draw_panel_header(rl_draw, content_rect, &header_title, Some(&header_subtitle));
@@ -156,7 +161,7 @@ pub fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectan
         .iter()
         .map(RenderableEvent::height)
         .sum::<f32>()
-        + MESSAGE_BUNDLE_GAP * renderable_events.len().saturating_sub(1) as f32;
+        + INTER_BUNDLE_GAP * renderable_events.len().saturating_sub(1) as f32;
 
     let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
     let view_state = chat_panel
@@ -180,7 +185,7 @@ pub fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectan
             if entry_top + renderable.height() > content_body_rect.y {
                 draw_renderable_event(&mut scissor_draw, content_body_rect, entry_top, renderable, own_account_id, &font_factory());
             }
-            entry_top += renderable.height() + MESSAGE_BUNDLE_GAP;
+            entry_top += renderable.height() + INTER_BUNDLE_GAP;
         }
     });
 }
@@ -190,6 +195,44 @@ fn format_conversation_header(conversation: &Conversation) -> (String, String) {
     let member_count: usize = conversation.members.len();
     let subtitle: String = format!("{member_count} member{}", if member_count == 1 { "" } else { "s" });
     (name, subtitle)
+}
+
+/// Coalesces consecutive same-sender chat events into bundles. Member-change events break
+/// any open bundle.
+fn build_renderable_events<'a>(
+    events: impl Iterator<Item = &'a ConversationEvent>,
+    font: &WeakFont,
+    message_max_width: f32,
+    system_max_width: f32,
+) -> Vec<RenderableEvent> {
+    let mut renderable_events: Vec<RenderableEvent> = Vec::new();
+    for event in events {
+        match event {
+            ConversationEvent::Chat(message) => {
+                let extended: bool = match renderable_events.last_mut() {
+                    Some(RenderableEvent::Message(bundle))
+                        if bundle.sender_account_id == message.sender_account_id =>
+                    {
+                        bundle.append(message, font, message_max_width);
+                        true
+                    }
+                    _ => false,
+                };
+
+                if !extended {
+                    renderable_events
+                        .push(RenderableEvent::Message(MessageBundle::new(message, font, message_max_width)));
+                }
+            }
+            ConversationEvent::MemberJoined(change) => {
+                renderable_events.push(RenderableEvent::System(SystemLines::member_joined(change, font, system_max_width)));
+            }
+            ConversationEvent::MemberLeft(change) => {
+                renderable_events.push(RenderableEvent::System(SystemLines::member_left(change, font, system_max_width)));
+            }
+        }
+    }
+    renderable_events
 }
 
 fn format_sender_line(message: &ConversationMessage) -> String {
@@ -209,9 +252,9 @@ fn draw_renderable_event(
     font: &WeakFont,
 ) {
     match renderable {
-        RenderableEvent::Message(wrapped) => {
-            let is_own: bool = own_account_id == Some(wrapped.message.sender_account_id);
-            draw_message(rl_draw, viewport, top, wrapped, is_own, font);
+        RenderableEvent::Message(bundle) => {
+            let is_own: bool = own_account_id == Some(bundle.sender_account_id);
+            draw_message_bundle(rl_draw, viewport, top, bundle, is_own, font);
         }
         RenderableEvent::System(row) => {
             draw_system_row(rl_draw, viewport, top, row, font);
@@ -219,22 +262,22 @@ fn draw_renderable_event(
     }
 }
 
-fn draw_message(
+fn draw_message_bundle(
     rl_draw: &mut impl RaylibDraw,
     viewport: Rectangle,
     top: f32,
-    wrapped: &MessageLines,
+    bundle: &MessageBundle,
     is_own: bool,
     font: &WeakFont,
 ) {
     let body_left: f32 = viewport.x + CONTENT_PADDING;
     let body_right: f32 = viewport.x + viewport.width - CONTENT_PADDING;
 
-    let sender_measure: Vector2 = font.measure_text(&wrapped.sender_line, SENDER_FONT_SIZE, SENDER_FONT_SPACING);
+    let sender_measure: Vector2 = font.measure_text(&bundle.sender_line, SENDER_FONT_SIZE, SENDER_FONT_SPACING);
     let sender_x: f32 = if is_own { body_right - sender_measure.x } else { body_left };
     rl_draw.draw_text_ex(
         font,
-        &wrapped.sender_line,
+        &bundle.sender_line,
         Vector2 { x: sender_x, y: top },
         SENDER_FONT_SIZE,
         SENDER_FONT_SPACING,
@@ -242,18 +285,26 @@ fn draw_message(
     );
 
     let mut line_y: f32 = top + SENDER_FONT_SIZE + SENDER_TO_MESSAGE_GAP;
-    for line in &wrapped.content_lines {
-        let line_measure: Vector2 = font.measure_text(line, MESSAGE_FONT_SIZE, MESSAGE_FONT_SPACING);
-        let line_x: f32 = if is_own { body_right - line_measure.x } else { body_left };
-        rl_draw.draw_text_ex(
-            font,
-            line,
-            Vector2 { x: line_x, y: line_y },
-            MESSAGE_FONT_SIZE,
-            MESSAGE_FONT_SPACING,
-            TEXT_COLOR,
-        );
-        line_y += MESSAGE_FONT_SIZE + MESSAGE_LINE_GAP;
+    for (block_index, block) in bundle.content_blocks.iter().enumerate() {
+        if block_index > 0 {
+            line_y += INTRA_BUNDLE_GAP;
+        }
+        for (line_index, line) in block.iter().enumerate() {
+            if line_index > 0 {
+                line_y += MESSAGE_LINE_GAP;
+            }
+            let line_measure: Vector2 = font.measure_text(line, MESSAGE_FONT_SIZE, MESSAGE_FONT_SPACING);
+            let line_x: f32 = if is_own { body_right - line_measure.x } else { body_left };
+            rl_draw.draw_text_ex(
+                font,
+                line,
+                Vector2 { x: line_x, y: line_y },
+                MESSAGE_FONT_SIZE,
+                MESSAGE_FONT_SPACING,
+                TEXT_COLOR,
+            );
+            line_y += MESSAGE_FONT_SIZE;
+        }
     }
 }
 
@@ -265,7 +316,10 @@ fn draw_system_row(
     font: &WeakFont,
 ) {
     let mut line_y: f32 = top;
-    for line in &row.lines {
+    for (line_index, line) in row.lines.iter().enumerate() {
+        if line_index > 0 {
+            line_y += MESSAGE_LINE_GAP;
+        }
         let measure: Vector2 = font.measure_text(line, SENDER_FONT_SIZE, SENDER_FONT_SPACING);
         let center_x: f32 = viewport.x + viewport.width / 2. - measure.x / 2.;
         rl_draw.draw_text_ex(
@@ -276,6 +330,6 @@ fn draw_system_row(
             SENDER_FONT_SPACING,
             WINDOW_INTERIOR_BORDER_COLOR,
         );
-        line_y += SENDER_FONT_SIZE + MESSAGE_LINE_GAP;
+        line_y += SENDER_FONT_SIZE;
     }
 }
