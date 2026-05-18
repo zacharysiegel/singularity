@@ -5,7 +5,7 @@ use crate::conversation::draw::panel::{draw_panel_header, UNNAMED_CONVERSATION_P
 use crate::conversation::panel::{ChatPanel, CONTENT_PADDING};
 use crate::conversation::state::{Conversation, ConversationEvent};
 use crate::state::STATE;
-use chrono::{DateTime, Local};
+use chrono::{DateTime, Local, Utc};
 use dashmap::mapref::one::Ref;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::{Rectangle, Vector2};
@@ -50,10 +50,10 @@ impl RenderableEvent {
                 RenderableEvent::Message(WrappedMessage::new(message.clone(), font, max_width))
             }
             ConversationEvent::MemberJoined(change) => {
-                RenderableEvent::System(SystemRow::new(format_member_change_text("joined", change)))
+                RenderableEvent::System(SystemRow::new(member_change_body("joined", change), change.timestamp))
             }
             ConversationEvent::MemberLeft(change) => {
-                RenderableEvent::System(SystemRow::new(format_member_change_text("left", change)))
+                RenderableEvent::System(SystemRow::new(member_change_body("left", change), change.timestamp))
             }
         }
     }
@@ -86,20 +86,22 @@ impl WrappedMessage {
 }
 
 impl SystemRow {
-    fn new(text: String) -> Self {
-        SystemRow { text }
+    fn new(body: String, timestamp: DateTime<Utc>) -> Self {
+        let local_time: DateTime<Local> = timestamp.with_timezone(&Local);
+        let absolute: String = local_time.format("%b %-d %H:%M:%S").to_string();
+        let relative: String = format_relative_time(timestamp);
+        SystemRow {
+            text: format!("{body} | {absolute} ({relative})"),
+        }
     }
 }
 
-fn format_member_change_text(verb: &str, change: &ConversationMemberChange) -> String {
+fn member_change_body(verb: &str, change: &ConversationMemberChange) -> String {
     let username: String = STATE
         .account
         .request_username(change.account_id)
         .unwrap_or_else(|| change.account_id.to_string());
-    let local_time: DateTime<Local> = change.timestamp.with_timezone(&Local);
-    let absolute: String = local_time.format("%b %-d %H:%M:%S").to_string();
-    let relative: String = format_relative_time(change.timestamp);
-    format!("{username} {verb} | {absolute} ({relative})")
+    format!("{username} {verb}")
 }
 
 pub fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle, conversation_id: Uuid) {
