@@ -29,17 +29,18 @@ const SENDER_TO_MESSAGE_GAP: f32 = 2.;
 const MESSAGE_MAX_WIDTH_RATIO: f32 = 0.88;
 
 enum RenderableEvent {
-    Message(WrappedMessage),
-    System(SystemRow),
+    Message(MessageLines),
+    System(SystemLine),
 }
 
-struct WrappedMessage {
+struct MessageLines {
     message: ConversationMessage,
     sender_line: String,
-    wrapped_lines: Vec<String>,
+    /// Content is hard-wrapped before being stored here
+    content_lines: Vec<String>,
 }
 
-struct SystemRow {
+struct SystemLine {
     text: String,
 }
 
@@ -47,13 +48,13 @@ impl RenderableEvent {
     fn new(event: &ConversationEvent, font: &WeakFont, max_width: f32) -> Self {
         match event {
             ConversationEvent::Chat(message) => {
-                RenderableEvent::Message(WrappedMessage::new(message.clone(), font, max_width))
+                RenderableEvent::Message(MessageLines::new(message.clone(), font, max_width))
             }
             ConversationEvent::MemberJoined(change) => {
-                RenderableEvent::System(SystemRow::member_joined(change))
+                RenderableEvent::System(SystemLine::member_joined(change))
             }
             ConversationEvent::MemberLeft(change) => {
-                RenderableEvent::System(SystemRow::member_left(change))
+                RenderableEvent::System(SystemLine::member_left(change))
             }
         }
     }
@@ -66,41 +67,41 @@ impl RenderableEvent {
     }
 }
 
-impl WrappedMessage {
+impl MessageLines {
     fn new(message: ConversationMessage, font: &WeakFont, max_width: f32) -> Self {
         let sender_line: String = format_sender_line(&message);
         let wrapped_lines: Vec<String> =
             text_wrap::wrap_text(&message.content, font, MESSAGE_FONT_SIZE, MESSAGE_FONT_SPACING, max_width);
-        WrappedMessage {
+        MessageLines {
             message,
             sender_line,
-            wrapped_lines,
+            content_lines: wrapped_lines,
         }
     }
 
     fn height(&self) -> f32 {
         SENDER_FONT_SIZE
             + SENDER_TO_MESSAGE_GAP
-            + (MESSAGE_FONT_SIZE + MESSAGE_LINE_GAP) * self.wrapped_lines.len().max(1) as f32
+            + (MESSAGE_FONT_SIZE + MESSAGE_LINE_GAP) * self.content_lines.len().max(1) as f32
     }
 }
 
-impl SystemRow {
+impl SystemLine {
     fn new(body: String, timestamp: DateTime<Utc>) -> Self {
         let local_time: DateTime<Local> = timestamp.with_timezone(&Local);
         let absolute: String = local_time.format("%b %-d %H:%M:%S").to_string();
         let relative: String = format_relative_time(timestamp);
-        SystemRow {
+        SystemLine {
             text: format!("{body} | {absolute} ({relative})"),
         }
     }
 
     fn member_joined(change: &ConversationMemberChange) -> Self {
-        SystemRow::new(format!("{} joined", format_username(change.account_id)), change.timestamp)
+        SystemLine::new(format!("{} joined", format_username(change.account_id)), change.timestamp)
     }
 
     fn member_left(change: &ConversationMemberChange) -> Self {
-        SystemRow::new(format!("{} left", format_username(change.account_id)), change.timestamp)
+        SystemLine::new(format!("{} left", format_username(change.account_id)), change.timestamp)
     }
 }
 
@@ -204,7 +205,7 @@ fn draw_message(
     rl_draw: &mut impl RaylibDraw,
     viewport: Rectangle,
     top: f32,
-    wrapped: &WrappedMessage,
+    wrapped: &MessageLines,
     is_own: bool,
     font: &WeakFont,
 ) {
@@ -223,7 +224,7 @@ fn draw_message(
     );
 
     let mut line_y: f32 = top + SENDER_FONT_SIZE + SENDER_TO_MESSAGE_GAP;
-    for line in &wrapped.wrapped_lines {
+    for line in &wrapped.content_lines {
         let line_measure: Vector2 = font.measure_text(line, MESSAGE_FONT_SIZE, MESSAGE_FONT_SPACING);
         let line_x: f32 = if is_own { body_right - line_measure.x } else { body_left };
         rl_draw.draw_text_ex(
@@ -242,7 +243,7 @@ fn draw_system_row(
     rl_draw: &mut impl RaylibDraw,
     viewport: Rectangle,
     top: f32,
-    row: &SystemRow,
+    row: &SystemLine,
     font: &WeakFont,
 ) {
     let measure: Vector2 = font.measure_text(&row.text, SENDER_FONT_SIZE, SENDER_FONT_SPACING);
