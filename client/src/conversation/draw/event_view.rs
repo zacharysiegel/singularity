@@ -30,7 +30,7 @@ const MESSAGE_MAX_WIDTH_RATIO: f32 = 0.88;
 
 enum RenderableEvent {
     Message(MessageLines),
-    System(SystemLine),
+    System(SystemLines),
 }
 
 impl RenderableEvent {
@@ -41,10 +41,10 @@ impl RenderableEvent {
                 RenderableEvent::Message(MessageLines::new(message.clone(), font, max_width))
             }
             ConversationEvent::MemberJoined(change) => {
-                RenderableEvent::System(SystemLine::member_joined(change, font, inner_width))
+                RenderableEvent::System(SystemLines::member_joined(change, font, inner_width))
             }
             ConversationEvent::MemberLeft(change) => {
-                RenderableEvent::System(SystemLine::member_left(change, font, inner_width))
+                RenderableEvent::System(SystemLines::member_left(change, font, inner_width))
             }
         }
     }
@@ -83,27 +83,37 @@ impl MessageLines {
     }
 }
 
-struct SystemLine {
+struct SystemLines {
     wrapped_lines: Vec<String>,
 }
 
-impl SystemLine {
+impl SystemLines {
     fn new(body: String, timestamp: DateTime<Utc>, font: &WeakFont, max_width: f32) -> Self {
         let local_time: DateTime<Local> = timestamp.with_timezone(&Local);
         let absolute: String = local_time.format("%b %-d %H:%M:%S").to_string();
         let relative: String = format_relative_time(timestamp);
-        let text: String = format!("{body} | {absolute} ({relative})");
-        let wrapped_lines: Vec<String> =
-            text_wrap::wrap_text(&text, font, SENDER_FONT_SIZE, SENDER_FONT_SPACING, max_width);
-        SystemLine { wrapped_lines }
+        let suffix: String = format!("| {absolute} ({relative})");
+        let single_line: String = format!("{body} {suffix}");
+
+        let single_measure: Vector2 = font.measure_text(&single_line, SENDER_FONT_SIZE, SENDER_FONT_SPACING);
+        if single_measure.x <= max_width {
+            return SystemLines { wrapped_lines: vec![single_line] };
+        }
+
+        // Oversized: put the timestamp suffix on its own line and wrap only the body half.
+        // The suffix is fixed-form and assumed to fit on a single line.
+        let mut wrapped_lines: Vec<String> =
+            text_wrap::wrap_text(&body, font, SENDER_FONT_SIZE, SENDER_FONT_SPACING, max_width);
+        wrapped_lines.push(suffix);
+        SystemLines { wrapped_lines }
     }
 
     fn member_joined(change: &ConversationMemberChange, font: &WeakFont, max_width: f32) -> Self {
-        SystemLine::new(format!("{} joined", format_username(change.account_id)), change.timestamp, font, max_width)
+        SystemLines::new(format!("{} joined", format_username(change.account_id)), change.timestamp, font, max_width)
     }
 
     fn member_left(change: &ConversationMemberChange, font: &WeakFont, max_width: f32) -> Self {
-        SystemLine::new(format!("{} left", format_username(change.account_id)), change.timestamp, font, max_width)
+        SystemLines::new(format!("{} left", format_username(change.account_id)), change.timestamp, font, max_width)
     }
 
     fn height(&self) -> f32 {
@@ -250,7 +260,7 @@ fn draw_system_row(
     rl_draw: &mut impl RaylibDraw,
     viewport: Rectangle,
     top: f32,
-    row: &SystemLine,
+    row: &SystemLines,
     font: &WeakFont,
 ) {
     let mut line_y: f32 = top;
