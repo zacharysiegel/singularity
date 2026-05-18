@@ -50,10 +50,10 @@ impl RenderableEvent {
                 RenderableEvent::Message(WrappedMessage::new(message.clone(), font, max_width))
             }
             ConversationEvent::MemberJoined(change) => {
-                RenderableEvent::System(SystemRow::new(member_change_body("joined", change), change.timestamp))
+                RenderableEvent::System(SystemRow::member_joined(change))
             }
             ConversationEvent::MemberLeft(change) => {
-                RenderableEvent::System(SystemRow::new(member_change_body("left", change), change.timestamp))
+                RenderableEvent::System(SystemRow::member_left(change))
             }
         }
     }
@@ -94,14 +94,21 @@ impl SystemRow {
             text: format!("{body} | {absolute} ({relative})"),
         }
     }
+
+    fn member_joined(change: &ConversationMemberChange) -> Self {
+        SystemRow::new(format!("{} joined", username_or_id(change.account_id)), change.timestamp)
+    }
+
+    fn member_left(change: &ConversationMemberChange) -> Self {
+        SystemRow::new(format!("{} left", username_or_id(change.account_id)), change.timestamp)
+    }
 }
 
-fn member_change_body(verb: &str, change: &ConversationMemberChange) -> String {
-    let username: String = STATE
+fn username_or_id(account_id: Uuid) -> String {
+    STATE
         .account
-        .request_username(change.account_id)
-        .unwrap_or_else(|| change.account_id.to_string());
-    format!("{username} {verb}")
+        .request_username(account_id)
+        .unwrap_or_else(|| account_id.to_string())
 }
 
 pub fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle, conversation_id: Uuid) {
@@ -167,10 +174,7 @@ fn format_conversation_header(conversation: &Conversation) -> (String, String) {
 }
 
 fn format_sender_line(message: &ConversationMessage) -> String {
-    let sender_username: String = STATE
-        .account
-        .request_username(message.sender_account_id)
-        .unwrap_or_else(|| message.sender_account_id.to_string());
+    let sender_username: String = username_or_id(message.sender_account_id);
     let local_time: DateTime<Local> = message.created.with_timezone(&Local);
     let absolute: String = local_time.format("%b %-d %H:%M:%S").to_string();
     let relative: String = format_relative_time(message.created);
