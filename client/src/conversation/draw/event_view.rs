@@ -21,7 +21,7 @@ const MESSAGE_FONT_SPACING: f32 = 1.5;
 const SENDER_FONT_SIZE: f32 = 10.;
 const SENDER_FONT_SPACING: f32 = 1.;
 /// Vertical gap between consecutive wrapped lines within a single message body.
-const INTER_LINE_GAP: f32 = 4.;
+const WRAPPED_LINE_GAP: f32 = 4.;
 /// Vertical gap between consecutive same-sender messages within one bundle. Larger than
 /// the intra-message line gap (so message boundaries are visible) but smaller than the
 /// inter-bundle gap (so the visual grouping reads as "one speaker's turn").
@@ -81,7 +81,7 @@ impl MessageBundle {
         SENDER_FONT_SIZE
             + SENDER_TO_MESSAGE_GAP
             + MESSAGE_FONT_SIZE * total_lines as f32
-            + INTER_LINE_GAP * total_lines.saturating_sub(block_count) as f32
+            + WRAPPED_LINE_GAP * total_lines.saturating_sub(block_count) as f32
             + INTRA_BUNDLE_GAP * block_count.saturating_sub(1) as f32
     }
 }
@@ -122,7 +122,7 @@ impl SystemLines {
 
     fn height(&self) -> f32 {
         SENDER_FONT_SIZE * self.lines.len().max(1) as f32
-            + INTER_LINE_GAP * self.lines.len().saturating_sub(1) as f32
+            + WRAPPED_LINE_GAP * self.lines.len().saturating_sub(1) as f32
     }
 }
 
@@ -291,7 +291,7 @@ fn draw_message_bundle(
         }
         for (line_index, line) in block.iter().enumerate() {
             if line_index > 0 {
-                line_y += INTER_LINE_GAP;
+                line_y += WRAPPED_LINE_GAP;
             }
             let line_measure: Vector2 = font.measure_text(line, MESSAGE_FONT_SIZE, MESSAGE_FONT_SPACING);
             let line_x: f32 = if is_own { body_right - line_measure.x } else { body_left };
@@ -318,7 +318,7 @@ fn draw_system_row(
     let mut line_y: f32 = top;
     for (line_index, line) in row.lines.iter().enumerate() {
         if line_index > 0 {
-            line_y += INTER_LINE_GAP;
+            line_y += WRAPPED_LINE_GAP;
         }
         let measure: Vector2 = font.measure_text(line, SENDER_FONT_SIZE, SENDER_FONT_SPACING);
         let center_x: f32 = viewport.x + viewport.width / 2. - measure.x / 2.;
