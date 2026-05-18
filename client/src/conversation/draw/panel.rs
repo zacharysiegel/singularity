@@ -24,7 +24,7 @@ pub const DETAIL_FONT_SIZE: f32 = 10.;
 pub const UNNAMED_CONVERSATION_PLACEHOLDER: &str = "Unnamed";
 pub const DONUT_PLACEHOLDER_COLOR: Color = Color { r: 0xa0, g: 0xa0, b: 0xa0, a: 0xff };
 
-const PANEL_BACKGROUND_ALPHA: u8 = 0xE8;
+const PANEL_BACKGROUND_ALPHA: u8 = 0xF0;
 const TAB_MINI_CLOSE_BACKGROUND_X_THICKNESS: f32 = 1.5;
 
 pub fn draw(rl_draw: &mut RaylibDrawHandle, _rl_thread: &RaylibThread) {

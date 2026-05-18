@@ -50,8 +50,7 @@ pub struct NewConversationState;
 #[derive(Debug)]
 pub struct ConversationViewState {
     pub scroll_region: VerticalScrollRegion,
-    // Future: message_input: TextInput, unread_anchor: Option<DateTime<Utc>>,
-    // scrolled_to_bottom: bool, etc.
+    // Future: message_input: TextInput, unread_anchor: Option<DateTime<Utc>>
 }
 
 impl ConversationViewState {
