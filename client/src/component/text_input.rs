@@ -25,6 +25,18 @@ const CURSOR_THICKNESS: f32 = 2.;
 /// overhang on characters like "j" which extend slightly beyond their origin point.
 const GLYPH_OVERFLOW_MARGIN: f32 = 2.;
 
+/// Visual border treatment for a `TextInput`.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum TextInputBorderStyle {
+    /// All four sides. Standard text-field affordance.
+    All,
+    /// Only the bottom edge. Suitable for embedded inputs where the surrounding container
+    /// already provides side framing.
+    Underlined,
+    /// No border at all.
+    None,
+}
+
 #[derive(Debug)]
 pub struct TextInput {
     pub rectangle: Rectangle,
@@ -32,10 +44,14 @@ pub struct TextInput {
     pub focused: bool,
     pub hovered: bool,
     pub horizontal_padding: f32,
+    /// Extra reserved width on the trailing (right) edge beyond `horizontal_padding`. Use
+    /// when an adjacent overlay control (e.g. a send button) sits on top of the input's
+    /// right edge — text and cursor positioning will stop short of it.
+    pub trailing_inset: f32,
     pub on_submit: Option<fn(&str)>,
-    /// Whether to draw the rectangular border around the input. Disable when the input is
-    /// embedded in a parent that already provides its own framing.
-    pub show_border: bool,
+    pub border_style: TextInputBorderStyle,
+    /// Resting background color. Hover/focus states composite on top of this.
+    pub background_color: Color,
 
     /// Cursor position is expressed as character units from the start of the string
     cursor_position: usize,
@@ -174,8 +190,10 @@ impl Default for TextInput {
             focused: false,
             hovered: false,
             horizontal_padding: DEFAULT_HORIZONTAL_PADDING,
+            trailing_inset: 0.,
             on_submit: None,
-            show_border: true,
+            border_style: TextInputBorderStyle::All,
+            background_color: WINDOW_BACKGROUND_COLOR,
             cursor_position: 0,
             scroll_offset: 0.,
             last_input_at: Instant::now(),
@@ -204,19 +222,32 @@ impl TextInput {
     }
 
     pub fn draw(&self, rl_draw: &mut RaylibDrawHandle) {
-        let mut background_color: Color = WINDOW_BACKGROUND_COLOR;
+        let mut background_color: Color = self.background_color;
         if !self.focused && self.hovered {
             background_color = shared::math::color_add(&background_color, &DIFF_HOVER_BUTTON);
         }
         rl_draw.draw_rectangle_rec(self.rectangle, background_color);
 
-        if self.show_border {
-            let (border_color, border_thickness): (Color, f32) = if self.focused {
-                (WINDOW_BORDER_FOCUSED_COLOR, 1.)
-            } else {
-                (WINDOW_BORDER_COLOR, 1.)
-            };
-            rl_draw.draw_rectangle_lines_ex(self.rectangle, border_thickness, border_color);
+        let border_color: Color = if self.focused {
+            WINDOW_BORDER_FOCUSED_COLOR
+        } else {
+            WINDOW_BORDER_COLOR
+        };
+        let border_thickness: f32 = 1.;
+        match self.border_style {
+            TextInputBorderStyle::All => {
+                rl_draw.draw_rectangle_lines_ex(self.rectangle, border_thickness, border_color);
+            }
+            TextInputBorderStyle::Underlined => {
+                let bottom_y: f32 = self.rectangle.y + self.rectangle.height;
+                rl_draw.draw_line_ex(
+                    Vector2 { x: self.rectangle.x, y: bottom_y },
+                    Vector2 { x: self.rectangle.x + self.rectangle.width, y: bottom_y },
+                    border_thickness,
+                    border_color,
+                );
+            }
+            TextInputBorderStyle::None => {}
         }
 
         let content_x: f32 = self.rectangle.x + self.horizontal_padding;
@@ -273,7 +304,7 @@ impl TextInput {
     }
 
     fn inner_width(&self) -> f32 {
-        self.rectangle.width - self.horizontal_padding * 2.
+        self.rectangle.width - self.horizontal_padding * 2. - self.trailing_inset
     }
 
     fn clamp_scroll_to_cursor(&mut self, rl: &RaylibHandle) {

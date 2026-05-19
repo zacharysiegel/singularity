@@ -282,35 +282,30 @@ pub fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectan
     view_state.message_input.rectangle = message_input_rect;
     view_state.message_input.draw(rl_draw);
 
-    let footer_top_y: f32 = message_input_rect.y;
-    rl_draw.draw_line_ex(
-        Vector2 { x: content_body_rect.x, y: footer_top_y },
-        Vector2 { x: content_body_rect.x + content_body_rect.width, y: footer_top_y },
-        crate::component::frame::BORDER_THICKNESS,
-        WINDOW_INTERIOR_BORDER_COLOR,
-    );
-
     draw_send_button(rl_draw, send_button_rect, send_button_hovered);
 }
 
 fn draw_send_button(rl_draw: &mut impl RaylibDraw, rect: Rectangle, hovered: bool) {
-    use crate::component::frame::draw_rail_button_frame;
-    draw_rail_button_frame(rl_draw, rect, hovered);
+    if hovered {
+        let tint: raylib::color::Color = shared::math::color_add(&shared::color::WINDOW_BACKGROUND_COLOR, &shared::color::DIFF_HOVER_BUTTON);
+        rl_draw.draw_rectangle_rec(rect, tint);
+    }
     draw_send_arrow(rl_draw, rect, TEXT_COLOR);
 }
 
-/// A right-pointing chevron-style arrow centered in `bounds`. Three line segments meeting
-/// at the right midpoint: top-left to right-mid, right-mid to bottom-left, plus a horizontal
-/// shaft from the left edge into the meeting point.
+/// A right-pointing chevron-style arrow centered in `bounds`. The chevron arms (top-tip
+/// and bottom-tip diagonal segments) are shortened toward the tip relative to the shaft
+/// to give the arrow a sharper, swept profile.
 fn draw_send_arrow(rl_draw: &mut impl RaylibDraw, bounds: Rectangle, color: raylib::color::Color) {
-    let size: f32 = bounds.width.min(bounds.height) * 0.22;
+    let size: f32 = bounds.width.min(bounds.height) * 0.26;
     let cx: f32 = bounds.x + bounds.width / 2.;
     let cy: f32 = bounds.y + bounds.height / 2.;
     let thickness: f32 = 2.;
 
+    let arm_ratio: f32 = 0.8;
     let tip: Vector2 = Vector2 { x: cx + size, y: cy };
-    let top: Vector2 = Vector2 { x: cx, y: cy - size };
-    let bottom: Vector2 = Vector2 { x: cx, y: cy + size };
+    let top: Vector2 = Vector2 { x: cx + size * (1. - arm_ratio), y: cy - size * arm_ratio };
+    let bottom: Vector2 = Vector2 { x: cx + size * (1. - arm_ratio), y: cy + size * arm_ratio };
     let shaft_left: Vector2 = Vector2 { x: cx - size, y: cy };
 
     rl_draw.draw_line_ex(top, tip, thickness, color);

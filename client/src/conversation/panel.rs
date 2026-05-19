@@ -1,7 +1,10 @@
-use crate::component::text_input::TextInput;
+use crate::component::text_input::{TextInput, TextInputBorderStyle};
 use crate::component::vertical_scroll_region::VerticalScrollRegion;
+use crate::conversation::draw::PANEL_BACKGROUND_ALPHA;
 use crate::window::{BORDER_GAP, BUTTON_WIDTH};
+use raylib::color::Color;
 use raylib::math::Rectangle;
+use shared::color::WINDOW_BACKGROUND_COLOR;
 use std::collections::HashMap;
 use strum::EnumIter;
 use uuid::Uuid;
@@ -13,7 +16,10 @@ pub const CONTENT_PADDING: f32 = 10.;
 pub const RAIL_SEPARATOR_GAP: f32 = 6.;
 pub const TAB_MINI_CLOSE_SIZE: f32 = 12.;
 pub const TAB_MINI_CLOSE_MARGIN: f32 = 2.;
-pub const INPUT_FOOTER_HEIGHT: f32 = BUTTON_WIDTH;
+pub const INPUT_FOOTER_HEIGHT: f32 = 36.;
+pub const INPUT_FOOTER_BOTTOM_MARGIN: f32 = BORDER_GAP;
+pub const INPUT_FOOTER_TOP_MARGIN: f32 = 10.;
+pub const SEND_BUTTON_SIZE: f32 = 28.;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ChatTab {
@@ -61,7 +67,16 @@ impl ConversationViewState {
         let mut scroll_region: VerticalScrollRegion = VerticalScrollRegion::new(Rectangle::default(), CONTENT_PADDING);
         scroll_region.request_scroll_to_bottom();
         let mut message_input: TextInput = TextInput::new_empty(Rectangle::default());
-        message_input.show_border = false;
+        message_input.border_style = TextInputBorderStyle::Underlined;
+        message_input.background_color = Color {
+            r: WINDOW_BACKGROUND_COLOR.r.saturating_add(12),
+            g: WINDOW_BACKGROUND_COLOR.g.saturating_add(12),
+            b: WINDOW_BACKGROUND_COLOR.b.saturating_add(12),
+            a: PANEL_BACKGROUND_ALPHA,
+        };
+        // The send button overlays the input's trailing edge; reserve enough space so
+        // text/cursor stop short of it with a small visual gap.
+        message_input.trailing_inset = SEND_BUTTON_SIZE;
         ConversationViewState {
             scroll_region,
             message_input,
@@ -215,45 +230,44 @@ impl ChatPanel {
     }
 
     /// The content body rectangle for the conversation event view, leaving room for the
-    /// message input footer at the bottom.
+    /// message input footer at the bottom (footer height + bottom margin + top margin gap).
     pub fn event_body_rectangle(panel_rect: Rectangle) -> Rectangle {
         let body_rect: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
         Rectangle {
-            height: body_rect.height - INPUT_FOOTER_HEIGHT,
+            height: body_rect.height - INPUT_FOOTER_HEIGHT - INPUT_FOOTER_BOTTOM_MARGIN - INPUT_FOOTER_TOP_MARGIN,
             ..body_rect
         }
     }
 
-    /// Footer area at the bottom of the panel content, holding the message input on the
-    /// left and the send button on the right (with no margin between them, mirroring the
-    /// rail/window button design).
+    /// Footer area holding the input bar (input + overlaid send button). Left-inset by
+    /// `BUTTON_WIDTH + BORDER_GAP` so the bar mirrors the rail's footprint plus the gap
+    /// between the rail and the content body — the input ends up symmetrically inset from
+    /// both panel edges. Bottom margin provides breathing room from the panel's lower border.
     pub fn input_footer_rectangle(panel_rect: Rectangle) -> Rectangle {
         let body_rect: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
+        let left_margin: f32 = BUTTON_WIDTH + BORDER_GAP;
         Rectangle {
-            x: body_rect.x,
-            y: body_rect.y + body_rect.height - INPUT_FOOTER_HEIGHT,
-            width: body_rect.width,
+            x: body_rect.x + left_margin,
+            y: body_rect.y + body_rect.height - INPUT_FOOTER_HEIGHT - INPUT_FOOTER_BOTTOM_MARGIN,
+            width: body_rect.width - left_margin,
             height: INPUT_FOOTER_HEIGHT,
         }
     }
 
+    /// The full footer rectangle is the input's clickable/focusable area; the send button
+    /// is overlaid on top of the trailing edge inside the input's frame.
     pub fn message_input_rect(panel_rect: Rectangle) -> Rectangle {
-        let footer_rect: Rectangle = ChatPanel::input_footer_rectangle(panel_rect);
-        Rectangle {
-            x: footer_rect.x,
-            y: footer_rect.y,
-            width: footer_rect.width - BUTTON_WIDTH,
-            height: footer_rect.height,
-        }
+        ChatPanel::input_footer_rectangle(panel_rect)
     }
 
     pub fn send_button_rect(panel_rect: Rectangle) -> Rectangle {
         let footer_rect: Rectangle = ChatPanel::input_footer_rectangle(panel_rect);
+        let inset: f32 = (footer_rect.height - SEND_BUTTON_SIZE) / 2.;
         Rectangle {
-            x: footer_rect.x + footer_rect.width - BUTTON_WIDTH,
-            y: footer_rect.y,
-            width: BUTTON_WIDTH,
-            height: BUTTON_WIDTH,
+            x: footer_rect.x + footer_rect.width - SEND_BUTTON_SIZE - inset,
+            y: footer_rect.y + inset,
+            width: SEND_BUTTON_SIZE,
+            height: SEND_BUTTON_SIZE,
         }
     }
 }
