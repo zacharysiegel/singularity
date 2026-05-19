@@ -224,7 +224,7 @@ fn format_username(account_id: Uuid) -> String {
 
 pub fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle, conversation_id: Uuid) {
     let content_rect: Rectangle = ChatPanel::content_rectangle(panel_rect);
-    let content_body_rect: Rectangle = ChatPanel::event_body_rectangle(panel_rect);
+    let content_body_rect: Rectangle = ChatPanel::content_body_rectangle(panel_rect);
 
     let conversation_entry: Option<Ref<Uuid, Conversation>> = STATE.conversation.conversations.get(&conversation_id);
     let Some(conversation_entry) = conversation_entry else {
@@ -277,12 +277,14 @@ pub fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectan
         }
     });
 
-    let message_input_rect: Rectangle = ChatPanel::message_input_rect(panel_rect);
+    let message_input_rect: Rectangle = ChatPanel::footer_rectangle(panel_rect);
     let send_button_rect: Rectangle = ChatPanel::send_button_rect(panel_rect);
     view_state.message_input.rectangle = message_input_rect;
-    view_state.message_input.draw(rl_draw);
-
-    draw_send_button(rl_draw, send_button_rect, send_button_hovered);
+    let message_input: &crate::component::text_input::TextInput = &view_state.message_input;
+    crate::conversation::draw::draw_footer(rl_draw, panel_rect, |scissor_draw| {
+        message_input.draw(scissor_draw);
+        draw_send_button(scissor_draw, send_button_rect, send_button_hovered);
+    });
 }
 
 fn draw_send_button(rl_draw: &mut impl RaylibDraw, rect: Rectangle, hovered: bool) {

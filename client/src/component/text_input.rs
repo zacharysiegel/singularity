@@ -6,7 +6,7 @@ use crate::input::{
 use raylib::RaylibHandle;
 use raylib::color::Color;
 use raylib::consts::KeyboardKey;
-use raylib::drawing::{RaylibDraw, RaylibDrawHandle, RaylibScissorModeExt};
+use raylib::drawing::{RaylibDraw, RaylibScissorModeExt};
 use raylib::math::{Rectangle, Vector2};
 use raylib::text::{RaylibFont, WeakFont};
 use shared::color::{DIFF_HOVER_BUTTON, WINDOW_BACKGROUND_COLOR, WINDOW_BORDER_COLOR, WINDOW_BORDER_FOCUSED_COLOR};
@@ -221,7 +221,7 @@ impl TextInput {
         self.reset_cursor_blink();
     }
 
-    pub fn draw(&self, rl_draw: &mut RaylibDrawHandle) {
+    pub fn draw(&self, rl_draw: &mut impl RaylibDraw) {
         let mut background_color: Color = self.background_color;
         if !self.focused && self.hovered {
             background_color = shared::math::color_add(&background_color, &DIFF_HOVER_BUTTON);
@@ -254,6 +254,7 @@ impl TextInput {
         let scissor_x: f32 = content_x - GLYPH_OVERFLOW_MARGIN;
         let scissor_width: i32 = (self.inner_width() + GLYPH_OVERFLOW_MARGIN * 2.) as i32;
         let text_y: f32 = self.rectangle.y + (self.rectangle.height - self.text.font_size) / 2.;
+        let font: WeakFont = unsafe { WeakFont::from_raw(raylib::ffi::GetFontDefault()) };
 
         rl_draw.draw_scissor_mode(
             scissor_x as i32,
@@ -264,7 +265,7 @@ impl TextInput {
                 let text_x: f32 = content_x - self.scroll_offset;
 
                 scissor_draw.draw_text_ex(
-                    scissor_draw.get_font_default(),
+                    &font,
                     &self.text.content,
                     Vector2 { x: text_x, y: text_y },
                     self.text.font_size,
@@ -273,7 +274,7 @@ impl TextInput {
                 );
 
                 if self.cursor_visible() && self.focused {
-                    let cursor_x: f32 = text_x + self.cursor_offset(scissor_draw.get_font_default());
+                    let cursor_x: f32 = text_x + self.cursor_offset(&font);
                     let cursor_top: Vector2 = Vector2 { x: cursor_x, y: text_y };
                     let cursor_bottom: Vector2 = Vector2 { x: cursor_x, y: text_y + self.text.font_size };
                     scissor_draw.draw_line_ex(cursor_top, cursor_bottom, CURSOR_THICKNESS, self.text.color);
@@ -293,7 +294,7 @@ impl TextInput {
         position_in_cycle < visible_duration_ms
     }
 
-    fn cursor_offset(&self, font: WeakFont) -> f32 {
+    fn cursor_offset(&self, font: &WeakFont) -> f32 {
         let text_before_cursor: String = self.text.content.chars().take(self.cursor_position).collect();
         let text_measure: Vector2 = font.measure_text(&text_before_cursor, self.text.font_size, self.text.font_spacing);
         if self.cursor_position == 0 {
@@ -308,7 +309,7 @@ impl TextInput {
     }
 
     fn clamp_scroll_to_cursor(&mut self, rl: &RaylibHandle) {
-        let cursor_x: f32 = self.cursor_offset(rl.get_font_default());
+        let cursor_x: f32 = self.cursor_offset(&rl.get_font_default());
         let inner_width: f32 = self.inner_width();
 
         if cursor_x - self.scroll_offset > inner_width {

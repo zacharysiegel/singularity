@@ -286,3 +286,54 @@ pub fn draw_panel_header(rl_draw: &mut RaylibDrawHandle, content_rect: Rectangle
         WINDOW_INTERIOR_BORDER_COLOR,
     );
 }
+
+/// Renders the panel's footer scaffolding: clips a scissor over the footer rectangle,
+/// invokes `content` inside, then redraws the interior border line above the footer to
+/// repair any antialias artifacts where the scissor edge meets the divider.
+///
+/// Footer content (e.g. the message input + send button) is drawn through this so layout
+/// is uniform across views and overrun pixels can't bleed past the footer's top edge.
+pub fn draw_footer<F>(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectangle, content: F)
+where
+    F: FnOnce(&mut raylib::drawing::RaylibScissorMode<RaylibDrawHandle>),
+{
+    let footer_rect: Rectangle = ChatPanel::footer_rectangle(panel_rect);
+
+    // Wrap the FnOnce in an Option so we can consume it inside raylib's FnMut closure.
+    let mut content_slot: Option<F> = Some(content);
+    rl_draw.draw_scissor_mode(
+        footer_rect.x as i32,
+        footer_rect.y as i32,
+        footer_rect.width as i32,
+        footer_rect.height as i32,
+        |mut scissor_draw| {
+            if let Some(content) = content_slot.take() {
+                content(&mut scissor_draw);
+            }
+        },
+    );
+
+    // After the scissor closes, repair the interior border lines around the footer
+    // viewport so that any antialias bleed or overpaint from the content doesn't show:
+    //   - top divider above the footer
+    //   - left and right vertical interior borders, which the panel frame draws once at
+    //     the start but get overdrawn by the input's background within the footer area
+    rl_draw.draw_line_ex(
+        Vector2 { x: footer_rect.x, y: footer_rect.y },
+        Vector2 { x: footer_rect.x + footer_rect.width, y: footer_rect.y },
+        BORDER_THICKNESS,
+        WINDOW_INTERIOR_BORDER_COLOR,
+    );
+    rl_draw.draw_line_ex(
+        Vector2 { x: footer_rect.x, y: footer_rect.y },
+        Vector2 { x: footer_rect.x, y: footer_rect.y + footer_rect.height },
+        BORDER_THICKNESS,
+        WINDOW_INTERIOR_BORDER_COLOR,
+    );
+    rl_draw.draw_line_ex(
+        Vector2 { x: footer_rect.x + footer_rect.width, y: footer_rect.y },
+        Vector2 { x: footer_rect.x + footer_rect.width, y: footer_rect.y + footer_rect.height },
+        BORDER_THICKNESS,
+        WINDOW_INTERIOR_BORDER_COLOR,
+    );
+}
