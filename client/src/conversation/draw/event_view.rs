@@ -251,6 +251,7 @@ pub fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectan
         + INTER_BUNDLE_GAP * renderable_events.len().saturating_sub(1) as f32;
 
     let mut chat_panel: RwLockWriteGuard<ChatPanel> = STATE.conversation.chat_panel.write().unwrap();
+    let send_button_hovered: bool = chat_panel.send_button_hovered;
     let view_state: &mut ConversationViewState = chat_panel
         .conversation_view_states
         .get_mut(&conversation_id)
@@ -275,6 +276,43 @@ pub fn draw_conversation_view(rl_draw: &mut RaylibDrawHandle, panel_rect: Rectan
             entry_top += event.height() + INTER_BUNDLE_GAP;
         }
     });
+
+    let message_input_rect: Rectangle = ChatPanel::footer_rectangle(panel_rect);
+    let send_button_rect: Rectangle = ChatPanel::send_button_rect(panel_rect);
+    view_state.message_input.rectangle = message_input_rect;
+    let message_input: &crate::component::text_input::TextInput = &view_state.message_input;
+    crate::conversation::draw::draw_footer(rl_draw, panel_rect, |scissor_draw| {
+        message_input.draw(scissor_draw);
+        draw_send_button(scissor_draw, send_button_rect, send_button_hovered);
+    });
+}
+
+fn draw_send_button(rl_draw: &mut impl RaylibDraw, rect: Rectangle, hovered: bool) {
+    if hovered {
+        let tint: raylib::color::Color = shared::math::color_add(&shared::color::WINDOW_BACKGROUND_COLOR, &shared::color::DIFF_HOVER_BUTTON);
+        rl_draw.draw_rectangle_rec(rect, tint);
+    }
+    draw_send_arrow(rl_draw, rect, TEXT_COLOR);
+}
+
+/// A right-pointing chevron-style arrow centered in `bounds`. The chevron arms (top-tip
+/// and bottom-tip diagonal segments) are shortened toward the tip relative to the shaft
+/// to give the arrow a sharper, swept profile.
+fn draw_send_arrow(rl_draw: &mut impl RaylibDraw, bounds: Rectangle, color: raylib::color::Color) {
+    let size: f32 = bounds.width.min(bounds.height) * 0.26;
+    let cx: f32 = bounds.x + bounds.width / 2.;
+    let cy: f32 = bounds.y + bounds.height / 2.;
+    let thickness: f32 = 2.;
+
+    let arm_ratio: f32 = 0.8;
+    let tip: Vector2 = Vector2 { x: cx + size, y: cy };
+    let top: Vector2 = Vector2 { x: cx + size * (1. - arm_ratio), y: cy - size * arm_ratio };
+    let bottom: Vector2 = Vector2 { x: cx + size * (1. - arm_ratio), y: cy + size * arm_ratio };
+    let shaft_left: Vector2 = Vector2 { x: cx - size, y: cy };
+
+    rl_draw.draw_line_ex(top, tip, thickness, color);
+    rl_draw.draw_line_ex(tip, bottom, thickness, color);
+    rl_draw.draw_line_ex(shaft_left, tip, thickness, color);
 }
 
 fn format_conversation_header(conversation: &Conversation) -> (String, String) {

@@ -1,6 +1,10 @@
+use crate::component::text_input::{TextInput, TextInputBorderStyle};
 use crate::component::vertical_scroll_region::VerticalScrollRegion;
+use crate::conversation::draw::PANEL_BACKGROUND_ALPHA;
 use crate::window::{BORDER_GAP, BUTTON_WIDTH};
+use raylib::color::Color;
 use raylib::math::Rectangle;
+use shared::color::WINDOW_BACKGROUND_COLOR;
 use std::collections::HashMap;
 use strum::EnumIter;
 use uuid::Uuid;
@@ -12,6 +16,11 @@ pub const CONTENT_PADDING: f32 = 10.;
 pub const RAIL_SEPARATOR_GAP: f32 = 6.;
 pub const TAB_MINI_CLOSE_SIZE: f32 = 12.;
 pub const TAB_MINI_CLOSE_MARGIN: f32 = 2.;
+/// Height of the optional bottom footer strip. Always reserved in the panel layout (so
+/// content/rail dimensions don't shift when the footer becomes visible) but only rendered
+/// when the active tab opts in (currently just `Conversation(_)`).
+pub const FOOTER_HEIGHT: f32 = 36.;
+pub const SEND_BUTTON_SIZE: f32 = 28.;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ChatTab {
@@ -30,6 +39,7 @@ pub struct ChatPanel {
     pub hovered_conversation_tab: Option<usize>,
     pub hovered_conversation_tab_close: Option<usize>,
     pub hovered_tooltip: bool,
+    pub send_button_hovered: bool,
     pub conversation_list_state: ConversationListState,
     pub new_conversation_state: NewConversationState,
     /// Per-conversation view state for each open conversation tab. Entry is created when a
@@ -50,15 +60,29 @@ pub struct NewConversationState;
 #[derive(Debug)]
 pub struct ConversationViewState {
     pub scroll_region: VerticalScrollRegion,
-    // Future: message_input: TextInput, unread_anchor: Option<DateTime<Utc>>
+    pub message_input: TextInput,
 }
 
 impl ConversationViewState {
     pub fn new() -> Self {
         let mut scroll_region: VerticalScrollRegion = VerticalScrollRegion::new(Rectangle::default(), CONTENT_PADDING);
         scroll_region.request_scroll_to_bottom();
+
+        let mut message_input: TextInput = TextInput::new_empty(Rectangle::default());
+        message_input.border_style = TextInputBorderStyle::Underlined;
+        message_input.background_color = Color {
+            r: WINDOW_BACKGROUND_COLOR.r.saturating_add(12),
+            g: WINDOW_BACKGROUND_COLOR.g.saturating_add(12),
+            b: WINDOW_BACKGROUND_COLOR.b.saturating_add(12),
+            a: PANEL_BACKGROUND_ALPHA,
+        };
+        // The send button overlays the input's trailing edge; reserve enough space so
+        // text/cursor stop short of it with a small visual gap.
+        message_input.trailing_inset = SEND_BUTTON_SIZE;
+
         ConversationViewState {
             scroll_region,
+            message_input,
         }
     }
 }
@@ -84,6 +108,7 @@ impl ChatPanel {
             hovered_conversation_tab: None,
             hovered_conversation_tab_close: None,
             hovered_tooltip: false,
+            send_button_hovered: false,
             conversation_list_state: ConversationListState {
                 hovered_entry: None,
                 scroll_region: VerticalScrollRegion::new(Rectangle::default(), 0.),
@@ -174,26 +199,28 @@ impl ChatPanel {
 
     /// Clip rect for rendering conversation rail tabs. Spans the full panel inner width
     /// (so tooltips extending leftward into content area aren't clipped) and vertically
-    /// from below the rail separator to the panel's inner bottom.
+    /// from below the rail separator down to the top of the footer (whether or not the
+    /// footer is currently visible — the space is always reserved).
     pub fn rail_conversation_clip_rect(panel_rect: Rectangle) -> Rectangle {
         let list_rect: Rectangle = Self::rail_control_rect(panel_rect, RailControl::List);
         let top: f32 = list_rect.y + list_rect.height + RAIL_SEPARATOR_GAP;
+        let bottom: f32 = panel_rect.y + panel_rect.height - BORDER_GAP - FOOTER_HEIGHT;
         Rectangle {
             x: panel_rect.x + BORDER_GAP,
             y: top,
             width: panel_rect.width - BORDER_GAP * 2.,
-            height: panel_rect.y + panel_rect.height - BORDER_GAP - top,
+            height: bottom - top,
         }
     }
 
-    /// The area to the left of the rail buttons, inside the panel border. Used for rendering
-    /// conversation list entries, message views, etc.
+    /// The area to the left of the rail buttons, inside the panel border, above the footer.
+    /// Used for rendering conversation list entries, message views, etc.
     pub fn content_rectangle(panel_rect: Rectangle) -> Rectangle {
         Rectangle {
             x: panel_rect.x + BORDER_GAP,
             y: panel_rect.y + BORDER_GAP,
             width: panel_rect.width - BUTTON_WIDTH - BORDER_GAP * 3.,
-            height: panel_rect.height - BORDER_GAP * 2.,
+            height: panel_rect.height - BORDER_GAP * 2. - FOOTER_HEIGHT,
         }
     }
 
@@ -204,6 +231,28 @@ impl ChatPanel {
             y: content_rect.y + HEADER_HEIGHT,
             height: content_rect.height - HEADER_HEIGHT,
             ..content_rect
+        }
+    }
+
+    /// Bottom strip at the panel's inner edge, full inner width. Hosts the message input
+    /// when the active tab opts in. Sibling region to `content_rectangle` and the rail.
+    pub fn footer_rectangle(panel_rect: Rectangle) -> Rectangle {
+        Rectangle {
+            x: panel_rect.x + BORDER_GAP,
+            y: panel_rect.y + panel_rect.height - BORDER_GAP - FOOTER_HEIGHT,
+            width: panel_rect.width - BORDER_GAP * 2.,
+            height: FOOTER_HEIGHT,
+        }
+    }
+
+    pub fn send_button_rect(panel_rect: Rectangle) -> Rectangle {
+        let footer_rect: Rectangle = ChatPanel::footer_rectangle(panel_rect);
+        let inset: f32 = (footer_rect.height - SEND_BUTTON_SIZE) / 2.;
+        Rectangle {
+            x: footer_rect.x + footer_rect.width - SEND_BUTTON_SIZE - inset,
+            y: footer_rect.y + inset,
+            width: SEND_BUTTON_SIZE,
+            height: SEND_BUTTON_SIZE,
         }
     }
 }
