@@ -46,7 +46,7 @@ pub struct TextInput {
     pub horizontal_padding: f32,
     /// Extra reserved width on the trailing (right) edge beyond `horizontal_padding`. Use
     /// when an adjacent overlay control (e.g. a send button) sits on top of the input's
-    /// right edge — text and cursor positioning will stop short of it.
+    /// right edge. Text and cursor positioning will stop short of it.
     pub trailing_inset: f32,
     pub on_submit: Option<fn(&str)>,
     pub border_style: TextInputBorderStyle,

@@ -67,6 +67,7 @@ impl ConversationViewState {
     pub fn new() -> Self {
         let mut scroll_region: VerticalScrollRegion = VerticalScrollRegion::new(Rectangle::default(), CONTENT_PADDING);
         scroll_region.request_scroll_to_bottom();
+
         let mut message_input: TextInput = TextInput::new_empty(Rectangle::default());
         message_input.border_style = TextInputBorderStyle::Underlined;
         message_input.background_color = Color {
@@ -78,6 +79,7 @@ impl ConversationViewState {
         // The send button overlays the input's trailing edge; reserve enough space so
         // text/cursor stop short of it with a small visual gap.
         message_input.trailing_inset = SEND_BUTTON_SIZE;
+
         ConversationViewState {
             scroll_region,
             message_input,
